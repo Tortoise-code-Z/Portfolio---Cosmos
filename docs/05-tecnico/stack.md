@@ -83,6 +83,7 @@ GSAP y Lenis (el scroll lo resuelve un hook propio), librerías de i18n (diccion
 | Node 26 LTS (28-10-2026) | Todas las piezas declaran soporte para Node ≥ 22/24 | ADR de migración tras la v1 |
 | `@playwright/test` ↔ imagen Docker | La imagen debe ser **la misma versión** (`mcr.microsoft.com/playwright:v1.64.0-noble`) | Subirlas siempre juntas |
 | Finales de línea en Windows | Prettier usa LF; Git for Windows convierte a CRLF por defecto | `.gitattributes` con `* text=auto eol=lf` desde el primer commit |
+| Playwright en Windows | Windows Defender retiene archivos de Firefox y WebKit (`nss3.dll`, `icuin77.dll`…) y no arrancan | Excluir `%LOCALAPPDATA%\ms-playwright` en Defender y `npx playwright install --force firefox webkit` |
 
 ## Política de actualización
 
