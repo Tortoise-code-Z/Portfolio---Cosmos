@@ -2,7 +2,7 @@
 
 > Tokens y reglas visuales. Componentes en `componentes.md`; movimiento en `movimiento.md`.
 > En el código, los tokens viven como **variables CSS** en `src/styles/tokens.css` y se usan desde los
-> CSS Modules. Ningún componente usa un color, tamaño o duración literal: siempre un token.
+> CSS Modules. Ningún componente usa un color, tamaño, duración ni familia tipográfica literal: siempre un token.
 > Única excepción: las **variables privadas** de un componente, con prefijo `--_` (`--_progress`), que se definen
 > en su CSS Module o desde el código (`style={{ '--_progress': … }}`). Lo vigila `src/styles/styles.test.ts`.
 

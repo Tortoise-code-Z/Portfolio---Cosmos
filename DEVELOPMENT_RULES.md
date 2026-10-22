@@ -131,8 +131,9 @@ Para cambios pequeños y obvios, basta con lo esencial.
 
 ## 13. Cadena Taller/Mesa (auditorías en contexto separado)
 
-Activada en la sesión 2 en **modo piloto** (2 sesiones; después se decide si pasa a modo completo). Método general
-en las skills `taller` y `mesa`; aquí, solo lo propio del proyecto.
+Activada en la sesión 2 en **modo piloto** (2 sesiones) y en **modo completa** desde la sesión 4: auditorías a la
+Mesa y, solo cuando Víctor lo pide, estudio del paso siguiente en paralelo (como mucho dos encargos abiertos).
+Método general en las skills `taller` y `mesa`; aquí, solo lo propio del proyecto.
 
 ### Lo que las skills leen de cosmos-portfolio
 
