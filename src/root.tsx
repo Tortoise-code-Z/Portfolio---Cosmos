@@ -9,9 +9,30 @@ import {
   useLocation,
 } from 'react-router';
 
+import anybodyLatin from '@fontsource-variable/anybody/files/anybody-latin-standard-normal.woff2?url';
+import geologicaLatin from '@fontsource-variable/geologica/files/geologica-latin-wght-normal.woff2?url';
+
 import { localeFromPathname } from '~/lib/i18n/locale';
 
+import '~/styles/fonts.css';
+import '~/styles/tokens.css';
+import '~/styles/global.css';
+
 import type { Route } from './+types/root';
+
+/**
+ * Precarga las dos fuentes que pinta la primera pantalla (título display y texto), para que
+ * lleguen antes y el cambio de la fuente de reserva a la buena se note menos.
+ * Mismos archivos que `styles/fonts.css`: Vite los sirve una sola vez con el mismo hash.
+ */
+export const links: Route.LinksFunction = () =>
+  [anybodyLatin, geologicaLatin].map((href) => ({
+    rel: 'preload',
+    href,
+    as: 'font',
+    type: 'font/woff2',
+    crossOrigin: 'anonymous',
+  }));
 
 export function Layout({ children }: { readonly children: ReactNode }): ReactNode {
   const { pathname } = useLocation();
