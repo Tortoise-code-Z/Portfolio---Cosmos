@@ -94,6 +94,10 @@ Detalle en `docs/05-tecnico/calidad.md` y `docs/05-tecnico/git-y-despliegue.md`.
   con CI en verde; fusión squash.
 - **Conventional Commits en inglés**, pequeños y atómicos (`feat(scene): add turtle shape generator`).
 - Nunca se commitea código que no compila, tests rotos, `.env`, `node_modules`, `build/` ni informes.
+- **Claude prepara siempre los PR (preferencia de Víctor):** al terminar cada tarea entrega, listos para pegar en
+  GitHub, el **título** (formato Conventional Commits, en inglés) y la **descripción** en inglés con: qué cambia,
+  por qué (ADR si los hay), cómo probarlo, checklist de la definición de «hecho» y notas o deuda. También da los
+  comandos de commit y push. Víctor solo los copia y pega.
 
 ## 11. Definición de «hecho»
 
