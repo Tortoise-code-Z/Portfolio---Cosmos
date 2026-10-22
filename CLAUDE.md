@@ -33,6 +33,7 @@ Versiones exactas y conflictos → `docs/05-tecnico/stack.md`.
 - Roadmap: fases F0–F7 y tareas de Víctor → `docs/06-roadmap/roadmap.md`
 - Prototipo visual (referencia, no código a copiar) → `docs/referencia/prototipo-v0.1.html`
 - Decisiones (ADR) → `DECISIONS.md` · Estado → `STATE.md` · Reglas → `DEVELOPMENT_RULES.md`
+- Historial de cierres de sesión → `docs/_historial/estado/AAAA-MM.md` (consultar con `grep` si hace falta)
 
 Si dos documentos chocan: `DECISIONS.md` > `docs/00-vision/brief.md` > doc específico del tema > prototipo.
 

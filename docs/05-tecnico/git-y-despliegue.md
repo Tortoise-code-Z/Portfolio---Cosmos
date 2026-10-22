@@ -54,7 +54,11 @@ install (npm ci)
   `Referrer-Policy`, `X-Content-Type-Options`, `Permissions-Policy` restrictiva.
 - 404 real: la página `not-found` pre-renderizada se sirve con estado 404 (⚠ verificar la configuración exacta
   al preparar el despliegue).
-- Dominio: subdominio de Vercel hasta resolver D2 (dominio propio).
+- Variables en Vercel: `VITE_SITE_URL` en **Production, Preview y Development**, con «Sensitive» **apagado**
+  (las variables `VITE_` acaban en el cliente y Vercel no deja marcarlas como secretas). Sin ella en Preview, el
+  build de los PR falla a propósito.
+- Dominio: `https://cosmos-portfolio-two.vercel.app` (subdominio de Vercel; `cosmos-portfolio` ya estaba cogido)
+  hasta resolver D2 (dominio propio).
 
 ## Seguridad
 

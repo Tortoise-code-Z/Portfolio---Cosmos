@@ -98,6 +98,8 @@ Detalle en `docs/05-tecnico/calidad.md` y `docs/05-tecnico/git-y-despliegue.md`.
   GitHub, el **título** (formato Conventional Commits, en inglés) y la **descripción** en inglés con: qué cambia,
   por qué (ADR si los hay), cómo probarlo, checklist de la definición de «hecho» y notas o deuda. También da los
   comandos de commit y push. Víctor solo los copia y pega.
+- Si Claude cambia archivos **después** de dar los comandos de commit, lo avisa y vuelve a dar los comandos;
+  ningún commit con mensaje vacío o «.».
 
 ## 11. Definición de «hecho»
 
