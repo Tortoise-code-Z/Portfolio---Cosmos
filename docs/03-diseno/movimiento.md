@@ -20,9 +20,12 @@
 | `--dur-flight` | 800 ms | Vuelo de cámara a una placa |
 | `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Entradas y vuelos (salida exponencial) |
 | `--ease-in-out` | `cubic-bezier(0.65, 0, 0.35, 1)` | Fundidos simétricos |
+| `--dur-fade-base` | = `--dur-base` | Fundidos de opacidad de duración base |
+| `--dur-fade-slow` | = `--dur-slow` | Fundidos de opacidad lentos (avisos, diálogos) |
 
 Con `prefers-reduced-motion: reduce`, las duraciones de la interfaz pasan a 0 ms, salvo los fundidos de
-opacidad, que se quedan en 150 ms.
+opacidad, que se quedan en 150 ms. Se resuelve en `tokens.css`: los `--dur-*` pasan a `0ms` y los `--dur-fade-*`
+a `150ms`. Por eso **un fundido de opacidad usa siempre `--dur-fade-*`**, nunca `--dur-base` ni `--dur-slow`.
 
 ## Constantes de la experiencia (referencia; viven en el código como constantes con nombre)
 

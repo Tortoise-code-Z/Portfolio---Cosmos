@@ -26,9 +26,14 @@
 | `three` | 0.186.1 | Motor WebGL |
 | `@react-three/fiber` | 9.8.1 | Three.js declarativo en React (requiere React < 19.4) |
 | `zustand` | 5.0.15 | Store de interfaz y store mutable de la escena (lectura sin re-render en `useFrame`) |
-| `@fontsource-variable/anybody` | 5.3.0 | Fuente display autoalojada (usar `standard.css`, que incluye `wdth` y `wght` ⚠ verificar en env-init) |
-| `@fontsource-variable/geologica` | 5.3.0 | Fuente de texto autoalojada |
-| `@fontsource/ibm-plex-mono` | 5.3.0 | Fuente monoespaciada (solo 400 y 500, subconjunto latino) |
+| `@fontsource-variable/anybody` | 5.3.0 | Fuente display autoalojada: archivo `standard` (ejes `wdth` 50–150 y `wght` 100–900, verificado), 56,9 KB |
+| `@fontsource-variable/geologica` | 5.3.0 | Fuente de texto autoalojada: archivo `wght` (solo eje de grosor; el `standard` añade ejes que no usamos), 24,9 KB |
+| `@fontsource/ibm-plex-mono` | 5.3.0 | Fuente monoespaciada (solo 400 y 500), 14,7 + 14,9 KB |
+
+Fuentes: no se importan los CSS de Fontsource (traen cirílico, vietnamita, latin-ext…). `src/styles/fonts.css`
+declara sus propios `@font-face` con **solo el subconjunto latino** (cubre EN y ES) apuntando a los `.woff2` de
+los paquetes; Vite los copia con hash. Total: **111,4 KB** (presupuesto ≤ 150 KB, `calidad.md`). Si se sube la
+versión de un paquete, comprobar que los nombres de archivo no han cambiado (el build fallaría).
 
 **Lo que no se usa, a propósito:** `@react-three/drei` (lo que necesitamos son ~100 líneas propias),
 GSAP y Lenis (el scroll lo resuelve un hook propio), librerías de i18n (diccionarios tipados propios),
