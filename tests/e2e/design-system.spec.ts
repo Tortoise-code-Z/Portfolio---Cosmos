@@ -57,6 +57,29 @@ async function measureGutter(page: Page, width: number): Promise<string> {
   });
 }
 
+/**
+ * Abre la portada contando las peticiones de `.woff2` que salen a la red (no las entradas de Resource
+ * Timing: según el motor, una fuente precargada y luego usada puede dejar dos entradas aunque se
+ * descargue una sola vez) y los avisos de consola sobre precargas («preloaded but not used»).
+ */
+async function loadHomeWatchingFonts(
+  page: Page,
+): Promise<{ readonly fetched: string[]; readonly warnings: string[] }> {
+  const fetched: string[] = [];
+  const warnings: string[] = [];
+  page.on('console', (message) => {
+    if (message.type() === 'warning' && /preload/i.test(message.text()))
+      warnings.push(message.text());
+  });
+  await page.route('**/*.woff2', async (route) => {
+    fetched.push(new URL(route.request().url()).pathname);
+    await route.continue();
+  });
+  await page.goto('/');
+  await page.evaluate(() => document.fonts.ready);
+  return { fetched, warnings };
+}
+
 test.describe('design system foundations', () => {
   test('dark page background and color scheme come from the tokens', async ({ page }) => {
     await page.goto('/');
@@ -129,32 +152,41 @@ test.describe('design system foundations', () => {
     expect(widthRatio).toBeGreaterThanOrEqual(MIN_WIDTH_AXIS_RATIO);
   });
 
-  test('the two preloaded fonts come from the build and are fetched once', async ({ page }) => {
-    const warnings: string[] = [];
-    page.on('console', (message) => {
-      if (message.type() === 'warning' && /preload/i.test(message.text()))
-        warnings.push(message.text());
-    });
-    // Se cuentan las peticiones que salen a la red, no las entradas de Resource Timing: según el motor,
-    // una fuente precargada y luego usada puede dejar dos entradas aunque se descargue una sola vez.
-    const fetched: string[] = [];
-    await page.route('**/*.woff2', async (route) => {
-      fetched.push(new URL(route.request().url()).pathname);
-      await route.continue();
-    });
-    await page.goto('/');
-    await page.evaluate(() => document.fonts.ready);
-
+  test('the two preloaded fonts come from the build and are used', async ({ page }) => {
+    const { fetched } = await loadHomeWatchingFonts(page);
     const preloads = page.locator('link[rel="preload"][as="font"][type="font/woff2"][crossorigin]');
     await expect(preloads).toHaveCount(2);
     const preloaded = await preloads.evaluateAll((links) =>
       links.map((link) => new URL(link.getAttribute('href') ?? '', document.baseURI).pathname),
     );
-
+    // Archivos que piden los `@font-face`: una precarga que apunte a otro archivo no se aprovecha.
+    const declared = await page.evaluate(() =>
+      [...document.styleSheets]
+        .flatMap((sheet) => [...sheet.cssRules])
+        .filter((rule): rule is CSSFontFaceRule => rule instanceof CSSFontFaceRule)
+        .flatMap((rule) =>
+          [...rule.style.getPropertyValue('src').matchAll(/url\(\s*["']?([^"')]+)/g)].map(
+            (match) =>
+              new URL(match[1] ?? '', rule.parentStyleSheet?.href ?? document.baseURI).pathname,
+          ),
+        ),
+    );
     for (const path of preloaded) {
       expect(path).toMatch(/^\/assets\/.+\.woff2$/);
+      expect(declared).toContain(path);
       expect(fetched).toContain(path);
     }
+  });
+
+  test('each font file is downloaded once (the preload is reused)', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(
+      browserName === 'webkit',
+      'WebKit downloads preloaded fonts twice even with a matching preload (https://bugs.webkit.org/show_bug.cgi?id=194589)',
+    );
+    const { fetched, warnings } = await loadHomeWatchingFonts(page);
     expect(fetched, 'each .woff2 is requested once').toEqual([...new Set(fetched)]);
     expect(warnings).toEqual([]);
   });
