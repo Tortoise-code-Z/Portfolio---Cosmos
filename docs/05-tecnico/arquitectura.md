@@ -119,7 +119,7 @@ Regla: nada que cambie en cada frame pasa por estado de React.
 
 | Variable | Ejemplo | Uso |
 |---|---|---|
-| `VITE_SITE_URL` | `https://cosmos-portfolio.vercel.app` | URLs absolutas de canónica, hreflang, OG y sitemap |
+| `VITE_SITE_URL` | `https://cosmos-portfolio-two.vercel.app` | URLs absolutas de canónica, hreflang, OG y sitemap |
 
 - `.env.example` en el repo; `.env` fuera de git. No hay secretos en la v1.
 - Validación al arrancar el build: si `VITE_SITE_URL` falta o no es `https://`, el build falla con un mensaje claro.
