@@ -1,7 +1,8 @@
 # Textos del sitio (EN / ES)
 
-> Claves agrupadas por zona. En el código serán `src/content/ui/en.ts` y `es.ts` con las mismas claves.
-> `{x}` = valor que inserta la interfaz.
+> Claves agrupadas por zona. En el código, `src/content/texts/en.ts` y `es.ts`, con las mismas claves
+> (planas, tal cual) y los mismos huecos. `{x}` = valor que inserta la interfaz.
+> `about.body` no es una clave: solo indica que ese texto sale de `profile.bio`.
 
 ## SEO y metadatos
 

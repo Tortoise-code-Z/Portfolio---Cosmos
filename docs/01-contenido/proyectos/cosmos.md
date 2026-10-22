@@ -57,21 +57,26 @@
 | Works without WebGL and with reduced motion | Funciona sin WebGL y con movimiento reducido |
 | A page per project, pre-rendered for search engines | Una página por proyecto, pre-renderizada para buscadores |
 
-## Stack ⏳
+## Stack
 
-Se rellena desde `docs/05-tecnico/stack.md` cuando esté cerrado (React, TypeScript, React Three Fiber, GLSL,
-CSS Modules, Vitest, Playwright, GitHub Actions, Vercel…).
+Desde `docs/05-tecnico/stack.md` (sin versiones):
+
+- core: React, TypeScript, Three.js, React Three Fiber, GLSL
+- libraries: React Router, Zustand
+- design: CSS Modules, responsive design (EN: Responsive design · ES: Diseño responsive)
+- tooling: Vite, Vitest, Playwright, ESLint, Prettier, GitHub Actions, Vercel, Git, npm
 
 ## Process ⏳
 
-Borrador de los temas a contar cuando estén hechos (2–3 párrafos, EN y ES):
+Vacío en el contenido (`{ en: [], es: [] }`) hasta F6: la sección no se pinta. Borrador de los temas a contar
+cuando estén hechos (2–3 párrafos, EN y ES):
 - Prototipo en HTML para validar la idea → documentación por capítulos → construcción por fases.
 - Un único sistema de partículas que pasa de una forma a otra en el shader de vértices.
 - Separación entre contenido, lógica del scroll, escena 3D e interfaz DOM.
 
 ## Highlights ⏳
 
-Candidatos (se confirman con medidas reales):
+Vacío en el contenido (`[]`) hasta F6. Candidatos (se confirman con medidas reales):
 - Morph de decenas de miles de partículas a 60 fps en un portátil medio.
 - Contenido accesible e indexable con la escena como capa decorativa.
 - Presupuesto de rendimiento adaptado a cada dispositivo.
@@ -86,6 +91,8 @@ Candidatos (se confirman con medidas reales):
 `null`: la web ya es la demo.
 
 ## Imágenes ⏳
+
+`cover: null` y `gallery: []` en el contenido hasta tenerlas.
 
 Capturas de cada capítulo (EN) en escritorio y móvil, generadas al final de la fase de pulido.
 Cover provisional: la imagen para compartir del sitio (`assets.md`).
