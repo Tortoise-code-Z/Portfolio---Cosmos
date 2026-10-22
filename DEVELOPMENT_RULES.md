@@ -18,6 +18,12 @@ libre de errores evitables.
 
 No se salta por tener el código delante ni por parecer obvio. Una rama y un PR por tarea (`docs/06-roadmap/roadmap.md`).
 
+### 2.1 «En cristiano»
+
+Cada esquema (y cada entrega relevante) lleva, además del detalle técnico, un apartado **«En cristiano»**: qué se
+hace y para qué, explicado como a alguien que empieza, sin tecnicismos y con alguna comparación cotidiana si ayuda.
+Víctor decide el Visto Bueno entendiendo el paso, no solo leyéndolo.
+
 ## 3. Contexto en archivos
 
 - Al empezar: leer `CLAUDE.md`, `STATE.md` y estas reglas. Después, solo los docs del Mapa que toque el paso.
@@ -100,6 +106,8 @@ Detalle en `docs/05-tecnico/calidad.md` y `docs/05-tecnico/git-y-despliegue.md`.
   comandos de commit y push. Víctor solo los copia y pega.
 - Si Claude cambia archivos **después** de dar los comandos de commit, lo avisa y vuelve a dar los comandos;
   ningún commit con mensaje vacío o «.».
+- **Al abrir el PR, se pega siempre el título que da Claude.** Con varios commits, GitHub propone el nombre de la
+  rama («Feat/design tokens») y el squash usaría ese título en `main` (pasó con el PR #6).
 
 ## 11. Definición de «hecho»
 
@@ -120,3 +128,29 @@ Para pasos relevantes (arquitectura, configuración, funcionalidad con riesgo u 
 5. **Trade-offs:** alternativas descartadas, riesgos futuros, impacto en mantenimiento.
 
 Para cambios pequeños y obvios, basta con lo esencial.
+
+## 13. Cadena Taller/Mesa (auditorías en contexto separado)
+
+Activada en la sesión 2 en **modo piloto** (2 sesiones; después se decide si pasa a modo completo). Método general
+en las skills `taller` y `mesa`; aquí, solo lo propio del proyecto.
+
+### Lo que las skills leen de cosmos-portfolio
+
+- **Fuente de verdad:** `DECISIONS.md` > `docs/00-vision/brief.md` > doc específico del tema (Mapa de `CLAUDE.md`).
+  Al cerrar, cada decisión viva va a su doc del Mapa y, si cambia arquitectura, producto o método, a un ADR en
+  `DECISIONS.md`; lecciones y dudas, a `STATE.md`.
+- **Buzón:** `_claude/cadena/` (tablero, decisiones vivas, una carpeta por encargo, `hecho/AAAA-MM-DD/`). Fuera de
+  git con `.git/info/exclude` en el equipo de Víctor (no se añade a `.gitignore`).
+- **Zona horaria:** `Europe/Dublin`.
+- **Git:** lo ejecuta Víctor. Claude solo lee, con `--no-optional-locks` y sin `git status`.
+- **Comprobaciones antes de cada commit:** `npm run check` y build; `npm run e2e` si toca interfaz o estilos
+  (el CI lo repite en los tres navegadores).
+- **Zonas calientes:** por fase, en el tablero. F2: `src/styles/tokens.css`, `src/root.tsx`, `src/content/**`,
+  `src/lib/i18n/**`, `src/routes.ts`, `src/routes/**`.
+- **Ámbitos de auditoría** (un auditor por ámbito que toque el cambio): estilos e interfaz (fidelidad a
+  `docs/03-diseno`, accesibilidad, tokens, navegadores) · lógica y contenido (`lib`, `content`, `stores`, capas de
+  `arquitectura.md`) · escena 3D (desde F3: rendimiento, cero asignaciones por frame, determinismo) · tests (que
+  prueben lo que dicen, casos límite, sin fragilidad) · documentación y ADR (coherencia entre docs y con el código).
+- **No es hallazgo:** la deuda anotada en `STATE.md`, lo planificado para pasos o fases posteriores del roadmap y lo
+  que las decisiones vivas citadas en el encargo dan por decidido.
+- **Rama del cierre:** `docs/session-close-AAAA-MM-DD` (con sufijo `-2`, `-3`… si hay varias el mismo día).
