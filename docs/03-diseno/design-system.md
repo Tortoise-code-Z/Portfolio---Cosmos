@@ -1,0 +1,137 @@
+# Design system · fundamentos
+
+> Tokens y reglas visuales. Componentes en `componentes.md`; movimiento en `movimiento.md`.
+> En el código, los tokens viven como **variables CSS** en `src/styles/tokens.css` y se usan desde los
+> CSS Modules. Ningún componente usa un color, tamaño o duración literal: siempre un token.
+
+## Concepto
+
+**Instrumental y cósmico.** La interfaz se comporta como el panel de un instrumento de observación (etiquetas
+monoespaciadas, corchetes de esquina, líneas finas, cero bordes redondeados) sobre un universo que es lo único
+con color y brillo. La interfaz es sobria para que la escena sea la protagonista; el acento ámbar marca solo lo
+activo.
+
+## Tema
+
+- **Solo oscuro, a propósito.** Es un único mundo visual (el espacio). `color-scheme: dark` en `:root`, fondo
+  explícito y todos los colores definidos como tokens. No hay tema claro. → candidato a ADR.
+
+## Color
+
+### Interfaz
+
+| Token | Valor | Uso | Contraste sobre `--color-void` |
+|---|---|---|---|
+| `--color-void` | `#04050b` | Fondo de página y de la escena | — |
+| `--color-ink` | `#eef0f7` | Títulos y texto principal | 17,9 : 1 |
+| `--color-ink-soft` | `#cfd3e3` | Párrafos | 13,6 : 1 |
+| `--color-dim` | `#a4aac3` | Etiquetas, metadatos, texto secundario | 8,8 : 1 |
+| `--color-faint` | `rgb(238 240 247 / 0.16)` | Líneas finas, bordes, separadores | (no es texto) |
+| `--color-star` | `#ffc46b` | **Acento**: activo, foco, resaltados, enlaces al pasar | 12,9 : 1 |
+| `--color-aurora` | `#62e8cf` | Acento secundario: naturaleza, «Featured», disponibilidad | 13,5 : 1 |
+| `--color-veil` | `rgb(4 5 11 / 0.82)` | Fondo de los paneles sobre la escena | — |
+| `--color-flash` | `#fff4dc` | Destello del Big Bang | — |
+
+**Garantía de lectura:** el peor caso medido (texto sobre el velo encima de la zona más brillante de la escena)
+da `--color-dim` 5,9 : 1 y `--color-ink` > 10 : 1: todo el texto cumple AA.
+
+Reglas:
+- El ámbar es **el único** acento de estado (activo, foco, hover). El turquesa nunca indica estado.
+- Avisos de las páginas de proyecto: `info` con borde turquesa, `warning` con borde ámbar. Sin rojos.
+
+### Paleta de la escena (referencia; se definen como constantes del shader en `docs/04-escena/`)
+
+| Escena | Colores principales |
+|---|---|
+| Singularidad / destello | blanco cálido `#fff2d9`, azul hielo `#c7dbff` |
+| Nebulosa | magenta `#ff4291`, violeta `#8047ff`, turquesa `#24d9e0`, ámbar `#ff9947`, núcleo `#ffe6b8` |
+| Galaxia | núcleo `#ffd18c`, brazos `#618cff` con toques `#f273ff` |
+| Tortuga | caparazón `#1a998a`, bordes y placas `#ffa847`, bosque `#52f26b`, cuerpo `#38c7a3`, estela `#73bfff` |
+| Tierra | océano `#1247d9`, tierras `#47b852` / `#c79e5c`, nubes `#f2f7ff`, atmósfera `#599eff`, amanecer `#ff7326` |
+
+## Tipografía
+
+| Rol | Token | Familia | Uso |
+|---|---|---|---|
+| Display | `--font-display` | Anybody (variable `wdth` 50–150, `wght` 100–900) | Nombre del hero, títulos de capítulo, nombres de proyecto. Siempre en mayúsculas. |
+| Texto | `--font-body` | Geologica (variable 300–700) | Párrafos, botones de lectura, listas |
+| Datos | `--font-mono` | IBM Plex Mono 400/500 | Eyebrows, HUD, raíl, etiquetas, metadatos, botones de acción |
+
+Fallbacks: `"Arial Narrow", "Helvetica Neue", sans-serif` · `system-ui, -apple-system, "Segoe UI", sans-serif` ·
+`ui-monospace, "SFMono-Regular", Menlo, monospace`.
+
+### Escala
+
+| Token | Tamaño | Interlineado | Familia y ajustes |
+|---|---|---|---|
+| `--text-hero` | `clamp(3.6rem, 14vw, 12.5rem)` | 0.8 | Display 850, `wdth` variable (62 en reposo → 150), mayúsculas |
+| `--text-h1` | `clamp(2.4rem, 6vw, 4.6rem)` | 0.92 | Display 800, `wdth` 135 (títulos de página de proyecto) |
+| `--text-h2` | `clamp(2rem, 4.4vw, 3.4rem)` | 0.94 | Display 800, `wdth` 128, `text-wrap: balance` |
+| `--text-h3` | `clamp(1.4rem, 2.6vw, 1.9rem)` | 1 | Display 800, `wdth` 140 (nombres de proyecto) |
+| `--text-lead` | `1.0625rem` (17 px) | 1.55 | Body 400 |
+| `--text-body` | `1rem` (16 px) | 1.6 | Body 400; `strong` 600 |
+| `--text-small` | `0.8125rem` (13 px) | 1.5 | Body 400 |
+| `--text-label` | `0.75rem` (12 px) | 1.4 | Mono 400–500, mayúsculas, `letter-spacing: 0.14em` |
+| `--text-micro` | `0.6875rem` (11 px) | 1.3 | Mono 400, mayúsculas, `letter-spacing: 0.1em` |
+
+Reglas:
+- Ancho de lectura máximo **~62 caracteres** (`max-width: 62ch`).
+- Números alineados (`font-variant-numeric: tabular-nums`) en HUD, años y horas.
+- El eje `wdth` es la firma tipográfica: estrecho = energía contenida, ancho = expansión.
+- Los acentos de las mayúsculas (Í, É) necesitan aire: `padding-top: 0.14em` en el hero.
+
+## Espaciado
+
+Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--space-4` 16 · `--space-5` 24 ·
+`--space-6` 32 · `--space-7` 48 · `--space-8` 64 · `--space-9` 96.
+
+- Separación entre hermanos con `gap` (flex/grid), no con márgenes sueltos.
+- **Margen lateral de página:** `max(24px, env(safe-area-inset-*))` en escritorio; `max(16px, …)` por debajo de 520 px.
+
+## Layout
+
+| Token | Valor | Uso |
+|---|---|---|
+| `--bp-sm` | 520 px | Móvil pequeño → móvil |
+| `--bp-md` | 900 px | Móvil/tableta → escritorio (paneles *sticky*, raíl con texto) |
+| `--bp-lg` | 1280 px | Escritorio amplio |
+| `--panel-w` | 540 px | Panel de capítulo |
+| `--panel-w-wide` | 600 px | Panel de contacto |
+| `--read-w` | 720 px | Columna de la página de proyecto |
+| `--content-max` | 1200 px | Ancho máximo de galería y portada |
+
+(En CSS los breakpoints se escriben como valores en las media queries; los tokens documentan los números.)
+
+## Forma, bordes y profundidad
+
+- **Radio 0** en todo, salvo puntos y anillos (50 %). Es parte del lenguaje de instrumento.
+- Bordes: 1 px `--color-faint`; activo: 1 px `--color-star`.
+- Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
+  (`0 0 12px --color-star`).
+- Desenfoque de fondo (`backdrop-filter: blur(6px)`) solo en barra superior, pins y botones flotantes.
+
+## Capas (z-index)
+
+| Token | Valor | Capa |
+|---|---|---|
+| `--z-scene` | 0 | Lienzo WebGL |
+| `--z-glow` | 1 | Halo CSS de la singularidad |
+| `--z-flash` | 3 | Destello |
+| `--z-labels` | 4 | Etiquetas y pins proyectados |
+| `--z-content` | 5 | Capítulos y paneles |
+| `--z-chrome` | 15 | Raíl y HUD |
+| `--z-topbar` | 20 | Barra superior |
+| `--z-dialog` | 40 | Modo misión rápida y visor de galería |
+| `--z-toast` | 50 | Avisos (sin WebGL, sugerencia de idioma) |
+
+## Iconos
+
+- Conjunto mínimo de **SVG en línea** propios: flecha, enlace externo, copiar, cerrar, chevrones, GitHub,
+  LinkedIn, descarga. Trazo 1,5 px, tamaños 16 y 20 px, `currentColor`.
+- Decorativos con `aria-hidden="true"`; el botón lleva el texto o el `aria-label`.
+
+## Marca
+
+- **Logotipo:** la palabra `TORTOISE_CODE` en `--font-mono`, `letter-spacing: 0.16em`.
+- **Favicon:** un hexágono ámbar (una placa del caparazón) con un punto blanco en el centro (la singularidad).
+  Versión SVG + PNG 180 px para iOS.

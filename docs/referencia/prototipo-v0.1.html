@@ -1,0 +1,1039 @@
+<!doctype html>
+<!--
+  Prototipo v0.1 · Cosmos portfolio (21-10-2026)
+  Referencia VISUAL y DE COMPORTAMIENTO, no código para copiar.
+  Three.js r128 sin React, todo en un archivo. La implementación real sigue docs/04-escena y docs/05-tecnico.
+  Diferencias conocidas con la especificación: 3 constelaciones (la spec tiene 4), placas con etiquetas 2-4
+  (la spec usa 20-26), sin i18n, sin rutas de proyecto, sin uMotion para movimiento reducido.
+  Abrir con doble clic en el navegador (necesita internet para Three.js y las fuentes).
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}</style>
+<title>Tortoise_code Cosmos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,100..900&family=Geologica:wght@300..700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: escena WebGL fija detrás + capítulos de scroll con paneles-instrumento a la izquierda; raíl de navegación a la derecha, reloj cósmico abajo */
+:root {
+  --void: #04050b;
+  --ink: #eef0f7;
+  --dim: #959bb4;
+  --faint: rgba(238, 240, 247, 0.16);
+  --star: #ffc46b;
+  --aurora: #62e8cf;
+  --veil: rgba(4, 5, 11, 0.78);
+  --display: "Anybody", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --body: "Geologica", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--void); }
+body {
+  background: var(--void);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--void); }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--star); outline-offset: 3px; }
+
+#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+.no-gl body { background: radial-gradient(120% 80% at 70% 40%, #1b1440 0%, #070a1a 45%, var(--void) 80%); }
+.flash { position: fixed; inset: -10%; opacity: 0; pointer-events: none; z-index: 3;
+  background: radial-gradient(circle at 50% 50%, #ffffff 0%, #fff4dc 22%, rgba(255,196,120,.85) 42%, rgba(160,120,255,.35) 66%, rgba(4,5,11,0) 90%); }
+.core-glow {
+  position: fixed; left: 50%; top: 50%; width: 46vmin; height: 46vmin; margin: -23vmin 0 0 -23vmin;
+  border-radius: 50%; pointer-events: none; z-index: 1;
+  background: radial-gradient(circle, rgba(255,246,230,.55) 0%, rgba(255,196,107,.18) 22%, rgba(120,140,255,.06) 45%, transparent 68%);
+}
+
+/* ---------- Top bar ---------- */
+.topbar {
+  position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding-block: 18px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  pointer-events: none;
+}
+.topbar > * { pointer-events: auto; }
+.logo { font-family: var(--mono); font-size: 13px; letter-spacing: .16em; text-decoration: none; display: flex; align-items: baseline; gap: 10px; }
+.logo small { color: var(--dim); letter-spacing: .1em; font-size: 11px; }
+.top-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.top-actions a, .btn-fast {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+  text-decoration: none; padding: 8px 12px; background: transparent; border: 1px solid transparent; cursor: pointer;
+}
+.top-actions a:hover { color: var(--star); }
+.btn-fast { border-color: var(--faint); background: rgba(4,5,11,.5); backdrop-filter: blur(6px); }
+.btn-fast:hover { border-color: var(--star); color: var(--star); }
+
+/* ---------- Rail ---------- */
+.rail {
+  position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); top: 50%; transform: translateY(-50%);
+  z-index: 15; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px;
+}
+.rail button {
+  display: flex; align-items: center; justify-content: flex-end; gap: 12px; background: none; border: 0; cursor: pointer;
+  padding: 4px 0; text-align: right;
+}
+.rail .r-txt { display: flex; flex-direction: column; line-height: 1.15; opacity: .45; transition: opacity .3s; }
+.rail .r-txt b { font-weight: 500; font-size: 13px; }
+.rail .r-txt i { font-style: normal; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.rail .r-dot { width: 7px; height: 7px; border: 1px solid var(--ink); border-radius: 50%; transition: all .3s; flex: none; }
+.rail button:hover .r-txt, .rail button.on .r-txt { opacity: 1; }
+.rail button.on .r-dot { background: var(--star); border-color: var(--star); box-shadow: 0 0 12px var(--star); transform: scale(1.4); }
+
+/* ---------- HUD ---------- */
+.hud {
+  position: fixed; z-index: 15; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); right: max(24px, env(safe-area-inset-right, 0px));
+  font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim);
+  text-align: right; display: grid; gap: 2px; pointer-events: none;
+}
+.hud .clock { color: var(--ink); font-size: 13px; font-variant-numeric: tabular-nums; }
+.hud .clock span { color: var(--star); }
+
+/* ---------- Label layer ---------- */
+.labels { position: fixed; inset: 0; z-index: 4; pointer-events: none; overflow: hidden; }
+.lbl { position: absolute; left: 0; top: 0; will-change: transform, opacity; opacity: 0; }
+.lbl-star { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--dim); white-space: nowrap; padding: 6px 8px 6px 14px; transform-origin: 0 50%; transition: color .25s; cursor: default; }
+.lbl-star::before { content: ""; position: absolute; left: 0; top: 50%; width: 6px; height: 1px; background: currentColor; }
+.lbl-star.hot { color: var(--star); }
+.pin { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; cursor: pointer; }
+.pin .stem { position: absolute; left: 0; bottom: 0; width: 1px; height: 46px; background: linear-gradient(to top, var(--star), transparent); opacity: .7; }
+.pin .tag { position: absolute; left: -2px; bottom: 50px; padding: 4px 8px; border: 1px solid var(--faint); background: rgba(4,5,11,.6); backdrop-filter: blur(4px); transition: all .25s; }
+.pin.hot .tag { border-color: var(--star); color: var(--star); }
+
+/* ---------- Chapters ---------- */
+main { position: relative; z-index: 5; }
+.chapter {
+  position: relative; overflow: clip; display: flow-root;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
+.chapter[data-i="0"] { height: 150vh; }
+.chapter[data-i="1"] { height: 210vh; }
+.chapter[data-i="2"] { height: 220vh; }
+.chapter[data-i="3"] { height: 240vh; }
+.chapter[data-i="4"] { min-height: 130vh; padding-bottom: 12vh; }
+
+.panel {
+  position: sticky; top: 14vh; max-width: 540px; padding: 30px 30px 34px 30px; margin-top: 14vh;
+  background: radial-gradient(130% 100% at 25% 50%, var(--veil) 0%, rgba(4,5,11,.62) 55%, rgba(4,5,11,0) 100%);
+}
+.panel::before, .panel::after { content: ""; position: absolute; width: 14px; height: 14px; border-color: var(--star); border-style: solid; opacity: .8; }
+.panel::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.panel::after { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--star); margin: 0 0 14px; }
+.eyebrow span { color: var(--dim); }
+h2 {
+  font-family: var(--display); font-weight: 800; font-stretch: 128%; font-variation-settings: "wdth" 128;
+  text-transform: uppercase; font-size: clamp(2rem, 4.4vw, 3.4rem); line-height: .94; letter-spacing: -.005em;
+  margin: 0 0 20px; text-wrap: balance;
+}
+.panel p { margin: 0 0 14px; color: #cfd3e3; max-width: 62ch; }
+.panel p strong { color: var(--ink); font-weight: 600; }
+
+/* hero */
+.hero-inner { min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 12vh; gap: 22px; }
+.hero-kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--dim); margin: 0; }
+.hero-kicker b { color: var(--star); font-weight: 500; }
+h1 {
+  --w: 62;
+  font-family: var(--display); font-weight: 850; text-transform: uppercase;
+  font-stretch: calc(var(--w) * 1%); font-variation-settings: "wdth" var(--w);
+  font-size: clamp(3.6rem, 14vw, 12.5rem); line-height: .8; margin: 0; letter-spacing: -.01em;
+  white-space: nowrap; padding-top: .14em;
+}
+h1 .l2 { display: block; padding-left: .6em; }
+.hero-row { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 28px; }
+.hero-lead { margin: 0; max-width: 40ch; color: #cfd3e3; font-size: 17px; }
+.detonate {
+  --c: 0;
+  position: relative; display: inline-flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none;
+  border: 1px solid var(--faint); background: rgba(4,5,11,.55); padding: 12px 18px 12px 12px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+}
+.detonate:hover { border-color: var(--star); }
+.detonate .ring { width: 26px; height: 26px; border-radius: 50%; flex: none;
+  background: conic-gradient(var(--star) calc(var(--c) * 360deg), rgba(238,240,247,.15) 0);
+  -webkit-mask: radial-gradient(circle, transparent 9px, #000 10px); mask: radial-gradient(circle, transparent 9px, #000 10px); }
+.scroll-hint { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+
+/* about */
+.traits { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; padding: 0; list-style: none; }
+.traits li { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; padding: 6px 10px; border: 1px solid var(--faint); }
+.traits-label { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin-top: 22px; }
+
+/* skills */
+.groups { display: grid; gap: 14px; margin-top: 18px; }
+.group { padding: 10px 0 10px 14px; border-left: 1px solid var(--faint); transition: border-color .25s; }
+.group h3 { margin: 0 0 4px; font-family: var(--mono); font-weight: 500; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); transition: color .25s; }
+.group p { margin: 0; color: var(--ink); }
+.group.hot { border-color: var(--star); }
+.group.hot h3 { color: var(--star); }
+
+/* projects */
+.projects { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 4px; }
+.proj { padding: 14px 0 16px 14px; border-left: 1px solid var(--faint); transition: border-color .25s, background .25s; }
+.proj.hot { border-color: var(--star); background: linear-gradient(90deg, rgba(255,196,107,.08), transparent 80%); }
+.proj-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.proj h3 {
+  margin: 0; font-family: var(--display); font-weight: 800; font-stretch: 140%; font-variation-settings: "wdth" 140;
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem); text-transform: uppercase; line-height: 1;
+}
+.proj .yr { font-family: var(--mono); font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.proj .meta { font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; color: var(--dim); margin: 6px 0 10px; text-transform: uppercase; }
+.proj .meta em { font-style: normal; color: var(--aurora); }
+.proj .links { display: flex; gap: 16px; flex-wrap: wrap; }
+.proj .links a { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid var(--faint); padding-bottom: 2px; }
+.proj .links a:hover { color: var(--star); border-color: var(--star); }
+
+/* contact */
+.contact .panel { max-width: 600px; }
+.mail-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 18px 0 8px; }
+.mail { font-family: var(--display); font-weight: 700; font-stretch: 112%; font-variation-settings: "wdth" 112; font-size: clamp(1.05rem, 2.3vw, 1.5rem); user-select: all; word-break: break-all; }
+.copy { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; background: none; border: 1px solid var(--faint); padding: 7px 10px; cursor: pointer; }
+.copy:hover { border-color: var(--star); color: var(--star); }
+.socials { display: flex; gap: 18px; margin: 10px 0 0; flex-wrap: wrap; }
+.socials a { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid var(--faint); padding-bottom: 2px; }
+.socials a:hover { color: var(--star); border-color: var(--star); }
+.orbits { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 12px; }
+.orbits li { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; padding-top: 12px; border-top: 1px solid var(--faint); }
+.orbits b { font-weight: 600; }
+.orbits span { font-family: var(--mono); font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; text-align: right; }
+.orbits small { grid-column: 1 / -1; color: var(--dim); font-size: 13px; }
+.foot { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; color: var(--dim); margin-top: 28px; text-transform: uppercase; }
+
+/* ---------- Fast mode ---------- */
+.fast { position: fixed; inset: 0; z-index: 40; background: rgba(4,5,11,.96); overflow-y: auto; }
+.fast-inner { max-width: 980px; margin: 0 auto; padding-block: calc(28px + env(safe-area-inset-top, 0px)) 60px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+.fast-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 36px; }
+.fast-head .eyebrow { margin: 0; }
+.fast h2 { font-size: clamp(2rem, 5vw, 3.6rem); }
+.fast-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 36px 48px; }
+.fast-grid section { min-width: 0; }
+.fast h3 { font-family: var(--mono); font-weight: 500; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--star); margin: 0 0 12px; }
+.fast p, .fast li { color: #cfd3e3; }
+.fast ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.fast .proj { padding-left: 12px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .rail .r-txt { display: none; }
+  .rail { right: max(12px, env(safe-area-inset-right, 0px)); gap: 16px; }
+  .top-actions a { display: none; }
+  .panel { position: relative; top: auto; margin-top: 70vh; background: linear-gradient(180deg, rgba(4,5,11,0) 0%, var(--veil) 70px, var(--veil) 100%); padding: 70px 22px 28px; margin-right: 26px; }
+  .panel::before { top: 56px; }
+  .logo small { display: none; }
+  .hud { left: max(16px, env(safe-area-inset-left, 0px)); right: auto; text-align: left; }
+  .lbl-star { font-size: 10px; }
+}
+@media (max-width: 520px) {
+  .chapter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .topbar { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .hero-inner { padding-bottom: 16vh; }
+  .hud { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="core-glow" aria-hidden="true"></div>
+<div class="flash" aria-hidden="true"></div>
+<div class="labels" id="labels" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="logo" href="#inicio" data-go="0">TORTOISE_CODE <small>prototipo 0.1</small></a>
+  <div class="top-actions">
+    <a href="#proyectos" data-go="3">Proyectos</a>
+    <a href="#contacto" data-go="4">Contacto</a>
+    <button class="btn-fast" id="openFast" type="button">Modo misión rápida</button>
+  </div>
+</header>
+
+<nav aria-label="Capítulos">
+  <ol class="rail" id="rail">
+    <li><button type="button" data-go="0"><span class="r-txt"><b>Inicio</b><i>Singularidad</i></span><span class="r-dot"></span></button></li>
+    <li><button type="button" data-go="1"><span class="r-txt"><b>Sobre mí</b><i>Nebulosa</i></span><span class="r-dot"></span></button></li>
+    <li><button type="button" data-go="2"><span class="r-txt"><b>Habilidades</b><i>Galaxia</i></span><span class="r-dot"></span></button></li>
+    <li><button type="button" data-go="3"><span class="r-txt"><b>Proyectos</b><i>Tortuga cósmica</i></span><span class="r-dot"></span></button></li>
+    <li><button type="button" data-go="4"><span class="r-txt"><b>Contacto</b><i>Tierra</i></span><span class="r-dot"></span></button></li>
+  </ol>
+</nav>
+
+<div class="hud" aria-hidden="true">
+  <div class="clock" id="clock">t = 0 s</div>
+  <div id="scale">escala ≈ 10⁻³⁵ m</div>
+</div>
+
+<main>
+  <!-- 0 · Singularidad -->
+  <section class="chapter hero" data-i="0" id="inicio">
+    <div class="hero-inner">
+      <p class="hero-kicker"><b>Tortoise_code</b> · Frontend developer · React + TypeScript</p>
+      <h1 id="name"><span>Víctor</span><span class="l2">Pérez</span></h1>
+      <div class="hero-row">
+        <p class="hero-lead">Todo lo que existe empezó siendo un punto. Mi código también.</p>
+        <button class="detonate" id="detonate" type="button" aria-label="Mantén pulsado para detonar el Big Bang y empezar el viaje"><span class="ring"></span><span>Mantén pulsado para detonar</span></button>
+        <span class="scroll-hint">o haz scroll ↓</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1 · Nebulosa / Sobre mí -->
+  <section class="chapter" data-i="1" id="sobre-mi">
+    <div class="panel">
+      <p class="eyebrow">Sobre mí <span>· nebulosa · t ≈ 200 millones de años</span></p>
+      <h2>Una estrella que nace de la curiosidad</h2>
+      <p>Empecé a programar por mi cuenta en <strong>2022</strong>. Lo que era pura curiosidad por el código se convirtió en mi profesión al terminar mi formación Fullstack, con una nota de <strong>9,87 sobre 10</strong>.</p>
+      <p>Domino los dos lados del desarrollo, pero mi pasión es el <strong>frontend</strong>: convertir diseños complejos en interfaces precisas, cuidando la experiencia de quien usa la web.</p>
+      <p>Ahora sigo ampliando mi stack con React, TypeScript y Git, buscando soluciones limpias, escalables y visualmente atractivas.</p>
+      <div class="traits-label">Fortalezas</div>
+      <ul class="traits"><li>Trabajador</li><li>Comunicación</li><li>Perseverancia</li></ul>
+    </div>
+  </section>
+
+  <!-- 2 · Galaxia / Habilidades -->
+  <section class="chapter" data-i="2" id="habilidades">
+    <div class="panel">
+      <p class="eyebrow">Habilidades <span>· galaxia · t ≈ 1.000 millones de años</span></p>
+      <h2>Mi galaxia de herramientas</h2>
+      <p>Cada estrella es una tecnología que uso. Pasa el cursor por un grupo para encender su constelación.</p>
+      <div class="groups">
+        <div class="group" data-g="0"><h3>Desarrollo web</h3><p>HTML · CSS · JavaScript · TypeScript · PHP · MySQL · Apache</p></div>
+        <div class="group" data-g="1"><h3>Librerías y frameworks</h3><p>React + TypeScript · Tailwind · Bootstrap</p></div>
+        <div class="group" data-g="2"><h3>Herramientas</h3><p>Git · GitHub · Figma · Máquinas virtuales</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Tortuga / Proyectos -->
+  <section class="chapter" data-i="3" id="proyectos">
+    <div class="panel">
+      <p class="eyebrow">Proyectos <span>· tortuga cósmica · t = tiempo mítico</span></p>
+      <h2>Lo que llevo a cuestas</h2>
+      <p>Según el mito, una tortuga carga con el mundo. La mía carga con mis proyectos: cada placa iluminada del caparazón es uno.</p>
+      <ul class="projects">
+        <li class="proj" data-plate="2">
+          <div class="proj-top"><h3>Chessmate</h3><span class="yr">2025</span></div>
+          <div class="meta"><em>Destacado</em> · Frontend · privado · React · TypeScript · Git</div>
+          <div class="links">
+            <a href="https://tortoise-code-z.github.io/Chessmate-react/" target="_blank" rel="noopener">Demo</a>
+            <a href="https://github.com/Tortoise-code-Z/Chessmate-react" target="_blank" rel="noopener">Código</a>
+            <a href="https://portfolio-pink-psi-5fclt31av9.vercel.app/src/pages/ProjectDetail/index.html?id=1" target="_blank" rel="noopener">Detalles</a>
+          </div>
+        </li>
+        <li class="proj" data-plate="3">
+          <div class="proj-top"><h3>AstroHub</h3><span class="yr">2024</span></div>
+          <div class="meta">Fullstack · curso · HTML · CSS · JS · PHP · MySQL · Apache</div>
+          <div class="links">
+            <a href="https://github.com/Tortoise-code-Z/Astrohub" target="_blank" rel="noopener">Código</a>
+            <a href="https://portfolio-pink-psi-5fclt31av9.vercel.app/src/pages/ProjectDetail/index.html?id=3" target="_blank" rel="noopener">Detalles</a>
+          </div>
+        </li>
+        <li class="proj" data-plate="4">
+          <div class="proj-top"><h3>Portfolio web</h3><span class="yr">2025</span></div>
+          <div class="meta">Frontend · privado · HTML · CSS · JavaScript</div>
+          <div class="links">
+            <a href="https://tortoise-code-z.github.io/portfolio/" target="_blank" rel="noopener">Demo</a>
+            <a href="https://github.com/Tortoise-code-Z/portfolio" target="_blank" rel="noopener">Código</a>
+            <a href="https://portfolio-pink-psi-5fclt31av9.vercel.app/src/pages/ProjectDetail/index.html?id=2" target="_blank" rel="noopener">Detalles</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 4 · Tierra / Contacto -->
+  <section class="chapter contact" data-i="4" id="contacto">
+    <div class="panel">
+      <p class="eyebrow">Contacto <span>· tierra · t = 13.800 millones de años</span></p>
+      <h2>Aterrizaje</h2>
+      <p>Después de 13.800 millones de años, aquí estamos. Si tienes un proyecto o un equipo donde encaje, escríbeme.</p>
+      <div class="mail-row">
+        <span class="mail" id="mail">victorperez.brmte@passmail.com</span>
+        <button class="copy" type="button" data-copy="victorperez.brmte@passmail.com">Copiar</button>
+      </div>
+      <div class="socials">
+        <a href="https://github.com/Tortoise-code-Z" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.linkedin.com/in/v%C3%ADctor-p%C3%A9rez-developer" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+      <div class="traits-label">Órbitas completadas · formación</div>
+      <ul class="orbits">
+        <li><b>Curso de programación Fullstack</b><span>2023/24 · 948 h</span><small>Academia MasterD · nota 9,87 · HTML, CSS, JavaScript, PHP, MySQL, Apache, Git</small></li>
+        <li><b>Curso de React + TypeScript</b><span>2025 · 13 h</span><small>Academia Hola Mundo</small></li>
+      </ul>
+      <p class="foot">Víctor Pérez · Frontend Web Developer · 2026</p>
+    </div>
+  </section>
+</main>
+
+<div class="fast" id="fast" hidden role="dialog" aria-modal="true" aria-labelledby="fastTitle">
+  <div class="fast-inner">
+    <div class="fast-head">
+      <p class="eyebrow">Modo misión rápida <span>· todo en una página</span></p>
+      <button class="btn-fast" id="closeFast" type="button">Volver al viaje</button>
+    </div>
+    <h2 id="fastTitle">Víctor Pérez · Frontend developer</h2>
+    <div class="fast-grid">
+      <section>
+        <h3>Sobre mí</h3>
+        <p>Autodidacta desde 2022. Formación Fullstack (948 h, nota 9,87). Me centro en frontend: React, TypeScript y Git. Fortalezas: trabajo, comunicación y perseverancia.</p>
+        <h3 style="margin-top:24px">Contacto</h3>
+        <p><span class="mail">victorperez.brmte@passmail.com</span></p>
+        <div class="socials"><a href="https://github.com/Tortoise-code-Z" target="_blank" rel="noopener">GitHub</a><a href="https://www.linkedin.com/in/v%C3%ADctor-p%C3%A9rez-developer" target="_blank" rel="noopener">LinkedIn</a></div>
+      </section>
+      <section>
+        <h3>Proyectos</h3>
+        <ul>
+          <li class="proj"><div class="proj-top"><h3 style="color:var(--ink)">Chessmate</h3><span class="yr">2025</span></div><div class="meta"><em>Destacado</em> · React · TypeScript</div><div class="links"><a href="https://tortoise-code-z.github.io/Chessmate-react/" target="_blank" rel="noopener">Demo</a><a href="https://github.com/Tortoise-code-Z/Chessmate-react" target="_blank" rel="noopener">Código</a></div></li>
+          <li class="proj"><div class="proj-top"><h3 style="color:var(--ink)">AstroHub</h3><span class="yr">2024</span></div><div class="meta">Fullstack · PHP · MySQL</div><div class="links"><a href="https://github.com/Tortoise-code-Z/Astrohub" target="_blank" rel="noopener">Código</a></div></li>
+          <li class="proj"><div class="proj-top"><h3 style="color:var(--ink)">Portfolio web</h3><span class="yr">2025</span></div><div class="meta">HTML · CSS · JavaScript</div><div class="links"><a href="https://tortoise-code-z.github.io/portfolio/" target="_blank" rel="noopener">Demo</a><a href="https://github.com/Tortoise-code-Z/portfolio" target="_blank" rel="noopener">Código</a></div></li>
+        </ul>
+      </section>
+      <section>
+        <h3>Habilidades</h3>
+        <ul>
+          <li><b>Web:</b> HTML, CSS, JavaScript, TypeScript, PHP, MySQL, Apache</li>
+          <li><b>Librerías:</b> React + TypeScript, Tailwind, Bootstrap</li>
+          <li><b>Herramientas:</b> Git, GitHub, Figma, máquinas virtuales</li>
+        </ul>
+        <h3 style="margin-top:24px">Formación</h3>
+        <ul>
+          <li>Fullstack · MasterD · 2023/24 · 948 h · 9,87</li>
+          <li>React + TypeScript · Hola Mundo · 2025 · 13 h</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+
+  /* ---------------- DOM: chapters, nav, fast mode, copy ---------------- */
+  const chapters = $$(".chapter");
+  let tops = [], heights = [];
+  function measure() {
+    tops = chapters.map(c => c.offsetTop);
+    heights = chapters.map(c => c.offsetHeight);
+  }
+  measure();
+  addEventListener("resize", measure);
+  addEventListener("load", measure);
+  if (document.fonts) document.fonts.ready.then(measure);
+  if ("ResizeObserver" in window) new ResizeObserver(measure).observe($("main"));
+
+  function goTo(i) {
+    measure();
+    scrollTo({ top: tops[i] + (i === 0 ? 0 : 2), behavior: reduce ? "auto" : "smooth" });
+  }
+  $$("[data-go]").forEach(b => b.addEventListener("click", e => { e.preventDefault(); goTo(+b.dataset.go); }));
+
+  const fast = $("#fast");
+  $("#openFast").addEventListener("click", () => { fast.hidden = false; $("#closeFast").focus(); document.body.style.overflow = "hidden"; });
+  function closeFast() { fast.hidden = true; document.body.style.overflow = ""; $("#openFast").focus(); }
+  $("#closeFast").addEventListener("click", closeFast);
+  addEventListener("keydown", e => { if (e.key === "Escape" && !fast.hidden) closeFast(); });
+
+  $$("[data-copy]").forEach(b => b.addEventListener("click", () => {
+    const txt = b.dataset.copy;
+    const done = () => { b.textContent = "Copiado"; setTimeout(() => (b.textContent = "Copiar"), 1800); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents($("#mail")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Seleccionado"; setTimeout(() => (b.textContent = "Copiar"), 1800); };
+    try { navigator.clipboard.writeText(txt).then(done, fallback); } catch (e) { fallback(); }
+  }));
+
+  /* hover state shared with the scene */
+  const state = { group: -1, plate: 0, plateHover: false };
+  $$(".group").forEach(g => {
+    g.addEventListener("mouseenter", () => (state.group = +g.dataset.g));
+    g.addEventListener("mouseleave", () => (state.group = -1));
+  });
+  $$("#proyectos .proj").forEach(p => {
+    const on = () => { state.plate = +p.dataset.plate; state.plateHover = true; };
+    const off = () => { state.plateHover = false; };
+    p.addEventListener("mouseenter", on); p.addEventListener("mouseleave", off);
+    p.addEventListener("focusin", on); p.addEventListener("focusout", off);
+  });
+
+  /* ---------------- scroll → morph value m in [0,4] ---------------- */
+  const HOLD = [0.0, 0.52, 0.52, 0.55];
+  function targetM() {
+    const y = scrollY;
+    for (let i = 0; i < chapters.length - 1; i++) {
+      if (y < tops[i + 1]) {
+        const f = (y - tops[i]) / heights[i];
+        return i + smooth(HOLD[i], 1, f);
+      }
+    }
+    return chapters.length - 1;
+  }
+
+  /* ---------------- HUD ---------------- */
+  const rail = $$("#rail button");
+  const clockEl = $("#clock"), scaleEl = $("#scale");
+  const YEARS = [1e-44, 2e8, 1e9, null, 1.38e10];
+  const SCALES = ["escala ≈ 10⁻³⁵ m", "escala ≈ 20 años luz", "escala ≈ 100.000 años luz", "escala · 1 tortuga, tamaño mítico", "escala · 12.742 km de diámetro"];
+  function fmtYears(y) {
+    if (y < 3.2e-8) { const s = y * 3.156e7; const e = Math.round(Math.log10(Math.max(s, 1e-44))); return "t = 10<span>" + supNum(e) + "</span> s"; }
+    if (y < 1) return "t ≈ " + Math.round(y * 365) + " días";
+    if (y < 1e6) return "t ≈ " + Math.round(y).toLocaleString("es-ES") + " años";
+    return "t ≈ " + Math.round(y / 1e6).toLocaleString("es-ES") + " <span>millones de años</span>";
+  }
+  function supNum(n) { const m = { "-": "⁻", 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" }; return String(n).split("").map(c => m[c]).join(""); }
+  let lastHud = "";
+  function updateHud(m) {
+    const active = Math.round(m);
+    rail.forEach((b, i) => b.classList.toggle("on", i === active));
+    let html;
+    if (m < 0.004) html = "t = 0 s · <span>singularidad</span>";
+    else if (Math.abs(m - 3) < 0.5) html = "t = ∞ · <span>tiempo mítico</span>";
+    else {
+      let a, b, f;
+      if (m < 2) { a = Math.floor(m); b = a + 1; f = m - a; }
+      else if (m < 2.5) { a = 2; b = 2; f = 0; }
+      else { a = 4; b = 4; f = 0; }
+      const la = Math.log10(YEARS[a]), lb = Math.log10(YEARS[b]);
+      html = fmtYears(Math.pow(10, la + (lb - la) * f));
+    }
+    const sc = SCALES[active];
+    const key = html + sc;
+    if (key !== lastHud) { clockEl.innerHTML = html; scaleEl.textContent = sc; lastHud = key; }
+  }
+
+  /* ---------------- Hold to detonate ---------------- */
+  const det = $("#detonate");
+  let holding = false, charge = 0, fired = false, flashBoost = 0;
+  const startHold = e => { if (fired) return; holding = true; if (e && e.pointerId != null && e.currentTarget.setPointerCapture) { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {} } };
+  const endHold = () => { holding = false; };
+  det.addEventListener("pointerdown", startHold);
+  det.addEventListener("pointerup", endHold);
+  det.addEventListener("pointercancel", endHold);
+  det.addEventListener("keydown", e => { if ((e.key === " " || e.key === "Enter") && !e.repeat) { e.preventDefault(); startHold(); } });
+  det.addEventListener("keyup", e => { if (e.key === " " || e.key === "Enter") endHold(); });
+  det.addEventListener("click", e => e.preventDefault());
+  $(".hero").addEventListener("pointerdown", e => { if (e.target.closest("a,button")) return; startHold(); });
+  addEventListener("pointerup", endHold);
+  function detonate() {
+    fired = true; holding = false; flashBoost = reduce ? 0 : 1;
+    measure();
+    scrollTo({ top: tops[1] + 2, behavior: reduce ? "auto" : "smooth" });
+  }
+
+  const nameEl = $("#name"), glowEl = $(".core-glow"), flashEl = $(".flash"), canvas = $("#gl");
+
+  /* ---------------- WebGL ---------------- */
+  let renderer;
+  try {
+    if (!window.THREE) throw new Error("three missing");
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance" });
+  } catch (err) {
+    document.documentElement.classList.add("no-gl");
+    domOnlyLoop();
+    return;
+  }
+
+  const coarse = matchMedia("(pointer: coarse)").matches || innerWidth < 760;
+  const N = coarse ? 26000 : 62000;
+  const DPR = Math.min(devicePixelRatio || 1, coarse ? 1.5 : 2);
+  renderer.setPixelRatio(DPR);
+  renderer.setClearColor(0x04050b, 1);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 400);
+
+  const R = Math.random, TAU = Math.PI * 2;
+  const gauss = () => (R() + R() + R() + R() - 2) / 2;
+  const n3 = (x, y, z) => (Math.sin(x * 1.7 + Math.sin(y * 1.3 + z * 0.7) * 1.5) + Math.sin(y * 2.1 + Math.sin(z * 1.9 + x * 0.5) * 1.2) + Math.sin(z * 1.5 + Math.sin(x * 2.3 + y * 0.9) * 1.4)) / 3;
+  const fbm = (x, y, z) => (n3(x, y, z) + 0.5 * n3(x * 2.03, y * 2.03, z * 2.03) + 0.25 * n3(x * 4.1, y * 4.1, z * 4.1)) / 1.75;
+  function randDir() { const u = R() * 2 - 1, a = R() * TAU, s = Math.sqrt(1 - u * u); return [s * Math.cos(a), u, s * Math.sin(a)]; }
+
+  const pNeb = new Float32Array(N * 3), pGal = new Float32Array(N * 3), pTur = new Float32Array(N * 3), pEar = new Float32Array(N * 3), aR = new Float32Array(N * 4);
+
+  /* Nebula: noise-carved cloud + protostar with accretion disk */
+  for (let i = 0; i < N; i++) {
+    let x, y, z;
+    if (i < N * 0.07) {
+      if (R() < 0.4) { const d = randDir(), r = Math.pow(R(), 2) * 0.45; x = d[0] * r; y = d[1] * r; z = d[2] * r; }
+      else { const a = R() * TAU, r = 0.6 + R() * 1.3; x = Math.cos(a) * r; z = Math.sin(a) * r; y = gauss() * 0.06; }
+    } else {
+      let tries = 0;
+      do {
+        x = (R() * 2 - 1) * 7.5; y = (R() * 2 - 1) * 4.4; z = (R() * 2 - 1) * 5.2;
+        const d = Math.sqrt(x * x / 56 + y * y / 19.4 + z * z / 27);
+        tries++;
+        if (d > 1) continue;
+        const dens = fbm(x * 0.42 + 1.3, y * 0.42, z * 0.42 - 0.7) * 0.95 + (1 - d) * 0.5;
+        if (dens > 0.3 + R() * 0.28) break;
+      } while (tries < 80);
+    }
+    pNeb[i * 3] = x; pNeb[i * 3 + 1] = y; pNeb[i * 3 + 2] = z;
+  }
+
+  /* Galaxy: 3-arm spiral + bulge */
+  for (let i = 0; i < N; i++) {
+    let x, y, z;
+    if (R() < 0.15) { const d = randDir(), r = Math.pow(R(), 1.8) * 1.7; x = d[0] * r; y = d[1] * r * 0.55; z = d[2] * r; }
+    else {
+      const r = Math.pow(R(), 1.25) * 8 + 0.35, br = (i % 3) / 3 * TAU, sp = r * 0.62;
+      const sc = () => Math.pow(R(), 2.6) * (R() < 0.5 ? 1 : -1) * (0.35 + r * 0.14);
+      x = Math.cos(br + sp) * r + sc(); z = Math.sin(br + sp) * r + sc(); y = sc() * 0.45 * (1.2 - r / 8);
+    }
+    pGal[i * 3] = x; pGal[i * 3 + 1] = y; pGal[i * 3 + 2] = z;
+  }
+
+  /* Cosmic turtle: shell with hex plates, forest, head, flippers, tail, wake */
+  const AX = 2.7, AY = 1.3, AZ = 2.15, HEX = 0.95, S3 = Math.sqrt(3);
+  function hexCell(x, z) {
+    const q = (S3 / 3 * x - 1 / 3 * z) / HEX, r = (2 / 3 * z) / HEX;
+    let cx = q, cz = r, cy = -q - r;
+    let rx = Math.round(cx), rz = Math.round(cz), ry = Math.round(cy);
+    const dx = Math.abs(rx - cx), dz = Math.abs(rz - cz), dy = Math.abs(ry - cy);
+    if (dx > dy && dx > dz) rx = -ry - rz; else if (dy <= dz) rz = -rx - ry;
+    const px = HEX * S3 * (rx + rz / 2), pz = HEX * 1.5 * rz;
+    const lx = x - px, lz = z - pz;
+    const h = Math.max(Math.abs(lx), Math.abs(lx * 0.5 + lz * 0.866), Math.abs(lx * 0.5 - lz * 0.866)) / (HEX * 0.866);
+    return { q: rx, r: rz, h };
+  }
+  const PLATES = { "0,0": 2, "-1,0": 3, "1,0": 4 };
+  const plateTag = c => PLATES[c.q + "," + c.r] || 0;
+  function shellPoint() {
+    const v = R(), a = R() * TAU, s = Math.sqrt(1 - v * v), k = 1 - R() * 0.03;
+    return [AX * s * Math.cos(a) * k, AY * v * k, AZ * s * Math.sin(a) * k, v];
+  }
+  const trees = [];
+  while (trees.length < 30) {
+    const p = shellPoint(); if (p[3] < 0.3 || p[3] > 0.85) continue;
+    if (plateTag(hexCell(p[0], p[2]))) continue;
+    trees.push({ x: p[0], y: p[1], z: p[2], h: 0.32 + R() * 0.38, rad: 0.14 + R() * 0.1 });
+  }
+  const cut = [0.44, 0.48, 0.58, 0.65, 0.654, 0.834, 0.844];
+  for (let i = 0; i < N; i++) {
+    const f = i / N; let x, y, z, tag;
+    if (f < cut[0]) {
+      let p, c, tries = 0;
+      do { p = shellPoint(); c = hexCell(p[0], p[2]); tries++; } while (c.h < 0.8 && !plateTag(c) && R() < 0.5 && tries < 4);
+      x = p[0]; y = p[1]; z = p[2];
+      tag = plateTag(c) || (c.h > 0.82 || p[3] < 0.08 ? 1 : 0);
+    } else if (f < cut[1]) {
+      const a = R() * TAU, r = Math.sqrt(R()) * 0.94; x = Math.cos(a) * r * AX; z = Math.sin(a) * r * AZ; y = -0.06; tag = 14;
+    } else if (f < cut[2]) {
+      const t = trees[i % trees.length], h = Math.pow(R(), 0.8), a = R() * TAU, rr = (1 - h) * t.rad * Math.sqrt(R());
+      x = t.x + Math.cos(a) * rr; z = t.z + Math.sin(a) * rr; y = t.y + h * t.h; tag = 5;
+    } else if (f < cut[3]) {
+      const d = randDir(), k = 1 - R() * 0.05;
+      if (R() < 0.3) { x = 2.5 + d[0] * 0.55 * k; y = 0.22 + d[1] * 0.32 * k; z = d[2] * 0.38 * k; }
+      else { x = 3.15 + d[0] * 0.58 * k; y = 0.38 + d[1] * 0.38 * k; z = d[2] * 0.43 * k; }
+      tag = 6;
+    } else if (f < cut[4]) {
+      const s = R() < 0.5 ? 1 : -1; x = 3.52 + gauss() * 0.03; y = 0.55 + gauss() * 0.03; z = s * 0.28 + gauss() * 0.03; tag = 12;
+    } else if (f < cut[5]) {
+      const li = Math.floor((f - cut[4]) / (cut[5] - cut[4]) * 4); const front = li < 2, s = li % 2 ? 1 : -1;
+      let e1, e2; do { e1 = R() * 2 - 1; e2 = R() * 2 - 1; } while (e1 * e1 + e2 * e2 > 1);
+      if (front) { const o = 1.7 + (e1 + 1) * 1.1; z = s * o; x = 1.5 + e2 * 0.42 * (1 - (e1 + 1) * 0.25) - (o - 1.7) * 0.45; y = gauss() * 0.05 - (o - 1.7) * 0.08; }
+      else { const o = 1.6 + (e1 + 1) * 0.6; z = s * o; x = -1.7 + e2 * 0.35 * (1 - (e1 + 1) * 0.25) - (o - 1.6) * 0.5; y = gauss() * 0.05 - (o - 1.6) * 0.06; }
+      tag = 7 + li;
+    } else if (f < cut[6]) {
+      const t = R(), a = R() * TAU, rr = (1 - t) * 0.18 * Math.sqrt(R()); x = -2.55 - t * 0.75; y = -0.05 * t + Math.sin(a) * rr; z = Math.cos(a) * rr; tag = 11;
+    } else {
+      const d = R() * 7; x = -3 - d; y = gauss() * (0.2 + d * 0.12); z = gauss() * (0.3 + d * 0.16); tag = 13;
+    }
+    pTur[i * 3] = x; pTur[i * 3 + 1] = y; pTur[i * 3 + 2] = z;
+    aR[i * 4 + 1] = tag;
+  }
+
+  /* Earth: oceans, continents, clouds, atmosphere */
+  for (let i = 0; i < N; i++) {
+    const f = i / N; let d = randDir(), r = 3, tag = 0;
+    if (f < 0.74) {
+      const n = fbm(d[0] * 1.6 + 4.0, d[1] * 1.6, d[2] * 1.6 - 2.0);
+      tag = n > 0.1 ? 1 : 0;
+    } else if (f < 0.88) {
+      let tries = 0; do { d = randDir(); tries++; } while (fbm(d[0] * 2.4, d[1] * 3.2 + 7, d[2] * 2.4) < 0.05 && tries < 20);
+      r = 3.09; tag = 2;
+    } else { r = 3.12 + Math.pow(R(), 2) * 0.3; tag = 3; }
+    pEar[i * 3] = d[0] * r; pEar[i * 3 + 1] = d[1] * r; pEar[i * 3 + 2] = d[2] * r;
+    aR[i * 4 + 2] = tag;
+  }
+  for (let i = 0; i < N; i++) { aR[i * 4] = R(); aR[i * 4 + 3] = R(); }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(pNeb, 3));
+  geo.setAttribute("pGal", new THREE.BufferAttribute(pGal, 3));
+  geo.setAttribute("pTur", new THREE.BufferAttribute(pTur, 3));
+  geo.setAttribute("pEar", new THREE.BufferAttribute(pEar, 3));
+  geo.setAttribute("aR", new THREE.BufferAttribute(aR, 4));
+  geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 100);
+
+  const U = {
+    uM: { value: 0 }, uTime: { value: 0 }, uCharge: { value: 0 }, uPR: { value: DPR }, uPlate: { value: 0 },
+    uGrav: { value: reduce ? 0 : 1 }, uAspect: { value: innerWidth / innerHeight }, uMouse: { value: new THREE.Vector2(9, 9) }
+  };
+
+  const VERT = `
+attribute vec3 pGal; attribute vec3 pTur; attribute vec3 pEar; attribute vec4 aR;
+uniform float uM; uniform float uTime; uniform float uCharge; uniform float uPR; uniform float uPlate; uniform float uGrav; uniform float uAspect; uniform vec2 uMouse;
+varying vec3 vCol; varying float vA;
+vec3 rotY(vec3 p, float a){ float c = cos(a), s = sin(a); return vec3(c*p.x + s*p.z, p.y, -s*p.x + c*p.z); }
+float nz(vec3 p){ return (sin(p.x*1.7+sin(p.y*1.3+p.z*0.7)*1.5)+sin(p.y*2.1+sin(p.z*1.9+p.x*0.5)*1.2)+sin(p.z*1.5+sin(p.x*2.3+p.y*0.9)*1.4))/3.0; }
+void shape(float k, out vec3 P, out vec3 C, out float S, out float A){
+  if (k < 0.5) {
+    vec3 dir = normalize(position + vec3(0.0001));
+    float r = 0.025 + uCharge*0.5*aR.x;
+    r *= 1.0 + sin(uTime*45.0 + aR.w*60.0)*uCharge*0.3;
+    P = dir*r;
+    C = mix(vec3(1.0,0.92,0.78), vec3(0.78,0.86,1.0), aR.w);
+    S = 1.0 + uCharge*1.4; A = 0.2 + uCharge*0.2;
+  } else if (k < 1.5) {
+    vec3 p = rotY(position, uTime*0.018);
+    p += 0.06*vec3(sin(uTime*0.4+aR.x*40.0), cos(uTime*0.35+aR.w*40.0), sin(uTime*0.3+aR.x*25.0));
+    float n1 = nz(position*0.35);
+    float n2 = nz(position*0.5 + 3.0);
+    vec3 c = mix(vec3(0.5,0.28,1.0), vec3(1.0,0.26,0.55), smoothstep(-0.3,0.4,n1));
+    c = mix(c, vec3(0.14,0.85,0.88), smoothstep(0.15,0.7,n2));
+    c = mix(c, vec3(1.0,0.6,0.28), smoothstep(0.45,0.9,nz(position*0.8-2.0))*0.7);
+    float d = length(position);
+    c = mix(vec3(1.0,0.9,0.72)*1.8, c, smoothstep(0.25,2.0,d));
+    P = p; C = c*(0.7+0.6*aR.x); S = mix(1.0, 3.6, aR.w*aR.w); A = 0.5;
+  } else if (k < 2.5) {
+    vec3 p = rotY(pGal, uTime*0.035);
+    float rr = length(pGal.xz)/8.0;
+    vec3 arm = mix(vec3(0.38,0.55,1.0), vec3(0.95,0.45,1.0), step(0.84, aR.w));
+    C = mix(vec3(1.0,0.82,0.55)*1.5, arm, smoothstep(0.0,0.42,rr))*(0.65+0.7*aR.x);
+    P = p; S = 0.9 + aR.w*1.6; A = 0.6;
+  } else if (k < 3.5) {
+    vec3 p = pTur; float tag = aR.y; float fade = 1.0;
+    if (tag > 6.5 && tag < 10.5) {
+      float amt = max(abs(p.z) - 1.5, 0.0);
+      float ph = tag < 8.5 ? 0.0 : 3.14159;
+      p.y += sin(uTime*1.3 + ph)*0.42*amt;
+      p.x += cos(uTime*1.3 + ph)*0.16*amt;
+    }
+    if ((tag > 5.5 && tag < 6.5) || (tag > 11.5 && tag < 12.5)) p.y += sin(uTime*0.8)*0.06;
+    if (tag > 12.5 && tag < 13.5) {
+      float d0 = -3.0 - pTur.x;
+      float d1 = mod(d0 + uTime*0.8, 7.0);
+      float sc = (0.3 + d1)/(0.3 + d0);
+      p = vec3(-3.0 - d1, pTur.y*sc, pTur.z*sc);
+      p.y += sin(uTime + aR.x*20.0)*0.08;
+      fade = smoothstep(0.0, 0.6, d1)*(1.0 - smoothstep(4.0, 7.0, d1));
+    }
+    p = rotY(p, sin(uTime*0.25)*0.18);
+    p.y += sin(uTime*0.7)*0.15;
+    vec3 c = vec3(0.1,0.6,0.54); float s = 1.3 + aR.w*0.8; float a = 0.7;
+    if (tag > 0.5 && tag < 1.5) c = vec3(1.0,0.66,0.28);
+    else if (tag > 1.5 && tag < 4.5) {
+      c = vec3(0.95,0.72,0.38)*1.05;
+      if (abs(tag - uPlate) < 0.5) { c = vec3(1.0,0.93,0.78)*(2.0 + 0.6*sin(uTime*5.0)); s += 0.7; }
+    }
+    else if (tag > 4.5 && tag < 5.5) c = vec3(0.32,0.95,0.42);
+    else if (tag > 5.5 && tag < 11.5) c = vec3(0.22,0.78,0.64);
+    else if (tag > 11.5 && tag < 12.5) { c = vec3(2.0); s = 2.6; }
+    else if (tag > 12.5 && tag < 13.5) { c = vec3(0.45,0.75,1.0)*0.85; a = 0.55*fade; }
+    else if (tag > 13.5) c = vec3(0.8,0.55,0.28)*0.6;
+    P = p; C = c*(0.75+0.5*aR.x); S = s; A = a;
+  } else {
+    vec3 p = rotY(pEar, uTime*0.05);
+    float tag = aR.z;
+    vec3 n = normalize(p);
+    vec3 L = normalize(vec3(-0.72,0.3,-0.45));
+    float lam = dot(n, L);
+    float day = smoothstep(-0.12, 0.45, lam);
+    vec3 base = vec3(0.07,0.28,0.85);
+    if (tag > 0.5 && tag < 1.5) base = mix(vec3(0.28,0.72,0.32), vec3(0.78,0.62,0.36), aR.x);
+    else if (tag > 1.5 && tag < 2.5) base = vec3(0.95,0.97,1.0);
+    vec3 c = base*mix(0.04, 1.25, day);
+    float term = exp(-pow(lam*4.5, 2.0));
+    c += vec3(1.0,0.45,0.15)*term*(tag > 1.5 ? 0.9 : 0.45);
+    if (tag > 0.5 && tag < 1.5 && lam < -0.15 && aR.w > 0.8) c += vec3(1.0,0.72,0.35)*0.9;
+    float s = 1.2 + aR.w*0.6; float a = 0.75;
+    if (tag > 2.5) {
+      vec3 v = normalize(cameraPosition - p);
+      float fr = 1.0 - abs(dot(n, v));
+      c = vec3(0.35,0.62,1.0)*pow(fr, 2.5)*2.2*(0.25 + day) + vec3(1.0,0.5,0.2)*term*pow(fr, 2.0);
+      s = 2.2; a = 0.6;
+    }
+    P = p; C = c; S = s; A = a;
+  }
+}
+void main(){
+  float m = clamp(uM, 0.0, 3.999);
+  float k = floor(m);
+  float t = m - k;
+  float tt = smoothstep(0.0, 1.0, clamp((t - aR.x*0.25)/0.75, 0.0, 1.0));
+  vec3 PA; vec3 PB; vec3 CA; vec3 CB; float SA; float SB; float AA; float AB;
+  shape(k, PA, CA, SA, AA);
+  shape(k + 1.0, PB, CB, SB, AB);
+  vec3 P; vec3 C;
+  if (k < 0.5) {
+    float e = 1.0 - pow(2.0, -9.0*tt);
+    P = mix(PA, PB, e) + PB*sin(tt*3.14159)*0.55;
+    C = mix(vec3(1.0,0.95,0.85)*2.2, CB, smoothstep(0.05, 0.85, tt));
+  } else {
+    float mid = sin(tt*3.14159);
+    P = mix(PA, PB, tt) + vec3(sin(aR.x*31.0+uTime*0.5), cos(aR.w*29.0+uTime*0.4), sin(aR.w*23.0-uTime*0.3))*mid*1.1;
+    C = mix(CA, CB, tt);
+  }
+  float S = mix(SA, SB, tt);
+  vA = mix(AA, AB, tt);
+  vec4 mv = modelViewMatrix*vec4(P, 1.0);
+  gl_Position = projectionMatrix*mv;
+  gl_PointSize = min(S*uPR*(24.0/-mv.z), 48.0);
+  vec2 ndc = gl_Position.xy/gl_Position.w;
+  vec2 d = ndc - uMouse; d.x *= uAspect;
+  float f = exp(-dot(d, d)*14.0)*uGrav;
+  vec2 off = (vec2(-d.y, d.x)*1.3 + d*0.5)*f*0.22; off.x /= uAspect;
+  gl_Position.xy += off*gl_Position.w;
+  vCol = C*(1.0 + f*1.6);
+}`;
+  const FRAG = `
+varying vec3 vCol; varying float vA;
+void main(){ float d = length(gl_PointCoord - 0.5); if (d > 0.5) discard; float a = pow(1.0 - d*2.0, 1.8); gl_FragColor = vec4(vCol, a*vA); }`;
+
+  const mat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending });
+  const cloud = new THREE.Points(geo, mat);
+  cloud.frustumCulled = false;
+  scene.add(cloud);
+
+  /* Background stars (none exist before the Big Bang) */
+  const SN = coarse ? 2500 : 5000;
+  const sp = new Float32Array(SN * 3), sr = new Float32Array(SN);
+  for (let i = 0; i < SN; i++) { const d = randDir(), r = 70 + R() * 60; sp[i * 3] = d[0] * r; sp[i * 3 + 1] = d[1] * r; sp[i * 3 + 2] = d[2] * r; sr[i] = R(); }
+  const sg = new THREE.BufferGeometry();
+  sg.setAttribute("position", new THREE.BufferAttribute(sp, 3));
+  sg.setAttribute("aR", new THREE.BufferAttribute(sr, 1));
+  const SU = { uTime: U.uTime, uVis: { value: 0 }, uPR: U.uPR };
+  const stars = new THREE.Points(sg, new THREE.ShaderMaterial({
+    uniforms: SU, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending,
+    vertexShader: `attribute float aR; uniform float uTime; uniform float uPR; uniform float uVis; varying float vA; varying vec3 vC;
+      void main(){ vec4 mv = modelViewMatrix*vec4(position,1.0); gl_Position = projectionMatrix*mv;
+      gl_PointSize = (0.6 + aR*aR*2.2)*uPR; vA = uVis*(0.35 + 0.65*(0.5+0.5*sin(uTime*(0.6+aR*2.0) + aR*40.0)))*(0.3+aR*0.7);
+      vC = mix(vec3(0.75,0.82,1.0), vec3(1.0,0.85,0.65), step(0.7, fract(aR*13.0))); }`,
+    fragmentShader: `varying float vA; varying vec3 vC; void main(){ float d = length(gl_PointCoord-0.5); if(d>0.5) discard; gl_FragColor = vec4(vC, (1.0-d*2.0)*vA); }`
+  }));
+  stars.frustumCulled = false;
+  scene.add(stars);
+
+  /* Glow texture for constellation nodes and the sun */
+  const gc = document.createElement("canvas"); gc.width = gc.height = 128;
+  const gx = gc.getContext("2d"); const gr = gx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(0.18, "rgba(255,240,215,.8)"); gr.addColorStop(0.45, "rgba(255,200,140,.18)"); gr.addColorStop(1, "rgba(255,200,140,0)");
+  gx.fillStyle = gr; gx.fillRect(0, 0, 128, 128);
+  const glowTex = new THREE.CanvasTexture(gc);
+
+  /* Skill constellations, floating above the galaxy plane */
+  const CONST = [
+    { name: "Desarrollo web", stars: [["HTML", -3.5, 1.1, -4.5], ["CSS", -1.6, 1.4, -5.2], ["JavaScript", 0.2, 1.0, -3.8], ["TypeScript", 1.9, 1.3, -4.9], ["PHP", -2.4, 0.9, -2.6], ["MySQL", -0.7, 1.2, -1.6], ["Apache", 1.2, 1.0, -1.9]], links: [[0, 1], [1, 2], [2, 3], [0, 4], [4, 5], [5, 6], [2, 6]] },
+    { name: "Librerías", stars: [["Bootstrap", 3.2, 1.2, -2.6], ["Tailwind", 4.8, 1.0, -1.3], ["React + TS", 3.5, 1.5, 0.3]], links: [[0, 1], [1, 2], [2, 0]] },
+    { name: "Herramientas", stars: [["Git", 1.0, 1.1, 2.4], ["GitHub", 2.8, 1.3, 3.4], ["Figma", 3.9, 1.0, 4.0], ["Máquinas virtuales", 2.2, 0.9, 5.2]], links: [[0, 1], [1, 2], [1, 3]] }
+  ];
+  const labelsLayer = $("#labels");
+  const constObjs = CONST.map((c, gi) => {
+    const pts = new Float32Array(c.stars.length * 3);
+    c.stars.forEach((s, j) => { pts[j * 3] = s[1]; pts[j * 3 + 1] = s[2]; pts[j * 3 + 2] = s[3]; });
+    const ng = new THREE.BufferGeometry(); ng.setAttribute("position", new THREE.BufferAttribute(pts, 3));
+    const nodes = new THREE.Points(ng, new THREE.PointsMaterial({ map: glowTex, size: 0.9, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, opacity: 0 }));
+    const lp = [];
+    c.links.forEach(([a, b]) => { lp.push(...c.stars[a].slice(1), ...c.stars[b].slice(1)); });
+    const lg = new THREE.BufferGeometry(); lg.setAttribute("position", new THREE.BufferAttribute(new Float32Array(lp), 3));
+    const lines = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0xffd9a0, transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }));
+    scene.add(nodes); scene.add(lines);
+    const labels = c.stars.map(s => {
+      const el = document.createElement("div"); el.className = "lbl lbl-star"; el.textContent = s[0];
+      el.addEventListener("mouseenter", () => (state.group = gi)); el.addEventListener("mouseleave", () => (state.group = -1));
+      labelsLayer.appendChild(el);
+      return { el, v: new THREE.Vector3(s[1], s[2], s[3]) };
+    });
+    return { nodes, lines, labels, hot: 0 };
+  });
+
+  /* Plate pins on the turtle shell */
+  const PROJ_NAMES = { 2: "Chessmate", 3: "AstroHub", 4: "Portfolio" };
+  const pins = Object.entries(PLATES).map(([key, tag]) => {
+    const [q, r] = key.split(",").map(Number);
+    const x = HEX * S3 * (q + r / 2), z = HEX * 1.5 * r;
+    const y = AY * Math.sqrt(Math.max(0, 1 - (x / AX) ** 2 - (z / AZ) ** 2)) + 0.06;
+    const el = document.createElement("div"); el.className = "lbl pin";
+    el.innerHTML = '<span class="stem"></span><span class="tag">' + PROJ_NAMES[tag] + "</span>";
+    el.addEventListener("mouseenter", () => { state.plate = tag; state.plateHover = true; });
+    el.addEventListener("mouseleave", () => { state.plateHover = false; });
+    el.addEventListener("click", () => { const row = $('#proyectos .proj[data-plate="' + tag + '"]'); if (row) { row.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" }); const a = row.querySelector("a"); if (a) a.focus({ preventScroll: true }); } });
+    labelsLayer.appendChild(el);
+    return { el, tag, base: [x, y, z], v: new THREE.Vector3() };
+  });
+
+  /* Sun for the landing */
+  const sun = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffb070, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, opacity: 0 }));
+  sun.position.set(-2.6, 3.0, -5); sun.scale.set(9, 9, 1);
+  scene.add(sun);
+
+  /* Camera keyframes per stage */
+  const KEYS = [
+    { p: [0, 0, 14], t: [0, 0, 0] },
+    { p: [0, 1.5, 15.5], t: [0, 0, 0] },
+    { p: [0, 10, 11], t: [0, 0, 0] },
+    { p: [4.6, 5.4, 9.4], t: [0, 0.6, 0] },
+    { p: [0, 1.0, 10.5], t: [0, 0, 0] }
+  ];
+  let wide = innerWidth > 900;
+  function resize() {
+    const w = innerWidth, h = innerHeight; wide = w > 900;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    const base = Math.tan(27.5 * Math.PI / 180);
+    camera.fov = camera.aspect < 1.25 ? Math.min(100, 2 * Math.atan(base * 1.25 / camera.aspect) * 180 / Math.PI) : 55;
+    camera.updateProjectionMatrix();
+    U.uAspect.value = camera.aspect;
+  }
+  resize();
+  addEventListener("resize", resize);
+
+  /* Pointer → gravity well + parallax */
+  const mouse = { x: 9, y: 9, px: 0, py: 0, tx: 0, ty: 0 };
+  addEventListener("pointermove", e => {
+    const nx = e.clientX / innerWidth * 2 - 1, ny = -(e.clientY / innerHeight * 2 - 1);
+    mouse.tx = nx; mouse.ty = ny;
+    if (e.pointerType === "mouse") { mouse.x = nx; mouse.y = ny; }
+  });
+  document.addEventListener("pointerleave", () => { mouse.x = 9; mouse.y = 9; });
+
+  const camP = new THREE.Vector3(), camT = new THREE.Vector3(), tmp = new THREE.Vector3();
+  let mS = 0, last = performance.now(), time = 0, autoT = 0, autoIdx = 0;
+
+  function lerpKey(k, t, out, which) {
+    const a = KEYS[k][which], b = KEYS[Math.min(4, k + 1)][which];
+    out.set(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t);
+  }
+  function project(v, el, w, extra) {
+    tmp.copy(v).project(camera);
+    if (tmp.z > 1 || w < 0.01) { el.style.opacity = 0; el.style.pointerEvents = "none"; return; }
+    const x = (tmp.x * 0.5 + 0.5) * innerWidth, y = (-tmp.y * 0.5 + 0.5) * innerHeight;
+    el.style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px)" + (extra || "");
+    el.style.opacity = w;
+    el.style.pointerEvents = w > 0.6 ? "auto" : "none";
+  }
+
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now; time += dt;
+    const mT = targetM();
+    mS += (mT - mS) * Math.min(1, dt * (reduce ? 12 : 3.4));
+    if (Math.abs(mT - mS) < 1e-4) mS = mT;
+
+    /* charge + detonation */
+    if (mS < 0.05 && mT < 0.05) fired = false;
+    charge = clamp(charge + (holding && !fired ? dt / 1.5 : -dt * 1.8), 0, 1);
+    if (charge >= 1 && !fired) detonate();
+    det.style.setProperty("--c", charge.toFixed(3));
+    flashBoost = Math.max(0, flashBoost - dt * 1.6);
+
+    const bang = mS < 0.2 ? Math.sin(clamp(mS / 0.2, 0, 1) * Math.PI) : 0;
+    const fl = reduce ? 0 : Math.max(bang * 0.75, flashBoost * 0.95);
+    flashEl.style.opacity = fl.toFixed(3);
+    const shake = reduce ? 0 : fl * 9 + charge * 3;
+    canvas.style.transform = shake > 0.05 ? "translate(" + ((R() - 0.5) * shake).toFixed(1) + "px," + ((R() - 0.5) * shake).toFixed(1) + "px)" : "";
+    glowEl.style.opacity = ((1 - smooth(0, 0.12, mS)) * (0.55 + charge * 0.45)).toFixed(3);
+    glowEl.style.transform = "scale(" + (1 + charge * 1.6 + Math.sin(time * 2) * 0.04).toFixed(3) + ")";
+    const w = clamp(62 - charge * 14 + smooth(0, 0.35, mS) * 88, 48, 150);
+    nameEl.style.setProperty("--w", w.toFixed(1));
+    nameEl.style.letterSpacing = (mS * 0.25 - 0.01).toFixed(3) + "em";
+
+    /* uniforms */
+    U.uM.value = mS; U.uTime.value = time; U.uCharge.value = charge;
+    mouse.px += (mouse.tx - mouse.px) * Math.min(1, dt * 2); mouse.py += (mouse.ty - mouse.py) * Math.min(1, dt * 2);
+    U.uMouse.value.set(mouse.x, mouse.y);
+    SU.uVis.value = smooth(0.02, 0.4, mS);
+
+    /* camera */
+    const mm = clamp(mS, 0, 3.999), k = Math.floor(mm), t = smooth(0, 1, mm - k);
+    lerpKey(k, t, camP, "p"); lerpKey(k, t, camT, "t");
+    const SHIFT = [0, -3.4, -3.0, -2.2, -3.2];
+    const shiftX = wide ? SHIFT[k] + (SHIFT[Math.min(4, k + 1)] - SHIFT[k]) * t : 0;
+    const shiftY = 0;
+    camP.x += shiftX + mouse.px * 0.7; camP.y += shiftY + mouse.py * 0.45;
+    camT.x += shiftX; camT.y += shiftY;
+    camera.position.copy(camP); camera.lookAt(camT);
+    camera.updateMatrixWorld();
+
+    /* stage weights */
+    const wst = i => clamp(1 - Math.abs(mS - i) * 1.8, 0, 1);
+    const w2 = wst(2), w3 = wst(3), w4 = wst(4);
+
+    /* constellations */
+    $$(".group").forEach(g => g.classList.toggle("hot", +g.dataset.g === state.group));
+    constObjs.forEach((c, gi) => {
+      c.hot += ((state.group === gi ? 1 : 0) - c.hot) * Math.min(1, dt * 8);
+      c.nodes.material.opacity = w2 * (0.65 + c.hot * 0.35);
+      c.nodes.material.size = 0.9 + c.hot * 0.5;
+      c.lines.material.opacity = w2 * (0.22 + c.hot * 0.68);
+      c.labels.forEach(l => { project(l.v, l.el, w2 * (0.6 + c.hot * 0.4)); l.el.classList.toggle("hot", state.group === gi); });
+    });
+
+    /* plates: auto-cycle unless the visitor is pointing at one */
+    if (!state.plateHover) {
+      autoT += dt;
+      if (autoT > 2.6) { autoT = 0; autoIdx = (autoIdx + 1) % 3; }
+      state.plate = 2 + autoIdx;
+    } else autoT = 0;
+    U.uPlate.value = w3 > 0.2 ? state.plate : 0;
+    $$("#proyectos .proj").forEach(p => p.classList.toggle("hot", w3 > 0.2 && +p.dataset.plate === state.plate));
+    const yaw = Math.sin(time * 0.25) * 0.18, cy = Math.cos(yaw), sy = Math.sin(yaw), bob = Math.sin(time * 0.7) * 0.15;
+    pins.forEach(p => {
+      const [x, y, z] = p.base;
+      p.v.set(cy * x + sy * z, y + bob, -sy * x + cy * z);
+      project(p.v, p.el, w3);
+      p.el.classList.toggle("hot", state.plate === p.tag && w3 > 0.2);
+    });
+
+    sun.material.opacity = w4 * 0.95;
+    sun.scale.setScalar(9 + Math.sin(time * 0.8) * 0.4);
+
+    updateHud(mS);
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* Fallback loop without WebGL: keeps HUD, rail and detonation working */
+  function domOnlyLoop() {
+    let last2 = performance.now();
+    (function tick(now) {
+      const dt = Math.min(0.05, (now - last2) / 1000); last2 = now;
+      const m = targetM();
+      if (m < 0.05) fired = false;
+      charge = clamp(charge + (holding && !fired ? dt / 1.5 : -dt * 1.8), 0, 1);
+      if (charge >= 1 && !fired) detonate();
+      det.style.setProperty("--c", charge.toFixed(3));
+      glowEl.style.opacity = (1 - smooth(0, 0.12, m)) * 0.6;
+      updateHud(m);
+      requestAnimationFrame(tick);
+    })(last2);
+  }
+})();
+</script>
+</body>
+</html>

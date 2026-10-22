@@ -1,0 +1,68 @@
+# Calidad: tipado, lint, tests y presupuestos
+
+## TypeScript
+
+- `strict: true` + `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`,
+  `noFallthroughCasesInSwitch`, `verbatimModuleSyntax`, `isolatedModules`.
+- Tipos de retorno explícitos en funciones exportadas. Sin `any`; `unknown` + estrechamiento en los bordes.
+- Tipos generados de rutas con `react-router typegen` (forma parte de `npm run typecheck`).
+- Declaraciones para `*.glsl?raw` y para las importaciones de imagen con parámetros de `vite-imagetools`.
+
+## ESLint (config plana) + Prettier
+
+- `@eslint/js` recomendado + `typescript-eslint` `strictTypeChecked` y `stylisticTypeChecked`.
+- `react-hooks` (recomendado), `jsx-a11y` (strict).
+- `no-restricted-imports` por carpeta (reglas de capas de `arquitectura.md`).
+- `no-console` permitido solo `error` y `warn`.
+- `eslint-config-prettier` al final. Prettier: `printWidth 100`, comillas simples, `trailingComma all`,
+  `endOfLine lf`.
+
+## Scripts de `package.json`
+
+| Script | Qué hace |
+|---|---|
+| `dev` | Servidor de desarrollo |
+| `build` | Build + pre-renderizado + sitemap |
+| `preview` | Sirve el build localmente |
+| `typecheck` | `react-router typegen && tsc --noEmit` |
+| `lint` / `lint:fix` | ESLint |
+| `format` / `format:check` | Prettier |
+| `test` / `test:watch` / `test:coverage` | Vitest |
+| `e2e` | Playwright (recorridos) |
+| `visual` / `visual:update` | Capturas de regresión dentro del contenedor Docker de Playwright |
+| `lhci` | Lighthouse CI sobre `preview` |
+| `check` | `typecheck` + `lint` + `format:check` + `test` (lo mínimo antes de cada commit) |
+
+## Pirámide de tests
+
+| Nivel | Qué | Ejemplos |
+|---|---|---|
+| Unitarios (Vitest) | Toda la lógica pura | `mapM`, suavizado, cámara, proyección, generadores de formas, elección de nivel, formato del HUD, `i18n`, builders de SEO, asignación de placas |
+| Contenido (Vitest) | Invariantes del contenido | Reglas de `docs/01-contenido/modelo-de-datos.md`; paridad de claves EN/ES; skills ↔ posiciones de constelación |
+| Componentes (Vitest + Testing Library) | Comportamiento visible | `HoldButton` (teclado y puntero), `CopyButton` (éxito y fallo), `ChapterRail` (`aria-current`), `QuickMissionDialog` (foco y Esc), `LanguageSwitch` (conserva ancla), `SceneMount` (pasa a sin WebGL ante error) |
+| Extremo a extremo (Playwright) | Recorridos reales en Chromium, Firefox y WebKit | Recruiter: home → Projects → página de Chessmate → código; misión rápida; cambio de idioma; detonación; WebGL desactivado; movimiento reducido; 404 |
+| Regresión visual (Playwright + Docker) | Un estado por capítulo y por tamaño de referencia | Capturas en 1440×900 y 390×844, tolerancia de píxeles acordada |
+| Lighthouse CI | Rendimiento, accesibilidad, SEO | Presupuestos de abajo |
+
+**Cobertura mínima** (falla el CI por debajo): 90 % en `src/lib`, `src/content` y `src/scene/{shapes,math,config}`;
+70 % global de líneas.
+
+## Presupuestos (Lighthouse CI y tamaño)
+
+| Métrica | Límite |
+|---|---|
+| JS inicial (sin escena), gzip | ≤ 120 KB |
+| Chunk de la escena, gzip | ≤ 250 KB |
+| Fuentes (todas, woff2 subconjunto latino) | ≤ 150 KB |
+| LCP móvil (simulado) | < 2,5 s |
+| CLS | < 0,1 |
+| TBT | < 200 ms |
+| Lighthouse móvil | Performance ≥ 85 · Accessibility ≥ 95 · Best Practices ≥ 95 · SEO ≥ 95 |
+
+## Definición de «hecho» (por tarea)
+
+1. `npm run check` en verde y build correcto.
+2. Tests nuevos para el comportamiento añadido, incluidos los casos límite.
+3. Accesibilidad revisada (teclado, foco, lector) si toca interfaz.
+4. Auditoría con mirada fresca (`code-audit` o la Mesa) antes de cerrar la fase.
+5. `STATE.md` y, si aplica, `DECISIONS.md` y estos docs actualizados.

@@ -1,0 +1,14 @@
+# Finales de línea LF en todo el repo (Prettier usa LF; evita conflictos CRLF en Windows)
+* text=auto eol=lf
+
+# Binarios: sin conversión ni diff de texto
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.avif  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
