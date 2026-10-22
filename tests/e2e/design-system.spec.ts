@@ -135,6 +135,13 @@ test.describe('design system foundations', () => {
       if (message.type() === 'warning' && /preload/i.test(message.text()))
         warnings.push(message.text());
     });
+    // Se cuentan las peticiones que salen a la red, no las entradas de Resource Timing: según el motor,
+    // una fuente precargada y luego usada puede dejar dos entradas aunque se descargue una sola vez.
+    const fetched: string[] = [];
+    await page.route('**/*.woff2', async (route) => {
+      fetched.push(new URL(route.request().url()).pathname);
+      await route.continue();
+    });
     await page.goto('/');
     await page.evaluate(() => document.fonts.ready);
 
@@ -143,18 +150,12 @@ test.describe('design system foundations', () => {
     const preloaded = await preloads.evaluateAll((links) =>
       links.map((link) => new URL(link.getAttribute('href') ?? '', document.baseURI).pathname),
     );
-    const fetched = await page.evaluate(() =>
-      performance
-        .getEntriesByType('resource')
-        .map((entry) => new URL(entry.name).pathname)
-        .filter((path) => path.endsWith('.woff2')),
-    );
 
     for (const path of preloaded) {
       expect(path).toMatch(/^\/assets\/.+\.woff2$/);
       expect(fetched).toContain(path);
     }
-    expect(fetched.length).toBe(new Set(fetched).size);
+    expect(fetched, 'each .woff2 is requested once').toEqual([...new Set(fetched)]);
     expect(warnings).toEqual([]);
   });
 
