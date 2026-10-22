@@ -9,6 +9,13 @@
 ## Ramas y commits
 
 - `main` siempre desplegable y protegida: solo entra por PR con CI en verde.
+- Protección de `main` (regla clásica en Settings → Branches): PR obligatorio sin aprobaciones (trabajo en
+  solitario), rama al día y checks obligatorios `Typecheck · lint · format · tests`, `Build` y
+  `E2E (Chromium · Firefox · WebKit)`. El admin puede saltársela en una emergencia. ⚠ Los checks se identifican
+  por el `name` del job: si se renombra un job en `ci.yml`, hay que actualizar la regla o los PR se quedan
+  esperando un check que ya no existe.
+- Ajustes de PR: solo «squash merging» (mensaje por defecto: título del PR), «Always suggest updating pull
+  request branches» y borrado automático de la rama remota al fusionar.
 - Ramas cortas por tarea: `feat/…`, `fix/…`, `chore/…`, `docs/…`, `test/…`, `refactor/…`.
 - **Conventional Commits** (`feat(scene): add turtle shape generator`), en inglés, pequeños y atómicos.
 - Fusión **squash** (un commit por PR en `main`); el título del PR sigue el formato convencional.
@@ -44,7 +51,10 @@ install (npm ci)
 ```
 
 - Los informes de Playwright y Lighthouse se suben como artefactos cuando algo falla.
-- Dependabot semanal solo para avisos de seguridad (las subidas de versión siguen la política de `stack.md`).
+- Cada job lleva `timeout-minutes: 15`: un cuelgue (como la descarga de navegadores de Playwright) falla en
+  15 min en lugar de esperar las 6 h por defecto de GitHub.
+- Dependabot solo para seguridad: *alerts*, *security updates* y *grouped security updates* activados;
+  *version updates* desactivado, porque las subidas de versión siguen la política de `stack.md`.
 
 ## Despliegue (Vercel)
 
