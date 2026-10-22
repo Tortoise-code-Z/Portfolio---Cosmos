@@ -1,0 +1,109 @@
+/*
+ * Estilos globales: reset mínimo y valores base del documento.
+ * Todo sale de tokens.css; los componentes se estilan con CSS Modules (ADR-005).
+ * Solo tema oscuro (ADR-015).
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+:root {
+  color-scheme: dark;
+  background-color: var(--color-void);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100svh;
+  background-color: var(--color-void);
+  color: var(--color-ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--weight-body);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Títulos: rol «display» (Anybody en mayúsculas, eje wdth como firma) ── */
+
+h1,
+h2,
+h3 {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-h1);
+  font-stretch: var(--wdth-h1);
+  line-height: var(--leading-h1);
+}
+
+h2 {
+  font-size: var(--text-h2);
+  font-stretch: var(--wdth-h2);
+  line-height: var(--leading-h2);
+}
+
+h3 {
+  font-size: var(--text-h3);
+  font-stretch: var(--wdth-h3);
+  line-height: var(--leading-h3);
+}
+
+p {
+  text-wrap: pretty;
+}
+
+strong,
+b {
+  font-weight: var(--weight-strong);
+}
+
+/* ── Medios y formularios ── */
+
+img,
+picture,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* ── Enlaces, foco y selección ── */
+
+a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+:focus-visible {
+  outline: var(--focus-width) solid var(--color-star);
+  outline-offset: var(--focus-offset);
+}
+
+::selection {
+  background-color: var(--color-star);
+  color: var(--color-void);
+}

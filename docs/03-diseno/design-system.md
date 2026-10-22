@@ -13,8 +13,8 @@ activo.
 
 ## Tema
 
-- **Solo oscuro, a propósito.** Es un único mundo visual (el espacio). `color-scheme: dark` en `:root`, fondo
-  explícito y todos los colores definidos como tokens. No hay tema claro. → candidato a ADR.
+- **Solo oscuro, a propósito (ADR-015).** Es un único mundo visual (el espacio). `color-scheme: dark` en `:root`,
+  fondo explícito y todos los colores definidos como tokens. No hay tema claro.
 
 ## Color
 
@@ -60,6 +60,10 @@ Reglas:
 Fallbacks: `"Arial Narrow", "Helvetica Neue", sans-serif` · `system-ui, -apple-system, "Segoe UI", sans-serif` ·
 `ui-monospace, "SFMono-Regular", Menlo, monospace`.
 
+Las fuentes se autoalojan con `@font-face` propios en `src/styles/fonts.css` (familias `Anybody`, `Geologica` e
+`IBM Plex Mono`, solo subconjunto latino) y `root.tsx` precarga Anybody y Geologica. Archivos y pesos →
+`docs/05-tecnico/stack.md`.
+
 ### Escala
 
 | Token | Tamaño | Interlineado | Familia y ajustes |
@@ -74,8 +78,15 @@ Fallbacks: `"Arial Narrow", "Helvetica Neue", sans-serif` · `system-ui, -apple-
 | `--text-label` | `0.75rem` (12 px) | 1.4 | Mono 400–500, mayúsculas, `letter-spacing: 0.14em` |
 | `--text-micro` | `0.6875rem` (11 px) | 1.3 | Mono 400, mayúsculas, `letter-spacing: 0.1em` |
 
+En el código, cada tamaño `--text-*` va con su interlineado `--leading-*` (`--leading-hero`, `--leading-h1`…).
+Los ajustes de la tabla también son tokens: `--weight-display` 800, `--weight-hero` 850, `--weight-body` 400,
+`--weight-strong` 600, `--weight-mono` 400, `--weight-mono-strong` 500 · `--wdth-hero-rest` 62 %, `--wdth-h1`
+135 %, `--wdth-h2` 128 %, `--wdth-h3` 140 % (se aplican con `font-stretch`) · `--tracking-label` 0.14em,
+`--tracking-micro` 0.1em, `--tracking-logo` 0.16em · `--hero-accent-room` 0.14em · `--measure` 62ch.
+`global.css` da a `h1`–`h3` el rol display (Anybody 800, mayúsculas, su tamaño, interlineado y `wdth`).
+
 Reglas:
-- Ancho de lectura máximo **~62 caracteres** (`max-width: 62ch`).
+- Ancho de lectura máximo **~62 caracteres** (`max-width: var(--measure)`).
 - Números alineados (`font-variant-numeric: tabular-nums`) en HUD, años y horas.
 - El eje `wdth` es la firma tipográfica: estrecho = energía contenida, ancho = expansión.
 - Los acentos de las mayúsculas (Í, É) necesitan aire: `padding-top: 0.14em` en el hero.
@@ -86,7 +97,8 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 `--space-6` 32 · `--space-7` 48 · `--space-8` 64 · `--space-9` 96.
 
 - Separación entre hermanos con `gap` (flex/grid), no con márgenes sueltos.
-- **Margen lateral de página:** `max(24px, env(safe-area-inset-*))` en escritorio; `max(16px, …)` por debajo de 520 px.
+- **Margen lateral de página:** `--gutter` = `max(24px, env(safe-area-inset-*))` en escritorio; `max(16px, …)` por
+  debajo de 520 px (el token cambia solo con la media query).
 
 ## Layout
 
@@ -105,10 +117,14 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 ## Forma, bordes y profundidad
 
 - **Radio 0** en todo, salvo puntos y anillos (50 %). Es parte del lenguaje de instrumento.
-- Bordes: 1 px `--color-faint`; activo: 1 px `--color-star`.
+- Bordes: `--border-width` (1 px) `--color-faint`; activo: 1 px `--color-star`.
+- Foco visible: contorno `--focus-width` (2 px) `--color-star` con separación `--focus-offset` (3 px), global en
+  `:focus-visible`.
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
-  (`0 0 12px --color-star`).
-- Desenfoque de fondo (`backdrop-filter: blur(6px)`) solo en barra superior, pins y botones flotantes.
+  (`--glow-star` = `0 0 12px --color-star`).
+- Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins y botones
+  flotantes.
+- Deshabilitado: `--opacity-disabled` (0,4). Área táctil mínima: `--target-min` (44 px).
 
 ## Capas (z-index)
 

@@ -176,3 +176,17 @@
   errores reales. El fork conserva todas las reglas salvo tres ya obsoletas (`accessible-emoji`,
   `label-has-for`, `no-onchange`). Riesgo: menos adopción que el original; se vigila en la revisión trimestral.
 - Detalle: `docs/05-tecnico/stack.md`, `docs/05-tecnico/calidad.md`.
+
+## ADR-015 · Solo tema oscuro
+- Estado: Aceptada
+- Fecha: 2026-10-22
+- Contexto: el sitio es un único mundo visual (el espacio): la escena es lo único con color y brillo y la
+  interfaz es un panel de instrumento sobre fondo negro. `design-system.md` lo marcaba como candidato a ADR.
+- Decisión: un solo tema oscuro. `color-scheme: dark` en `:root` y en `<meta name="color-scheme">`, fondo
+  explícito `--color-void` en `:root` y `body`, y todos los colores como tokens en `src/styles/tokens.css`.
+  No se lee `prefers-color-scheme`.
+- Alternativas descartadas: tema claro opcional (rompe el concepto, duplica la paleta y obliga a validar el
+  contraste de la escena dos veces).
+- Consecuencias: un único juego de colores que mantener y probar; el contraste AA de los colores de texto
+  sobre el fondo lo comprueba un test (`src/styles/styles.test.ts`). Quien prefiera tema claro ve el oscuro.
+- Detalle: `docs/03-diseno/design-system.md`.

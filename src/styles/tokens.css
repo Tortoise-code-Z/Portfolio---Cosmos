@@ -1,0 +1,134 @@
+/*
+ * Tokens del design system: la única fuente de colores, tamaños y duraciones (ADR-005).
+ * Valores y uso → docs/03-diseno/design-system.md y docs/03-diseno/movimiento.md.
+ * Los componentes solo usan var(--…); un test comprueba que todo token usado existe aquí
+ * y que ningún otro CSS escribe colores literales (src/styles/styles.test.ts).
+ *
+ * Breakpoints (no pueden ser variables en una media query; se escriben como número):
+ *   sm 520px · md 900px · lg 1280px
+ */
+
+:root {
+  /* ── Color · interfaz ─────────────────────────────────────────── */
+  --color-void: #04050b;
+  --color-ink: #eef0f7;
+  --color-ink-soft: #cfd3e3;
+  --color-dim: #a4aac3;
+  --color-faint: rgb(238 240 247 / 0.16);
+  --color-star: #ffc46b;
+  --color-aurora: #62e8cf;
+  --color-veil: rgb(4 5 11 / 0.82);
+  --color-flash: #fff4dc;
+
+  /* ── Tipografía · familias ────────────────────────────────────── */
+  --font-display: 'Anybody', 'Arial Narrow', 'Helvetica Neue', sans-serif;
+  --font-body: 'Geologica', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* ── Tipografía · escala (tamaño + interlineado) ──────────────── */
+  --text-hero: clamp(3.6rem, 14vw, 12.5rem);
+  --leading-hero: 0.8;
+  --text-h1: clamp(2.4rem, 6vw, 4.6rem);
+  --leading-h1: 0.92;
+  --text-h2: clamp(2rem, 4.4vw, 3.4rem);
+  --leading-h2: 0.94;
+  --text-h3: clamp(1.4rem, 2.6vw, 1.9rem);
+  --leading-h3: 1;
+  --text-lead: 1.0625rem;
+  --leading-lead: 1.55;
+  --text-body: 1rem;
+  --leading-body: 1.6;
+  --text-small: 0.8125rem;
+  --leading-small: 1.5;
+  --text-label: 0.75rem;
+  --leading-label: 1.4;
+  --text-micro: 0.6875rem;
+  --leading-micro: 1.3;
+
+  /* ── Tipografía · ejes y ajustes ──────────────────────────────── */
+  --weight-display: 800;
+  --weight-hero: 850;
+  --weight-body: 400;
+  --weight-strong: 600;
+  --weight-mono: 400;
+  --weight-mono-strong: 500;
+  --wdth-hero-rest: 62%;
+  --wdth-h1: 135%;
+  --wdth-h2: 128%;
+  --wdth-h3: 140%;
+  --tracking-label: 0.14em;
+  --tracking-micro: 0.1em;
+  --tracking-logo: 0.16em;
+  --hero-accent-room: 0.14em;
+  --measure: 62ch;
+
+  /* ── Espaciado (base 4 px) ────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* ── Layout ───────────────────────────────────────────────────── */
+  --gutter: max(var(--space-5), env(safe-area-inset-left), env(safe-area-inset-right));
+  --panel-w: 540px;
+  --panel-w-wide: 600px;
+  --read-w: 720px;
+  --content-max: 1200px;
+
+  /* ── Forma y profundidad ──────────────────────────────────────── */
+  --border-width: 1px;
+  --focus-width: 2px;
+  --focus-offset: 3px;
+  --glow-star: 0 0 12px var(--color-star);
+  --blur-chrome: 6px;
+  --opacity-disabled: 0.4;
+  --target-min: 44px;
+
+  /* ── Capas (z-index) ──────────────────────────────────────────── */
+  --z-scene: 0;
+  --z-glow: 1;
+  --z-flash: 3;
+  --z-labels: 4;
+  --z-content: 5;
+  --z-chrome: 15;
+  --z-topbar: 20;
+  --z-dialog: 40;
+  --z-toast: 50;
+
+  /* ── Movimiento ───────────────────────────────────────────────── */
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 400ms;
+  --dur-flight: 800ms;
+  --dur-fade-base: var(--dur-base);
+  --dur-fade-slow: var(--dur-slow);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Margen lateral más estrecho en móvil pequeño (< sm 520px). */
+@media (width < 520px) {
+  :root {
+    --gutter: max(var(--space-4), env(safe-area-inset-left), env(safe-area-inset-right));
+  }
+}
+
+/*
+ * Movimiento reducido (docs/03-diseno/movimiento.md): la interfaz deja de animarse,
+ * salvo los fundidos de opacidad, que se quedan en 150 ms.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+    --dur-flight: 0ms;
+    --dur-fade-base: 150ms;
+    --dur-fade-slow: 150ms;
+  }
+}
