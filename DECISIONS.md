@@ -91,7 +91,7 @@
 - Detalle: `docs/02-experiencia/navegacion.md`, `docs/05-tecnico/arquitectura.md`, `docs/01-contenido/textos-sitio.md`.
 
 ## ADR-007 · Solo tema oscuro
-- Estado: Aceptada
+- Estado: Sustituida por ADR-015
 - Fecha: 2026-10-22
 - Contexto: el sitio es un único mundo visual (el espacio); la escena es lo único con color y brillo.
 - Decisión: `color-scheme: dark` en `:root`, fondo explícito y todos los colores como tokens. Sin tema claro.
@@ -177,16 +177,34 @@
   `label-has-for`, `no-onchange`). Riesgo: menos adopción que el original; se vigila en la revisión trimestral.
 - Detalle: `docs/05-tecnico/stack.md`, `docs/05-tecnico/calidad.md`.
 
-## ADR-015 · Solo tema oscuro
+## ADR-015 · Solo tema oscuro: meta `color-scheme` y contraste por test (sustituye ADR-007)
 - Estado: Aceptada
 - Fecha: 2026-10-22
-- Contexto: el sitio es un único mundo visual (el espacio): la escena es lo único con color y brillo y la
-  interfaz es un panel de instrumento sobre fondo negro. `design-system.md` lo marcaba como candidato a ADR.
+- Contexto: ADR-007 (F0) decidió el tema único oscuro; este ADR lo concreta al implementarlo en F2 · paso 1
+  (cómo se declara y cómo se garantiza el contraste) y lo sustituye (auditoría AUD-F2-1-1). El sitio es un único
+  mundo visual (el espacio): la escena es lo único con color y brillo y la interfaz es un panel de instrumento
+  sobre fondo negro.
 - Decisión: un solo tema oscuro. `color-scheme: dark` en `:root` y en `<meta name="color-scheme">`, fondo
   explícito `--color-void` en `:root` y `body`, y todos los colores como tokens en `src/styles/tokens.css`.
   No se lee `prefers-color-scheme`.
 - Alternativas descartadas: tema claro opcional (rompe el concepto, duplica la paleta y obliga a validar el
   contraste de la escena dos veces).
-- Consecuencias: un único juego de colores que mantener y probar; el contraste AA de los colores de texto
-  sobre el fondo lo comprueba un test (`src/styles/styles.test.ts`). Quien prefiera tema claro ve el oscuro.
+- Consecuencias: un único juego de colores que mantener y probar. El contraste AA tiene dos garantías: sobre el
+  fondo `--color-void`, la de los colores de texto la comprueba un test (`src/styles/styles.test.ts`); sobre el
+  velo de los paneles (`--color-veil`) encima de la escena, que es el peor caso real de lectura, se comprueba
+  cuando exista la escena (F3–F4). Quien prefiera tema claro ve el oscuro.
 - Detalle: `docs/03-diseno/design-system.md`.
+
+## ADR-016 · Navegadores soportados: las dos últimas versiones de cada motor
+- Estado: Aceptada
+- Fecha: 2026-10-22
+- Contexto: no estaba escrito en ningún doc (auditoría AUD-F2-1-P2), y hace falta un criterio para usar CSS
+  moderno: la sintaxis de rango de `@media (width < 520px)` (Safari ≥ 16.4), `[popover]`, `text-wrap`, `svh`.
+- Decisión: se soportan las **dos últimas versiones estables** de cada motor: Chromium (Chrome, Edge), Firefox y
+  WebKit (Safari en macOS e iOS). Lo que entienden esas versiones se usa sin alternativa; lo demás, solo como
+  mejora progresiva. No se fijan `build.target` ni *browserslist* propios.
+- Alternativas descartadas: `build.target` y *browserslist* explícitos (más configuración sin un caso que la
+  pida); soportar versiones antiguas (renunciar a la sintaxis moderna por un público que no es el del sitio).
+- Consecuencias: el CI ya prueba los tres motores (Playwright). Fuera de ese rango la web puede verse peor, pero
+  el contenido sigue legible (HTML pre-renderizado, P1). Se revisa en la actualización trimestral de `stack.md`.
+- Detalle: `docs/05-tecnico/stack.md` → «Navegadores soportados».

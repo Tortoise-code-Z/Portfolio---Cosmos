@@ -37,10 +37,10 @@
 
 | Nivel | Qué | Ejemplos |
 |---|---|---|
-| Unitarios (Vitest) | Toda la lógica pura | `mapM`, suavizado, cámara, proyección, generadores de formas, elección de nivel, formato del HUD, `i18n`, builders de SEO, asignación de placas |
+| Unitarios (Vitest) | Toda la lógica pura | `mapM`, suavizado, cámara, proyección, generadores de formas, elección de nivel, formato del HUD, `i18n`, builders de SEO, asignación de placas; invariantes de estilos (`src/styles/styles.test.ts`: tokens definidos, sin colores, duraciones ni familias literales, fundidos con `--dur-fade-*`, contraste AA) |
 | Contenido (Vitest) | Invariantes del contenido | Reglas de `docs/01-contenido/modelo-de-datos.md`; paridad de claves EN/ES; skills ↔ posiciones de constelación |
 | Componentes (Vitest + Testing Library) | Comportamiento visible | `HoldButton` (teclado y puntero), `CopyButton` (éxito y fallo), `ChapterRail` (`aria-current`), `QuickMissionDialog` (foco y Esc), `LanguageSwitch` (conserva ancla), `SceneMount` (pasa a sin WebGL ante error) |
-| Extremo a extremo (Playwright) | Recorridos reales en Chromium, Firefox y WebKit | Recruiter: home → Projects → página de Chessmate → código; misión rápida; cambio de idioma; detonación; WebGL desactivado; movimiento reducido; 404 |
+| Extremo a extremo (Playwright) | Recorridos reales en Chromium, Firefox y WebKit | Recruiter: home → Projects → página de Chessmate → código; misión rápida; cambio de idioma; detonación; WebGL desactivado; movimiento reducido; 404; cimientos visuales (`design-system.spec.ts`: fuentes y su precarga, eje `wdth`, foco, margen lateral, duraciones, reset); presupuesto de fuentes sobre el build (`budgets.spec.ts`) |
 | Regresión visual (Playwright + Docker) | Un estado por capítulo y por tamaño de referencia | Capturas en 1440×900 y 390×844, tolerancia de píxeles acordada |
 | Lighthouse CI | Rendimiento, accesibilidad, SEO | Presupuestos de abajo |
 
@@ -53,7 +53,7 @@
 |---|---|
 | JS inicial (sin escena), gzip | ≤ 120 KB |
 | Chunk de la escena, gzip | ≤ 250 KB |
-| Fuentes (todas, woff2 subconjunto latino) | ≤ 150 KB |
+| Fuentes (todas, woff2 subconjunto latino) | ≤ 150 KB (e2e `budgets.spec.ts` desde F2; Lighthouse CI en F6) |
 | LCP móvil (simulado) | < 2,5 s |
 | CLS | < 0,1 |
 | TBT | < 200 ms |

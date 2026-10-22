@@ -3,6 +3,8 @@
 > Tokens y reglas visuales. Componentes en `componentes.md`; movimiento en `movimiento.md`.
 > En el código, los tokens viven como **variables CSS** en `src/styles/tokens.css` y se usan desde los
 > CSS Modules. Ningún componente usa un color, tamaño o duración literal: siempre un token.
+> Única excepción: las **variables privadas** de un componente, con prefijo `--_` (`--_progress`), que se definen
+> en su CSS Module o desde el código (`style={{ '--_progress': … }}`). Lo vigila `src/styles/styles.test.ts`.
 
 ## Concepto
 
@@ -75,21 +77,22 @@ Las fuentes se autoalojan con `@font-face` propios en `src/styles/fonts.css` (fa
 | `--text-lead` | `1.0625rem` (17 px) | 1.55 | Body 400 |
 | `--text-body` | `1rem` (16 px) | 1.6 | Body 400; `strong` 600 |
 | `--text-small` | `0.8125rem` (13 px) | 1.5 | Body 400 |
-| `--text-label` | `0.75rem` (12 px) | 1.4 | Mono 400–500, mayúsculas, `letter-spacing: 0.14em` |
-| `--text-micro` | `0.6875rem` (11 px) | 1.3 | Mono 400, mayúsculas, `letter-spacing: 0.1em` |
+| `--text-label` | `0.75rem` (12 px) | 1.4 | Mono 400–500, mayúsculas, `letter-spacing: var(--tracking-label)` |
+| `--text-micro` | `0.6875rem` (11 px) | 1.3 | Mono 400, mayúsculas, `letter-spacing: var(--tracking-micro)` |
 
 En el código, cada tamaño `--text-*` va con su interlineado `--leading-*` (`--leading-hero`, `--leading-h1`…).
 Los ajustes de la tabla también son tokens: `--weight-display` 800, `--weight-hero` 850, `--weight-body` 400,
 `--weight-strong` 600, `--weight-mono` 400, `--weight-mono-strong` 500 · `--wdth-hero-rest` 62 %, `--wdth-h1`
 135 %, `--wdth-h2` 128 %, `--wdth-h3` 140 % (se aplican con `font-stretch`) · `--tracking-label` 0.14em,
-`--tracking-micro` 0.1em, `--tracking-logo` 0.16em · `--hero-accent-room` 0.14em · `--measure` 62ch.
+`--tracking-micro` 0.1em, `--tracking-logo` 0.16em · `--hero-accent-room` 0.14em · `--underline-offset` 0.2em
+(separación del subrayado de los enlaces) · `--measure` 62ch.
 `global.css` da a `h1`–`h3` el rol display (Anybody 800, mayúsculas, su tamaño, interlineado y `wdth`).
 
 Reglas:
 - Ancho de lectura máximo **~62 caracteres** (`max-width: var(--measure)`).
 - Números alineados (`font-variant-numeric: tabular-nums`) en HUD, años y horas.
 - El eje `wdth` es la firma tipográfica: estrecho = energía contenida, ancho = expansión.
-- Los acentos de las mayúsculas (Í, É) necesitan aire: `padding-top: 0.14em` en el hero.
+- Los acentos de las mayúsculas (Í, É) necesitan aire: `padding-top: var(--hero-accent-room)` (0.14em) en el hero.
 
 ## Espaciado
 
@@ -104,20 +107,21 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 
 | Token | Valor | Uso |
 |---|---|---|
-| `--bp-sm` | 520 px | Móvil pequeño → móvil |
-| `--bp-md` | 900 px | Móvil/tableta → escritorio (paneles *sticky*, raíl con texto) |
-| `--bp-lg` | 1280 px | Escritorio amplio |
+| Breakpoint sm | 520 px | Móvil pequeño → móvil |
+| Breakpoint md | 900 px | Móvil/tableta → escritorio (paneles *sticky*, raíl con texto) |
+| Breakpoint lg | 1280 px | Escritorio amplio |
 | `--panel-w` | 540 px | Panel de capítulo |
 | `--panel-w-wide` | 600 px | Panel de contacto |
 | `--read-w` | 720 px | Columna de la página de proyecto |
 | `--content-max` | 1200 px | Ancho máximo de galería y portada |
 
-(En CSS los breakpoints se escriben como valores en las media queries; los tokens documentan los números.)
+(Los breakpoints no son tokens: una variable CSS no puede usarse en una media query. Se escriben como número
+en las media queries y están anotados en la cabecera de `tokens.css`.)
 
 ## Forma, bordes y profundidad
 
 - **Radio 0** en todo, salvo puntos y anillos (50 %). Es parte del lenguaje de instrumento.
-- Bordes: `--border-width` (1 px) `--color-faint`; activo: 1 px `--color-star`.
+- Bordes: `--border-width` (1 px) `--color-faint`; activo: `--border-width` `--color-star`.
 - Foco visible: contorno `--focus-width` (2 px) `--color-star` con separación `--focus-offset` (3 px), global en
   `:focus-visible`.
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
@@ -144,10 +148,15 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 
 - Conjunto mínimo de **SVG en línea** propios: flecha, enlace externo, copiar, cerrar, chevrones, GitHub,
   LinkedIn, descarga. Trazo 1,5 px, tamaños 16 y 20 px, `currentColor`.
+- Van **en línea** con el texto: `global.css` no les da `display: block`; el componente de icono fija su propio
+  `display` según dónde se use.
+- Una flecha dentro de un texto (por ejemplo «Go to Courses → All courses») se pinta con el **icono SVG de
+  flecha**, no con el carácter «→»: el subconjunto latino de las fuentes no trae U+2192 y saldría con la fuente del
+  sistema.
 - Decorativos con `aria-hidden="true"`; el botón lleva el texto o el `aria-label`.
 
 ## Marca
 
-- **Logotipo:** la palabra `TORTOISE_CODE` en `--font-mono`, `letter-spacing: 0.16em`.
+- **Logotipo:** la palabra `TORTOISE_CODE` en `--font-mono`, `letter-spacing: var(--tracking-logo)` (0.16em).
 - **Favicon:** un hexágono ámbar (una placa del caparazón) con un punto blanco en el centro (la singularidad).
   Versión SVG + PNG 180 px para iOS.

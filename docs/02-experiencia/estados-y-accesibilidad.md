@@ -7,7 +7,7 @@
 2. **JavaScript de la interfaz**: navegación, idioma, modo misión rápida, copiar email. Sin la escena.
 3. **Escena en diferido**: el código 3D se descarga aparte (import dinámico) cuando el navegador está libre.
 4. **Generación de partículas** en un Web Worker (no bloquea el hilo principal).
-5. **Entrada del lienzo**: fundido de ~400 ms. En el hero, el punto de partículas coincide con el halo CSS, así que
+5. **Entrada del lienzo**: fundido de ~400 ms (`--dur-fade-slow`; 150 ms con movimiento reducido). En el hero, el punto de partículas coincide con el halo CSS, así que
    el relevo no se nota.
 6. Si el usuario ya había hecho scroll, la escena arranca en el `m` actual, sin repetir la explosión.
 
@@ -26,6 +26,7 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 
 | Se mantiene | Se quita |
 |---|---|
+| Interfaz: fundidos de opacidad, en 150 ms (`--dur-fade-*`) | Interfaz: el resto de transiciones (color, desplazamiento) pasa a 0 ms (`--dur-fast/base/slow/flight`) |
 | Morph de formas ligado al scroll (lo controla el usuario) | Temblor, destello y vibración del hero |
 | Iluminación de constelaciones y placas | Giro autónomo de nebulosa, galaxia y Tierra; nado de la tortuga |
 | Detonación (sin efectos) | Gravedad del cursor; ciclo automático de placas |
