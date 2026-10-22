@@ -1,8 +1,9 @@
 # Componentes de interfaz
 
 > Cada componente con su anatomía, variantes y estados. Todos usan tokens de `design-system.md`.
-> Estados comunes: **hover** (color `--color-star` o borde ámbar), **focus-visible** (contorno 2 px
-> `--color-star`, separación 3 px), **active**, **disabled** (opacidad 0,4, sin puntero), **hot** (resaltado
+> Estados comunes: **hover** (color `--color-star` o borde ámbar), **focus-visible** (contorno
+> `--focus-width` `--color-star`, separación `--focus-offset`), **active**, **disabled** (`--opacity-disabled`,
+> sin puntero), **hot** (resaltado
 > sincronizado con la escena).
 
 ## Estructura y lectura

@@ -43,6 +43,15 @@ estilos globales y fuentes en `main`; cadena Taller/Mesa activada en piloto._
 - La tilde de «VÍCTOR» toca el borde superior en la página «hello» (sin maquetación): se resuelve en F2.4 con
   `--hero-accent-room`.
 - `@lhci/cli` y los scripts `visual` / `lhci` se instalan en F3/F6.
+- **Riesgo · salto de diseño al cargar las fuentes** (AUD-F2-1-9 · medir en **F2.4**): el título se pinta con la
+  fuente de reserva y salta al llegar Anybody (`wdth` 135 %). Con la maquetación real del hero, medir el CLS
+  (Lighthouse con 4G simulada o `PerformanceObserver('layout-shift')`); si pasa de 0,1, caras de reserva con
+  `size-adjust` / `ascent-override`.
+- **WebKit descarga dos veces las fuentes precargadas** (bug de WebKit 194589, abierto desde 2019; Chromium y
+  Firefox reutilizan la precarga). El e2e «cada fuente se descarga una vez» se salta en WebKit. En F6, medir en un
+  Safari real si la precarga compensa (LCP/CLS frente a ~82 KB de más en Safari).
+- La flecha «→» de los textos (Chessmate) se maqueta con el icono SVG de flecha en F2.4 (AUD-F2-1-17,
+  `design-system.md` → «Iconos»).
 - Provisional: textos de «hello» y del `ErrorBoundary` raíz (→ `src/content` en F2); `favicon.svg` (→ F6); 404
   genérica de Vercel (→ nuestra página en F2, configuración en F7).
 

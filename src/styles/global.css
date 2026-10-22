@@ -1,6 +1,7 @@
 /*
  * Estilos globales: reset mínimo y valores base del documento.
- * Todo sale de tokens.css; los componentes se estilan con CSS Modules (ADR-005).
+ * Colores, tipografía, medidas y foco salen de tokens.css (`100svh` es una unidad de viewport, no un
+ * token); los componentes se estilan con CSS Modules (ADR-005).
  * Solo tema oscuro (ADR-015).
  */
 
@@ -12,6 +13,12 @@
 
 * {
   margin: 0;
+}
+
+/* El reset de arriba pisa el `margin: auto` con el que el navegador centra los modales y popovers. */
+dialog,
+[popover] {
+  margin: auto;
 }
 
 :root {
@@ -74,9 +81,9 @@ b {
 
 /* ── Medios y formularios ── */
 
+/* Los SVG no entran: un icono junto al texto debe seguir en línea (cada componente fija su display). */
 img,
 picture,
-svg,
 video,
 canvas {
   display: block;
@@ -95,7 +102,7 @@ select {
 
 a {
   color: inherit;
-  text-underline-offset: 0.2em;
+  text-underline-offset: var(--underline-offset);
 }
 
 :focus-visible {

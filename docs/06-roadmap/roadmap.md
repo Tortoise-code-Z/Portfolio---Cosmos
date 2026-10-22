@@ -32,7 +32,7 @@ se abre. Etiqueta `v0.0.1`.
 
 ## F2 · Cimientos sin 3D
 
-1. Tokens, `global.css` y fuentes autoalojadas (verificar el eje `wdth` de Anybody).
+1. Tokens, `global.css` y fuentes autoalojadas (eje `wdth` de Anybody verificado: `docs/05-tecnico/stack.md`).
 2. Capa de contenido tipada + tests de invariantes (`docs/01-contenido`).
 3. i18n propio, rutas EN/ES, `meta`, `hreflang`, JSON-LD y `sitemap.xml`.
 4. Capítulos del viaje con su layout, paneles y textos (sin escena; punto de la singularidad en CSS).

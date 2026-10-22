@@ -14,6 +14,13 @@
 | Git | ≥ 2.45 (Git for Windows) | Control de versiones; Husky usa sus hooks | ✔ con `core.autocrlf=false` y `.gitattributes` |
 | Docker Desktop | estable vigente | Solo para generar capturas de regresión visual idénticas a CI | ✔ con WSL 2 |
 
+## Navegadores soportados (ADR-016)
+
+Las **dos últimas versiones estables** de cada motor: Chromium (Chrome, Edge), Firefox y WebKit (Safari en macOS
+e iOS). Lo que entienden esas versiones se usa sin alternativa; lo demás, solo como mejora progresiva. No hay
+`build.target` ni *browserslist* propios: el build deja el CSS moderno tal cual (comprobado: `@media (width <
+520px)` sale sin reescribir; Safari entiende esa sintaxis desde la 16.4). El CI prueba los tres motores.
+
 ## Aplicación
 
 | Paquete | Versión | Motivo |
@@ -26,14 +33,16 @@
 | `three` | 0.186.1 | Motor WebGL |
 | `@react-three/fiber` | 9.8.1 | Three.js declarativo en React (requiere React < 19.4) |
 | `zustand` | 5.0.15 | Store de interfaz y store mutable de la escena (lectura sin re-render en `useFrame`) |
-| `@fontsource-variable/anybody` | 5.3.0 | Fuente display autoalojada: archivo `standard` (ejes `wdth` 50–150 y `wght` 100–900, verificado), 56,9 KB |
+| `@fontsource-variable/anybody` | 5.3.0 | Fuente display autoalojada: archivo `standard` (ejes `wdth` 50–150 y `wght` 100–900, verificado por el e2e de fuentes, que mide el ancho pintado), 56,9 KB |
 | `@fontsource-variable/geologica` | 5.3.0 | Fuente de texto autoalojada: archivo `wght` (solo eje de grosor; el `standard` añade ejes que no usamos), 24,9 KB |
 | `@fontsource/ibm-plex-mono` | 5.3.0 | Fuente monoespaciada (solo 400 y 500), 14,7 + 14,9 KB |
 
 Fuentes: no se importan los CSS de Fontsource (traen cirílico, vietnamita, latin-ext…). `src/styles/fonts.css`
 declara sus propios `@font-face` con **solo el subconjunto latino** (cubre EN y ES) apuntando a los `.woff2` de
 los paquetes; Vite los copia con hash. Total: **111,4 KB** (presupuesto ≤ 150 KB, `calidad.md`). Si se sube la
-versión de un paquete, comprobar que los nombres de archivo no han cambiado (el build fallaría).
+versión de un paquete, comprobar que los nombres de archivo no han cambiado: fallaría el build (Anybody y
+Geologica, que `root.tsx` importa con `?url`) o el e2e de fuentes (Plex Mono: de un `url()` que no resuelve, Vite
+solo avisa; comprobado).
 
 **Lo que no se usa, a propósito:** `@react-three/drei` (lo que necesitamos son ~100 líneas propias),
 GSAP y Lenis (el scroll lo resuelve un hook propio), librerías de i18n (diccionarios tipados propios),

@@ -16,16 +16,22 @@
 |---|---|---|
 | `--dur-fast` | 150 ms | Color y borde en hover/focus |
 | `--dur-base` | 250 ms | Encendido de grupos, filas y pins |
-| `--dur-slow` | 400 ms | Entrada del lienzo, avisos, diálogos |
+| `--dur-slow` | 400 ms | Desplazamiento corto de avisos y diálogos al entrar (lo que no es opacidad) |
 | `--dur-flight` | 800 ms | Vuelo de cámara a una placa |
 | `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Entradas y vuelos (salida exponencial) |
 | `--ease-in-out` | `cubic-bezier(0.65, 0, 0.35, 1)` | Fundidos simétricos |
 | `--dur-fade-base` | = `--dur-base` | Fundidos de opacidad de duración base |
-| `--dur-fade-slow` | = `--dur-slow` | Fundidos de opacidad lentos (avisos, diálogos) |
+| `--dur-fade-slow` | = `--dur-slow` | Fundidos de opacidad lentos: entrada del lienzo, avisos, diálogos |
 
 Con `prefers-reduced-motion: reduce`, las duraciones de la interfaz pasan a 0 ms, salvo los fundidos de
-opacidad, que se quedan en 150 ms. Se resuelve en `tokens.css`: los `--dur-*` pasan a `0ms` y los `--dur-fade-*`
-a `150ms`. Por eso **un fundido de opacidad usa siempre `--dur-fade-*`**, nunca `--dur-base` ni `--dur-slow`.
+opacidad, que se quedan en 150 ms. Se resuelve en `tokens.css`: `--dur-fast`, `--dur-base`, `--dur-slow` y
+`--dur-flight` pasan a `0ms`, y `--dur-fade-base` y `--dur-fade-slow` a `150ms`. Por eso **un fundido de opacidad
+usa siempre `--dur-fade-*`**, nunca `--dur-base` ni `--dur-slow`, y ningún CSS escribe una duración literal (lo
+vigila `src/styles/styles.test.ts`).
+
+**Ningún componente depende de `transitionend` ni `animationend` sin un temporizador de reserva.** Con una
+duración de 0 ms la transición no llega a empezar y el evento no se dispara: un aviso o un diálogo que esperase
+ese evento para terminar de cerrarse se quedaría colgado con movimiento reducido.
 
 ## Constantes de la experiencia (referencia; viven en el código como constantes con nombre)
 
@@ -39,7 +45,7 @@ a `150ms`. Por eso **un fundido de opacidad usa siempre `--dur-fade-*`**, nunca 
 | Ciclo de placas | 2,6 s | Capítulo 3 |
 | Giro de nebulosa / galaxia / Tierra | 0,018 / 0,035 / 0,05 rad/s | Escena |
 | Nado de la tortuga | aletas 1,3 rad/s; balanceo 0,7 rad/s; giro 0,25 rad/s | Escena |
-| Entrada del lienzo | 400 ms | Carga |
+| Entrada del lienzo | 400 ms (`--dur-fade-slow`; 150 ms con movimiento reducido) | Carga |
 
 ## Coreografía del Big Bang
 

@@ -38,4 +38,10 @@ test.describe('without JavaScript', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Víctor Pérez');
     await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   });
+
+  test('the dark background does not depend on JavaScript (P1)', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(4, 5, 11)');
+    await expect(page.locator('html')).toHaveCSS('color-scheme', 'dark');
+  });
 });
