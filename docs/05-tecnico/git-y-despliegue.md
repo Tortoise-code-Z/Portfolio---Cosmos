@@ -2,7 +2,7 @@
 
 ## Repositorio
 
-- GitHub: `Tortoise-code-Z/cosmos-portfolio`, **público** (el código también es escaparate).
+- GitHub: `Tortoise-code-Z/Portfolio---Cosmos`, **público** (el código también es escaparate).
 - Licencia: MIT para el código; textos, imágenes y CV con todos los derechos reservados (indicado en el README).
 - README en inglés: qué es, capturas, stack, arquitectura resumida, cómo ejecutarlo, enlace a `docs/`.
 
@@ -26,7 +26,8 @@
 - `.gitattributes`: `* text=auto eol=lf` (y binarios marcados) → sin conflictos CRLF en Windows.
 - `.gitignore`: `node_modules/`, `build/`, `.react-router/`, `coverage/`, `playwright-report/`, `test-results/`,
   `.lighthouseci/`, `.env`, `*.local`.
-- `.nvmrc`: `24.22.0` · `engines.node` en `package.json`: `"24.22.0"` con `engine-strict=true` en `.npmrc`.
+- `.nvmrc`: `24.22.0` (fuente de la versión exacta en local y CI) · `engines.node` en `package.json`: `"24.x"`
+  (Vercel solo fija la mayor; ADR-013) · `.npmrc`: `engine-strict=true` y `save-exact=true`.
 
 ## CI (GitHub Actions · `.github/workflows/ci.yml`)
 

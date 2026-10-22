@@ -9,8 +9,12 @@ React Three Fiber + shaders GLSL propios, Zustand, CSS Modules + tokens. Node 24
 Versiones exactas y conflictos → `docs/05-tecnico/stack.md`.
 
 ## Estructura
-Código en la raíz del repo, `src/` como `appDirectory` de React Router (previsto en
-`docs/05-tecnico/arquitectura.md`). Lo confirma `env-init` tras andamiar. Aún no hay código.
+- **El código vive en la raíz del repo** (no hay subcarpeta de app): `package.json` y configs en la raíz.
+- `src/` = `appDirectory` de React Router: `root.tsx`, `routes.ts`, `routes/` y las capas
+  (`content`, `lib`, `stores`, `ui`, `features`, `scene`). Alias `~/` → `src/`.
+- `tests/e2e/` (Playwright) · `tests/setup.ts` (Vitest) · tests unitarios junto al archivo (`*.test.ts(x)`).
+- `public/` estáticos · `build/client/` salida que se despliega · `.github/workflows/ci.yml`.
+- Capas y lo que puede importar cada una → `docs/05-tecnico/arquitectura.md` (las vigila ESLint).
 
 ## Mapa del proyecto
 - Índice de la documentación y prioridad entre docs → `docs/README.md`

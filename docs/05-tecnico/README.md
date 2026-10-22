@@ -18,7 +18,7 @@
 | 5 | **CSS Modules + tokens CSS** | Tailwind (efectos a medida acabarían fuera) |
 | 6 | **i18n propio** con diccionarios tipados; EN principal sin prefijo, ES en `/es` | react-i18next (dependencia innecesaria); redirección automática (malo para SEO) |
 | 7 | **Solo tema oscuro** | Tema claro (rompe el mundo visual) |
-| 8 | **TypeScript 6.0.3 y ESLint 9.39.5** en lugar de las últimas mayores | TS 7 y ESLint 10 (incompatibles hoy con typescript-eslint y jsx-a11y) |
+| 8 | **TypeScript 6.0.3 y ESLint 9.39.5** en lugar de las últimas mayores *(ESLint: sustituido por ADR-014 → ESLint 10 + `jsx-a11y-x`)* | TS 7 y ESLint 10 (incompatibles hoy con typescript-eslint y jsx-a11y) |
 | 9 | **Node 24.22.0 LTS** | Node 26 (LTS desde el 28-10-2026; se evalúa tras la v1) |
 | 10 | Capturas de regresión visual en **Docker** (imagen oficial de Playwright) | Capturas en cada máquina (difieren entre Windows y Linux) |
 | 11 | **Universo determinista** (PRNG con semilla) | `Math.random` (tests y capturas inestables) |

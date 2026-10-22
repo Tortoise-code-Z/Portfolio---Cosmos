@@ -24,7 +24,7 @@
 - Andamiaje de React Router (modo framework) **en la raíz**, con `appDirectory: "src"`, versiones de `stack.md`.
 - TypeScript estricto, ESLint + Prettier, Vitest + Testing Library, Playwright, Husky + lint-staged.
 - CI de GitHub Actions (typecheck, lint, test, build; e2e con un test mínimo).
-- Repo `Tortoise-code-Z/cosmos-portfolio` y proyecto en Vercel con preview por PR.
+- Repo `Tortoise-code-Z/Portfolio---Cosmos` y proyecto en Vercel con preview por PR.
 - Página «hello» pre-renderizada en `/` y `/es`.
 
 **Hecho cuando:** `npm run check` y `npm run build` en verde en local (PowerShell) y en CI; la preview de Vercel
@@ -107,4 +107,4 @@ Etiqueta `v0.3.0`.
 - Cielo real según la ubicación y la hora del visitante.
 - Foto astronómica del día (NASA APOD), validando la respuesta en el borde.
 - Sonido ambiente opcional y easter egg de «salto warp».
-- Migración a Node 26 LTS; TypeScript 7 y ESLint 10 cuando el ecosistema lo soporte.
+- Migración a Node 26 LTS; TypeScript 7 cuando `typescript-eslint` lo soporte.

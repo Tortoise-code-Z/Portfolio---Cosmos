@@ -9,7 +9,7 @@ El portfolio personal de **Víctor Pérez (Tortoise_code)**, desarrollador front
 por scroll desde el Big Bang hasta la Tierra. Cada etapa del universo es una sección del portfolio, y una
 tortuga cósmica carga sus proyectos sobre el caparazón.
 
-Nombre del proyecto y del repo: **`cosmos-portfolio`**.
+Nombre del proyecto: **`cosmos-portfolio`**. Repo en GitHub: **`Tortoise-code-Z/Portfolio---Cosmos`**.
 
 ## 2. Objetivo
 
@@ -109,7 +109,7 @@ El detalle de cada capítulo vive en `docs/02-experiencia/`.
 ## 10. Dudas abiertas
 
 **Resueltas**
-- D1 · Nombre: `cosmos-portfolio`.
+- D1 · Nombre: proyecto `cosmos-portfolio`; repo `Portfolio---Cosmos` (se mantiene el nombre con el que se creó).
 - D3 · CV en PDF: sí; hay que prepararlo (tarea fuera del código).
 - D4 · Detalle de proyectos: rutas propias por proyecto.
 - D6 · Disponibilidad: se muestran «open to work», ubicación y modalidad (valores en `docs/01-contenido/`).
