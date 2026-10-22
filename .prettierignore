@@ -1,0 +1,13 @@
+# Generados
+build/
+.react-router/
+coverage/
+playwright-report/
+test-results/
+.lighthouseci/
+package-lock.json
+
+# Documentación escrita a mano (Prettier reformatearía las tablas)
+**/*.md
+docs/
+Claude outputs/

@@ -11,7 +11,7 @@
 ## ESLint (config plana) + Prettier
 
 - `@eslint/js` recomendado + `typescript-eslint` `strictTypeChecked` y `stylisticTypeChecked`.
-- `react-hooks` (recomendado), `jsx-a11y` (strict).
+- `react-hooks` (recomendado), `jsx-a11y-x` (strict; fork mantenido de `jsx-a11y`, ADR-014).
 - `no-restricted-imports` por carpeta (reglas de capas de `arquitectura.md`).
 - `no-console` permitido solo `error` y `warn`.
 - `eslint-config-prettier` al final. Prettier: `printWidth 100`, comillas simples, `trailingComma all`,

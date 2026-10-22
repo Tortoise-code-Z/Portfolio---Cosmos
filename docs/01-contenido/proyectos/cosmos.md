@@ -14,9 +14,9 @@
 | year | 2026 |
 | role | `frontend` |
 | context | `personal` |
-| links.code | https://github.com/Tortoise-code-Z/cosmos-portfolio ⏳ (repo por crear) |
+| links.code | https://github.com/Tortoise-code-Z/Portfolio---Cosmos |
 | links.demo | URL de producción ⏳ (depende de D2: dominio) |
-| links.readme | https://github.com/Tortoise-code-Z/cosmos-portfolio#readme ⏳ |
+| links.readme | https://github.com/Tortoise-code-Z/Portfolio---Cosmos#readme ⏳ (README en F6) |
 
 ## Tagline
 

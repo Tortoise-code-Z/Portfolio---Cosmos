@@ -100,7 +100,7 @@
 - Detalle: `docs/03-diseno/design-system.md` → «Tema» y «Color».
 
 ## ADR-008 · TypeScript 6.0.3 y ESLint 9.39.5 en lugar de las últimas mayores
-- Estado: Aceptada
+- Estado: Aceptada para TypeScript · la parte de ESLint, sustituida por ADR-014
 - Fecha: 2026-10-22
 - Contexto: TypeScript 7 y ESLint 10 ya existen, pero el ecosistema de lint que exige el proyecto no los soporta.
 - Decisión: fijar TypeScript 6.0.3 y ESLint 9.39.5.
@@ -145,4 +145,34 @@
   derechos reservados (indicado en el README).
 - Alternativas descartadas: repo privado (pierde valor de escaparate).
 - Consecuencias: nada de secretos en el repo (no hay ninguno en la v1); historial y commits cuidados.
+- Nota (2026-10-22): el repo se creó como `Tortoise-code-Z/Portfolio---Cosmos` y se mantiene ese nombre; el
+  proyecto sigue llamándose `cosmos-portfolio`. La decisión (público + MIT) no cambia.
 - Detalle: `docs/05-tecnico/git-y-despliegue.md`.
+
+## ADR-013 · Node exacto en `.nvmrc` y `engines.node: "24.x"`
+- Estado: Aceptada
+- Fecha: 2026-10-22
+- Contexto: `stack.md` pedía `engines.node: "24.22.0"` con `engine-strict=true`. Local y CI leen `.nvmrc`, pero
+  Vercel solo deja elegir la versión mayor y decide el parche: con la versión exacta en `engines`, `npm ci`
+  fallaría en cada despliegue en cuanto su parche no coincidiera.
+- Decisión: `.nvmrc` = `24.22.0` es la fuente de la versión exacta (local y CI con `node-version-file`);
+  `engines.node` = `24.x` con `engine-strict=true`, que sigue bloqueando Node 22 o 26 por error.
+- Alternativas descartadas: `engines` exacto (rompe Vercel); quitar `engine-strict` (se pierde la protección).
+- Consecuencias: Vercel puede construir con otro parche de Node 24; el riesgo es bajo dentro de una LTS.
+  Si algún día importa, se revisa con la configuración de Node de Vercel.
+- Detalle: `docs/05-tecnico/stack.md`, `docs/05-tecnico/git-y-despliegue.md`.
+
+## ADR-014 · ESLint 10 con `eslint-plugin-jsx-a11y-x` (sustituye la parte de ESLint del ADR-008)
+- Estado: Aceptada
+- Fecha: 2026-10-22
+- Contexto: al instalar en Windows, npm avisó de que ESLint 9.39.5 ya no tiene soporte (la rama 9 salió de
+  mantenimiento). Seguíamos en la 9 solo por `eslint-plugin-jsx-a11y`, que no soporta ESLint 10 y no publica
+  desde octubre de 2024. `DEVELOPMENT_RULES.md` prohíbe dependencias obsoletas.
+- Decisión: `eslint` 10.12.0, `@eslint/js` 10.0.1 y `eslint-plugin-jsx-a11y-x` 0.2.0 (fork mantenido por
+  es-tooling) con su config `strict`. TypeScript sigue en 6.0.3 (ADR-008).
+- Alternativas descartadas: seguir en ESLint 9 con el aviso (herramienta sin parches); quitar las reglas de
+  accesibilidad (P5 · accesible de serie).
+- Consecuencias: probado antes de aplicarlo: `npm run check` en verde, `npm audit` 0 y las reglas detectan
+  errores reales. El fork conserva todas las reglas salvo tres ya obsoletas (`accessible-emoji`,
+  `label-has-for`, `no-onchange`). Riesgo: menos adopción que el original; se vigila en la revisión trimestral.
+- Detalle: `docs/05-tecnico/stack.md`, `docs/05-tecnico/calidad.md`.

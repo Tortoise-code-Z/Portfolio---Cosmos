@@ -9,7 +9,7 @@
 
 | Pieza | Versión | Motivo | Windows 11 |
 |---|---|---|---|
-| Node.js | **24.22.0** (LTS «Krypton», en soporte activo) | LTS vigente hoy. Node 26 pasa a LTS el 28-10-2026: se evaluará subir tras la v1 (ADR propio) | Instalador oficial x64 o `fnm`; se fija en `.nvmrc` y en `engines` |
+| Node.js | **24.22.0** (LTS «Krypton», en soporte activo) | LTS vigente hoy. Node 26 pasa a LTS el 28-10-2026: se evaluará subir tras la v1 (ADR propio) | Instalador oficial x64 o `fnm`; versión exacta en `.nvmrc`; `engines.node` = `24.x` (ADR-013) |
 | npm | el incluido en Node 24.22.0 | Sin gestores extra: menos piezas | ✔ |
 | Git | ≥ 2.45 (Git for Windows) | Control de versiones; Husky usa sus hooks | ✔ con `core.autocrlf=false` y `.gitattributes` |
 | Docker Desktop | estable vigente | Solo para generar capturas de regresión visual idénticas a CI | ✔ con WSL 2 |
@@ -49,10 +49,10 @@ GSAP y Lenis (el scroll lo resuelve un hook propio), librerías de i18n (diccion
 
 | Paquete | Versión | Motivo |
 |---|---|---|
-| `eslint` · `@eslint/js` | **9.39.5** | Linter. **No 10.x**: `eslint-plugin-jsx-a11y` aún no soporta ESLint 10 y la accesibilidad es prioritaria |
+| `eslint` · `@eslint/js` | **10.12.0** · 10.0.1 | Linter (ESLint 9 quedó sin soporte; ADR-014). `@eslint/js` no publica parches al ritmo de `eslint`: 10.0.1 es su última |
 | `typescript-eslint` | 8.71.1 | Reglas de TypeScript con información de tipos |
 | `eslint-plugin-react-hooks` | 7.1.1 | Reglas de hooks |
-| `eslint-plugin-jsx-a11y` | 6.10.2 | Reglas de accesibilidad en JSX |
+| `eslint-plugin-jsx-a11y-x` | 0.2.0 | Reglas de accesibilidad en JSX. Fork mantenido (es-tooling) del original, que no soporta ESLint 10 ni se publica desde 2024 (ADR-014) |
 | `globals` | 17.13.0 | Globales de navegador y Node para la config plana |
 | `prettier` | 3.9.9 | Formato |
 | `eslint-config-prettier` | 10.1.8 | Desactiva reglas de ESLint que chocan con Prettier |
@@ -71,14 +71,14 @@ GSAP y Lenis (el scroll lo resuelve un hook propio), librerías de i18n (diccion
 | `@testing-library/jest-dom` | 7.0.1 | Matchers de DOM |
 | `@testing-library/user-event` | 14.6.7 | Interacciones realistas |
 | `@playwright/test` | 1.64.0 | Extremo a extremo y regresión visual |
-| `@lhci/cli` | 0.15.1 | Lighthouse CI con presupuestos |
+| `@lhci/cli` | 0.15.1 | Lighthouse CI con presupuestos. **Se instala en F6**, al activarlo: hoy arrastra 17 avisos de `npm audit` (11 altos) en sus dependencias de desarrollo; entonces se revisa la versión |
 
 ## Conflictos conocidos y vigilancia
 
 | Tema | Situación | Acción |
 |---|---|---|
 | TypeScript 7 | `typescript-eslint` 8.71 exige TS < 6.1 | Quedarse en 6.0.3; revisar en cada actualización trimestral |
-| ESLint 10 | `eslint-plugin-jsx-a11y` 6.10.2 solo declara hasta ESLint 9 | Quedarse en 9.39.5 hasta que lo soporte |
+| Accesibilidad en ESLint | Se usa el fork `eslint-plugin-jsx-a11y-x` (menos adopción que el original) | Revisar en cada actualización trimestral; si el fork se abandona, ADR nuevo |
 | React 19.4 | `@react-three/fiber` 9.8 declara React < 19.4 | No subir React por encima de 19.3.x sin subir Fiber |
 | Node 26 LTS (28-10-2026) | Todas las piezas declaran soporte para Node ≥ 22/24 | ADR de migración tras la v1 |
 | `@playwright/test` ↔ imagen Docker | La imagen debe ser **la misma versión** (`mcr.microsoft.com/playwright:v1.64.0-noble`) | Subirlas siempre juntas |

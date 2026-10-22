@@ -3,51 +3,60 @@
 > Actualizado: 2026-10-22
 
 ## Fase actual
-**F0 · Contexto del proyecto** (modo NUEVO, `/docs` + Mapa): espina dorsal creada e incoherencias entre docs
-corregidas. Falta decidir Taller/Mesa; después, F1 (`env-init`).
+**F1 · Entorno (`env-init`)**, en curso. El andamiaje está escrito en la raíz y validado en un entorno Linux
+con Node 24.22.0 (typecheck, lint, format, tests con cobertura, build y e2e en Chromium en verde). Falta la
+verificación en Windows, el PR con CI y la preview de Vercel.
 
 ## Hecho
-- Documentación fuente completa en `docs/` (00-vision … 06-roadmap + prototipo v0.1).
-- Espina dorsal en la raíz: `CLAUDE.md` (con Mapa a `docs/`), `STATE.md`, `DECISIONS.md` (ADR-001 a ADR-012),
-  `DEVELOPMENT_RULES.md`.
-- Corregidas 7 incoherencias entre docs (2026-10-22):
-  1. `modelo-de-datos.md`: `SkillGroupId` incluye `'ai'` (4 constelaciones).
-  2. `arquitectura.md`: `<SceneMount />` se monta una sola vez en `root.tsx`; las rutas solo escriben en `sceneStore`.
-  3. `04-escena/README.md`: `sceneStore` sale de `src/scene/`; vive en `src/stores/`.
-  4. `movimiento.md`: el nombre se comprime hasta `wdth` 50 (mínimo de Anybody), no 48.
-  5. `textos-sitio.md`: `hud.billionYears` ES = «{n} millones de años» con `{n}` en millones (13.800).
-  6. `componentes.md`: `ActionLink` con `rel="noopener noreferrer"`.
-  7. `02-experiencia/README.md` y `navegacion.md`: ES en `/es` y segmento `projects` en ambos idiomas.
-- Repo git inicializado, sin commits (rama actual `master`).
+- **F0 cerrada:** documentación en `docs/`, espina dorsal (`CLAUDE.md` con Mapa, `STATE.md`, `DECISIONS.md`,
+  `DEVELOPMENT_RULES.md`) y 7 incoherencias entre docs corregidas (2026-10-22):
+  `SkillGroupId` con `'ai'` · `<SceneMount />` una sola vez en `root.tsx` · `sceneStore` en `src/stores/` ·
+  `wdth` mínimo 50 · `hud.billionYears` ES en millones · `rel="noopener noreferrer"` · ES en `/es` con `projects`.
+- **F1 paso 1:** `.gitattributes` (LF), `.gitignore`, `.nvmrc` (24.22.0), `.npmrc` (`engine-strict`, `save-exact`),
+  `LICENSE` (MIT). Primer commit de docs en `main` y push a `Tortoise-code-Z/Portfolio---Cosmos` (lo ejecuta Víctor).
+- **F1 pasos 2–8 (archivos listos):**
+  - `package.json` con las versiones exactas de `stack.md` y `package-lock.json` generado con npm 11
+    (incluye los binarios de Windows). `npm audit`: 0 vulnerabilidades.
+  - React Router modo framework: `react-router.config.ts` (`appDirectory: src`, `ssr: false`,
+    `prerender: ['/', '/es']`), `src/root.tsx`, `src/routes.ts`, `src/routes/journey.tsx` (página «hello»
+    provisional), `public/favicon.svg` provisional.
+  - `vite.config.ts`: alias `~/`, validación de `VITE_SITE_URL` en el build (`src/lib/env/siteUrl.ts`) y plugin
+    de preview que sirve `/es` con `es/index.html`, como Vercel.
+  - TypeScript estricto (`tsconfig.json`), ESLint plano con reglas de capas, Prettier, Vitest + Testing Library
+    con umbrales de cobertura, Playwright (3 navegadores) con e2e de `/`, `/es` y sin JavaScript.
+  - Husky (`pre-commit`: lint-staged · `pre-push`: typecheck + tests), CI (`.github/workflows/ci.yml`),
+    `vercel.json` (estático, `build/client`), `.env.example`.
+- ADR-013: `.nvmrc` exacto y `engines.node: "24.x"` (por Vercel). Docs de `05-tecnico` actualizados.
+- ADR-014: ESLint 10.12.0 + `eslint-plugin-jsx-a11y-x` 0.2.0 (ESLint 9 quedó sin soporte). Docs actualizados.
+- Verificado en Windows con Node 24.22.0 y ESLint 10: `npm ci`, `npm run check`, `npm run build` y `npm run e2e`
+  (Chromium, Firefox y WebKit) en verde. Para Playwright hizo falta excluir `%LOCALAPPDATA%\ms-playwright` en
+  Windows Defender.
+- ✔ Verificado: `@fontsource-variable/anybody` → `standard.css` incluye `wdth` (`font-stretch: 50% 150%`;
+  56 KB el subconjunto latino).
 
 ## Pendiente / siguiente paso
-1. Decidir si se usa la cadena **Taller/Mesa** (el roadmap la recomienda a partir de F3).
-2. F1 · `env-init`: renombrar la rama a `main`, `.gitattributes` (`* text=auto eol=lf`) **antes del primer
-   commit**, `.gitignore`, `.nvmrc`, `.npmrc`, andamiaje de React Router en la raíz con `appDirectory: "src"`,
-   calidad, CI, repo en GitHub y Vercel. Hecho cuando: `npm run check` y `npm run build` en verde en local y CI.
+1. Víctor, en PowerShell: rama `chore/env-init`, `npm ci`, `Copy-Item .env.example .env`,
+   `npx playwright install`, `npm run check`, `npm run build`, `npm run e2e`.
+2. Commit, push y PR → CI en verde.
+3. Vercel: importar el repo, `VITE_SITE_URL` por entorno; comprobar que la preview sirve `/` y `/es`
+   (y que `/es` sin barra final muestra la página en español).
+4. Fusionar (squash), proteger `main` (PR + CI obligatorios), activar avisos de seguridad de Dependabot y
+   etiquetar `v0.0.1`. Con eso, F1 hecha → F2.
+5. Decidir si se usa la cadena **Taller/Mesa** (recomendada a partir de F3).
 
 ## Deuda / incoherencias detectadas
-Entre documentos (aún no hay código):
-1. **`SkillGroupId` sin `ai`:** `docs/01-contenido/modelo-de-datos.md` define `'web' | 'libraries' | 'tools'`, pero
-   `habilidades.md` y `constelaciones-y-placas.md` usan 4 grupos (también `ai`).
-2. **Dónde se monta la escena:** `arquitectura.md` dice que `routes/journey.tsx` y `routes/project.tsx`
-   renderizan `<SceneMount />`, y en el mismo documento (y en `04-escena/README.md`) que el lienzo vive en
-   `root.tsx` y persiste entre rutas. Montarlo por ruta lo recrearía al navegar (rompe la transición de F5).
-3. **Ubicación de `sceneStore`:** `04-escena/README.md` propone `src/scene/store/sceneStore.ts`; `arquitectura.md`
-   lo pone en `src/stores/` (y la regla de capas lo exige ahí: `stores` no importa `scene`).
-4. **Eje `wdth` fuera de rango:** `03-diseno/movimiento.md` comprime el nombre hasta `wdth` 48, pero Anybody va
-   de 50 a 150 (`design-system.md`, `assets.md`).
-5. **Cifras del HUD en ES:** `textos-sitio.md` → `hud.billionYears` ES «{n} mil millones de años» daría
-   «13,8 mil millones», mientras la regla 5 de `01-contenido/README.md` y los eyebrows usan «13.800 millones de años».
-6. **`rel` de enlaces externos:** `03-diseno/componentes.md` (`ActionLink`) dice `rel="noopener"`;
-   `git-y-despliegue.md` exige `rel="noopener noreferrer"`.
-7. **Rutas ES pendientes en un doc ya resuelto:** `02-experiencia/README.md` deja abierto `/es/projects/` vs
-   `/es/proyectos/` (y escribe `/es/`); `arquitectura.md` ya fijó `/es` + `projects` en ambos idiomas.
+- **JS inicial ya en ~112 KB gzip** con la página «hello» (React 19 + React Router 8), frente al presupuesto de
+  ≤ 120 KB de `calidad.md`. Vigilarlo desde el principio de F2; si no cabe, revisar el presupuesto con un ADR.
+- `@lhci/cli` y los scripts `visual` / `lhci` no se instalan hasta F3/F6 (ver `stack.md`).
+- Provisional hasta F2: textos de la página «hello» y del `ErrorBoundary` raíz escritos en las rutas (no en
+  `src/content`). Provisional hasta F6: `favicon.svg`.
 
 ## Bloqueos / dudas abiertas
-- **D2 · Dominio** propio o subdominio de Vercel (necesario en F7).
+- Cuando Vercel asigne el dominio del proyecto, poner esa URL en `VITE_SITE_URL` (Vercel, `.env.example`, CI y
+  `arquitectura.md`); hoy figura `https://cosmos-portfolio.vercel.app` como provisional.
+- **D2 · Dominio** propio o subdominio de Vercel (F7).
 - **D5 · Analítica:** ninguna o una sin cookies (F7).
 - Tareas de Víctor: confirmar curso de Hola Mundo terminado (F2) · estrellas de IA como prácticas o herramientas
   (F2/F4.3) · script de consola en el README de Chessmate (F2) · CV en PDF EN/ES.
-- ⚠ Por verificar en `env-init`: `@fontsource-variable/anybody` con `standard.css` incluye el eje `wdth`.
+- ⚠ Por verificar en Vercel: que `/es` (sin barra final) sirve `es/index.html` con `trailingSlash: false`.
 - ⚠ Por verificar en F7: servir la 404 pre-renderizada con estado 404 real en Vercel.
