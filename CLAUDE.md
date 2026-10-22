@@ -44,3 +44,5 @@ Si dos documentos chocan: `DECISIONS.md` > `docs/00-vision/brief.md` > doc espec
 - Carga solo los docs del Mapa que toque el paso actual; no leas `docs/` entero.
 - Terminal: Windows 11 + PowerShell.
 - Al empezar: lee `STATE.md`. Al cerrar: actualiza `STATE.md` (y `DECISIONS.md` si hubo decisión).
+- Auditorías con la **cadena Taller/Mesa** (`DEVELOPMENT_RULES.md` §13): este chat es el Taller si existe
+  `_claude/cadena/TABLERO.md`; buzón en `_claude/cadena/` (fuera de git).
