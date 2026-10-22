@@ -54,10 +54,11 @@ Trabajo diario con IA como parte del flujo de desarrollo (también lo dice la bi
 | `ai-agents` | Agentic coding workflows | Flujos de desarrollo con agentes |
 | `ai-prompting` | Prompt & context engineering | Ingeniería de prompts y contexto |
 | `ai-review` | AI-assisted code review & testing | Revisión de código y tests con IA |
+| `claude` | Claude | Claude |
+| `chatgpt` | ChatGPT | ChatGPT |
 
-⚠ Por confirmar: si quieres nombrar herramientas concretas como estrellas (por ejemplo Claude, ChatGPT,
-GitHub Copilot u Ollama) en lugar de, o además de, las prácticas. Las prácticas envejecen mejor que los nombres
-de producto.
+Decidido en F2 · paso 2: las prácticas **y además** las herramientas que Víctor usa de verdad (Claude y
+ChatGPT), después de las prácticas. Son 6 estrellas en esta constelación (F4.3).
 
 ## Regla
 

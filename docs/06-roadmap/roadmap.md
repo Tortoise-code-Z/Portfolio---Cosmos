@@ -96,8 +96,8 @@ Etiqueta `v0.3.0`.
 
 | Tarea | Necesaria para |
 |---|---|
-| Confirmar si el curso de Hola Mundo está terminado | F2 (contenido) |
-| Decidir si las estrellas de IA son prácticas o herramientas concretas | F2 (contenido) · F4.3 |
+| ✔ Confirmar si el curso de Hola Mundo está terminado (sí: F2 · paso 2) | F2 (contenido) |
+| ✔ Decidir si las estrellas de IA son prácticas o herramientas concretas (las dos: F2 · paso 2) | F2 (contenido) · F4.3 |
 | Comprobar que el README de Chessmate incluye el script de consola | F2 (página de Chessmate) |
 | CV en PDF, EN y ES | F2 o más tarde (el enlace aparece al existir) |
 | Dominio propio (D2) y analítica (D5) | F7 |

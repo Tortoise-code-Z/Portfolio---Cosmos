@@ -35,6 +35,6 @@
 - **Nota del curso Fullstack:** no se muestra en ningún sitio (decisión del paso 2). En su lugar, la bio destaca
   las 948 horas de formación intensiva.
 - **Curso de React + TypeScript (Hola Mundo):** el dato actual mezcla «terminado» con «En progreso».
-  Se marca como **completado (2025, 13 h)**. ⚠ Pendiente de confirmar.
+  Se marca como **completado (2025, 13 h)**, confirmado por Víctor (F2 · paso 2).
 - El email del pie de la web actual enlaza a la home; en la nueva se muestra como texto copiable con botón «Copy».
 - «Portfolio Web» (sitio actual) deja de ser proyecto: su placa la ocupa **Cosmos** (decisión del paso 2).

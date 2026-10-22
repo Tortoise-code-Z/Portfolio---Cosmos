@@ -3,7 +3,7 @@
 > Forma tipada de todo el contenido. Es especificación: el código final puede ajustar nombres,
 > pero no la idea (contenido separado de la escena, bilingüe y validado por tests).
 
-## Dónde vive en el código (propuesta, se confirma en `docs/05-tecnico/arquitectura.md`)
+## Dónde vive en el código (F2 · paso 2)
 
 ```
 src/content/
@@ -15,10 +15,20 @@ src/content/
     astrohub.ts
     cosmos.ts
     index.ts          ← lista ordenada de proyectos
-  ui/
-    en.ts             ← textos-sitio.md (EN)
-    es.ts             ← textos-sitio.md (ES)
+  texts/
+    en.ts             ← textos-sitio.md (EN); sus claves definen `UiKey`
+    es.ts             ← textos-sitio.md (ES), tipado como `UiTexts`
+    index.ts          ← `uiTexts`: los dos idiomas
+  validate.ts         ← comprobaciones puras de las reglas de abajo (solo las usan los tests)
+  content.test.ts     ← las reglas sobre el contenido real
+  validate.test.ts    ← cada comprobación, con casos rotos a propósito
 ```
+
+- La carpeta de textos se llama `texts/` y no `ui/`: `content/ui` chocaría con la capa `ui` en las reglas de
+  importación de ESLint (patrón `**/ui/**`).
+- Los textos de interfaz usan **claves planas** (`'project.stack.core'`), las mismas de `textos-sitio.md`: con
+  objetos anidados no cabrían `project.stack` y `project.stack.core` a la vez. `es` se declara como `UiTexts`,
+  así que una clave que falte o sobre no compila.
 
 El contenido es **código TypeScript tipado** (no JSON ni CMS): no viene de fuera, así que el compilador y los
 tests bastan para validarlo. Si en el futuro llega contenido externo (por ejemplo, la API de la NASA), ese dato
@@ -29,6 +39,7 @@ sí se valida en el borde con un esquema en tiempo de ejecución.
 ```ts
 export type Locale = 'en' | 'es';
 export const DEFAULT_LOCALE: Locale = 'en';
+export const LOCALES: readonly Locale[] = ['en', 'es'];
 
 /** Texto en los dos idiomas. Obligatorio en ambos. */
 export type Localized<T = string> = Readonly<Record<Locale, T>>;
@@ -36,8 +47,12 @@ export type Localized<T = string> = Readonly<Record<Locale, T>>;
 /** Para nombres propios que no se traducen. */
 export type Label = string | Localized;
 
+/** Claves de los textos de interfaz, sacadas de texts/en.ts. */
+export type UiKey = keyof typeof en;
+export type UiTexts = Readonly<Record<UiKey, string>>;
+
 export interface ImageAsset {
-  readonly src: string;          // ruta relativa a src/assets/
+  readonly src: string;          // forma provisional: la define F2.8 con vite-imagetools
   readonly width: number;
   readonly height: number;
   readonly alt: Localized;
@@ -107,16 +122,16 @@ export interface Project {
   readonly about: Localized<readonly string[]>;
   readonly features: readonly Localized[];   // lo que hace el producto
   readonly stack: {
-    readonly core: readonly string[];        // lenguajes y frameworks
-    readonly libraries: readonly string[];
-    readonly design: readonly string[];
-    readonly tooling: readonly string[];
+    readonly core: readonly Label[];         // lenguajes y frameworks
+    readonly libraries: readonly Label[];
+    readonly design: readonly Label[];       // Label: «Responsive design» sí se traduce
+    readonly tooling: readonly Label[];
   };
-  readonly process: Localized<readonly string[]>;
-  readonly highlights: readonly Localized[]; // retos técnicos resueltos
+  readonly process: Localized<readonly string[]>;   // vacío = la sección no se pinta
+  readonly highlights: readonly Localized[]; // retos técnicos resueltos; vacío = no se pinta
   readonly notes: readonly ProjectNote[];
   readonly tryIt: TryIt | null;
-  readonly cover: ImageAsset;
+  readonly cover: ImageAsset | null;        // null hasta F2.8 (capturas)
   readonly gallery: readonly ImageAsset[];
   readonly links: {
     readonly code: string;                   // URL del repo
@@ -133,19 +148,32 @@ export interface ProjectNote {
 export interface TryIt {
   readonly intro: Localized;
   readonly steps: readonly Localized[];
-  readonly credentials: readonly { readonly label: Localized; readonly user: string; readonly password: string }[];
+  readonly credentials: readonly DemoCredential[];
+}
+
+export interface DemoCredential {
+  readonly label: Localized;
+  readonly user: string;
+  readonly password: string;
 }
 ```
 
 ## Reglas que comprueban los tests de contenido
 
-1. Cada `Localized` tiene texto no vacío en `en` y en `es`.
-2. `slug` único, en minúsculas y con formato `^[a-z0-9-]+$`.
-3. `order` único y consecutivo desde 1; **exactamente un** proyecto `featured`.
-4. URLs válidas (`https://`) en `links` y `contact`.
-5. Todo `ImageAsset.src` existe en `src/assets/` y tiene `width`/`height` positivos.
-6. Cada `Skill.id` es único y existe en el mapa de posiciones de la escena (`docs/04-escena/`).
-7. El objeto de textos `en` y el `es` tienen exactamente las mismas claves.
+1. Todo texto del contenido está escrito (no vacío, sin espacios sobrantes en los extremos) y cada `Localized`
+   tiene exactamente `en` y `es`, del mismo tipo; si son listas (párrafos), con el mismo número de elementos;
+   `null` (el CV) en los dos o en ninguno.
+2. `slug` único, en minúsculas y con formato `^[a-z0-9]+(?:-[a-z0-9]+)*$` (sin guiones al principio, al
+   final ni dobles). Mismo formato para los ids de skills y de formación.
+3. La lista `projects` va en orden de lectura: `order` = 1, 2, 3… en su posición; **exactamente un** proyecto
+   `featured`.
+4. URLs válidas (`https://`) en `links` y `contact`; email con formato válido.
+5. Todo `ImageAsset.src` existe en `src/assets/` y tiene `width`/`height` positivos. **Desde F2.8**, cuando
+   lleguen las capturas.
+6. Cada `Skill.id` es único entre todos los grupos (desde F2.2) y existe en el mapa de posiciones de la escena
+   (`docs/04-escena/`, **desde F4**).
+7. Los textos `en` y `es` tienen exactamente las mismas claves (el compilador y un test) y, en cada clave, los
+   mismos huecos `{x}`.
 
 ## Relación con la escena
 

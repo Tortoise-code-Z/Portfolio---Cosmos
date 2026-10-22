@@ -112,7 +112,7 @@
   1. EN: Log in with the demo account (or sign up). · ES: Inicia sesión con la cuenta de demostración (o regístrate).
   2. EN: Go to Courses → All courses and buy the first two. · ES: Ve a Cursos → Todos los cursos y compra los dos primeros.
   3. EN: Open the dashboard and a classroom to see your progress. · ES: Abre el panel y un classroom para ver tu progreso.
-- credentials: user `admin` · password `1234` (cuenta de demo pública).
+- credentials: EN: User / ES: Usuario · `admin` · `1234` (cuenta de demo pública).
 
 > El script de consola completo de la ficha actual **pasa al README del repo de Chessmate** (si no está ya).
 > ⚠ Comprobar que el README lo incluye antes de enlazarlo.
