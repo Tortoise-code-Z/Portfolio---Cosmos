@@ -1,0 +1,32 @@
+/* Piezas de texto que comparten los paneles de los capítulos (docs/03-diseno/componentes.md). */
+
+/* Etiqueta de bloque en mono atenuado: «Strengths», «Completed orbits · education». */
+.label {
+  color: var(--color-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  font-weight: var(--weight-mono);
+  font-stretch: normal;
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* Lista sin viñetas ni sangría. */
+.plainList {
+  padding: 0;
+  list-style: none;
+}
+
+/* Elementos en línea separados por « · » al final de cada uno (decorativo: no se lee). */
+.dotted {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+  list-style: none;
+}
+
+.dotted > li:not(:last-child)::after {
+  color: var(--color-dim);
+  content: '\00a0·\00a0' / '';
+}

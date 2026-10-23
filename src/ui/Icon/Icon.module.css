@@ -1,0 +1,6 @@
+/* En línea con el texto (global.css no les da display: block); centrado óptico con la x. */
+.icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: -0.125em;
+}

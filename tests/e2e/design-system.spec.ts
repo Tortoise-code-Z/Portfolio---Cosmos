@@ -125,8 +125,19 @@ test.describe('design system foundations', () => {
     expect(weightsOf('Anybody')).toEqual(['100 900']);
   });
 
-  test('display headings use Anybody with its width axis', async ({ page }) => {
+  test('the hero name is the display face narrowed to wdth 62 (energy held in)', async ({
+    page,
+  }) => {
     await page.goto('/');
+    const name = page.getByRole('heading', { level: 1 });
+    await expect(name).toHaveCSS('font-stretch', '62%');
+    await expect(name).toHaveCSS('font-weight', '850');
+    await expect(name).toHaveCSS('text-transform', 'uppercase');
+  });
+
+  test('display headings use Anybody with its width axis', async ({ page }) => {
+    // La 404 usa el h1 global de global.css (el del hero lo ajusta su capítulo).
+    await page.goto('/404');
     const heading = page.getByRole('heading', { level: 1 });
     await expect(heading).toHaveCSS('font-stretch', '135%');
     await expect(heading).toHaveCSS('font-weight', '800');
@@ -276,5 +287,20 @@ test.describe('design system foundations', () => {
     expect(layout.dialogOffset).toBeLessThanOrEqual(1);
     expect(layout.popoverOffset).toBeLessThanOrEqual(1);
     expect(layout.svgDisplay).toBe('inline');
+  });
+
+  test('every page links the same single stylesheet (ADR-019)', async ({ request }) => {
+    // Si una ruta trajera su propia hoja, la 404 servida para `/ES` no coincidiría al hidratar.
+    const pages = ['/', '/es', '/projects/chessmate', '/es/projects/chessmate', '/404', '/es/404'];
+    const sheets = await Promise.all(
+      pages.map(async (path) => {
+        const html = await (await request.get(path)).text();
+        return [...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(
+          (match) => match[1],
+        );
+      }),
+    );
+    expect(sheets[0]).toHaveLength(1);
+    for (const list of sheets) expect(list).toEqual(sheets[0]);
   });
 });

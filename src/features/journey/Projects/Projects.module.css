@@ -1,0 +1,6 @@
+/* Capítulo 3 · Proyectos: lista de filas. */
+.rows {
+  display: grid;
+  gap: var(--space-1);
+  margin-block-start: var(--space-2);
+}

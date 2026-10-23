@@ -9,7 +9,7 @@ Presentar quién eres en 3 segundos y dar el primer momento «wow». Tesis visua
 - Kicker: alias, rol y stack.
 - Nombre en dos líneas, gigante: **VÍCTOR / PÉREZ** (tipografía display, eje `wdth` estrecho en reposo).
 - Frase: «Everything that exists started as a single point. So did my code.»
-- Botón «Hold to detonate» con anillo de carga + pista «or scroll ↓».
+- Botón «Hold to detonate» con anillo de carga + pista «or scroll» con el icono de flecha abajo.
 - El nombre es el `<h1>` de la página.
 
 ## Escena en reposo (`m = 0`)
@@ -45,7 +45,8 @@ Presentar quién eres en 3 segundos y dar el primer momento «wow». Tesis visua
 
 ## Accesibilidad y movimiento reducido
 
-- `aria-label` del botón: «Hold to trigger the Big Bang and start the journey».
+- El nombre accesible del botón es su texto visible («Hold to detonate», WCAG 2.5.3 «etiqueta en el nombre»);
+  la explicación «Hold to trigger the Big Bang and start the journey» va como descripción (`aria-describedby`).
 - Con movimiento reducido: sin temblor, sin destello y sin vibración; el botón funciona igual pero el
   desplazamiento al capítulo 1 es instantáneo. La explosión se sigue viendo al hacer scroll (la controla el
   usuario).

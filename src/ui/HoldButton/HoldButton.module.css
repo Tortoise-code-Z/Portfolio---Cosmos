@@ -1,0 +1,61 @@
+/*
+ * Botón de mantener (docs/03-diseno/componentes.md → «Botón de mantener (HoldButton)»).
+ * `--_charge` (0–1) lo escribe el dueño en el propio botón; el anillo lo dibuja con el trazo.
+ */
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: var(--target-min);
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-3);
+  border: var(--border-width) solid var(--color-faint);
+  background-color: var(--color-veil-soft);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-mono);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.button:hover {
+  border-color: var(--color-star);
+}
+
+.button[aria-disabled='true'] {
+  opacity: var(--opacity-disabled);
+  cursor: default;
+}
+
+.button[aria-disabled='true']:hover {
+  border-color: var(--color-faint);
+}
+
+.ring {
+  flex: none;
+  inline-size: var(--hold-ring-size);
+  block-size: var(--hold-ring-size);
+  /* El trazo empieza arriba y avanza en el sentido de las agujas del reloj. */
+  rotate: -90deg;
+}
+
+.track,
+.progress {
+  fill: none;
+  stroke-width: var(--hold-ring-stroke);
+}
+
+.track {
+  stroke: var(--color-faint);
+}
+
+.progress {
+  stroke: var(--color-star);
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--_charge, 0));
+}

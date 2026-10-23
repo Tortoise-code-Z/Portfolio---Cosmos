@@ -32,7 +32,12 @@ activo.
 | `--color-star` | `#ffc46b` | **Acento**: activo, foco, resaltados, enlaces al pasar | 12,9 : 1 |
 | `--color-aurora` | `#62e8cf` | Acento secundario: naturaleza, «Featured», disponibilidad | 13,5 : 1 |
 | `--color-veil` | `rgb(4 5 11 / 0.82)` | Fondo de los paneles sobre la escena | — |
+| `--color-veil-soft` | `rgb(4 5 11 / 0.62)` | Paso intermedio del velo radial de los paneles (escritorio) | — |
+| `--gradient-row-hot` | degradado ámbar al 8 % → transparente | Fondo de una fila de proyecto «hot» | — |
+| `--gradient-panel` · `--gradient-panel-mobile` | velo radial · velo que entra desde arriba (`--space-8`) | Fondo del panel en escritorio · en móvil | — |
 | `--color-flash` | `#fff4dc` | Destello del Big Bang | — |
+| `--color-singularity` | `#fff2d9` | Punto CSS de la singularidad (hero sin escena) | — |
+| `--gradient-singularity-halo` | radial cálido → azul → transparente | Halo CSS del punto | — |
 
 **Garantía de lectura:** el peor caso medido (texto sobre el velo encima de la zona más brillante de la escena)
 da `--color-dim` 5,9 : 1 y `--color-ink` > 10 : 1: todo el texto cumple AA.
@@ -80,6 +85,9 @@ Las fuentes se autoalojan con `@font-face` propios en `src/styles/fonts.css` (fa
 | `--text-label` | `0.75rem` (12 px) | 1.4 | Mono 400–500, mayúsculas, `letter-spacing: var(--tracking-label)` |
 | `--text-micro` | `0.6875rem` (11 px) | 1.3 | Mono 400, mayúsculas, `letter-spacing: var(--tracking-micro)` |
 
+El email de contacto tiene su propio tamaño y ajustes: `--text-email` `clamp(1.05rem, 2.3vw, 1.5rem)`
+(interlineado `--leading-email` 1.2), `--weight-email` 700 y `--wdth-email` 112 %.
+
 En el código, cada tamaño `--text-*` va con su interlineado `--leading-*` (`--leading-hero`, `--leading-h1`…).
 Los ajustes de la tabla también son tokens: `--weight-display` 800, `--weight-hero` 850, `--weight-body` 400,
 `--weight-strong` 600, `--weight-mono` 400, `--weight-mono-strong` 500 · `--wdth-hero-rest` 62 %, `--wdth-h1`
@@ -114,6 +122,15 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--panel-w-wide` | 600 px | Panel de contacto |
 | `--read-w` | 720 px | Columna de la página de proyecto |
 | `--content-max` | 1200 px | Ancho máximo de galería y portada |
+| `--panel-top` | 14vh | Separación superior del panel y su posición *sticky* (escritorio) |
+| `--scene-clear-mobile` | 70vh | Escena limpia antes del panel en móvil (< md) |
+| `--corner-size` | 14 px | Corchetes de esquina de los paneles |
+| `--chapter-h-0` … `--chapter-h-4` | 150 / 210 / 220 / 240 / 130 vh (< md: 150 / 230 / 240 / 260 / 130) | Altura **mínima** de recorrido de cada capítulo (`scroll-y-escena.md`) |
+| `--chapter-end-room` | 12vh | Aire bajo el último capítulo |
+| `--hero-room-bottom` | 12vh (< sm: 10vh) | Aire bajo el contenido del hero |
+| `--hero-indent` · `--hero-lead-measure` | 0.6em · 40ch | Sangría de la segunda línea del nombre · ancho de la frase del hero |
+| `--singularity-halo-size` · `--singularity-core-size` | 46vmin · 6 px | Halo y punto de la singularidad en CSS |
+| `--hold-ring-size` · `--hold-ring-stroke` | 26 px · 3 px | Anillo de carga del `HoldButton` |
 
 (Los breakpoints no son tokens: una variable CSS no puede usarse en una media query. Se escriben como número
 en las media queries y están anotados en la cabecera de `tokens.css`.)
@@ -124,8 +141,11 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 - Bordes: `--border-width` (1 px) `--color-faint`; activo: `--border-width` `--color-star`.
 - Foco visible: contorno `--focus-width` (2 px) `--color-star` con separación `--focus-offset` (3 px), global en
   `:focus-visible`.
+- Al llevar el foco con Tab, el navegador deja `--space-6` de aire con el borde inferior (`scroll-padding-block-end`
+  en `global.css`): ni el elemento ni su anillo quedan cortados (WCAG 2.4.11). La barra superior fija de F2.5
+  añadirá su altura arriba (`scroll-padding-block-start`).
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
-  (`--glow-star` = `0 0 12px --color-star`).
+  (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`).
 - Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins y botones
   flotantes.
 - Deshabilitado: `--opacity-disabled` (0,4). Área táctil mínima: `--target-min` (44 px).

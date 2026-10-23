@@ -54,6 +54,20 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [reactRouter(), previewDirectoryIndex()],
+    // Un solo CSS para todo el sitio (ADR-019): el <head> de la 404 servida coincide con el que pinta el
+    // cliente aunque case otra ruta (`/ES`, slug desconocido), y la hidratación no falla.
+    build: {
+      cssCodeSplit: false,
+      // Las dependencias (React, React Router…) en un solo chunk con la entrada del cliente: el
+      // presupuesto de JS mide aparte el framework y el código propio de cada página (ADR-020).
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [{ name: 'framework', test: /node_modules[\\/]/ }],
+          },
+        },
+      },
+    },
     resolve: {
       alias: { '~': fileURLToPath(new URL('./src', import.meta.url)) },
     },

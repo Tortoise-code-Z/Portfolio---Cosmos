@@ -110,7 +110,9 @@ Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import pr
 - Al hidratar ese `404.html` el cliente casa la ruta de proyecto, cuyo módulo no venía en el HTML. Mientras lo
   descarga pinta el `HydrateFallback` de `root.tsx`, que es la misma `NotFoundPage`: coincide con el HTML servido.
   Sin él, React dejaba el `<main>` del HTML y añadía otro (dos `<h1>`). En la `<head>` pasa lo mismo: mientras
-  tanto se pinta la `meta` de la raíz (con `error: null`), que devuelve la de la 404. React Router 8.4 no pasa
+  tanto se pinta la `meta` de la raíz (con `error: null`), que devuelve la de la 404. Las hojas de estilo no
+  pueden diferir: todo el CSS va en **un solo archivo** que enlaza la raíz (ADR-019), así que el `<head>` del
+  `404.html` coincide con el del cliente aunque case la ruta del viaje o la de proyecto. React Router 8.4 no pasa
   `caseSensitive` a las rutas del cliente, así que `/projects/Chessmate` o `/ES` también casan una ruta de página
   en el navegador.
 - `react-router.config.ts` **no** resuelve el alias `~/`: lo que importa (contenido, `lib/seo/{pages,urls,sitemap}/`,

@@ -31,6 +31,7 @@
 | `nav.langEn` | English | English |
 | `nav.langEs` | Español | Español |
 | `nav.availability` | Open to work | Disponible |
+| `link.newTab` | (opens in a new tab) | (se abre en una pestaña nueva) |
 
 ## Raíl de capítulos
 
@@ -70,7 +71,7 @@ Los números los formatea `Intl` según el idioma. En `hud.billionYears`, `{n}` 
 | `hero.lead` | Everything that exists started as a single point. So did my code. | Todo lo que existe empezó siendo un punto. Mi código también. |
 | `hero.detonate` | Hold to detonate | Mantén pulsado para detonar |
 | `hero.detonate.aria` | Hold to trigger the Big Bang and start the journey | Mantén pulsado para provocar el Big Bang y empezar el viaje |
-| `hero.scroll` | or scroll ↓ | o haz scroll ↓ |
+| `hero.scroll` | or scroll (+ icono de flecha abajo) | o haz scroll (+ icono de flecha abajo) |
 
 ## Capítulo 1 · Sobre mí (Nebulosa)
 

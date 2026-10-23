@@ -1,0 +1,64 @@
+/* Fila de proyecto (docs/03-diseno/componentes.md → «Fila de proyecto (ProjectRow)»). */
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) 0 var(--space-3) var(--space-4);
+  border-inline-start: var(--border-width) solid var(--color-faint);
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+
+/* «Hot» sin escena: puntero encima o foco en uno de sus enlaces. La placa se ilumina en F4. */
+.row:hover,
+.row:focus-within {
+  border-color: var(--color-star);
+  background-image: var(--gradient-row-hot);
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.name {
+  font-size: var(--text-h3);
+  font-stretch: var(--wdth-h3);
+  line-height: var(--leading-h3);
+}
+
+.year {
+  color: var(--color-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.row [data-meta] {
+  color: var(--color-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-micro);
+  text-transform: uppercase;
+}
+
+.featured {
+  color: var(--color-aurora);
+}
+
+.summary {
+  max-inline-size: var(--measure);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-4);
+  padding: 0;
+  list-style: none;
+}

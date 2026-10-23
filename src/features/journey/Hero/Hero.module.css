@@ -1,0 +1,109 @@
+/*
+ * Capítulo 0 · Singularidad (docs/02-experiencia/capitulos/00-singularidad.md → «Layout»).
+ * El contenido abajo a la izquierda; el punto y su halo, centrados en la primera pantalla.
+ */
+
+/* Punto y halo en CSS: el relevo de la escena los dibuja en el mismo sitio (estados-y-accesibilidad.md). */
+.singularity {
+  position: absolute;
+  inset-block-start: 50svh;
+  inset-inline-start: 50%;
+  z-index: var(--z-glow);
+  display: grid;
+  place-items: center;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+.halo,
+.core {
+  grid-area: 1 / 1;
+  border-radius: 50%;
+}
+
+.halo {
+  inline-size: var(--singularity-halo-size);
+  block-size: var(--singularity-halo-size);
+  background: var(--gradient-singularity-halo);
+  animation: breathe var(--dur-breathe) var(--ease-in-out) infinite alternate;
+}
+
+.core {
+  inline-size: var(--singularity-core-size);
+  block-size: var(--singularity-core-size);
+  background-color: var(--color-singularity);
+  box-shadow: var(--glow-singularity);
+}
+
+@keyframes breathe {
+  from {
+    opacity: 0.8;
+    scale: 0.94;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1.04;
+  }
+}
+
+.inner {
+  position: relative;
+  z-index: var(--z-content);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--space-5);
+  min-block-size: 100svh;
+  padding-block-end: var(--hero-room-bottom);
+}
+
+/* El nombre: display gigante, eje wdth estrecho en reposo (energía contenida). */
+.name {
+  padding-block-start: var(--hero-accent-room);
+  font-size: var(--text-hero);
+  font-weight: var(--weight-hero);
+  font-stretch: var(--wdth-hero-rest);
+  line-height: var(--leading-hero);
+  white-space: nowrap;
+}
+
+.line {
+  display: block;
+}
+
+.indent {
+  display: block;
+  padding-inline-start: var(--hero-indent);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4) var(--space-6);
+}
+
+.lead {
+  max-inline-size: var(--hero-lead-measure);
+  font-size: var(--text-lead);
+  line-height: var(--leading-lead);
+}
+
+.hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halo {
+    animation: none;
+  }
+}

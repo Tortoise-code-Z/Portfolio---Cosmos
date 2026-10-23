@@ -12,8 +12,9 @@ scroll (px) ──► m objetivo ──► suavizado ──► m (por frame) ─
 
 ## Capítulos y alturas
 
-Cada capítulo es una `<section>` con altura fija para dar recorrido al scroll (valores del prototipo, a ajustar
-con pruebas reales):
+Cada capítulo es una `<section>` con altura **mínima** para dar recorrido al scroll (valores del prototipo, a ajustar
+con pruebas reales; tokens `--chapter-h-*` de `docs/03-diseno/design-system.md`). Es mínima y no fija: si el texto no
+cabe, la sección crece y nunca lo recorta (P1); `mapM` mide la altura real.
 
 | Capítulo | Altura escritorio | Altura móvil | Ventana de morph hacia el siguiente |
 |---|---|---|---|

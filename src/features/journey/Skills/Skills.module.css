@@ -1,0 +1,46 @@
+/* Capítulo 2 · Habilidades (docs/03-diseno/componentes.md → «Grupo de habilidades»). */
+
+/* Frase guía: la de ratón con puntero fino que puede pasar por encima; la táctil en lo demás. */
+.leadPointer {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .leadPointer {
+    display: block;
+  }
+
+  .leadTouch {
+    display: none;
+  }
+}
+
+.groups {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.group {
+  padding-block: var(--space-2);
+  padding-inline-start: var(--space-4);
+  border-inline-start: var(--border-width) solid var(--color-faint);
+  transition: border-color var(--dur-base) var(--ease-out);
+}
+
+.groupTitle {
+  margin-block-end: var(--space-1);
+  transition: color var(--dur-base) var(--ease-out);
+}
+
+.skills {
+  color: var(--color-ink);
+}
+
+/* «Hot» sin escena: con el puntero encima. El encendido con foco y toque llega en F4 con la constelación. */
+.group:hover {
+  border-color: var(--color-star);
+}
+
+.group:hover .groupTitle {
+  color: var(--color-star);
+}

@@ -18,7 +18,29 @@
   --color-star: #ffc46b;
   --color-aurora: #62e8cf;
   --color-veil: rgb(4 5 11 / 0.82);
+  --color-veil-soft: rgb(4 5 11 / 0.62);
+  --gradient-panel: radial-gradient(
+    130% 100% at 25% 50%,
+    var(--color-veil) 0%,
+    var(--color-veil-soft) 55%,
+    transparent 100%
+  );
+  --gradient-row-hot: linear-gradient(to right, rgb(255 196 107 / 0.08), transparent 80%);
+  --gradient-panel-mobile: linear-gradient(
+    to bottom,
+    transparent 0,
+    var(--color-veil) var(--space-8),
+    var(--color-veil) 100%
+  );
   --color-flash: #fff4dc;
+  --color-singularity: #fff2d9;
+  --gradient-singularity-halo: radial-gradient(
+    circle,
+    rgb(255 246 230 / 0.55) 0%,
+    rgb(255 196 107 / 0.18) 22%,
+    rgb(120 140 255 / 0.06) 45%,
+    transparent 68%
+  );
 
   /* ── Tipografía · familias ────────────────────────────────────── */
   --font-display: 'Anybody', 'Arial Narrow', 'Helvetica Neue', sans-serif;
@@ -44,6 +66,8 @@
   --leading-label: 1.4;
   --text-micro: 0.6875rem;
   --leading-micro: 1.3;
+  --text-email: clamp(1.05rem, 2.3vw, 1.5rem);
+  --leading-email: 1.2;
 
   /* ── Tipografía · ejes y ajustes ──────────────────────────────── */
   --weight-display: 800;
@@ -52,14 +76,18 @@
   --weight-strong: 600;
   --weight-mono: 400;
   --weight-mono-strong: 500;
+  --weight-email: 700;
   --wdth-hero-rest: 62%;
   --wdth-h1: 135%;
   --wdth-h2: 128%;
   --wdth-h3: 140%;
+  --wdth-email: 112%;
   --tracking-label: 0.14em;
   --tracking-micro: 0.1em;
   --tracking-logo: 0.16em;
   --hero-accent-room: 0.14em;
+  --hero-indent: 0.6em;
+  --hero-lead-measure: 40ch;
   --underline-offset: 0.2em;
   --measure: 62ch;
 
@@ -80,12 +108,31 @@
   --panel-w-wide: 600px;
   --read-w: 720px;
   --content-max: 1200px;
+  --panel-top: 14vh;
+  --scene-clear-mobile: 70vh;
+  --corner-size: 14px;
+
+  /* ── Capítulos del viaje: altura de recorrido (escritorio; móvil abajo) ── */
+  --chapter-h-0: 150vh;
+  --chapter-h-1: 210vh;
+  --chapter-h-2: 220vh;
+  --chapter-h-3: 240vh;
+  --chapter-h-4: 130vh;
+  --chapter-end-room: 12vh;
+
+  /* ── Hero (capítulo 0) ────────────────────────────────────────── */
+  --hero-room-bottom: 12vh;
+  --singularity-halo-size: 46vmin;
+  --singularity-core-size: 6px;
+  --hold-ring-size: 26px;
+  --hold-ring-stroke: 3px;
 
   /* ── Forma y profundidad ──────────────────────────────────────── */
   --border-width: 1px;
   --focus-width: 2px;
   --focus-offset: 3px;
   --glow-star: 0 0 12px var(--color-star);
+  --glow-singularity: 0 0 18px 4px var(--color-singularity);
   --blur-chrome: 6px;
   --opacity-disabled: 0.4;
   --target-min: 44px;
@@ -106,6 +153,7 @@
   --dur-base: 250ms;
   --dur-slow: 400ms;
   --dur-flight: 800ms;
+  --dur-breathe: 4s;
   --dur-fade-base: var(--dur-base);
   --dur-fade-slow: var(--dur-slow);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -116,6 +164,16 @@
 @media (width < 520px) {
   :root {
     --gutter: max(var(--space-4), env(safe-area-inset-left), env(safe-area-inset-right));
+    --hero-room-bottom: 10vh;
+  }
+}
+
+/* Alturas de capítulo por debajo de md 900px (docs/02-experiencia/scroll-y-escena.md). */
+@media (width < 900px) {
+  :root {
+    --chapter-h-1: 230vh;
+    --chapter-h-2: 240vh;
+    --chapter-h-3: 260vh;
   }
 }
 

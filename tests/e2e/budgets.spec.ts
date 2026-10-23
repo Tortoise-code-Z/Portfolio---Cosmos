@@ -17,20 +17,47 @@ const FONT_BUDGET_BYTES = 150_000;
 /** Caras de `src/styles/fonts.css`: Anybody, Geologica y Plex Mono 400 y 500. */
 const EXPECTED_FONT_FILES = 4;
 /**
- * JS inicial de la home (sin escena) ≤ 120 KB gzip. Es una alarma propia, no un requisito externo:
- * el objetivo real son los Core Web Vitals y Lighthouse (brief, F6). Con React 19 + React Router 8
- * el framework ya ocupa ~108 KB; en F2.4 se revisa con la home maquetada (deuda en STATE.md). La página
- * de proyecto (~123 KB en F2.3) queda como deuda anotada en STATE.md hasta entonces.
+ * JS inicial (sin escena), gzip, en dos partes (ADR-020). Es una alarma propia, no un requisito externo:
+ * lo que manda son los Core Web Vitals y Lighthouse del brief (F6).
+ * - Framework: React 19 + React Router 8 y demás dependencias, en un solo chunk (`entry.client-*`, por
+ *   el grupo `framework` de `vite.config.ts`). Medido en F2.4: 107,3 KB. Salta si una subida de versión
+ *   lo engorda.
+ * - Código propio de cada página: todo lo demás que pide su HTML. Medido en F2.4: home 17,4 KB, proyecto
+ *   12,6 KB, 404 7,0 KB; el margen cubre lo que falta de F2 (navegación, misión rápida, galería).
  */
-const HOME_INITIAL_JS_BUDGET_BYTES = 120_000;
+const FRAMEWORK_JS_BUDGET_BYTES = 112_000;
+const PAGE_OWN_JS_BUDGET_BYTES = 35_000;
+const FRAMEWORK_CHUNK = /\/assets\/entry\.client-[^/]+\.js$/;
 
-/** Todo el JS que pide el HTML pre-renderizado (scripts y modulepreload), comprimido con gzip estándar. */
-function initialJsGzipBytes(htmlFile: string): { files: number; bytes: number } {
+/** Una página de cada tipo, en los dos idiomas. */
+const PAGES = [
+  'index.html',
+  'es/index.html',
+  'projects/chessmate/index.html',
+  'es/projects/chessmate/index.html',
+  '404.html',
+  'es/404/index.html',
+] as const;
+
+/** JS que pide el HTML pre-renderizado (scripts y modulepreload), comprimido con gzip estándar. */
+function initialJs(htmlFile: string): {
+  framework: string[];
+  frameworkBytes: number;
+  ownBytes: number;
+} {
   const html = readFileSync(join(CLIENT_DIR, htmlFile), 'utf8');
   const scripts = new Set(Array.from(html.matchAll(/\/assets\/[^"']+\.js/g), (match) => match[0]));
-  let bytes = 0;
-  for (const script of scripts) bytes += gzipSync(readFileSync(join(CLIENT_DIR, script))).length;
-  return { files: scripts.size, bytes };
+  const result = { framework: [] as string[], frameworkBytes: 0, ownBytes: 0 };
+  for (const script of scripts) {
+    const bytes = gzipSync(readFileSync(join(CLIENT_DIR, script))).length;
+    if (FRAMEWORK_CHUNK.test(script)) {
+      result.framework.push(script);
+      result.frameworkBytes += bytes;
+    } else {
+      result.ownBytes += bytes;
+    }
+  }
+  return result;
 }
 
 test.describe('build budgets', () => {
@@ -42,10 +69,17 @@ test.describe('build budgets', () => {
     expect(totalBytes).toBeLessThanOrEqual(FONT_BUDGET_BYTES);
   });
 
-  test('initial JS of the home stays within the JS budget', () => {
-    test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
-    const { files, bytes } = initialJsGzipBytes('index.html');
-    expect(files).toBeGreaterThan(0);
-    expect(bytes).toBeLessThanOrEqual(HOME_INITIAL_JS_BUDGET_BYTES);
-  });
+  for (const page of PAGES) {
+    test(`${page}: framework and own initial JS stay within budget`, () => {
+      test.skip(
+        test.info().project.name !== 'chromium',
+        'Reads the build from disk: once is enough',
+      );
+      const { framework, frameworkBytes, ownBytes } = initialJs(page);
+      expect(framework).toHaveLength(1);
+      expect(frameworkBytes).toBeLessThanOrEqual(FRAMEWORK_JS_BUDGET_BYTES);
+      expect(ownBytes).toBeGreaterThan(0);
+      expect(ownBytes).toBeLessThanOrEqual(PAGE_OWN_JS_BUDGET_BYTES);
+    });
+  }
 });
