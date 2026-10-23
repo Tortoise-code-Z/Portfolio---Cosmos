@@ -28,6 +28,8 @@ Víctor decide el Visto Bueno entendiendo el paso, no solo leyéndolo.
 
 - Al empezar: leer `CLAUDE.md`, `STATE.md` y estas reglas. Después, solo los docs del Mapa que toque el paso.
 - Al cerrar: `STATE.md` al día (dónde quedamos, qué falta, qué falló) y `DECISIONS.md` si hubo decisión.
+- **Dudas de Víctor:** cada duda de concepto se responde y se guarda explicada en cristiano y en detalle
+  (comparaciones, paso a paso y el porqué) en `_claude/dudas/AAAA-MM-DD-tema.md`, con una línea en su `README.md`.
 - Si la conversación se satura de errores o iteraciones: guardar estado y abrir una conversación limpia.
 - En cada paso, indicar si conviene seguir en esta conversación o abrir otra, y qué archivos releer.
 - Si dos documentos chocan: `DECISIONS.md` > `docs/00-vision/brief.md` > doc específico > prototipo. El
@@ -65,6 +67,8 @@ Víctor decide el Visto Bueno entendiendo el paso, no solo leyéndolo.
 - **Determinismo:** PRNG con semilla, nunca `Math.random` en la escena (ADR-011).
 - **Movimiento reducido de primera clase**, no un parche (`docs/02-experiencia/estados-y-accesibilidad.md`).
 - **Accesibilidad:** teclado, foco visible, contraste AA, área táctil ≥ 44 px, ningún estado comunicado solo con color.
+- **Archivos con el mismo nombre, en su carpeta** (ADR-018): `x.ts` + `x.test.ts` (o `x.module.css`) van en `x/`
+  con su nombre, sin `index.ts`. Solo en `src/` y `tests/`. Lo vigila `src/structure.test.ts`.
 
 ## 6. Versiones y dependencias
 

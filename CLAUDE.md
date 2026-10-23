@@ -13,6 +13,7 @@ Versiones exactas y conflictos → `docs/05-tecnico/stack.md`.
 - `src/` = `appDirectory` de React Router: `root.tsx`, `routes.ts`, `routes/` y las capas
   (`content`, `lib`, `stores`, `ui`, `features`, `scene`). Alias `~/` → `src/`.
 - `tests/e2e/` (Playwright) · `tests/setup.ts` (Vitest) · tests unitarios junto al archivo (`*.test.ts(x)`).
+- Archivos con el mismo nombre (`x.ts` + `x.test.ts`…) van juntos en su carpeta `x/` (ADR-018).
 - `public/` estáticos · `build/client/` salida que se despliega · `.github/workflows/ci.yml`.
 - Capas y lo que puede importar cada una → `docs/05-tecnico/arquitectura.md` (las vigila ESLint).
 
@@ -33,6 +34,7 @@ Versiones exactas y conflictos → `docs/05-tecnico/stack.md`.
 - Roadmap: fases F0–F7 y tareas de Víctor → `docs/06-roadmap/roadmap.md`
 - Prototipo visual (referencia, no código a copiar) → `docs/referencia/prototipo-v0.1.html`
 - Decisiones (ADR) → `DECISIONS.md` · Estado → `STATE.md` · Reglas → `DEVELOPMENT_RULES.md`
+- Dudas de Víctor explicadas en cristiano → `_claude/dudas/` (fuera de git; índice en su `README.md`)
 - Historial de cierres de sesión → `docs/_historial/estado/AAAA-MM.md` (consultar con `grep` si hace falta)
 
 Si dos documentos chocan: `DECISIONS.md` > `docs/00-vision/brief.md` > doc específico del tema > prototipo.

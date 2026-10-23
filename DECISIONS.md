@@ -232,3 +232,22 @@
   (~3,4 KB gzip con `translate`).
 - Detalle: `docs/05-tecnico/arquitectura.md` → «Capas y reglas de dependencia» y «Rutas e idiomas»;
   `eslint.config.js`.
+
+## ADR-018 · Archivos con el mismo nombre, juntos en su carpeta
+- Estado: Aceptada
+- Fecha: 2026-10-23
+- Contexto: cada módulo de `lib`, `content` y `routes` tiene su test al lado (`meta.ts` + `meta.test.ts`). Con
+  los componentes llegarán más archivos por pieza (`Button.tsx`, `Button.test.tsx`, `Button.module.css`) y las
+  carpetas mezclan parejas sueltas. Víctor lo pide como regla (viva S5 #8).
+- Decisión: si dos o más archivos de la misma carpeta comparten el nombre base (lo que va antes del primer punto),
+  van en una carpeta con ese nombre y conservan el suyo: `lib/seo/meta/meta.ts` + `lib/seo/meta/meta.test.ts`.
+  Sin `index.ts`: se importa la ruta completa (`~/lib/seo/meta/meta`). Vale para `src/` y `tests/`; un archivo
+  sin pareja se queda suelto y los docs no entran. Se migró todo lo existente (18 parejas). `src/structure.test.ts`
+  falla si vuelve a haber una pareja suelta.
+- Alternativas descartadas: `index.ts` en cada carpeta (imports más cortos, pero un archivo más por carpeta, dos
+  formas de importar lo mismo y saltos de «ir a la definición» al barril); aplicarla solo a lo nuevo (dos estilos
+  en el repo).
+- Consecuencias: los imports repiten el nombre (`meta/meta`). Al crear el segundo archivo de un nombre, primero se
+  mueve el que había a su carpeta. Las rutas de `routes.ts` apuntan a `routes/<ruta>/<ruta>.tsx`; los tipos
+  `./+types/<ruta>` siguen funcionando porque `typegen` copia la estructura.
+- Detalle: `docs/05-tecnico/arquitectura.md` → «Estructura del repositorio»; `DEVELOPMENT_RULES.md` §5.

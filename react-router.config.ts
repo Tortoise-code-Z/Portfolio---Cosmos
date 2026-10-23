@@ -6,10 +6,10 @@ import { loadEnv } from 'vite';
 
 // Rutas relativas a propósito: al cargar esta config no existe el alias `~/` (viva S4 #38).
 import { projects } from './src/content/projects/index.ts';
-import { parseSiteUrl } from './src/lib/env/siteUrl.ts';
-import { indexablePaths, prerenderPaths, sitePages } from './src/lib/seo/pages.ts';
-import { robotsTxt, sitemapXml } from './src/lib/seo/sitemap.ts';
-import { absoluteUrl } from './src/lib/seo/urls.ts';
+import { parseSiteUrl } from './src/lib/env/siteUrl/siteUrl.ts';
+import { indexablePaths, prerenderPaths, sitePages } from './src/lib/seo/pages/pages.ts';
+import { robotsTxt, sitemapXml } from './src/lib/seo/sitemap/sitemap.ts';
+import { absoluteUrl } from './src/lib/seo/urls/urls.ts';
 
 /** La lista única de páginas: de ella salen el prerender y el sitemap (y el hreflang de cada página). */
 const pages = sitePages(projects);

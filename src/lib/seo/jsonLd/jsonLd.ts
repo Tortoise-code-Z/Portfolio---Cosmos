@@ -1,10 +1,10 @@
 // Fichas JSON-LD (schema.org) en el idioma de la página (EST-F2-3-11).
 
 import type { Locale, Profile, Project, SkillGroup } from '~/content/types';
-import { localize } from '~/lib/i18n/localize';
-import { homePath, projectPath } from '~/lib/i18n/paths';
+import { localize } from '~/lib/i18n/localize/localize';
+import { homePath, projectPath } from '~/lib/i18n/paths/paths';
 
-import { absoluteUrl } from './urls';
+import { absoluteUrl } from '../urls/urls';
 
 const SCHEMA_CONTEXT = 'https://schema.org';
 

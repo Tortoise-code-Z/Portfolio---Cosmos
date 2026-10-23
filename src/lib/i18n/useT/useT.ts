@@ -3,8 +3,8 @@ import { useLocation } from 'react-router';
 
 import type { Locale, UiKey } from '~/content/types';
 
-import { localeFromPathname } from './locale';
-import { translate, type TranslateParams } from './translate';
+import { localeFromPathname } from '../locale/locale';
+import { translate, type TranslateParams } from '../translate/translate';
 
 /** Idioma de la página actual, sacado del prefijo de la ruta (ADR-006). */
 export function useLocale(): Locale {

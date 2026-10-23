@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { reactRouter } from '@react-router/dev/vite';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 
-import { parseSiteUrl } from './src/lib/env/siteUrl.ts';
+import { parseSiteUrl } from './src/lib/env/siteUrl/siteUrl.ts';
 
 /**
  * `vite preview` sirve `/es` con el `index.html` de la raíz (fallback de SPA) en vez de

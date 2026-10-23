@@ -1,7 +1,7 @@
 import type { MetaDescriptor } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
-import { fakeProfile, fakeProject, fakeSkillGroups, ORIGIN } from './fixtures';
+import { fakeProfile, fakeProject, fakeSkillGroups, ORIGIN } from '../fixtures';
 import { homeMeta, notFoundMeta, projectMeta } from './meta';
 
 /** Valor de una etiqueta `meta` por `property` o `name`. */

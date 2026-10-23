@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ORIGIN } from './fixtures';
+import { ORIGIN } from '../fixtures';
 import { robotsTxt, sitemapXml } from './sitemap';
 
 describe('sitemapXml', () => {

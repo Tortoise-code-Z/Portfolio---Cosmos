@@ -18,7 +18,7 @@ import {
   findTextProblems,
   findUiProblems,
   findUrlProblems,
-} from './validate';
+} from './validate/validate';
 
 describe('contenido', () => {
   it('EN es el idioma principal y hay exactamente EN y ES', () => {

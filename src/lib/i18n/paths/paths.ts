@@ -2,7 +2,7 @@
 // Imports relativos a propósito: lo carga `react-router.config.ts` (prerender), donde el alias `~/`
 // no existe (comprobado en F2.3: el build falla con «Cannot find module '~/…'»).
 
-import type { Locale } from '../../content/types';
+import type { Locale } from '../../../content/types';
 
 /** Prefijo de cada idioma: EN sin prefijo, ES en `/es` (ADR-006). */
 export const LOCALE_PREFIX: Readonly<Record<Locale, string>> = { en: '', es: '/es' };

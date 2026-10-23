@@ -4,7 +4,7 @@
 > (planas, tal cual) y los mismos huecos. `{x}` = valor que inserta la interfaz.
 > `about.body` no es una clave: solo indica que ese texto sale de `profile.bio`.
 > Los modos de trabajo (`availability.mode.*`, en minúscula) no forman una frase fija: la arma
-> `workModesText` (`src/lib/i18n/availability.ts`) desde `profile.availability.modes` con `Intl.ListFormat`
+> `workModesText` (`src/lib/i18n/availability/availability.ts`) desde `profile.availability.modes` con `Intl.ListFormat`
 > (disyunción) y mayúscula inicial: EN «Remote, hybrid, or on-site» · ES «Remoto, híbrido o presencial».
 > Las cifras de 4 dígitos en ES van sin punto (norma RAE, como `Intl`): «1000 millones»; desde 5, con punto.
 

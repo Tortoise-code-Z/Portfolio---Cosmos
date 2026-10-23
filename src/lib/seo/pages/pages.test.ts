@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { fakeProjects } from './fixtures';
+import { fakeProjects } from '../fixtures';
 import { indexablePaths, prerenderPaths, sitePages } from './pages';
 
 describe('sitePages', () => {

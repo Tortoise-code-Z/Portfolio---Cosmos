@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { localeFromPathname } from './locale';
+import { localeFromPathname } from '../locale/locale';
 import { homePath, notFoundPath, projectPath } from './paths';
 
 describe('rutas por idioma', () => {
