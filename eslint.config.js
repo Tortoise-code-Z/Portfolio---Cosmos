@@ -25,7 +25,23 @@ const LAYER_RULES = [
   {
     files: ['src/lib/**'],
     forbidden: [...THREE, ...['stores', 'ui', 'features', 'scene', 'routes'].flatMap(layer)],
-    message: 'lib solo puede importar tipos de content.',
+    message: 'lib no importa stores, ui, features, scene ni routes.',
+    // ADR-017: de content, lib solo importa content/types y los textos (useT). Los datos (perfil,
+    // proyectos, skills) le llegan por parámetro desde routes o react-router.config.ts.
+    extra: [
+      {
+        group: [
+          '~/content/**',
+          '!~/content/types',
+          '!~/content/texts',
+          '**/content/**',
+          '!**/content/types',
+          '!**/content/texts',
+        ],
+        message:
+          'lib solo importa de content sus tipos (content/types) y los textos (content/texts).',
+      },
+    ],
   },
   {
     files: ['src/stores/**'],
@@ -82,10 +98,10 @@ export default defineConfig(
     },
   },
 
-  ...LAYER_RULES.map(({ files, forbidden, message }) => ({
+  ...LAYER_RULES.map(({ files, forbidden, message, extra = [] }) => ({
     files,
     rules: {
-      'no-restricted-imports': ['error', { patterns: [{ group: forbidden, message }] }],
+      'no-restricted-imports': ['error', { patterns: [{ group: forbidden, message }, ...extra] }],
     },
   })),
 

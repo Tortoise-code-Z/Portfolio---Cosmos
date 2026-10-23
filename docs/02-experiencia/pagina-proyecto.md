@@ -43,9 +43,12 @@ Las secciones sin datos (por ejemplo, `tryIt: null`) **no se pintan**.
 
 ## SEO
 
-- `<title>` y descripción propias (`meta.project.title`, `summary`), imagen Open Graph = `cover`.
+- `<title>` y descripción propias (`meta.project.title`, `summary` tal cual), imagen Open Graph = `cover` cuando
+  exista (si es `null`, la imagen del sitio de su idioma; hasta entonces, sin `og:image`).
 - HTML pre-renderizado con todo el contenido (decisión técnica en `docs/05-tecnico/`).
-- Datos estructurados `CreativeWork` con nombre, autor, año y URL del código.
+- Datos estructurados `SoftwareSourceCode` (un `CreativeWork`) con nombre, descripción, año, URL canónica, URL del
+  código (`codeRepository`), idioma y autor embebido.
+- Slug desconocido: la misma página 404 del idioma, sin redirección (`docs/05-tecnico/arquitectura.md`).
 
 ## Aceptación
 

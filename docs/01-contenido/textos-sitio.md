@@ -3,6 +3,10 @@
 > Claves agrupadas por zona. En el código, `src/content/texts/en.ts` y `es.ts`, con las mismas claves
 > (planas, tal cual) y los mismos huecos. `{x}` = valor que inserta la interfaz.
 > `about.body` no es una clave: solo indica que ese texto sale de `profile.bio`.
+> Los modos de trabajo (`availability.mode.*`, en minúscula) no forman una frase fija: la arma
+> `workModesText` (`src/lib/i18n/availability.ts`) desde `profile.availability.modes` con `Intl.ListFormat`
+> (disyunción) y mayúscula inicial: EN «Remote, hybrid, or on-site» · ES «Remoto, híbrido o presencial».
+> Las cifras de 4 dígitos en ES van sin punto (norma RAE, como `Intl`): «1000 millones»; desde 5, con punto.
 
 ## SEO y metadatos
 
@@ -12,6 +16,7 @@
 | `meta.description` | Portfolio of Víctor Pérez, frontend developer. A journey from the Big Bang to Earth through my projects, skills and experience. | Portfolio de Víctor Pérez, desarrollador frontend. Un viaje del Big Bang a la Tierra a través de mis proyectos, habilidades y experiencia. |
 | `meta.project.title` | {project} · Víctor Pérez | {project} · Víctor Pérez |
 | `meta.notFound.title` | Lost in space · Víctor Pérez | Perdido en el espacio · Víctor Pérez |
+| `meta.error.title` | Something went wrong · Víctor Pérez | Algo ha fallado · Víctor Pérez |
 
 ## Barra superior, idioma y accesos
 
@@ -80,7 +85,7 @@ Los números los formatea `Intl` según el idioma. En `hud.billionYears`, `{n}` 
 
 | Clave | EN | ES |
 |---|---|---|
-| `skills.eyebrow` | Skills · galaxy · t ≈ 1 billion years | Habilidades · galaxia · t ≈ 1.000 millones de años |
+| `skills.eyebrow` | Skills · galaxy · t ≈ 1 billion years | Habilidades · galaxia · t ≈ 1000 millones de años |
 | `skills.title` | My galaxy of tools | Mi galaxia de herramientas |
 | `skills.lead.pointer` | Each star is a technology I use. Hover a group to light up its constellation. | Cada estrella es una tecnología que uso. Pasa el cursor por un grupo para encender su constelación. |
 | `skills.lead.touch` | Each star is a technology I use. Tap a group to light up its constellation. | Cada estrella es una tecnología que uso. Toca un grupo para encender su constelación. |
@@ -111,7 +116,9 @@ Los números los formatea `Intl` según el idioma. En `hud.billionYears`, `{n}` 
 | `contact.copy` | Copy | Copiar |
 | `contact.copied` | Copied | Copiado |
 | `contact.copyFailed` | Select and copy it | Selecciónalo y cópialo |
-| `contact.availability.modes` | Remote, hybrid or on-site | Remoto, híbrido o presencial |
+| `availability.mode.remote` | remote | remoto |
+| `availability.mode.hybrid` | hybrid | híbrido |
+| `availability.mode.onsite` | on-site | presencial |
 | `contact.availability.relocation` | Open to relocation | Abierto a reubicarme |
 | `contact.cv` | Download CV (PDF) | Descargar CV (PDF) |
 | `education.title` | Completed orbits · education | Órbitas completadas · formación |
@@ -162,3 +169,5 @@ Los números los formatea `Intl` según el idioma. En `hud.billionYears`, `{n}` 
 | `notFound.title` | Lost in space | Perdido en el espacio |
 | `notFound.body` | This page drifted out of orbit. | Esta página se salió de su órbita. |
 | `notFound.cta` | Back to the start | Volver al inicio |
+| `error.title` | Something went wrong | Algo ha fallado |
+| `error.body` | A system failed mid-flight. Reload the page or go back to the start. | Un sistema ha fallado en pleno vuelo. Recarga la página o vuelve al inicio. |

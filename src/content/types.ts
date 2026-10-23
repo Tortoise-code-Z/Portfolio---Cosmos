@@ -19,6 +19,9 @@ export type Label = string | Localized;
 /** Claves de los textos de interfaz: planas (`'project.stack.core'`), sacadas de `texts/en.ts`. */
 export type UiKey = keyof typeof en;
 
+/** Texto EN literal de una clave: de él salen los huecos `{x}` que exige `translate` (lib/i18n). */
+export type UiTemplate<K extends UiKey> = (typeof en)[K];
+
 /** Textos de interfaz de un idioma: exactamente las claves de EN. */
 export type UiTexts = Readonly<Record<UiKey, string>>;
 

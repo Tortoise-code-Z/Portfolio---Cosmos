@@ -1,0 +1,38 @@
+import type { ReactNode } from 'react';
+import { Link } from 'react-router';
+
+import { profile } from '~/content/profile';
+import { localeFromPathname } from '~/lib/i18n/locale';
+import { homePath } from '~/lib/i18n/paths';
+import { useLocale, useT } from '~/lib/i18n/useT';
+import { notFoundMeta } from '~/lib/seo/meta';
+
+import type { Route } from './+types/not-found';
+
+export function meta({ location }: Route.MetaArgs): Route.MetaDescriptors {
+  return notFoundMeta({ locale: localeFromPathname(location.pathname), profile });
+}
+
+/**
+ * Página «te has perdido» en el idioma del prefijo. La pinta la ruta `*` y también la de proyecto
+ * con un slug desconocido: el mismo HTML que el 404 pre-renderizado, así que hidrata sin errores
+ * (viva S4 #39). La maquetación completa llega en F2.7.
+ */
+export function NotFoundPage(): ReactNode {
+  const t = useT();
+  const locale = useLocale();
+
+  return (
+    <main>
+      <h1>{t('notFound.title')}</h1>
+      <p>{t('notFound.body')}</p>
+      <p>
+        <Link to={homePath(locale)}>{t('notFound.cta')}</Link>
+      </p>
+    </main>
+  );
+}
+
+export default function NotFound(): ReactNode {
+  return <NotFoundPage />;
+}

@@ -12,7 +12,13 @@ import {
 import anybodyLatin from '@fontsource-variable/anybody/files/anybody-latin-standard-normal.woff2?url';
 import geologicaLatin from '@fontsource-variable/geologica/files/geologica-latin-wght-normal.woff2?url';
 
+import { profile } from '~/content/profile';
 import { localeFromPathname } from '~/lib/i18n/locale';
+import { homePath } from '~/lib/i18n/paths';
+import { translate } from '~/lib/i18n/translate';
+import { useLocale, useT } from '~/lib/i18n/useT';
+import { notFoundMeta } from '~/lib/seo/meta';
+import { NotFoundPage } from '~/routes/not-found';
 
 import '~/styles/fonts.css';
 import '~/styles/tokens.css';
@@ -60,16 +66,43 @@ export default function App(): ReactNode {
   return <Outlet />;
 }
 
-// Provisional (F1): la página de error localizada llega en F2.
+/**
+ * Lo que se pinta mientras el cliente descarga el módulo de una ruta que el HTML no traía. Solo
+ * pasa cuando el servidor da una 404 (`404.html`, ruta `*`) y el cliente casa otra ruta: un slug
+ * desconocido (`/projects/no-existe`) o en mayúsculas (`/projects/Chessmate`; React Router 8.4 no
+ * pasa `caseSensitive` a las rutas del cliente). Pinta la misma 404, así que coincide con el HTML
+ * servido; sin esto React dejaba ese `<main>` y añadía otro (dos `<h1>`, viva S5 #1).
+ */
+export function HydrateFallback(): ReactNode {
+  return <NotFoundPage />;
+}
+
+/**
+ * Solo se pinta la `meta` de la ruta más profunda, y cada ruta tiene la suya: la de la raíz se ve
+ * con un error (título de la página de error) o mientras se hidrata una 404 con otra ruta (ver
+ * `HydrateFallback`). En ese caso llega `error: null` y devuelve la meta de la 404, la misma del
+ * HTML servido; si no, React dejaba esas etiquetas y añadía otras (viva S5 #4).
+ */
+export function meta({ error, location }: Route.MetaArgs): Route.MetaDescriptors {
+  const locale = localeFromPathname(location.pathname);
+  if (error === undefined || error === null) return notFoundMeta({ locale, profile });
+  const notFound = isRouteErrorResponse(error) && error.status === 404;
+  return [{ title: translate(locale, notFound ? 'meta.notFound.title' : 'meta.error.title') }];
+}
+
+/** Error no previsto en cualquier ruta: aviso en el idioma de la página y vuelta al inicio. */
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactNode {
   console.error('[root] Unhandled route error', error);
-  const status = isRouteErrorResponse(error) ? error.status : null;
+  const t = useT();
+  const locale = useLocale();
+  const notFound = isRouteErrorResponse(error) && error.status === 404;
 
   return (
     <main>
-      <h1>{status === 404 ? 'Lost in space' : 'Something went wrong'}</h1>
+      <h1>{t(notFound ? 'notFound.title' : 'error.title')}</h1>
+      <p>{t(notFound ? 'notFound.body' : 'error.body')}</p>
       <p>
-        <a href="/">Back to the start</a>
+        <a href={homePath(locale)}>{t('notFound.cta')}</a>
       </p>
     </main>
   );

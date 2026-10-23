@@ -3,66 +3,75 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** F2 · paso 1 auditado y corregido en `main` (`94f24ff`) · siguiente: **F2 · paso 2 · capa de
-contenido tipada**.
+**Dónde estamos:** F2 · paso 3 escrito en la rama `feat/i18n-seo` (3 commits + este cierre; PR por abrir o en
+borrador) · siguiente: **PR en verde en los tres motores y fusión**, auditoría **AUD-F2-3** y **F2 · paso 4**.
 
-_Última actualización: 2026-10-22 (**CIERRE DE SESIÓN · 3**) · AUD-F2-1 corregida entera (18 hallazgos y 3
-preguntas); ADR-015 sustituye a ADR-007 y ADR-016 fija los navegadores; piloto Taller/Mesa terminado → modo completa._
+_Última actualización: 2026-10-23 (**CIERRE DE SESIÓN · 4**) · F2.2 (contenido) hecho, auditado y corregido en
+`main`; F2.3 (i18n, rutas EN/ES y SEO) hecho tras un estudio de la Mesa; ADR-017 (qué importa `lib` de `content`)._
 
 **Hecho esta sesión:**
-1. **AUD-F2-1** (entrega de la Mesa sobre F2 · paso 1): todo corregido con sus recomendaciones · **PR #8**
-   (`94f24ff`, título Conventional, CI en verde en los tres motores).
-   - Estilos: el reset ya no descentra `<dialog>` ni `[popover]`; los SVG van en línea; token `--underline-offset`.
-   - Invariantes (`src/styles/styles.test.ts`): tokens solo del `:root` de nivel superior; variables privadas `--_x`
-     permitidas; colores revisados por declaración; sin duraciones literales y fundidos con `--dur-fade-*`; familias
-     solo vía `--font-*`; el contraste exige `#rrggbb` opaco. Cada comprobación con su test de guarda.
-   - E2E: cada cara de fuente; eje `wdth` por ancho pintado; precargas que coinciden con su `@font-face` y se
-     descargan una vez; foco ámbar; `--gutter`; duraciones con y sin movimiento reducido; reset; fondo sin JS;
-     presupuesto de fuentes sobre el build (`tests/e2e/budgets.spec.ts`).
-   - Docs: ADR-007 → «Sustituida por ADR-015»; **ADR-016** (dos últimas versiones de cada motor); `movimiento.md`
-     coherente y regla de `transitionend`; tokens citados en lugar de valores; `stack.md`, `roadmap.md`, `calidad.md`.
-2. **Cadena Taller/Mesa:** piloto terminado; pasa a **modo completa** (`DEVELOPMENT_RULES.md` §13).
+1. **F2 · paso 2 · capa de contenido tipada** (PR #10, `68f5006`): perfil, 4 constelaciones (31 estrellas; IA con
+   las 4 prácticas + Claude y ChatGPT), 3 proyectos y 95 textos EN/ES en `src/content/`, con claves planas en
+   `src/content/texts/` (`uiTexts`, `UiKey`). Comprobaciones puras en `validate.ts` y tests de invariantes.
+2. **AUD-F2-2** (Mesa) corregida entera, 9 hallazgos y P3 (PR #11, `e00e246`): casos rotos también del lado EN,
+   regla 8 (listas que siempre se pintan, no vacías), email más estricto, etiquetas compartidas en
+   `projects/labels.ts`, ADR-006 y el doc de escena al día.
+3. **EST-F2-3** (estudio de la Mesa): 15 preguntas respondidas con su recomendación (vivas S4 #16–#31).
+4. **F2 · paso 3** en `feat/i18n-seo`:
+   - `1567bd3` · i18n: `translate`/`useT` con huecos tipados por el compilador, `formatNumber`/`formatList`
+     (`Intl` con `en`/`es`), `workModesText`, rutas por idioma; regla de ESLint de ADR-017.
+   - `b9eb354` · SEO: `SITE_ORIGIN`, `absoluteUrl` (forma única), `sitePages`, meta, JSON-LD (`Person`,
+     `SoftwareSourceCode`), sitemap y robots; `VITE_SITE_URL` exigida también en `dev` y `preview`.
+   - `46729b1` · rutas: home, proyecto y 404 en EN/ES; slug desconocido = misma 404; `ErrorBoundary` traducido;
+     prerender, `sitemap.xml`, `robots.txt` y `404.html` en el build; e2e `seo.spec.ts` y presupuesto de JS de la
+     home (`budgets.spec.ts`).
+   - Cierre: ADR-017, `arquitectura.md`, `calidad.md`, `git-y-despliegue.md`, `pagina-proyecto.md`,
+     `DEVELOPMENT_RULES.md` §13 y `.husky/pre-commit` (genera los tipos de las rutas antes del lint).
 
 **Incidencias y lecciones:**
-- El e2e de precarga falló dos veces en el CI en WebKit: (1) Resource Timing no sirve para contar descargas
-  (deja dos entradas por fuente) → se cuentan las peticiones de red con `page.route`; (2) WebKit descarga dos veces
-  las fuentes precargadas aunque la precarga sea correcta ([bug 194589](https://bugs.webkit.org/show_bug.cgi?id=194589))
-  → la comprobación «una sola descarga» se salta en WebKit.
-- Un test de precarga debe comparar el `href` con los `@font-face` reales: si solo mira que se pide, un `href` a
-  otro archivo pasa en verde.
-- Lo que la Mesa marca como sospechado se comprueba antes de documentarlo: renombrar el `.woff2` de Plex solo da
-  un aviso en el build (lo pilla el e2e); Vite no reescribe `@media (width < 520px)`.
-- Cada test nuevo se valida rompiendo a propósito lo que vigila (las 8 roturas de la Mesa y 2 más fallan).
-- Los e2e que corre el Taller son solo de Chromium; Firefox y WebKit se ven en el CI del PR: abrirlo pronto.
-- **Piloto · sesión 2 de 2:** bien, uso normal. Una entrega útil (18 hallazgos, ninguno falso), sin incidentes de
-  la cadena; el tiempo extra se fue en los dos fallos de WebKit en el CI.
+- **Prueba de viabilidad antes de construir** (3.0): la 404 se puede pre-renderizar con la ruta `*`, pero
+  `react-router.config.ts` **no** entiende el alias `~/` (lo que importa va con rutas relativas) y lanzar un 404
+  desde el render de la página de proyecto daba 4 errores de consola → se pinta la misma 404 sin lanzar.
+- El pre-commit falló en el equipo de Víctor: faltaban los tipos de las rutas nuevas (`.react-router/`, fuera de
+  git). Arreglado en `.husky/pre-commit` (`react-router typegen` antes de `lint-staged`).
+- Las comprobaciones se hacen en un contenedor con Node 24.22.0 instalado desde npm (`node-linux-x64`): nodejs.org
+  da 403 y el `node_modules` de Víctor es de Windows. Los e2e del Taller son solo de Chromium.
+- Cada test nuevo se valida rompiendo a propósito lo que vigila: la Mesa encontró 7 mutaciones que sobrevivían en
+  `validate.test.ts` (corregido). En F2.3, 14 mutaciones y roturas ponen tests en rojo.
+- Cobertura por carpeta: una rama imposible (`?? char`) dejó `lib/seo` en 83 % de ramas; se reescribió sin rama.
+- El límite de 120 KB de JS es una **alarma propia** (puesta en la fase de documentación, sin ADR); los objetivos
+  reales son Core Web Vitals y Lighthouse del brief (F6). Aclarado con Víctor (viva #47).
+- La Mesa en modo completa: una auditoría y un estudio en paralelo sobre zonas distintas, sin incidentes.
 
 **Deuda anotada:**
-- **JS inicial ~112 KB gzip** frente a ≤ 120 KB (`calidad.md`). Vigilar en cada paso de F2; si no cabe, ADR.
-- La tilde de «VÍCTOR» toca el borde superior en la página «hello» (sin maquetación): F2.4 con `--hero-accent-room`.
-- **Riesgo · salto de diseño al cargar las fuentes** (AUD-F2-1-9 · medir en **F2.4**): con la maquetación real del
-  hero, medir el CLS (Lighthouse con 4G simulada o `PerformanceObserver('layout-shift')`); si pasa de 0,1, caras de
-  reserva con `size-adjust` / `ascent-override`.
-- La flecha «→» de los textos (Chessmate) se maqueta con el icono SVG de flecha en F2.4 (`design-system.md` → «Iconos»).
-- **WebKit descarga dos veces las fuentes precargadas** (bug 194589): en F6, medir en un Safari real si la precarga
-  compensa (LCP/CLS frente a ~82 KB de más en Safari).
-- Contraste AA sobre el velo de los paneles (`--color-veil`) encima de la escena: comprobar en F3–F4 (ADR-015).
-- El test de colores usa una lista de valores neutros: un valor legítimo nuevo (p. ej. `url()` en un fondo) obligará
-  a ampliarla, a propósito.
+- **JS inicial:** home **118,5 KB** gzip (vigilada por `budgets.spec.ts`, ≤ 120 KB); **página de proyecto ~123 KB**,
+  por encima. En **F2.4**, con la home maquetada: `loader` en el build para el proyecto (datos fuera del JS) o ADR
+  que revise el presupuesto (por página, o «framework + X KB»). React 19 + React Router 8 ya ocupan ~108 KB.
+- La tilde de «VÍCTOR» toca el borde superior en la «hello» (sin maquetación): F2.4 con `--hero-accent-room`.
+- **Riesgo · salto de diseño al cargar las fuentes** (medir en **F2.4**): CLS con la maquetación real del hero; si
+  pasa de 0,1, caras de reserva con `size-adjust` / `ascent-override`.
+- La flecha «→» de los textos se maqueta con el icono SVG en F2.4 (`design-system.md` → «Iconos»).
+- **WebKit descarga dos veces las fuentes precargadas** (bug 194589): en F6, medir en un Safari real.
+- Contraste AA sobre el velo de los paneles (`--color-veil`) encima de la escena: F3–F4 (ADR-015).
+- La lista de valores neutros del test de colores obliga a ampliarla con un valor legítimo nuevo (a propósito).
 - `@lhci/cli` y los scripts `visual` / `lhci` se instalan en F3/F6.
-- Provisional: textos de «hello» y del `ErrorBoundary` raíz (→ `src/content` en F2); `favicon.svg` (→ F6); 404
-  genérica de Vercel (→ nuestra página en F2, configuración en F7).
+- **F7:** que `/es/*` reciba la 404 ES y que las 404 salgan con estado 404 real en Vercel (en `preview` salen con
+  200). Comprobar el `X-Robots-Tag: noindex` de las previews.
+- Provisional: la página «hello» (F2.4), las páginas mínimas de proyecto y 404 (F2.7), `favicon.svg` (F6).
+- Fuera de este paso: la sugerencia «¿Ver en español?» (F2.6) no tiene claves en `textos-sitio.md`.
 
 **Siguiente paso (próxima sesión):**
-1. Arrancar con `session-start` (y la skill `taller`; la cadena ya está en modo completa).
-2. **F2 · paso 2:** capa de contenido tipada + tests de invariantes. Leer `docs/01-contenido/README.md` y
-   `modelo-de-datos.md` y traer el esquema → Visto Bueno. Zona caliente: `src/content/**`. Con su commit en verde,
-   ofrecer la auditoría a la Mesa (y, si lo pides, el estudio del paso 3 en paralelo).
+1. Arrancar con `session-start` (y la skill `taller`).
+2. **PR `feat/i18n-seo`:** CI en verde en Chromium, Firefox y WebKit (los e2e nuevos solo se han visto en
+   Chromium), título y descripción que dé el Taller, fusión con squash.
+3. Ofrecer **AUD-F2-3** a la Mesa (base `e00e246` · hasta el commit fusionado en `main`). Ámbitos: lógica y contenido
+   (`lib/i18n`, `lib/seo`, capas) · tests · documentación y ADR · estilos e interfaz solo para las páginas mínimas.
+4. **F2 · paso 4** (capítulos del viaje sin escena): esquema → VB. Ahí se mide el JS inicial con la home real y se
+   decide la deuda del proyecto (viva #47).
 
-**Dudas abiertas:** D2 · dominio propio (F7) · D5 · analítica (F7) · Tareas de Víctor: confirmar curso de Hola Mundo
-terminado (F2), estrellas de IA como prácticas o herramientas (F2/F4.3), script de consola en el README de Chessmate
-(F2), CV en PDF EN/ES.
+**Dudas abiertas:** D2 · dominio propio (F7) · D5 · analítica (F7) · Tareas de Víctor: script de consola en el README
+de Chessmate (F2.7), CV en PDF EN/ES.
 **Limpieza manual del usuario:** ramas locales ya fusionadas: `git branch -D chore/env-init chore/site-url
-docs/session-close-2026-10-22 feat/design-tokens` (y `docs/session-close-2026-10-22-3`, cuando se fusione). En el
-buzón, dentro de `_claude/cadena/hecho/2026-10-22/aud-f2-1/`, se pueden borrar los `.tar.gz` y `cambio.diff`
-(nunca la carpeta `_claude/cadena/`). · **Bloqueos:** ninguno.
+docs/session-close-2026-10-22 docs/session-close-2026-10-22-3 feat/design-tokens feat/content-layer fix/aud-f2-2`
+(y `feat/i18n-seo` cuando se fusione). En el buzón, dentro de `_claude/cadena/hecho/`, se pueden borrar los
+`.tar.gz` y los `cambio.diff` (nunca la carpeta `_claude/cadena/`). · **Bloqueos:** ninguno.

@@ -9,18 +9,18 @@ const Stub = createRoutesStub([
   { path: '/es', Component: Journey },
 ]);
 
-describe('Journey (F1 hello)', () => {
-  it('renders the name as the only h1', async () => {
+describe('Journey («hello» hasta F2.4)', () => {
+  it('el nombre es el único h1', async () => {
     render(<Stub initialEntries={['/']} />);
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Víctor Pérez');
   });
 
-  it('shows the English lead on /', async () => {
+  it('frase del hero en inglés en /', async () => {
     render(<Stub initialEntries={['/']} />);
     expect(await screen.findByText(/So did my code\./)).toBeInTheDocument();
   });
 
-  it('shows the Spanish lead on /es', async () => {
+  it('frase del hero en español en /es', async () => {
     render(<Stub initialEntries={['/es']} />);
     expect(await screen.findByText(/Mi código también\./)).toBeInTheDocument();
   });

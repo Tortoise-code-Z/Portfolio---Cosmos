@@ -1,1 +1,2 @@
-npx lint-staged
+# Tipos de las rutas antes del lint: sin ellos, ESLint rechaza las rutas nuevas (viva S4 #48).
+npx react-router typegen && npx lint-staged
