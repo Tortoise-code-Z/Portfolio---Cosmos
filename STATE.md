@@ -3,77 +3,87 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** F2 · paso 3 cerrado y auditado: AUD-F2-3 corregida en `main` (PR #15, `f79c064`) ·
-siguiente: **F2 · paso 4** (capítulos del viaje sin escena).
+**Dónde estamos:** F2 · paso 4 en `main` (PR #17, `e1b13e1`) · la Mesa ya entregó **AUD-F2-4** (sin decidir) ·
+siguiente: **decidir AUD-F2-4** y corregirla; después **F2 · paso 5** (scroll, raíl, HUD, barra superior).
 
-_Última actualización: 2026-10-23 (**CIERRE DE SESIÓN · 6**) · AUD-F2-3 decidida (los 14 hallazgos + P1, P2,
-FIX-1, FIX-2) y corregida en 4 commits; verde en los tres motores._
+_Última actualización: 2026-10-23 (**CIERRE DE SESIÓN · 7**) · el viaje completo sin escena: hero y capítulos 1–4,
+ADR-019 (un solo CSS) y ADR-020 (presupuesto de JS en dos partes); CI verde en los tres motores._
 
 **Hecho esta sesión:**
-1. **Mayúsculas → 404** (AUD-F2-3-1, -12): `isLowerCasePathname` (`lib/i18n/paths/`) es la única regla «ruta en
-   minúsculas»; `/ES`, `/PROJECTS/chessmate`, `/es/PROJECTS/…` pintan la 404 del idioma (página y `meta`) en
-   `journey` y `project`. El plugin de `preview` la repite en línea antes de `existsSync` (Windows no distingue
-   mayúsculas). Comprobado por Víctor en Windows.
-2. **Raíz y página de error** (-2, -7, -8, -13): el `ErrorBoundary` reutiliza `NotFoundPage` con un 404 y pone
-   `noindex` a los demás errores; `src/root.test.tsx` prueba la `meta` de reserva, la página de error EN/ES, el
-   `HydrateFallback` y que **cada ruta de `routes.ts` exporta su `meta`**. ADR-018 con una excepción: `root.tsx` y
-   su test, sueltos en `src/` (FIX-1-A).
-3. **Tests más firmes** (-3, -4, -9, -10, -11): `networkidle` en las páginas indexables; título, descripción y
-   `name` del JSON-LD exactos; 404 con título, `og:locale` y `/en`; resumen del proyecto EN/ES; `fillPlaceholders`
-   exportada (huecos repetidos); `SITE_ORIGIN` recargado con `vi.resetModules`; `@ts-expect-error` sobre `t`.
-4. **Citas y docs** (-5, -6, -14, P1-A, FIX-2-A): el código ya no cita el buzón (~40 citas → docs del repo);
-   regla en `DEVELOPMENT_RULES.md` §5 vigilada por `src/code-references.test.ts`; docs al día (pre-commit con
-   `typegen`, origen del `hreflang`, `lib/env/`, `UiTemplate`, coma de Oxford, «≈ 1000 millones» en el brief); la
-   404 sin descripción ni `og:url` queda escrita como decisión en `arquitectura.md`.
-5. Cada arreglo, validado rompiéndolo a propósito (los tests se ponen en rojo). 233 unitarios y 42 e2e (Chromium).
+1. **UI base:** `Icon` (SVG propios), `ActionLink` (interno / externo / descarga; el externo anuncia la pestaña nueva
+   con la clave `link.newTab`), `HoldButton` (anillo SVG con `--_charge`, nombre = texto visible y explicación en
+   `aria-describedby`, `aria-disabled` al detonar) y `VisuallyHidden`.
+2. **Esqueleto:** `ChapterSection` (región con ancla y altura **mínima** por tokens `--chapter-h-*`), `ChapterPanel`
+   (velo, corchetes, *sticky* en escritorio; si es más alto que la ventana se fija por abajo con `--_panel-h`) y
+   `Eyebrow`. Anclas en `src/content/chapters.ts`.
+3. **Hero (cap. 0):** punto y halo en CSS, detonación funcional sin efectos (P4-1-A): 1,5 s con ratón, dedo,
+   Espacio/Enter o zona vacía del hero → baja a About; se rearma arriba del todo. Carga en `lib/hold` (rAF + variable
+   CSS, sin estado por frame).
+4. **Capítulos 1–4:** About, Skills (frase ratón/táctil por CSS), Projects (`ProjectRow`, enlaces con el nombre del
+   proyecto oculto) y Contact (disponibilidad del perfil, `mailto:`, CV solo si existe, formación, pie con
+   `SITE_REPOSITORY`).
+5. **ADR-019:** todo el CSS en un archivo (`cssCodeSplit: false`): la 404 de `/ES` o de un slug desconocido hidrata sin
+   el error #418. Resuelve también el riesgo de la hoja de la 404 en F2.7 (AUD-F2-3-P2).
+6. **ADR-020:** presupuesto de JS = framework ≤ 112 KB (107,3) + código propio ≤ 35 KB por página (home 17,4,
+   proyecto 12,6, 404 7,0). Cierra la deuda del JS de la página de proyecto.
+7. **e2e `journey.spec.ts`** (sustituye a `hello.spec.ts`): capítulos EN/ES, anclas, detonación (también con
+   movimiento reducido), encuadre en 3 tamaños, Tab con anillo de foco visible, CLS con fuentes lentas, sin JS.
+8. **Foco:** `scroll-padding-block-end: var(--space-6)` en `global.css` (Firefox dejaba el último enlace pegado al
+   borde; el test endurecido lo reproducía también en Chromium).
+9. Docs al día (tokens, componentes, movimiento, cap. 0, arquitectura con el árbol y la regla de nombres, calidad,
+   textos). Duda explicada: `_claude/dudas/2026-10-23-hojas-de-estilo-404-hidratacion.md`. 362 unitarios y 59 e2e
+   (Chromium); CI verde en Chromium, Firefox y WebKit.
 
 **Incidencias y lecciones:**
-- **Entregas del contenedor al equipo:** copiar a `outputs` y escribir en el equipo **nunca en paralelo** (van a la
-  vez y se escribió un `vite.config.ts` viejo; Víctor lo vio por el aviso de Vite). Tras cada entrega, comparar
-  sha1 contenedor ↔ equipo. `device_commit_files` no escribe en `.husky/`: se edita desde la shell del equipo.
-- **Configs de Vite:** importar desde `vite.config.ts` un módulo que arrastre `content/` hace que Vite avise
-  (`configLoader: 'native'`, imports sin extensión). Por eso el plugin de preview repite la regla en una línea.
-- **Comprobaciones en el contenedor:** clon de GitHub; Node 24.22.0 desde el paquete npm `node-linux-x64`
-  (nodejs.org bloqueado); Playwright 1.64 pide `chromium_headless_shell-1248` y hay la 1243 (enlace simbólico).
-- **`throw data(null, { status: 404 })`** en un `loader` choca con `@typescript-eslint/only-throw-error`: en el test
-  va con un `eslint-disable` puntual; si F2.7 lanza 404 desde `loader`, configurar el `allow` de la regla.
-- Probar en Windows antes del commit (Víctor) pilló lo que el contenedor no podía ver: mantenerlo cuando un cambio
-  toque el preview o rutas de disco.
+- **CSS por ruta + 404 servida desde `404.html`** = error de hidratación cuando el cliente casa otra ruta: lo vigila
+  el e2e «every page links the same single stylesheet» (ADR-019).
+- **Firefox solo en CI:** el contenedor solo tiene Chromium. Un test de visibilidad «al píxel» pasó en Chromium y
+  falló en Firefox; los tests de encuadre deben medir con margen real (el anillo de foco), no con decimales.
+- **Accessible names:** un `VisuallyHidden` (posición absoluta) tras texto en línea hace que Chrome meta un espacio
+  («View project , Chessmate»); se pone un espacio de texto real antes y sin puntuación.
+- `aria-label` largo en un botón con texto visible incumple WCAG 2.5.3: la explicación va en `aria-describedby`.
+- Playwright: esperar a la hidratación (`networkidle`) antes de mantener una tecla; sin ella, el gesto se pierde.
+- Las copias de trabajo del contenedor dejaban commits locales y el aviso de «push» saltaba: tras el push de Víctor
+  se alinea la copia con su rama de GitHub (nunca se sube desde el contenedor).
+- Seguir probando en Windows antes de commitear cuando cambia `vite.config.ts` (esta vez, verde).
 
 **Deuda anotada:**
-- **JS inicial:** home **118,5 KB** gzip (vigilada por `budgets.spec.ts`, ≤ 120 KB); **página de proyecto 122,9 KB**,
-  por encima. En **F2.4**, con la home maquetada: `loader` en el build para el proyecto (datos fuera del JS) o ADR
-  que revise el presupuesto (por página, o «framework + X KB»). React 19 + React Router 8 ya ocupan ~108 KB.
-- La tilde de «VÍCTOR» toca el borde superior en la «hello» (sin maquetación): F2.4 con `--hero-accent-room`.
-- **Riesgo · salto de diseño al cargar las fuentes** (medir en **F2.4**): CLS con la maquetación real del hero; si
-  pasa de 0,1, caras de reserva con `size-adjust` / `ascent-override`.
-- La flecha «→» de los textos se maqueta con el icono SVG en F2.4 (`design-system.md` → «Iconos»).
-- **Riesgo F2.7 · `NotFoundPage`** (AUD-F2-3-P2): hoy la importa `root.tsx`; con su CSS Module viajaría con la raíz
-  y el `HydrateFallback` podría enlazar otra hoja que el `404.html`. Al maquetarla, moverla a `features/` (o `ui/`)
-  con su CSS y añadir al e2e de la 404 «sin hojas de estilo duplicadas».
+- **AUD-F2-4 sin decidir** (`_claude/cadena/aud-f2-4/auditoria.md`): 7 recomendados, 15 menores, 3 preguntas; ninguno
+  bloqueante. El -21 (árbol de `arquitectura.md`) queda hecho en este cierre; sus otras dos partes, no. El -6 ya está
+  en parte cubierto por el arreglo de Firefox (viva S7 #24).
+- La flecha «→» de los pasos TryIt de Chessmate se maqueta con el icono SVG en **F2.7** (página de proyecto).
+- **Riesgo F2.7 · `NotFoundPage`:** al maquetarla, moverla a `features/` (o `ui/`); lo de las hojas duplicadas ya no
+  aplica (ADR-019).
+- Grupos de Skills enfocables (`tabindex`) solo en **F4.3**, cuando enciendan su constelación.
+- Iconos de GitHub y LinkedIn: hoy enlaces de texto + icono externo; decidir si se dibujan en F2.6/F6.
+- **CLS** del hero: ≤ 0,006 con fuentes lentas (sin caras de reserva); volver a medir en un móvil real en **F6**.
 - **WebKit descarga dos veces las fuentes precargadas** (bug 194589): en F6, medir en un Safari real.
 - Contraste AA sobre el velo de los paneles (`--color-veil`) encima de la escena: F3–F4 (ADR-015).
 - La lista de valores neutros del test de colores obliga a ampliarla con un valor legítimo nuevo (a propósito).
 - `@lhci/cli` y los scripts `visual` / `lhci` se instalan en F3/F6.
 - **F7:** que `/es/*` reciba la 404 ES y que las 404 salgan con estado 404 real en Vercel (en `preview` salen con
-  200); comprobar el `X-Robots-Tag: noindex` de las previews; **`cleanUrls: true`** en `vercel.json` (`/index.html`
-  sirve la home y el cliente casa la ruta `*`: AUD-F2-3-13).
-- Provisional: la página «hello» (F2.4), las páginas mínimas de proyecto y 404 (F2.7), `favicon.svg` (F6).
+  200); comprobar el `X-Robots-Tag: noindex` de las previews; **`cleanUrls: true`** en `vercel.json` (AUD-F2-3-13).
+- Provisional: páginas mínimas de proyecto y 404 (F2.7), `favicon.svg` (F6).
 - Fuera de este paso: la sugerencia «¿Ver en español?» (F2.6) no tiene claves en `textos-sitio.md`.
 - **React Router 8.4 no pasa `caseSensitive` a las rutas del cliente:** lo cubre `isLowerCasePathname`. Al
-  actualizar React Router, comprobar si ya lo pasa (y si `isLowerCasePathname` sigue haciendo falta).
+  actualizar React Router, comprobar si ya lo pasa.
+- `throw data(null, { status: 404 })` en un `loader` choca con `@typescript-eslint/only-throw-error`: si F2.7 lanza
+  404 desde `loader`, configurar el `allow` de la regla.
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **F2 · paso 4** (capítulos del viaje sin escena): esquema → VB. Docs: `docs/02-experiencia/capitulos/`,
-   `docs/03-diseno/`. Ahí se mide el JS inicial con la home real y se decide la deuda de la página de proyecto.
-   Para cualquier ruta o página nueva: exporta su `meta` (lo exige `root.test.tsx`), usa `isLowerCasePathname` y
-   los comentarios citan docs del repo, no el buzón (`code-references.test.ts`).
-3. Opcional (modo completa, si Víctor lo pide): estudio de la Mesa con las reglas del paso 4, `hasta f79c064`.
+2. **Decidir AUD-F2-4** con Víctor: elegir hallazgos (`AUD-F2-4: corrige …; no …`) y responder P1 (foco tras
+   detonar), P2 (citar claves del buzón en `DECISIONS.md`, como ADR-018/019/020) y P3 (*sticky* «primera mitad»
+   del capítulo vs toda la sección). Sello: commit 908ad8a + vivas S7 hasta #24 (hoy en `main` como `e1b13e1`).
+   Corregir en `fix/aud-f2-4`.
+3. Después, **F2 · paso 5** (`mapM` con tests, raíl, HUD y barra superior): esquema → VB. Docs:
+   `docs/02-experiencia/scroll-y-escena.md` y `navegacion.md`, `docs/03-diseno/componentes.md`. La barra fija
+   añade su altura en `scroll-padding-block-start`; `mapM` mide la altura real de las secciones (son mínimas).
 
 **Dudas abiertas:** D2 · dominio propio (F7) · D5 · analítica (F7) · Tareas de Víctor: script de consola en el README
 de Chessmate (F2.7), CV en PDF EN/ES.
-**Limpieza manual del usuario:** ramas locales ya fusionadas: `git branch -D fix/aud-f2-2 fix/aud-f2-3` (y
-`docs/session-close-2026-10-23-2` cuando se fusione). En el buzón, dentro de `_claude/cadena/hecho/`, se pueden
-borrar los `.tar.gz` y los `cambio.diff` (nunca la carpeta `_claude/cadena/`).
+**Limpieza manual del usuario:** ramas locales ya fusionadas: `git branch -D feat/journey-chapters fix/aud-f2-2
+fix/aud-f2-3 docs/session-close-2026-10-23-2` (y `docs/session-close-2026-10-23-3` cuando se fusione). En el buzón,
+dentro de `_claude/cadena/hecho/`, se pueden borrar los `arbol.tar.gz` y los `cambio.diff` (nunca la carpeta
+`_claude/cadena/`).
 · **Bloqueos:** ninguno.

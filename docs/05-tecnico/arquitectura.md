@@ -22,9 +22,11 @@ cosmos-portfolio/
 │  │  ├─ journey/journey.tsx    ← el viaje (home): monta los 5 capítulos
 │  │  ├─ project/project.tsx    ← /projects/:slug
 │  │  └─ not-found/not-found.tsx
-│  ├─ content/                  ← datos tipados (docs/01-contenido)
+│  ├─ content/                  ← datos tipados (docs/01-contenido); `chapters.ts` (anclas de los capítulos) y
+│  │                              `site.ts` (repo del sitio) incluidos
 │  ├─ features/                 ← piezas de interfaz con lógica propia
-│  │  ├─ journey/               ← Hero, ChapterSection, ChapterPanel, About, Skills, Projects, Contact
+│  │  ├─ journey/               ← Hero, ChapterSection, ChapterPanel, Eyebrow, About, Skills, Projects,
+│  │  │                           ProjectRow, Contact y `shared.module.css` (piezas de texto comunes)
 │  │  ├─ navigation/            ← TopBar, ChapterRail, LanguageSwitch, QuickMissionDialog, SkipLink
 │  │  ├─ hud/                   ← CosmicHud
 │  │  └─ project/               ← ProjectHeader, FeatureGrid, StackGroups, Gallery, Lightbox, TryIt
@@ -37,7 +39,10 @@ cosmos-portfolio/
 │  │  ├─ scroll/                ← mapM (puro), useChapterLayout, useScrollTarget
 │  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
 │  │  │                           sitemap y robots (reciben origen y datos por parámetro, ADR-017)
-│  │  ├─ device/                ← señales para el nivel de rendimiento, useReducedMotion, usePointerType
+│  │  ├─ device/                ← señales del dispositivo: reducedMotion (prefersReducedMotion, jumpBehavior);
+│  │  │                           después nivel de rendimiento y usePointerType
+│  │  ├─ hold/                  ← carga de «mantén pulsado»: charge (puro) y useHoldCharge (rAF + variable CSS)
+│  │  ├─ css/                   ← cx (unir clases) y useHeightVar (altura de un elemento como variable CSS)
 │  │  └─ math/                  ← smoothstep, lerp, clamp, easing
 │  ├─ stores/                   ← uiStore (React) · sceneStore (mutable, sin re-render)
 │  ├─ styles/                   ← tokens.css, global.css, fonts.css
@@ -61,6 +66,11 @@ carpeta con ese nombre y conservan el suyo, sin `index.ts`: `lib/seo/meta/meta.t
 (se importa como `~/lib/seo/meta/meta`). Vale para `src/` y `tests/`; un archivo sin pareja se queda suelto.
 Única excepción: `src/root.tsx` (React Router fija su nombre y su sitio) y su test, `src/root.test.tsx`.
 `src/structure.test.ts` lo vigila.
+
+**Nombres.** Cada archivo se llama como lo que exporta: los componentes en PascalCase, con su carpeta
+(`ui/HoldButton/HoldButton.tsx`, `HoldButton.module.css`, `HoldButton.test.tsx`); las funciones y hooks de `lib` en
+camelCase (`lib/hold/useHoldCharge/useHoldCharge.ts`); las rutas en minúsculas, como pide React Router
+(`routes/not-found/not-found.tsx`).
 
 ## Capas y reglas de dependencia
 
