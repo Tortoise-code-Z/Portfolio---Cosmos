@@ -150,7 +150,7 @@ test.describe('the journey (home)', () => {
     });
   }
 
-  test('1280×720: every focusable element of the journey comes into view with Tab', async ({
+  test('1280×720: every focusable element, with its focus ring, comes into view with Tab', async ({
     page,
     browserName,
   }) => {
@@ -165,10 +165,14 @@ test.describe('the journey (home)', () => {
         const element = document.activeElement;
         if (element === null || element === document.body) return null;
         const box = element.getBoundingClientRect();
+        // El anillo de foco sobresale --focus-offset + --focus-width alrededor de la caja.
+        const root = getComputedStyle(document.documentElement);
+        const ring =
+          Number.parseFloat(root.getPropertyValue('--focus-offset')) +
+          Number.parseFloat(root.getPropertyValue('--focus-width'));
         return {
           name: element.textContent.trim(),
-          // Medio píxel de margen: las cajas tienen decimales.
-          visible: box.top >= -0.5 && box.bottom <= window.innerHeight + 0.5,
+          visible: box.top - ring >= 0 && box.bottom + ring <= window.innerHeight,
         };
       });
       if (focused === null) break;

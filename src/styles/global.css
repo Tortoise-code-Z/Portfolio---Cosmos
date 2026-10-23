@@ -24,6 +24,13 @@ dialog,
 :root {
   color-scheme: dark;
   background-color: var(--color-void);
+  /*
+   * Al llevar el foco a un elemento (Tab), el navegador deja este aire con el borde inferior: el
+   * elemento y su anillo de foco nunca quedan cortados (WCAG 2.4.11). Arriba no hay margen: las anclas
+   * (#about…) caen justo en su capítulo. Cuando llegue la barra superior fija (F2.5), su altura irá
+   * en scroll-padding-block-start.
+   */
+  scroll-padding-block-end: var(--space-6);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }

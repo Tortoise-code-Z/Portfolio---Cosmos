@@ -141,6 +141,9 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 - Bordes: `--border-width` (1 px) `--color-faint`; activo: `--border-width` `--color-star`.
 - Foco visible: contorno `--focus-width` (2 px) `--color-star` con separación `--focus-offset` (3 px), global en
   `:focus-visible`.
+- Al llevar el foco con Tab, el navegador deja `--space-6` de aire con el borde inferior (`scroll-padding-block-end`
+  en `global.css`): ni el elemento ni su anillo quedan cortados (WCAG 2.4.11). La barra superior fija de F2.5
+  añadirá su altura arriba (`scroll-padding-block-start`).
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
   (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`).
 - Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins y botones
