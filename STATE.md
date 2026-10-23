@@ -3,51 +3,54 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** F2 · paso 4 auditado y corregido en `main` (PR #19, `9cf5114`) · siguiente: **F2 · paso 5**
-(`mapM`, raíl, HUD y barra superior).
+**Dónde estamos:** F2 · paso 5 en `main` (PR #21, `d6a995c`) · la Mesa audita **AUD-F2-5** (lanzada, sin entrega) ·
+siguiente: decidir AUD-F2-5 cuando llegue y **F2 · paso 6** (misión rápida, copiar email, chip, sugerencia de idioma).
 
-_Última actualización: 2026-10-23 (**CIERRE DE SESIÓN · 8**) · AUD-F2-4 decidida (los 22 hallazgos con la opción
-recomendada + P1-A, P2-A, P3-A) y corregida en 4 commits; 388 unitarios y 73 e2e (Chromium) en verde._
+_Última actualización: 2026-10-23 (**CIERRE DE SESIÓN · 9**) · F2.5 hecho en 6 commits (PR #21, squash): scroll → `m`
+en `sceneStore`, HUD cósmico, raíl, barra superior con EN/ES y «Skip to content»; ADR-021. 493 unitarios, 89 e2e en
+Chromium y CI verde en los tres motores._
 
-**Hecho esta sesión:**
-1. **Interfaz y accesibilidad** (`a9874d1`): email de contacto con 44 px de alto y tan ancho como su texto; la zona
-   del hero solo carga sobre su parte vacía (el texto se puede seleccionar; mientras carga, sin menú contextual);
-   `role="list"` en las 9 listas sin viñetas (Safari/VoiceOver) con `jsx-a11y-x/no-redundant-roles` configurada;
-   la descripción del `HoldButton` en un `<span hidden>`; el botón ocupa la fila en móvil (`className` del dueño);
-   brillo de la fila de proyecto con fundido (`::before`); pares `-webkit-user-select`. **P1-A:** al detonar, el foco
-   va al título de About (`tabindex="-1"`, `focus({ preventScroll: true })`).
-2. **Carga** (`4889d73`): un puntero por carga (otro dedo no la corta; el mismo puntero vuelve a empezar), un
-   `AbortController` por gesto de la zona, suelta en `blur` de la ventana y con la pestaña oculta, bucle rAF con una
-   sola función. Tests que fallan si se quita la guarda, si la carga re-renderiza o si hay doble bucle.
-3. **Tests** (`5af9eab`): sin esperas fijas (clic corto: la carga vuelve a 0; detonar: se mantiene hasta ver el
-   resultado); el Tab recorre hasta salir de `main` y exige visitarlo todo (aguanta la barra de F2.5); encuadre
-   acotado al hero con el kicker; desborde con `clientWidth`; CLS también a 390×844; e2e táctiles (CDP) y de 44 px;
-   presupuestos sobre **todos** los HTML del build y **CSS ≤ 50 KB gzip** (hoy 4,3 KB).
-4. **Docs y tokens** (cuarto commit del PR): ADR-020 precisado (dependencias del JS inicial, nombre del chunk,
-   trampa de Three.js para F3.1); iconos con `vector-effect: non-scaling-stroke` y token `--icon-baseline-shift`;
-   `design-system.md` escribe las excepciones (viewport, visualmente oculto, `z-index: -1` local, tracking cruzado,
-   «≈»); componentes, textos y capítulo 1 al día. **P2-A:** los ADR ya no citan claves del buzón (todos
-   limpiados) y `code-references.test.ts` vigila también `DECISIONS.md` y `docs/` (§5 de las reglas). **P3-A:** el
-   panel es *sticky* durante su capítulo.
-5. Roadmap: F3.1 ya incluye sacar Three.js del grupo `framework` (ADR-020).
+**Hecho esta sesión** (F25-1…F25-7, todas con la opción recomendada; vivas S9 en `_claude/cadena/hecho/`):
+1. **Scroll → `m`** (`f9cfd8e`): `lib/math` (`clamp`, `smoothstep`, `lerp`); `lib/scroll` con `mapM` puro,
+   `useChapterLayout` (alturas reales: ResizeObserver + `fonts.ready`) y `useScrollTarget` (un escuchador pasivo);
+   `stores/sceneStore` (*vanilla*) con `mTarget`/`m`, `setScrollTarget`, `activeChapter` y `selectActiveChapter`.
+   Ventanas de morph en `content/chapters.ts`. Sin escena, `m = mTarget` (F25-3).
+2. **HUD** (`c8bc763`): `features/hud/cosmicClock` puro (Planck → 200 Ma → 1000 Ma en escala log, en segundos hasta
+   1 año, 2 cifras significativas; ∞ de `m` 2,5 a 3,5; 13.800 Ma) y `CosmicHud` (`aria-hidden`, toca el DOM solo si
+   cambia el texto). `hud.seconds` pasa a «t = 10{exp} s» con el exponente en superíndice.
+3. **Raíl** (`ee37141`): `ChapterRail` (`<nav>` + `<ol>` de botones, `aria-current="step"`, solo se repinta al
+   cambiar de capítulo, puntos en columna, 44 × 44 px en móvil). `lib/scroll/jumpToChapter` sustituye a
+   `focusChapterTitle` del Hero (scroll + foco al título + `replaceState`); todos los títulos con `tabindex="-1"`.
+4. **Barra** (`c78297c`): `TopBar` (logo, Projects, Contact, CV si hay PDF), `LanguageSwitch` (conserva el capítulo
+   activo, F25-2) y `SkipLink` (al principio de `<main>`, F25-7). Enlaces reales con clic interceptado solo en clic
+   normal (`onChapterLinkClick`). Barra de altura fija (`--topbar-h` 64 px) + `scroll-padding-block-start`, y
+   `toScrollLayout` para que arriba `m` siga siendo 0. Sin misión rápida ni chip (F25-1, llegan en F2.6).
+5. **Docs** (`a9066cb`): **ADR-021**; navegacion, scroll-y-escena, componentes, design-system (tokens nuevos),
+   textos-sitio, arquitectura, calidad y roadmap al día.
+6. **CI** (`7eb9979`): el e2e de la columna de puntos fallaba en Firefox por subpíxeles; ahora admite 1 px.
 
 **Incidencias y lecciones:**
-- **Contenedor:** trae Node 22 (el proyecto exige 24, `engine-strict`) y Chromium 1243 (Playwright pide 1248).
-  Arreglo sin descargas bloqueadas: `npm pack node-linux-x64@24.22.0` en `/opt/node24` (con el npm de Node 22 en
-  el `PATH`) y enlace `chromium*-1248 → -1243` en `/opt/pw-browsers`. Hace falta `.env` (copia de `.env.example`).
-- **Método que funcionó:** los 4 commits se prepararon y probaron en la copia del contenedor y se pasaron a la
-  carpeta de uno en uno tras cada «commit hecho», comprobando con un md5 de todos los archivos que coincidían. El
-  aviso de «push» del contenedor salta mientras tanto: se ignora (nunca se sube desde allí) y tras el merge la
-  copia se alinea con `origin/main`.
-- Las reglas del plugin de accesibilidad se llaman `jsx-a11y-x/<regla>`, no `jsx-a11y/…`.
-- El build deja dos `style-*.css` iguales en `assets/` (uno sin enlazar): los presupuestos miden la hoja que piden
-  las páginas.
-- Un `z-index: -1` dentro de un componente con `isolation: isolate` es una excepción local (escrita en
-  `design-system.md` → «Capas»).
-- Cada test nuevo se comprobó contra el código anterior (debe fallar): así se pilló que el de la zona del hero
-  necesitaba el puntero en `window`.
+- **Contenedor nuevo:** el arreglo de siempre (Node 24 con `npm pack node-linux-x64@24.22.0` en `/opt/node24`, enlace
+  `chromium*-1248 → -1243`, `.env` desde `.env.example`); el repo se clona de GitHub y se compara con la carpeta con
+  un md5 de todos los archivos antes de empezar y tras cada paso.
+- **Pasar archivos con `npm run dev` abierto** dejó un «Cannot find module» en caché (Vite vio `Hero.tsx` antes que
+  `jumpToChapter.ts`). Orden desde entonces: primero lo nuevo y lo de base, la ruta que lo monta al final; si pasa,
+  reiniciar el servidor.
+- **En el contenedor solo hay Chromium:** Firefox y WebKit solo corren en el CI. Las medidas al píxel, con 1 px de
+  tolerancia y sin redondear.
+- Una barra fija adelantaba `m` (arriba ya no era 0) si se medía desde el borde + la barra: se resolvió pasando las
+  medidas a posiciones de scroll (`toScrollLayout`, ADR-021).
+- `pkill -f` con un texto que aparece en el propio comando mata la shell (exit 144): parar el `preview` por puerto.
+- Cada test nuevo se probó contra el código roto a propósito: así salieron dos huecos (la pintura inicial del HUD y
+  la columna de puntos), que ya tienen su test.
+- El aviso de «push» del contenedor se ignoró en cada commit; tras el merge la copia se alineó con `origin/main`.
 
 **Deuda anotada:**
+- **F6 · tableta:** entre 520 y 900 px el HUD (abajo a la izquierda) pasa por encima del texto del panel al hacer
+  scroll, como el prototipo (es decorativo y sin puntero). Revisarlo con la escena.
+- **F3:** la escena suaviza `m`; hasta entonces `setScrollTarget` escribe `m = mTarget` (ADR-021 → Consecuencias).
+- **F2.7:** la barra en la página de proyecto (`goToChapter` devuelve `false` fuera del viaje y el enlace navega:
+  comprobar que `/projects/x` → `/#projects` cae bajo la barra).
 - **F3.1:** el `test` del grupo `framework` de `vite.config.ts` es todo `node_modules`: excluir `three` y
   `@react-three/*` antes de importar la escena en diferido (ADR-020 → Consecuencias; roadmap F3.1).
 - **F6 · NVDA:** en modo exploración, NVDA/JAWS activan con un clic sintético que el `HoldButton` ignora (no
@@ -73,17 +76,17 @@ recomendada + P1-A, P2-A, P3-A) y corregida en 4 commits; 388 unitarios y 73 e2e
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **F2 · paso 5** (`mapM` con tests, raíl, HUD y barra superior): esquema → VB. Docs:
-   `docs/02-experiencia/scroll-y-escena.md` y `navegacion.md`, `docs/03-diseno/componentes.md`. La barra fija añade
-   su altura en `scroll-padding-block-start`; `mapM` mide la altura real de las secciones (son mínimas). Los saltos
-   del raíl deberían llevar el foco al título del capítulo como la detonación: `focusChapterTitle` vive hoy en
-   `Hero.tsx` (sacarlo a una pieza compartida) y solo el `h2` de About tiene `tabindex="-1"`.
-3. Si el paso lo merece, pedir a la Mesa el estudio de reglas en paralelo (modo completa).
+2. Si la Mesa ya entregó **AUD-F2-5** (`_claude/cadena/aud-f2-5/auditoria.md`): contrastar su sello con las vivas
+   S9 (hasta #26; la #27 solo apunta el lanzamiento), que Víctor decida y corregir en `fix/aud-f2-5`.
+3. **F2 · paso 6** (esquema → VB): misión rápida (`QuickMissionDialog`, `/#quick`, botón «Quick mission» en la
+   barra), `CopyButton` del email en Contacto (aún no existe), `AvailabilityChip` en la barra y sugerencia «¿Ver en
+   español?» (`Notice`; faltan sus claves en `textos-sitio.md`). Docs: `navegacion.md`, `componentes.md`,
+   `estados-y-accesibilidad.md`, `textos-sitio.md`. La barra (`features/navigation/TopBar`) ya tiene sitio para el
+   botón y el chip.
 
 **Dudas abiertas:** D2 · dominio propio (F7) · D5 · analítica (F7) · Tareas de Víctor: script de consola en el README
 de Chessmate (F2.7), CV en PDF EN/ES.
-**Limpieza manual del usuario:** ramas locales ya fusionadas: `git branch -D feat/journey-chapters fix/aud-f2-2
-fix/aud-f2-3 fix/aud-f2-4 docs/session-close-2026-10-23-2 docs/session-close-2026-10-23-3` (y
-`docs/session-close-2026-10-23-4` cuando se fusione). En el buzón, dentro de `_claude/cadena/hecho/`, se pueden
-borrar los `arbol.tar.gz` y los `cambio.diff` (nunca la carpeta `_claude/cadena/`).
+**Limpieza manual del usuario:** ramas locales ya fusionadas: `git branch -D feat/scroll-nav-hud
+docs/session-close-2026-10-23-4` (y `docs/session-close-2026-10-23-5` cuando se fusione). En el buzón, dentro de
+`_claude/cadena/hecho/`, se pueden borrar los `arbol.tar.gz` y los `cambio.diff` (nunca la carpeta `_claude/cadena/`).
 · **Bloqueos:** ninguno.
