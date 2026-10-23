@@ -48,7 +48,7 @@ Nombre del proyecto: **`cosmos-portfolio`**. Repo en GitHub: **`Tortoise-code-Z/
 |---|---|---|---|---|
 | 0 | Singularidad → Big Bang | Inicio (hero) | t = 0 s | ≈ 10⁻³⁵ m |
 | 1 | Nebulosa y nacimiento de una estrella | Sobre mí | ≈ 200 millones de años | ≈ 20 años luz |
-| 2 | Galaxia espiral y constelaciones | Habilidades | ≈ 1.000 millones de años | ≈ 100.000 años luz |
+| 2 | Galaxia espiral y constelaciones | Habilidades | ≈ 1000 millones de años | ≈ 100.000 años luz |
 | 3 | Tortuga cósmica con un bosque sobre el caparazón | Proyectos | tiempo mítico (∞) | 1 tortuga |
 | 4 | La Tierra al amanecer | Contacto + formación | 13.800 millones de años | 12.742 km |
 

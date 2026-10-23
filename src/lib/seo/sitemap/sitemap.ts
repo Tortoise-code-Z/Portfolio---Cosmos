@@ -1,4 +1,4 @@
-// sitemap.xml y robots.txt, generados en el build (EST-F2-3-14). Imports relativos: los carga
+// sitemap.xml y robots.txt, generados en el build. Imports relativos: los carga
 // `react-router.config.ts`.
 
 import { absoluteUrl } from '../urls/urls';

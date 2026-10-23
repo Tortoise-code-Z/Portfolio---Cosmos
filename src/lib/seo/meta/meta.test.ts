@@ -57,7 +57,7 @@ describe('homeMeta', () => {
     expect(metaContent(es, 'og:description')).toBe(metaContent(es, 'description'));
   });
 
-  it('cada idioma es su propia canónica y og:url (EST-F2-3-8)', () => {
+  it('cada idioma es su propia canónica y og:url', () => {
     expect(links(en, 'canonical')).toEqual([
       { tagName: 'link', rel: 'canonical', href: 'https://cosmos.test/' },
     ]);
@@ -77,7 +77,7 @@ describe('homeMeta', () => {
     expect(links(es, 'alternate')).toEqual(expected);
   });
 
-  it('Open Graph y Twitter sin imagen (EST-F2-3-5 y 10)', () => {
+  it('Open Graph y Twitter sin imagen', () => {
     expect(metaContent(en, 'og:type')).toBe('website');
     expect(metaContent(en, 'og:site_name')).toBe('Ada Pérez');
     expect(metaContent(en, 'og:locale')).toBe('en_US');
@@ -97,7 +97,7 @@ describe('projectMeta', () => {
   const project = fakeProject('beta-2', 'Beta');
   const es = projectMeta({ origin: ORIGIN, locale: 'es', profile: fakeProfile, project });
 
-  it('título con el nombre, descripción = summary y tipo article (EST-F2-3-9)', () => {
+  it('título con el nombre, descripción = summary y tipo article', () => {
     expect(titleOf(es)).toBe('Beta · Víctor Pérez');
     expect(metaContent(es, 'description')).toBe('Resumen de Beta.');
     expect(metaContent(es, 'og:type')).toBe('article');
@@ -120,7 +120,7 @@ describe('projectMeta', () => {
 describe('notFoundMeta', () => {
   const es = notFoundMeta({ locale: 'es', profile: fakeProfile });
 
-  it('noindex, título de la 404, sin canónica, hreflang, og:url ni JSON-LD (EST-F2-3-12)', () => {
+  it('noindex, título de la 404, sin canónica, hreflang, og:url ni JSON-LD', () => {
     expect(titleOf(es)).toBe('Perdido en el espacio · Víctor Pérez');
     expect(metaContent(es, 'robots')).toBe('noindex');
     expect(links(es, 'canonical')).toEqual([]);

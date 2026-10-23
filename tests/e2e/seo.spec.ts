@@ -10,7 +10,7 @@ import { indexablePaths, sitePages } from '../../src/lib/seo/pages/pages.ts';
 import { absoluteUrl } from '../../src/lib/seo/urls/urls.ts';
 
 /**
- * SEO sobre el HTML real del build (EST-F2-3): cada página indexable con su canónica, hreflang,
+ * SEO sobre el HTML real del build: cada página indexable con su canónica, hreflang,
  * Open Graph y JSON-LD; sitemap y robots; y las 404 de cada idioma. El origen es el mismo con el
  * que se hizo el build.
  */
@@ -166,7 +166,7 @@ test.describe('404 por idioma (sin redirecciones)', () => {
     test(`${path} → 404 ${locale}, noindex, sin canónica`, async ({ page }) => {
       const errors = collectConsoleErrors(page);
       await page.goto(path);
-      // Tras hidratar y cargar el módulo de la ruta que casa el cliente: un solo <h1> (viva S5 #1).
+      // Tras hidratar y cargar el módulo de la ruta que casa el cliente: un solo <h1>.
       await page.waitForLoadState('networkidle');
       await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);

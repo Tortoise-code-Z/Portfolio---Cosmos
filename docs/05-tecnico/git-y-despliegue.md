@@ -24,7 +24,8 @@
 
 ## Hooks locales (Husky + lint-staged)
 
-- `pre-commit`: `lint-staged` (ESLint `--fix` y Prettier sobre lo que está en el *stage*).
+- `pre-commit`: `react-router typegen` y después `lint-staged` (ESLint `--fix` y Prettier sobre lo que está en el
+  *stage*). Sin los tipos de las rutas, ESLint rechaza las rutas nuevas.
 - `pre-push`: `npm run typecheck && npm test`.
 - Funcionan en Windows con Git for Windows (Husky 9 no necesita configuración extra).
 

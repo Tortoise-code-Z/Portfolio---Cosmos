@@ -4,7 +4,7 @@ import { fakeProfile, fakeProject, fakeSkillGroups, ORIGIN } from '../fixtures';
 import { personId, personJsonLd, projectJsonLd } from './jsonLd';
 
 describe('personJsonLd', () => {
-  it('ficha de la persona en el idioma de la página (EST-F2-3-11a)', () => {
+  it('ficha de la persona en el idioma de la página', () => {
     expect(
       personJsonLd({
         origin: ORIGIN,
@@ -49,7 +49,7 @@ describe('personJsonLd', () => {
 });
 
 describe('projectJsonLd', () => {
-  it('SoftwareSourceCode con el autor embebido (EST-F2-3-11b)', () => {
+  it('SoftwareSourceCode con el autor embebido', () => {
     const project = fakeProject('alpha', 'Alpha');
     expect(projectJsonLd({ origin: ORIGIN, locale: 'en', profile: fakeProfile, project })).toEqual({
       '@context': 'https://schema.org',

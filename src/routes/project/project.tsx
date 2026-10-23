@@ -30,8 +30,8 @@ export function meta({ location, params }: Route.MetaArgs): Route.MetaDescriptor
     : projectMeta({ origin: SITE_ORIGIN, locale, profile, project });
 }
 
-// Página mínima (EST-F2-3-1): nombre, tagline, resumen y vuelta al caparazón. F2.7 la completa
-// sin tocar la meta. Los datos van en el JS de esta ruta (EST-F2-3-3, se mide en F2.4).
+// Página mínima: nombre, tagline, resumen y vuelta al caparazón. F2.7 la completa
+// sin tocar la meta. Los datos van en el JS de esta ruta (deuda en STATE.md: se mide en F2.4).
 export default function ProjectPage(): ReactNode {
   const t = useT();
   const locale = useLocale();

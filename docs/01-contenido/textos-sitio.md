@@ -171,3 +171,5 @@ Los números los formatea `Intl` según el idioma. En `hud.billionYears`, `{n}` 
 | `notFound.cta` | Back to the start | Volver al inicio |
 | `error.title` | Something went wrong | Algo ha fallado |
 | `error.body` | A system failed mid-flight. Reload the page or go back to the start. | Un sistema ha fallado en pleno vuelo. Recarga la página o vuelve al inicio. |
+
+El enlace de la página de error reutiliza `notFound.cta` (no hay `error.cta`).

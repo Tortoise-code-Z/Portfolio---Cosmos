@@ -4,14 +4,15 @@ import { join } from 'node:path';
 import type { Config } from '@react-router/dev/config';
 import { loadEnv } from 'vite';
 
-// Rutas relativas a propósito: al cargar esta config no existe el alias `~/` (viva S4 #38).
+// Rutas relativas a propósito: al cargar esta config no existe el alias `~/`
+// (docs/05-tecnico/arquitectura.md → «Rutas e idiomas»).
 import { projects } from './src/content/projects/index.ts';
 import { parseSiteUrl } from './src/lib/env/siteUrl/siteUrl.ts';
 import { indexablePaths, prerenderPaths, sitePages } from './src/lib/seo/pages/pages.ts';
 import { robotsTxt, sitemapXml } from './src/lib/seo/sitemap/sitemap.ts';
 import { absoluteUrl } from './src/lib/seo/urls/urls.ts';
 
-/** La lista única de páginas: de ella salen el prerender y el sitemap (y el hreflang de cada página). */
+/** La lista única de páginas: de ella salen el prerender y el sitemap (el hreflang usa las mismas rutas). */
 const pages = sitePages(projects);
 
 /**
@@ -30,7 +31,7 @@ export default {
     await writeFile(join(clientDir, 'sitemap.xml'), sitemapXml(urls));
     await writeFile(join(clientDir, 'robots.txt'), robotsTxt(origin));
     // Vercel sirve `404.html` (EN) para cualquier ruta sin archivo. Que `/es/*` reciba la ES
-    // (`es/404/index.html`) se configura en F7 (EST-F2-3-12).
+    // (`es/404/index.html`) se configura en F7 (deuda en STATE.md).
     await copyFile(join(clientDir, '404', 'index.html'), join(clientDir, '404.html'));
   },
 } satisfies Config;

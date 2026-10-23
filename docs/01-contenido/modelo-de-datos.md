@@ -50,6 +50,8 @@ export type Label = string | Localized;
 
 /** Claves de los textos de interfaz, sacadas de texts/en.ts. */
 export type UiKey = keyof typeof en;
+/** Texto EN literal de una clave: de él salen los huecos `{x}` que exige `translate` (lib/i18n). */
+export type UiTemplate<K extends UiKey> = (typeof en)[K];
 export type UiTexts = Readonly<Record<UiKey, string>>;
 
 export interface ImageAsset {

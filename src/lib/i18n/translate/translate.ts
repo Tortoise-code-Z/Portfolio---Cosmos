@@ -11,7 +11,7 @@ export type PlaceholderName<S extends string> = S extends `${string}{${infer Nam
 /**
  * Argumentos de `translate` para una clave: nada si su texto no tiene huecos; si los tiene, un objeto
  * con exactamente esos huecos y valores de texto (cada número lo formatea antes quien llama, porque
- * solo él sabe si es un año, que no se agrupa, o una distancia, que sí: EST-F2-3-4).
+ * solo él sabe si es un año, que no se agrupa, o una distancia, que sí).
  */
 export type TranslateParams<K extends UiKey> = [PlaceholderName<UiTemplate<K>>] extends [never]
   ? []

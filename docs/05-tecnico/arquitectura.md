@@ -32,6 +32,7 @@ cosmos-portfolio/
 │  ├─ ui/                       ← componentes genéricos sin dominio: ButtonOutline, HoldButton, ActionLink,
 │  │                              CopyButton, Notice, Icon, VisuallyHidden
 │  ├─ lib/                      ← funciones puras y hooks transversales
+│  │  ├─ env/                   ← variables de entorno validadas: siteUrl (parseSiteUrl), site (SITE_ORIGIN)
 │  │  ├─ i18n/                  ← tipos, useLocale, useT, formateadores Intl, rutas localizadas
 │  │  ├─ scroll/                ← mapM (puro), useChapterLayout, useScrollTarget
 │  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
@@ -72,7 +73,7 @@ content  ◄── lib ◄── stores ◄── ui ◄── features ◄─�
 | Capa | Puede importar | No puede importar |
 |---|---|---|
 | `content` | nada (solo sus tipos) | React, Three, cualquier otra capa |
-| `lib` | `content/types` (tipos y constantes de idioma) y `content/texts` (para `useT`) (ADR-017) | Los datos de `content` (perfil, proyectos, skills: le llegan por parámetro), React DOM de features, Three |
+| `lib` | `content/types` (tipos y constantes de idioma) y `content/texts` (para `useT`) (ADR-017) | Los datos de `content` (perfil, proyectos, skills: le llegan por parámetro), `stores`, `ui`, `features`, `scene`, `routes`, Three |
 | `stores` | `lib`, `content` | `features`, `scene` |
 | `ui` | `lib` | `features`, `scene`, `content` (recibe datos por props) |
 | `features` | `ui`, `lib`, `stores`, `content` | `three`, `@react-three/*`, `scene` (salvo el punto de montaje diferido) |
@@ -95,9 +96,10 @@ Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import pr
 
 - El idioma se deriva de la ruta (no del navegador); `useLocale()` lo lee del **prefijo** (lo único que sirve
   también en la ruta `*`).
-- Una sola lista de páginas, `sitePages(projects)` (`lib/seo/pages/pages.ts`): de ella salen el `prerender`, el sitemap
-  y el `hreflang`. Se pre-renderizan 2 idiomas × (1 + nº de proyectos) páginas y la 404 de cada idioma
-  (`/404` y `/es/404`, servidas por la ruta `*`).
+- Una sola lista de páginas, `sitePages(projects)` (`lib/seo/pages/pages.ts`): de ella salen el `prerender` y el
+  sitemap; el `hreflang` usa las mismas funciones de ruta y `consistency.test.ts` comprueba que es el mismo
+  conjunto. Se pre-renderizan 2 idiomas × (1 + nº de proyectos) páginas y la 404 de cada idioma (`/404` y
+  `/es/404`, servidas por la ruta `*`).
 - Todas las rutas van en minúsculas. Slug desconocido o ruta con **mayúsculas en cualquier tramo**
   (`/projects/Chessmate`, `/PROJECTS/chessmate`, `/ES`): la ruta que case pinta la **misma página 404**
   (`NotFoundPage`) y su `meta` es la de la 404, en el idioma del prefijo en minúsculas (`/ES` → EN); no lanza
@@ -123,7 +125,8 @@ Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import pr
 - Forma única de las URL absolutas (`absoluteUrl`): origen + ruta, sin barra final salvo la home EN
   (`https://…/`, `https://…/es`, `https://…/projects/chessmate`), sin `?` ni `#`. Un test comprueba que
   canónicas, `hreflang`, `og:url` y sitemap son el mismo conjunto.
-- 404: `noindex`, sin canónica, `hreflang` ni JSON-LD, fuera del sitemap.
+- 404: `noindex`, sin canónica, `hreflang` ni JSON-LD, fuera del sitemap. Tampoco lleva `description`,
+  `og:description` ni `og:url`: no se indexa y no tiene dirección propia (decidido, no es un olvido).
 - `sitemap.xml` (solo `<loc>`) y `robots.txt` (`Allow: /` + `Sitemap:` absoluto) generados en el build.
 
 ## Estado

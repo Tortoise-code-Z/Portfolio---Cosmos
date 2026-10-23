@@ -48,7 +48,7 @@ function previewDirectoryIndex(): Plugin {
 
 export default defineConfig(({ mode }) => {
   // Falla el build, el servidor de desarrollo y el preview con un mensaje claro si VITE_SITE_URL
-  // falta o no es https (EST-F2-3-15): canónicas, hreflang y Open Graph son URL absolutas.
+  // falta o no es https: canónicas, hreflang y Open Graph son URL absolutas.
   const env = loadEnv(mode, process.cwd(), 'VITE_');
   parseSiteUrl(env.VITE_SITE_URL);
 
