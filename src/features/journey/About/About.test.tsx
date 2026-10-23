@@ -30,10 +30,10 @@ describe('About', () => {
     expect(within(strengths).getByText(strength)).toBeInTheDocument();
   });
 
-  it('the title is an h2 under the page h1', () => {
+  it('the title is an h2 under the page h1, focusable by script only (the hero jumps here)', () => {
     renderAt('/');
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
-      'A star born from curiosity',
-    );
+    const title = screen.getByRole('heading', { level: 2 });
+    expect(title).toHaveTextContent('A star born from curiosity');
+    expect(title).toHaveAttribute('tabindex', '-1');
   });
 });

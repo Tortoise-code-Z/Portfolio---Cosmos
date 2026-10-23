@@ -164,6 +164,9 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 | `--z-dialog` | 40 | Modo misión rápida y visor de galería |
 | `--z-toast` | 50 | Avisos (sin WebGL, sugerencia de idioma) |
 
+Excepción local: un componente que aísla su apilado (`isolation: isolate`) puede poner una capa decorativa detrás de
+su propio contenido con `z-index: -1` (el brillo «hot» de la fila de proyecto). No compite con las capas de arriba.
+
 ## Iconos
 
 - Conjunto mínimo de **SVG en línea** propios: flecha, enlace externo, copiar, cerrar, chevrones, GitHub,

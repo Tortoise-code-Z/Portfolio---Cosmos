@@ -33,8 +33,10 @@
 ### Botón de mantener (`HoldButton`)
 - Anillo de progreso SVG ámbar de 26 px (pista `--color-faint`) + texto mono. La variable privada `--_charge`
   (0–1), que escribe en el botón quien lleva la carga, dibuja el trazo (`stroke-dashoffset`).
-- `touch-action: none`, sin selección de texto, sin menú contextual.
-- Nombre accesible = texto visible («Hold to detonate»); la explicación larga va en `aria-describedby`.
+- `touch-action: none`, sin selección de texto (con su pareja `-webkit-user-select` para Safari), sin menú
+  contextual. Acepta una clase del dueño para colocarlo (en el hero móvil ocupa el ancho de la fila).
+- Nombre accesible = texto visible («Hold to detonate»); la explicación larga va en `aria-describedby`, en un
+  elemento `hidden` (el lector la toma igual y en modo exploración no la repite como texto suelto).
 - Estados: reposo · cargando · detonado (`aria-disabled`, sin perder el foco, hasta volver al inicio).
 
 ### Enlace de acción (`ActionLink`)
@@ -79,12 +81,14 @@
 
 ### Fila de proyecto (`ProjectRow`)
 - Borde izquierdo de 1 px; nombre en display (`--text-h3`), año alineado a la derecha en mono, metadatos en mono
-  (con «Featured» en turquesa), resumen y acciones. *Hot*: borde ámbar y degradado ámbar muy tenue de fondo.
+  (con «Featured» en turquesa), resumen y acciones. *Hot*: borde ámbar y degradado ámbar muy tenue de fondo, que entra con un
+  fundido de opacidad (`--dur-fade-base`) en su propia capa.
 
 ## Contacto
 
 ### Email destacado
-- Display 700, `wdth` 112, seleccionable (`user-select: all`), con corte de línea seguro en móvil.
+- Display 700, `wdth` 112, seleccionable (`user-select: all`), con corte de línea seguro en móvil. Tan ancho como
+  su texto (no toda la fila del panel) y con el alto mínimo del área táctil (`--target-min`).
 
 ### Órbita (`OrbitItem`, formación)
 - Rejilla de 2 columnas: título a la izquierda, periodo y horas a la derecha (mono); debajo, academia y skills.

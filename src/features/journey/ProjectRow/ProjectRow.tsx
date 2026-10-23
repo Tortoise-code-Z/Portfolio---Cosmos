@@ -36,7 +36,7 @@ export function ProjectRow({ project }: ProjectRowProps): ReactNode {
         <h3 className={styles.name}>{project.name}</h3>
         <span className={styles.year}>{String(project.year)}</span>
       </div>
-      <ul className={shared.dotted} data-meta="">
+      <ul role="list" className={shared.dotted} data-meta="">
         {project.featured ? <li className={styles.featured}>{t('projects.featured')}</li> : null}
         <li>{t(`projects.role.${project.role}`)}</li>
         <li>{t(`projects.context.${project.context}`)}</li>
@@ -46,7 +46,7 @@ export function ProjectRow({ project }: ProjectRowProps): ReactNode {
         })}
       </ul>
       <p className={styles.summary}>{project.summary[locale]}</p>
-      <ul className={styles.actions}>
+      <ul role="list" className={styles.actions}>
         <li>
           <ActionLink href={projectPath(locale, project.slug)} kind="internal" icon="arrow-right">
             {t('projects.open')}

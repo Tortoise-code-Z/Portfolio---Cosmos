@@ -3,7 +3,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { HoldButton } from './HoldButton';
 
-function setup(done = false): {
+function setup(
+  done = false,
+  className?: string,
+): {
   button: HTMLElement;
   onPress: ReturnType<typeof vi.fn>;
   onRelease: ReturnType<typeof vi.fn>;
@@ -17,6 +20,7 @@ function setup(done = false): {
       done={done}
       onPress={onPress}
       onRelease={onRelease}
+      className={className}
     />,
   );
   return { button: screen.getByRole('button'), onPress, onRelease };
@@ -30,6 +34,20 @@ describe('HoldButton', () => {
       'Hold to trigger the Big Bang and start the journey',
     );
     expect(button).not.toHaveAttribute('aria-disabled');
+  });
+
+  it('the description is hidden from view and from browse mode (no second reading)', () => {
+    const { button } = setup();
+    const id = button.getAttribute('aria-describedby') ?? '';
+    expect(document.getElementById(id)).toHaveAttribute('hidden');
+    expect(
+      screen.queryByText('Hold to trigger the Big Bang and start the journey'),
+    ).not.toBeVisible();
+  });
+
+  it('takes an extra class from its owner', () => {
+    const { button } = setup(false, 'wide');
+    expect(button).toHaveClass('wide');
   });
 
   it('primary pointer down presses; up, leave and cancel release', () => {

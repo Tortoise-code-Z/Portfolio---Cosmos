@@ -27,7 +27,7 @@ export function Projects(): ReactNode {
         <Eyebrow text={t('projects.eyebrow')} />
         <h2 id={TITLE_ID}>{t('projects.title')}</h2>
         <p>{t('projects.lead')}</p>
-        <ul className={cx(shared.plainList, styles.rows)}>
+        <ul role="list" className={cx(shared.plainList, styles.rows)}>
           {ordered.map((project) => (
             <ProjectRow key={project.slug} project={project} />
           ))}

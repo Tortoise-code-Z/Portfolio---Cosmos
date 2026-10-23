@@ -40,7 +40,7 @@ escena. Metáfora: según el mito, una tortuga carga con el mundo; la tuya carga
 
 ## Accesibilidad y movimiento reducido
 
-- Las filas son una lista (`<ul>`) con enlaces reales; los pins son decorativos (`aria-hidden`) y su función
+- Las filas son una lista (`<ul role="list">`, ver `estados-y-accesibilidad.md`) con enlaces reales; los pins son decorativos (`aria-hidden`) y su función
   existe en las filas.
 - Movimiento reducido: la tortuga queda quieta (sin nado ni balanceo), sin ciclo automático de placas; la
   iluminación por hover sigue funcionando sin pulso.

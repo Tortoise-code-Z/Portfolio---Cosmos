@@ -79,6 +79,8 @@ test.describe('the journey (home)', () => {
     await expect(button).toHaveAttribute('aria-disabled', 'true');
     const about = await offsetTop(page, 'about');
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(about);
+    // El foco viaja con la vista: al título de About, sin anillo cortado ni otro salto de scroll.
+    await expect(page.getByRole('heading', { level: 2, name: CHAPTERS.en[0][1] })).toBeFocused();
 
     await page.evaluate(() => {
       window.scrollTo(0, 0);
@@ -181,6 +183,30 @@ test.describe('the journey (home)', () => {
     expect(hidden).toEqual([]);
   });
 
+  test('every link and button in the journey is at least 44 px tall (touch target)', async ({
+    page,
+  }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    const short = await page.evaluate(() => {
+      const min = Number.parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--target-min'),
+      );
+      return [...document.querySelectorAll('main a[href], main button')]
+        .filter((element) => element.getBoundingClientRect().height < min - 0.5)
+        .map((element) => element.textContent.trim());
+    });
+    expect(short).toEqual([]);
+  });
+
+  test('lists without bullets keep their list role (Safari drops it without role="list")', async ({
+    page,
+  }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    const lists = await page.locator('main ul').count();
+    expect(lists).toBeGreaterThan(0);
+    await expect(page.locator('main').getByRole('list')).toHaveCount(lists);
+  });
+
   test('external links open in a new tab with rel="noopener noreferrer"', async ({ page }) => {
     await page.goto('/');
     const external = page.locator('main a[target="_blank"]');
@@ -216,6 +242,58 @@ test.describe('the journey (home)', () => {
     await page.evaluate(() => document.fonts.ready);
     const cls = await page.evaluate(() => (window as unknown as { __cls: number }).__cls);
     expect(cls).toBeLessThan(0.1);
+  });
+});
+
+test.describe('on a touch screen', () => {
+  test.skip(({ browserName }) => browserName !== 'chromium', 'Touch input through CDP: Chromium');
+  test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
+
+  /** Mantiene un dedo en el centro de `selector` hasta que `done` se cumple (o pasa el tiempo). */
+  async function holdFinger(
+    page: Page,
+    selector: string,
+    done: () => Promise<void>,
+  ): Promise<void> {
+    const box = await page.locator(selector).first().boundingBox();
+    if (box === null) throw new Error(`${selector} not rendered`);
+    const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
+    try {
+      await done();
+    } finally {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    }
+  }
+
+  test('holding the button with a finger detonates', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    const button = page.getByRole('button', { name: 'Hold to detonate' });
+    await holdFinger(page, 'button[aria-describedby]', () =>
+      expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 }),
+    );
+  });
+
+  test('holding the text of the hero does not detonate (the text stays selectable)', async ({
+    page,
+  }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await holdFinger(page, 'h1', () => page.waitForTimeout(2_000));
+    await expect(page.getByRole('button', { name: 'Hold to detonate' })).not.toHaveAttribute(
+      'aria-disabled',
+    );
+  });
+
+  test('390 px: the hold button takes the whole row', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    const widths = await page
+      .getByRole('button', { name: 'Hold to detonate' })
+      .evaluate((button) => ({
+        button: button.getBoundingClientRect().width,
+        row: button.parentElement?.clientWidth ?? 0,
+      }));
+    expect(widths.button).toBeCloseTo(widths.row, 0);
   });
 });
 

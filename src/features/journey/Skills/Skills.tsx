@@ -30,7 +30,7 @@ export function Skills(): ReactNode {
         {/* Las dos frases van en el HTML; el CSS muestra la del tipo de puntero (sin JS, sin saltos). */}
         <p className={styles.leadPointer}>{t('skills.lead.pointer')}</p>
         <p className={styles.leadTouch}>{t('skills.lead.touch')}</p>
-        <ul className={cx(shared.plainList, styles.groups)}>
+        <ul role="list" className={cx(shared.plainList, styles.groups)}>
           {skillGroups.map((group) => {
             const titleId = `skills-group-${group.id}`;
             return (
@@ -38,7 +38,11 @@ export function Skills(): ReactNode {
                 <h3 id={titleId} className={cx(shared.label, styles.groupTitle)}>
                   {localize(locale, group.title)}
                 </h3>
-                <ul aria-labelledby={titleId} className={cx(shared.dotted, styles.skills)}>
+                <ul
+                  role="list"
+                  aria-labelledby={titleId}
+                  className={cx(shared.dotted, styles.skills)}
+                >
                   {group.skills.map((skill) => (
                     <li key={skill.id}>{localize(locale, skill.label)}</li>
                   ))}

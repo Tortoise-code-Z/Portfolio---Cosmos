@@ -1,6 +1,7 @@
 import { useId, type KeyboardEvent, type PointerEvent, type ReactNode, type Ref } from 'react';
 
-import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
+import { cx } from '~/lib/css/cx/cx';
+
 import styles from './HoldButton.module.css';
 
 /** Teclas que cargan mientras se mantienen (con el foco en el botón). */
@@ -15,6 +16,8 @@ interface HoldButtonProps {
   readonly done: boolean;
   readonly onPress: () => void;
   readonly onRelease: () => void;
+  /** Clase extra del dueño para colocarlo en su maqueta (p. ej., el ancho en móvil). */
+  readonly className?: string | undefined;
   /** Elemento donde el dueño escribe la carga (`--_charge`, 0–1) que dibuja el anillo. */
   readonly ref?: Ref<HTMLButtonElement>;
 }
@@ -30,6 +33,7 @@ export function HoldButton({
   done,
   onPress,
   onRelease,
+  className,
   ref,
 }: HoldButtonProps): ReactNode {
   const descriptionId = useId();
@@ -56,7 +60,7 @@ export function HoldButton({
       <button
         ref={ref}
         type="button"
-        className={styles.button}
+        className={cx(styles.button, className)}
         aria-describedby={descriptionId}
         aria-disabled={done ? true : undefined}
         onPointerDown={onPointerDown}
@@ -76,7 +80,10 @@ export function HoldButton({
         </svg>
         <span>{label}</span>
       </button>
-      <VisuallyHidden id={descriptionId}>{description}</VisuallyHidden>
+      {/* Oculto del todo: `aria-describedby` lo lee igual y en modo exploración no se oye dos veces. */}
+      <span id={descriptionId} hidden>
+        {description}
+      </span>
     </>
   );
 }

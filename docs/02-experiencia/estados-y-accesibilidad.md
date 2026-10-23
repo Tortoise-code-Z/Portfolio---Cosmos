@@ -68,3 +68,9 @@ sube a mitad de visita para no causar tirones). Valores en `docs/04-escena/`.
 4. El lienzo es `aria-hidden`; nada interactivo existe solo en él.
 5. Regiones `aria-live` para mensajes (copiado, aviso sin WebGL).
 6. Lighthouse Accessibility ≥ 95 y revisión manual con lector de pantalla (NVDA) en la fase de pulido.
+7. Las listas sin viñetas declaran `role="list"`: Safari quita el rol a un `<ul>` con `list-style: none` y VoiceOver
+   deja de anunciar «lista, 3 elementos». ESLint (`jsx-a11y-x/no-redundant-roles`) lo permite solo en `<ul>`.
+8. Saltos que mueven la vista (la detonación del hero) llevan también el foco al título del destino
+   (`tabindex="-1"` y `focus({ preventScroll: true })`), como un enlace de salto. Límite conocido: en modo
+   exploración, NVDA y JAWS activan con un clic sintético, que el botón de mantener ignora (un clic corto no hace
+   nada); esos usuarios avanzan por encabezados. Se revisa con NVDA en F6.

@@ -26,8 +26,11 @@ Presentar quién eres en 3 segundos y dar el primer momento «wow». Tesis visua
 - Con la carga: el punto crece y vibra, el halo se expande, la pantalla tiembla un poco y el nombre **se
   comprime** (el eje `wdth` baja): la energía se acumula.
 - Al llegar a 1: **destello** radial blanco-ámbar, la explosión y un desplazamiento automático suave hasta el
-  capítulo 1. La detonación solo puede volver a cargarse si se regresa al inicio.
-- Mantener pulsado en cualquier zona vacía del hero también carga (no sobre enlaces ni botones).
+  capítulo 1, con el foco en su título (`estados-y-accesibilidad.md` → «Accesibilidad», punto 8). La detonación
+  solo puede volver a cargarse si se regresa al inicio.
+- Mantener pulsado en la zona vacía del hero también carga: no sobre el texto (se puede seleccionar, y en táctil el
+  toque largo es del sistema) ni sobre enlaces y botones. Mientras carga desde la zona, el toque largo no abre el
+  menú contextual.
 
 **Scroll**
 - El primer scroll ya inicia la explosión (ventana de morph desde el 0 %). El destello acompaña al comienzo.

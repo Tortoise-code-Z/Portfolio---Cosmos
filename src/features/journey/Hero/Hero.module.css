@@ -102,6 +102,14 @@
   text-transform: uppercase;
 }
 
+/* Móvil (< sm 520px): el botón baja de línea y ocupa el ancho disponible (00-singularidad.md → «Layout»). */
+@media (width < 520px) {
+  .detonate {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .halo {
     animation: none;

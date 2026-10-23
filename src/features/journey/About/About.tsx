@@ -23,14 +23,21 @@ export function About(): ReactNode {
     <ChapterSection index={1} labelledBy={TITLE_ID}>
       <ChapterPanel>
         <Eyebrow text={t('about.eyebrow')} />
-        <h2 id={TITLE_ID}>{t('about.title')}</h2>
+        {/* Enfocable por código: la detonación del hero deja aquí el foco (00-singularidad.md). */}
+        <h2 id={TITLE_ID} tabIndex={-1}>
+          {t('about.title')}
+        </h2>
         {profile.bio[locale].map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>
         ))}
         <h3 id={STRENGTHS_ID} className={cx(shared.label, styles.strengthsTitle)}>
           {t('about.strengths')}
         </h3>
-        <ul aria-labelledby={STRENGTHS_ID} className={cx(shared.plainList, styles.tags)}>
+        <ul
+          role="list"
+          aria-labelledby={STRENGTHS_ID}
+          className={cx(shared.plainList, styles.tags)}
+        >
           {profile.strengths.map((strength) => {
             const label = localize(locale, strength);
             return (
