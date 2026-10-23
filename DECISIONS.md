@@ -276,3 +276,24 @@
   ningún salto sin estilos al navegar. Revisar si el CSS total pasa de ~50 KB gzip. Lo vigila el e2e
   `design-system.spec.ts` (todas las páginas enlazan la misma hoja única) y el de la 404 de `/ES` (0 errores).
 - Detalle: `docs/05-tecnico/arquitectura.md` → «Rutas e idiomas».
+
+## ADR-020 · Presupuesto de JS inicial: framework y código propio por página
+- Estado: Aceptada
+- Fecha: 2026-10-23
+- Contexto: el presupuesto único de ≤ 120 KB gzip de JS inicial ya no cabía con la home maquetada (126 KB en
+  F2 · paso 4) y la página de proyecto estaba por encima desde F2.3 (~123 KB). React 19 + React Router 8 ocupan
+  ~107 KB que no dependen de nosotros: el límite medía sobre todo el framework y dejaba ~10 KB para el sitio.
+  Víctor elige un ADR que separe las dos partes (viva S7 #3, P4-2-A) en vez de un `loader` en el build.
+- Decisión: dos límites, medidos por `tests/e2e/budgets.spec.ts` sobre el build en una página de cada tipo y
+  en los dos idiomas: **framework ≤ 112 KB** (todas las dependencias, que el grupo `framework` de
+  `vite.config.ts` junta con la entrada del cliente en `entry.client-*`; medido 107,3 KB) y **código propio
+  ≤ 35 KB por página** (todo lo demás que pide su HTML; medido home 17,4 KB, proyecto 12,6 KB, 404 7,0 KB).
+- Alternativas descartadas: `loader` en el build para sacar los datos del JS (los bytes llegarían igual, como
+  datos, y las features dejarían de importar el contenido: cambia la arquitectura de ADR-017); subir el límite
+  único a 130 KB (seguiría midiendo sobre todo el framework y avisaría tarde de lo nuestro).
+- Consecuencias: el límite del framework salta con una subida de versión que lo engorde (se revisa entonces, con
+  `stack.md`); el del código propio, con lo que añadamos. El margen de la home cubre lo que falta de F2
+  (navegación, misión rápida). Si una dependencia nueva sale del chunk `entry.client`, el test lo nota (exige un
+  único chunk de framework y su peso cuenta como código propio). Los dos diccionarios de textos (EN y ES) siguen
+  en el JS inicial (ADR-017): si el código propio aprieta, es lo primero que se puede partir por idioma.
+- Detalle: `docs/05-tecnico/calidad.md` → «Presupuestos».
