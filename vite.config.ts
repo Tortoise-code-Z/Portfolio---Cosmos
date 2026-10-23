@@ -10,8 +10,9 @@ import { parseSiteUrl } from './src/lib/env/siteUrl.ts';
 /**
  * `vite preview` sirve `/es` con el `index.html` de la raíz (fallback de SPA) en vez de
  * `/es/index.html`, al contrario que Vercel. Este plugin, solo de preview, reescribe las rutas
- * sin barra final a su `index.html` pre-renderizado si existe, para que los e2e prueben lo mismo
- * que se despliega.
+ * sin barra final a su `index.html` pre-renderizado si existe y, si no, a la 404 de su idioma
+ * (`/es/…` → `es/404/index.html`; el resto → `404.html`), para que los e2e prueben lo mismo que
+ * se desplegará (la 404 ES en Vercel se configura en F7). El estado HTTP sigue siendo 200 aquí.
  */
 function previewDirectoryIndex(): Plugin {
   return {
@@ -25,8 +26,14 @@ function previewDirectoryIndex(): Plugin {
         const [pathname = '/', query] = (req.url ?? '/').split('?', 2);
         const isDirectoryLike =
           !pathname.endsWith('/') && !pathname.includes('.') && !pathname.includes('..');
-        if (isDirectoryLike && existsSync(join(outDir, pathname, 'index.html'))) {
-          req.url = `${pathname}/index.html${query === undefined ? '' : `?${query}`}`;
+        if (isDirectoryLike) {
+          const isSpanish = pathname === '/es' || pathname.startsWith('/es/');
+          const target = existsSync(join(outDir, pathname, 'index.html'))
+            ? `${pathname}/index.html`
+            : isSpanish
+              ? '/es/404/index.html'
+              : '/404.html';
+          req.url = `${target}${query === undefined ? '' : `?${query}`}`;
         }
         next();
       });

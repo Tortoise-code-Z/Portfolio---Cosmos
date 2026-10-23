@@ -13,6 +13,9 @@ import anybodyLatin from '@fontsource-variable/anybody/files/anybody-latin-stand
 import geologicaLatin from '@fontsource-variable/geologica/files/geologica-latin-wght-normal.woff2?url';
 
 import { localeFromPathname } from '~/lib/i18n/locale';
+import { homePath } from '~/lib/i18n/paths';
+import { translate } from '~/lib/i18n/translate';
+import { useLocale, useT } from '~/lib/i18n/useT';
 
 import '~/styles/fonts.css';
 import '~/styles/tokens.css';
@@ -60,16 +63,27 @@ export default function App(): ReactNode {
   return <Outlet />;
 }
 
-// Provisional (F1): la página de error localizada llega en F2.
+/** Título de la página de error de la raíz: la `meta` de la ruta más profunda que se pinta. */
+export function meta({ error, location }: Route.MetaArgs): Route.MetaDescriptors {
+  if (error === undefined) return [];
+  const locale = localeFromPathname(location.pathname);
+  const notFound = isRouteErrorResponse(error) && error.status === 404;
+  return [{ title: translate(locale, notFound ? 'meta.notFound.title' : 'meta.error.title') }];
+}
+
+/** Error no previsto en cualquier ruta: aviso en el idioma de la página y vuelta al inicio. */
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactNode {
   console.error('[root] Unhandled route error', error);
-  const status = isRouteErrorResponse(error) ? error.status : null;
+  const t = useT();
+  const locale = useLocale();
+  const notFound = isRouteErrorResponse(error) && error.status === 404;
 
   return (
     <main>
-      <h1>{status === 404 ? 'Lost in space' : 'Something went wrong'}</h1>
+      <h1>{t(notFound ? 'notFound.title' : 'error.title')}</h1>
+      <p>{t(notFound ? 'notFound.body' : 'error.body')}</p>
       <p>
-        <a href="/">Back to the start</a>
+        <a href={homePath(locale)}>{t('notFound.cta')}</a>
       </p>
     </main>
   );
