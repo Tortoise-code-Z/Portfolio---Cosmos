@@ -17,6 +17,7 @@ export const en = {
   'nav.langEn': 'English',
   'nav.langEs': 'Español',
   'nav.availability': 'Open to work',
+  'link.newTab': '(opens in a new tab)',
   'chapter.0': 'Home · Singularity',
   'chapter.1': 'About · Nebula',
   'chapter.2': 'Skills · Galaxy',

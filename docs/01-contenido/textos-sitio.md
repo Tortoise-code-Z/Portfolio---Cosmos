@@ -31,6 +31,7 @@
 | `nav.langEn` | English | English |
 | `nav.langEs` | Español | Español |
 | `nav.availability` | Open to work | Disponible |
+| `link.newTab` | (opens in a new tab) | (se abre en una pestaña nueva) |
 
 ## Raíl de capítulos
 

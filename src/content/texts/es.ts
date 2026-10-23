@@ -19,6 +19,7 @@ export const es: UiTexts = {
   'nav.langEn': 'English',
   'nav.langEs': 'Español',
   'nav.availability': 'Disponible',
+  'link.newTab': '(se abre en una pestaña nueva)',
   'chapter.0': 'Inicio · Singularidad',
   'chapter.1': 'Sobre mí · Nebulosa',
   'chapter.2': 'Habilidades · Galaxia',
