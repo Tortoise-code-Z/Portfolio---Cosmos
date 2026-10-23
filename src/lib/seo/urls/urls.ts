@@ -1,4 +1,4 @@
-// URL absolutas del sitio, con una sola forma (EST-F2-3-8): origen + ruta, sin barra final salvo la
+// URL absolutas del sitio, con una sola forma: origen + ruta, sin barra final salvo la
 // home EN, sin `?` ni `#`. Imports relativos: lo carga `react-router.config.ts` (sitemap, robots).
 
 /** `/`, o tramos en minúscula separados por `/`; un tramo puede acabar en extensión (`sitemap.xml`). */

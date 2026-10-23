@@ -1,2 +1,2 @@
-# Tipos de las rutas antes del lint: sin ellos, ESLint rechaza las rutas nuevas (viva S4 #48).
+# Tipos de las rutas antes del lint: sin ellos, ESLint rechaza las rutas nuevas (docs/05-tecnico/git-y-despliegue.md).
 npx react-router typegen && npx lint-staged

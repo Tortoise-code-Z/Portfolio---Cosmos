@@ -19,7 +19,7 @@ const EXPECTED_FONT_FILES = 4;
 /**
  * JS inicial de la home (sin escena) ≤ 120 KB gzip. Es una alarma propia, no un requisito externo:
  * el objetivo real son los Core Web Vitals y Lighthouse (brief, F6). Con React 19 + React Router 8
- * el framework ya ocupa ~108 KB; en F2.4 se revisa con la home maquetada (viva S4 #47). La página
+ * el framework ya ocupa ~108 KB; en F2.4 se revisa con la home maquetada (deuda en STATE.md). La página
  * de proyecto (~123 KB en F2.3) queda como deuda anotada en STATE.md hasta entonces.
  */
 const HOME_INITIAL_JS_BUDGET_BYTES = 120_000;

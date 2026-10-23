@@ -1,4 +1,5 @@
-// EST-F2-3-8: canónicas, hreflang, og:url y sitemap son el mismo conjunto de URL, escritas igual.
+// Canónicas, hreflang, og:url y sitemap son el mismo conjunto de URL, escritas igual
+// (docs/05-tecnico/arquitectura.md → «Rutas e idiomas»).
 
 import type { MetaDescriptor } from 'react-router';
 import { describe, expect, it } from 'vitest';

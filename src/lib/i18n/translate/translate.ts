@@ -11,7 +11,7 @@ export type PlaceholderName<S extends string> = S extends `${string}{${infer Nam
 /**
  * Argumentos de `translate` para una clave: nada si su texto no tiene huecos; si los tiene, un objeto
  * con exactamente esos huecos y valores de texto (cada número lo formatea antes quien llama, porque
- * solo él sabe si es un año, que no se agrupa, o una distancia, que sí: EST-F2-3-4).
+ * solo él sabe si es un año, que no se agrupa, o una distancia, que sí).
  */
 export type TranslateParams<K extends UiKey> = [PlaceholderName<UiTemplate<K>>] extends [never]
   ? []
@@ -28,10 +28,17 @@ export function translate<K extends UiKey>(
 ): string {
   const template = uiTexts[locale][key];
   const values: Readonly<Record<string, string>> | undefined = params[0];
-  if (values === undefined) return template;
+  return values === undefined ? template : fillPlaceholders(template, values);
+}
 
-  return template.replace(PLACEHOLDER, (match, name: string) => {
-    // El tipo ya exige todos los huecos; si aun así falta uno, se deja a la vista en vez de «undefined».
-    return values[name] ?? match;
-  });
+/**
+ * Rellena cada `{x}` del texto con su valor, todas las veces que aparezca y en cualquier orden. El
+ * tipo de `translate` ya exige todos los huecos; si aun así falta uno, se deja a la vista en vez de
+ * «undefined». Exportada para probar el relleno con textos que hoy no existen en el contenido.
+ */
+export function fillPlaceholders(
+  template: string,
+  values: Readonly<Record<string, string>>,
+): string {
+  return template.replace(PLACEHOLDER, (match, name: string) => values[name] ?? match);
 }

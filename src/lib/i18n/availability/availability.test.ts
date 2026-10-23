@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { workModesText } from './availability';
 
 describe('workModesText', () => {
-  it('arma la frase de los modos en cada idioma (EST-F2-3-7)', () => {
+  it('arma la frase de los modos en cada idioma (textos-sitio.md)', () => {
     const modes = ['remote', 'hybrid', 'onsite'] as const;
     expect(workModesText('en', modes)).toBe('Remote, hybrid, or on-site');
     expect(workModesText('es', modes)).toBe('Remoto, híbrido o presencial');

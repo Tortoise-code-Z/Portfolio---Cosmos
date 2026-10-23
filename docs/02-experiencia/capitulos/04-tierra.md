@@ -8,7 +8,7 @@ en casa.
 ## Contenido (`contact.*`, `education.*`, `perfil.md`)
 
 - Eyebrow: «Contact · Earth · t = 13.8 billion years». Título: «Touchdown». Frase de cierre.
-- **Disponibilidad:** Open to work · Remote, hybrid or on-site · Open to relocation · Killarney, Ireland.
+- **Disponibilidad:** Open to work · Remote, hybrid, or on-site · Open to relocation · Killarney, Ireland.
 - **Email** grande, seleccionable, con botón «Copy» (estados: Copied / Select and copy it).
 - Enlaces: GitHub, LinkedIn y, si existe, «Download CV (PDF)».
 - **Órbitas completadas:** la formación (título, academia, periodo, horas, skills).

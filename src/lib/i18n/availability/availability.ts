@@ -4,8 +4,8 @@ import { capitalize, formatList } from '../format/format';
 import { translate } from '../translate/translate';
 
 /**
- * Frase de los modos de trabajo armada desde `profile.availability.modes` (una sola fuente,
- * EST-F2-3-7): EN «Remote, hybrid, or on-site» · ES «Remoto, híbrido o presencial».
+ * Frase de los modos de trabajo armada desde `profile.availability.modes` (una sola fuente;
+ * docs/01-contenido/textos-sitio.md): EN «Remote, hybrid, or on-site» · ES «Remoto, híbrido o presencial».
  */
 export function workModesText(locale: Locale, modes: readonly WorkMode[]): string {
   const names = modes.map((mode) => translate(locale, `availability.mode.${mode}`));

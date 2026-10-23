@@ -14,9 +14,10 @@ export function meta({ location }: Route.MetaArgs): Route.MetaDescriptors {
 }
 
 /**
- * Página «te has perdido» en el idioma del prefijo. La pinta la ruta `*` y también la de proyecto
- * con un slug desconocido: el mismo HTML que el 404 pre-renderizado, así que hidrata sin errores
- * (viva S4 #39). La maquetación completa llega en F2.7.
+ * Página «te has perdido» en el idioma del prefijo. La pintan la ruta `*`, las de página con un slug
+ * desconocido o con mayúsculas, y en `root.tsx` el `ErrorBoundary` (con un 404) y el
+ * `HydrateFallback`: el mismo HTML que el 404 pre-renderizado, así que hidrata sin errores. La
+ * maquetación completa llega en F2.7.
  */
 export function NotFoundPage(): ReactNode {
   const t = useT();

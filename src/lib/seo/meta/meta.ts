@@ -12,7 +12,7 @@ import { personJsonLd, projectJsonLd } from '../jsonLd/jsonLd';
 import { byLocale } from '../pages/pages';
 import { absoluteUrl } from '../urls/urls';
 
-/** Open Graph exige región (EST-F2-3-5). */
+/** Open Graph exige región (`en_US`, no `en`). */
 export const OG_LOCALE: Readonly<Record<Locale, string>> = { en: 'en_US', es: 'es_ES' };
 
 interface PageText {
@@ -37,7 +37,7 @@ function baseMeta(
       property: 'og:locale:alternate',
       content: OG_LOCALE[other],
     })),
-    // `summary` mientras no haya imagen para compartir; con ella, `summary_large_image` (EST-F2-3-10).
+    // `summary` mientras no haya imagen para compartir; con ella, `summary_large_image`.
     { name: 'twitter:card', content: 'summary' },
   ];
   if (text.description !== undefined) {
@@ -97,7 +97,7 @@ export function homeMeta({
   ];
 }
 
-/** Descripción = `summary` tal cual (EST-F2-3-9). */
+/** Descripción = `summary` tal cual. */
 export function projectMeta({
   origin,
   locale,
@@ -119,7 +119,7 @@ export function projectMeta({
   ];
 }
 
-/** 404: `noindex`, sin canónica ni hreflang (EST-F2-3-12). */
+/** 404: `noindex`, sin canónica, hreflang, descripción ni `og:url` (página sin dirección propia). */
 export function notFoundMeta({ locale, profile }: Omit<MetaInput, 'origin'>): MetaDescriptor[] {
   return [
     ...baseMeta(

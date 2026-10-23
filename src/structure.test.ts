@@ -11,11 +11,13 @@ import { describe, expect, it } from 'vitest';
  * Regla de estructura (ADR-018 · DEVELOPMENT_RULES.md §5): si dos o más archivos de la misma carpeta
  * comparten el nombre base (lo que va antes del primer punto: `meta.ts`, `meta.test.ts`,
  * `meta.module.css`), van juntos en una carpeta con ese nombre (`meta/meta.ts`, `meta/meta.test.ts`).
- * Vale para el código: `src/` y `tests/`.
+ * Vale para el código: `src/` y `tests/`. Única excepción: `src/root.tsx`, cuyo nombre y sitio fija
+ * React Router; su test va al lado (`src/root.test.tsx`).
  */
 
 const REPO_DIR = fileURLToPath(new URL('..', import.meta.url));
 const CODE_DIRS = ['src', 'tests'] as const;
+const FRAMEWORK_FIXED = new Set(['src/root.tsx', 'src/root.test.tsx']);
 
 function listFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -55,7 +57,13 @@ describe('estructura: archivos con el mismo nombre, en su carpeta', () => {
 
   it('acepta una pareja dentro de su carpeta', () => {
     const inFolder = ['src/lib/meta/meta.ts', 'src/lib/meta/meta.test.ts'];
-    expect(sameNameGroups(inFolder).filter((group) => !isOwnFolder(group))).toEqual([]);
+    expect(sameNameGroups(inFolder).filter((group) => !isAllowed(group))).toEqual([]);
+  });
+
+  it('excepción: root.tsx y su test van sueltos en src/, pero nada más se cuela con ellos', () => {
+    expect(isAllowed(['src/root.tsx', 'src/root.test.tsx'])).toBe(true);
+    expect(isAllowed(['src/root.tsx', 'src/root.test.tsx', 'src/root.module.css'])).toBe(false);
+    expect(isAllowed(['src/lib/root.ts', 'src/lib/root.test.ts'])).toBe(false);
   });
 
   it('src/ y tests/ no tienen archivos con el mismo nombre sueltos en una carpeta', () => {
@@ -63,11 +71,16 @@ describe('estructura: archivos con el mismo nombre, en su carpeta', () => {
       relative(REPO_DIR, path),
     );
     expect(files.length).toBeGreaterThan(0);
-    expect(sameNameGroups(files).filter((group) => !isOwnFolder(group))).toEqual([]);
+    expect(sameNameGroups(files).filter((group) => !isAllowed(group))).toEqual([]);
   });
 });
 
-/** La pareja ya vive en una carpeta con su nombre (`meta/meta.ts`): cumple la regla. */
+/** Pareja que cumple la regla: ya vive en una carpeta con su nombre (`meta/meta.ts`) o es la excepción de la raíz. */
+function isAllowed(group: readonly string[]): boolean {
+  return group.every((path) => FRAMEWORK_FIXED.has(path)) || isOwnFolder(group);
+}
+
+/** La pareja ya vive en una carpeta con su nombre (`meta/meta.ts`). */
 function isOwnFolder(group: readonly string[]): boolean {
   return group.every((path) => {
     const parts = path.split('/');

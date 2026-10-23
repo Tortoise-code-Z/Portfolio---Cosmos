@@ -1,13 +1,16 @@
 import { expect, test, type Page } from '@playwright/test';
 import { loadEnv } from 'vite';
 
+import { profile } from '../../src/content/profile.ts';
 import { projects } from '../../src/content/projects/index.ts';
+import { uiTexts } from '../../src/content/texts/index.ts';
+import type { Locale, Project } from '../../src/content/types.ts';
 import { parseSiteUrl } from '../../src/lib/env/siteUrl/siteUrl.ts';
 import { indexablePaths, sitePages } from '../../src/lib/seo/pages/pages.ts';
 import { absoluteUrl } from '../../src/lib/seo/urls/urls.ts';
 
 /**
- * SEO sobre el HTML real del build (EST-F2-3): cada página indexable con su canónica, hreflang,
+ * SEO sobre el HTML real del build: cada página indexable con su canónica, hreflang,
  * Open Graph y JSON-LD; sitemap y robots; y las 404 de cada idioma. El origen es el mismo con el
  * que se hizo el build.
  */
@@ -15,6 +18,34 @@ import { absoluteUrl } from '../../src/lib/seo/urls/urls.ts';
 const ORIGIN = parseSiteUrl(loadEnv('production', process.cwd(), 'VITE_').VITE_SITE_URL);
 const PAGES = sitePages(projects);
 const INDEXABLE = indexablePaths(PAGES).map((path) => absoluteUrl(ORIGIN, path));
+const OG_LOCALE: Readonly<Record<Locale, string>> = { en: 'en_US', es: 'es_ES' };
+
+function projectBySlug(slug: string): Project {
+  const project = projects.find((candidate) => candidate.slug === slug);
+  if (project === undefined) throw new Error(`seo.spec: no hay proyecto «${slug}»`);
+  return project;
+}
+
+/** Título, descripción y nombre del JSON-LD que tiene que llevar cada página, sacados del contenido. */
+function expectedText(
+  sitePage: (typeof PAGES)[number],
+  locale: Locale,
+): { title: string; description: string; name: string } {
+  const texts = uiTexts[locale];
+  if (sitePage.kind === 'home') {
+    return {
+      title: texts['meta.title'],
+      description: texts['meta.description'],
+      name: profile.name,
+    };
+  }
+  const project = projectBySlug(sitePage.slug);
+  return {
+    title: texts['meta.project.title'].replace('{project}', project.name),
+    description: project.summary[locale],
+    name: project.name,
+  };
+}
 
 function collectConsoleErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -58,12 +89,15 @@ test.describe('páginas indexables', () => {
       test(`${path}: canónica, hreflang, Open Graph y JSON-LD`, async ({ page }) => {
         const errors = collectConsoleErrors(page);
         await page.goto(path);
+        // Tras hidratar: un error o una etiqueta duplicada al hidratar también tiene que salir aquí.
+        await page.waitForLoadState('networkidle');
         const meta = await head(page);
         const canonical = absoluteUrl(ORIGIN, path);
+        const text = expectedText(sitePage, locale);
 
         expect(meta.lang).toBe(locale);
-        expect(meta.title).not.toBe('');
-        expect(meta.description).toHaveLength(1);
+        expect(meta.title).toBe(text.title);
+        expect(meta.description).toEqual([text.description]);
         expect(meta.canonical).toEqual([canonical]);
         expect(meta.ogUrl).toEqual([canonical]);
         expect(meta.alternates).toEqual([
@@ -71,7 +105,7 @@ test.describe('páginas indexables', () => {
           ['es', absoluteUrl(ORIGIN, sitePage.paths.es)],
           ['x-default', absoluteUrl(ORIGIN, sitePage.paths.en)],
         ]);
-        expect(meta.ogLocale).toEqual([locale === 'en' ? 'en_US' : 'es_ES']);
+        expect(meta.ogLocale).toEqual([OG_LOCALE[locale]]);
         expect(meta.ogType).toEqual([sitePage.kind === 'home' ? 'website' : 'article']);
         expect(meta.ogImage).toEqual([]);
         expect(meta.robots).toEqual([]);
@@ -80,8 +114,13 @@ test.describe('páginas indexables', () => {
         const jsonLd: unknown = JSON.parse(meta.jsonLd[0] ?? '');
         expect(jsonLd).toMatchObject(
           sitePage.kind === 'home'
-            ? { '@type': 'Person', url: canonical }
-            : { '@type': 'SoftwareSourceCode', url: canonical, inLanguage: locale },
+            ? { '@type': 'Person', name: text.name, url: canonical }
+            : {
+                '@type': 'SoftwareSourceCode',
+                name: text.name,
+                url: canonical,
+                inLanguage: locale,
+              },
         );
         expect(errors).toEqual([]);
       });
@@ -112,23 +151,30 @@ test.describe('404 por idioma (sin redirecciones)', () => {
   for (const [path, locale, title] of [
     ['/projects/no-existe', 'en', 'Lost in space'],
     ['/projects/Chessmate', 'en', 'Lost in space'],
+    ['/PROJECTS/chessmate', 'en', 'Lost in space'],
+    ['/Es/projects/chessmate', 'en', 'Lost in space'],
+    ['/ES', 'en', 'Lost in space'],
     ['/projects', 'en', 'Lost in space'],
+    ['/en', 'en', 'Lost in space'],
     ['/en/x', 'en', 'Lost in space'],
     ['/loquesea', 'en', 'Lost in space'],
     ['/es/loquesea', 'es', 'Perdido en el espacio'],
     ['/es/projects', 'es', 'Perdido en el espacio'],
     ['/es/projects/no-existe', 'es', 'Perdido en el espacio'],
+    ['/es/PROJECTS/chessmate', 'es', 'Perdido en el espacio'],
   ] as const) {
     test(`${path} → 404 ${locale}, noindex, sin canónica`, async ({ page }) => {
       const errors = collectConsoleErrors(page);
       await page.goto(path);
-      // Tras hidratar y cargar el módulo de la ruta que casa el cliente: un solo <h1> (viva S5 #1).
+      // Tras hidratar y cargar el módulo de la ruta que casa el cliente: un solo <h1>.
       await page.waitForLoadState('networkidle');
       await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
       await expect(page).toHaveURL(path);
       const meta = await head(page);
       expect(meta.lang).toBe(locale);
+      expect(meta.title).toBe(uiTexts[locale]['meta.notFound.title']);
+      expect(meta.ogLocale).toEqual([OG_LOCALE[locale]]);
       expect(meta.robots).toEqual(['noindex']);
       expect(meta.canonical).toEqual([]);
       expect(meta.alternates).toEqual([]);

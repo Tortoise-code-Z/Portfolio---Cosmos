@@ -1,13 +1,13 @@
 import type { Locale } from '~/content/types';
 
-// Formateadores de `Intl` con la etiqueta del idioma tal cual (`en`, `es`: EST-F2-3-5). Se guardan
+// Formateadores de `Intl` con la etiqueta del idioma tal cual (`en`, `es`). Se guardan
 // por idioma y opciones: crearlos es lo caro y el HUD (F2.5) formateará a menudo.
 const numberFormats = new Map<string, Intl.NumberFormat>();
 const listFormats = new Map<string, Intl.ListFormat>();
 
 /**
  * Número con el formato del idioma: EN `13,800`; ES `13.800`, pero `1000` sin punto (norma RAE,
- * EST-F2-3-6). Un año no pasa por aquí: se agruparía («2,026»); va con `String(year)`.
+ * docs/01-contenido/textos-sitio.md). Un año no pasa por aquí: se agruparía («2,026»); va con `String(year)`.
  */
 export function formatNumber(
   locale: Locale,

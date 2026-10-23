@@ -1,4 +1,4 @@
-// Fichas JSON-LD (schema.org) en el idioma de la página (EST-F2-3-11).
+// Fichas JSON-LD (schema.org) en el idioma de la página (arquitectura.md → «Rutas e idiomas»).
 
 import type { Locale, Profile, Project, SkillGroup } from '~/content/types';
 import { localize } from '~/lib/i18n/localize/localize';

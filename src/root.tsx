@@ -67,41 +67,54 @@ export default function App(): ReactNode {
 }
 
 /**
- * Lo que se pinta mientras el cliente descarga el módulo de una ruta que el HTML no traía. Solo
- * pasa cuando el servidor da una 404 (`404.html`, ruta `*`) y el cliente casa otra ruta: un slug
- * desconocido (`/projects/no-existe`) o en mayúsculas (`/projects/Chessmate`; React Router 8.4 no
- * pasa `caseSensitive` a las rutas del cliente). Pinta la misma 404, así que coincide con el HTML
- * servido; sin esto React dejaba ese `<main>` y añadía otro (dos `<h1>`, viva S5 #1).
+ * Lo que se pinta mientras el cliente descarga el módulo de una ruta que el HTML servido no traía:
+ * pasa cuando ese HTML no es el de la ruta que casa el cliente. Casi siempre es el `404.html` con un
+ * slug desconocido (`/projects/no-existe`) o una ruta con mayúsculas (`/projects/Chessmate`, `/ES`;
+ * React Router 8.4 no pasa `caseSensitive` a las rutas del cliente). Pinta la misma 404, así que
+ * coincide con ese HTML; sin esto React dejaba su `<main>` y añadía otro (dos `<h1>`). No es el único
+ * caso: `/index.html` sirve la home y el cliente casa la ruta `*` (en F7, `cleanUrls` en Vercel).
  */
 export function HydrateFallback(): ReactNode {
   return <NotFoundPage />;
 }
 
+/** Sin error (`null` o `undefined`) o con un 404 de ruta: se pinta la 404. */
+function isNotFound(error: unknown): boolean {
+  return (
+    error === undefined || error === null || (isRouteErrorResponse(error) && error.status === 404)
+  );
+}
+
 /**
- * Solo se pinta la `meta` de la ruta más profunda, y cada ruta tiene la suya: la de la raíz se ve
- * con un error (título de la página de error) o mientras se hidrata una 404 con otra ruta (ver
- * `HydrateFallback`). En ese caso llega `error: null` y devuelve la meta de la 404, la misma del
- * HTML servido; si no, React dejaba esas etiquetas y añadía otras (viva S5 #4).
+ * Meta de reserva. React Router pinta la `meta` de la ruta más profunda que la exporta, así que esta
+ * se ve con un error o mientras se hidrata una 404 con otra ruta (ver `HydrateFallback`, llega
+ * `error: null`): la de la 404, la misma del HTML servido. Una ruta que no exporte `meta` heredaría
+ * esta, con `noindex`: todas exportan la suya (lo comprueba `root.test.tsx`). Un error no previsto
+ * tampoco se indexa.
  */
 export function meta({ error, location }: Route.MetaArgs): Route.MetaDescriptors {
   const locale = localeFromPathname(location.pathname);
-  if (error === undefined || error === null) return notFoundMeta({ locale, profile });
-  const notFound = isRouteErrorResponse(error) && error.status === 404;
-  return [{ title: translate(locale, notFound ? 'meta.notFound.title' : 'meta.error.title') }];
+  if (isNotFound(error)) return notFoundMeta({ locale, profile });
+  return [{ title: translate(locale, 'meta.error.title') }, { name: 'robots', content: 'noindex' }];
 }
 
-/** Error no previsto en cualquier ruta: aviso en el idioma de la página y vuelta al inicio. */
+/** Error en cualquier ruta: la 404 si es un 404 de ruta; si no, aviso en el idioma de la página. */
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactNode {
   console.error('[root] Unhandled route error', error);
+  if (isNotFound(error)) return <NotFoundPage />;
+  return <ErrorPage />;
+}
+
+function ErrorPage(): ReactNode {
   const t = useT();
   const locale = useLocale();
-  const notFound = isRouteErrorResponse(error) && error.status === 404;
 
   return (
     <main>
-      <h1>{t(notFound ? 'notFound.title' : 'error.title')}</h1>
-      <p>{t(notFound ? 'notFound.body' : 'error.body')}</p>
+      <h1>{t('error.title')}</h1>
+      <p>{t('error.body')}</p>
       <p>
+        {/* `<a>` y no `<Link>`: tras un fallo no previsto, una recarga completa empieza de cero. */}
         <a href={homePath(locale)}>{t('notFound.cta')}</a>
       </p>
     </main>

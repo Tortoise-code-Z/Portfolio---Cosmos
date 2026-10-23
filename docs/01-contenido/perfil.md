@@ -51,7 +51,7 @@
 
 Texto visible (lo arma la interfaz a partir de los datos):
 
-- EN: **Open to work** · Remote, hybrid or on-site · Open to relocation · Killarney, Ireland
+- EN: **Open to work** · Remote, hybrid, or on-site · Open to relocation · Killarney, Ireland
 - ES: **Disponible** · Remoto, híbrido o presencial · Abierto a reubicarme · Killarney, Irlanda
 
 ## Contacto

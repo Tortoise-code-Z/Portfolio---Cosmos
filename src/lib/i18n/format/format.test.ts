@@ -10,7 +10,7 @@ describe('formatNumber', () => {
     ['es', 100000, '100.000'],
     ['en', 13.8, '13.8'],
     ['es', 13.8, '13,8'],
-    // ES no agrupa 4 cifras (RAE, EST-F2-3-6); EN sí, por eso un año va con String(year).
+    // ES no agrupa 4 cifras (norma RAE, textos-sitio.md); EN sí, por eso un año va con String(year).
     ['es', 1000, '1000'],
     ['en', 2026, '2,026'],
   ] as const)('%s · %d → %s', (locale, value, expected) => {

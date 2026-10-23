@@ -4,7 +4,7 @@ import { fakeProfile, fakeProject, fakeSkillGroups, ORIGIN } from '../fixtures';
 import { personId, personJsonLd, projectJsonLd } from './jsonLd';
 
 describe('personJsonLd', () => {
-  it('ficha de la persona en el idioma de la página (EST-F2-3-11a)', () => {
+  it('ficha de la persona en el idioma de la página', () => {
     expect(
       personJsonLd({
         origin: ORIGIN,
@@ -38,12 +38,18 @@ describe('personJsonLd', () => {
   });
 
   it('el @id es el mismo en los dos idiomas', () => {
+    const idIn = (locale: 'en' | 'es'): unknown =>
+      personJsonLd({ origin: ORIGIN, locale, profile: fakeProfile, skillGroups: fakeSkillGroups })[
+        '@id'
+      ];
+    expect(idIn('en')).toBe(personId(ORIGIN));
+    expect(idIn('es')).toBe(personId(ORIGIN));
     expect(personId(ORIGIN)).toBe('https://cosmos.test/#person');
   });
 });
 
 describe('projectJsonLd', () => {
-  it('SoftwareSourceCode con el autor embebido (EST-F2-3-11b)', () => {
+  it('SoftwareSourceCode con el autor embebido', () => {
     const project = fakeProject('alpha', 'Alpha');
     expect(projectJsonLd({ origin: ORIGIN, locale: 'en', profile: fakeProfile, project })).toEqual({
       '@context': 'https://schema.org',
@@ -72,6 +78,7 @@ describe('projectJsonLd', () => {
     });
     expect(ld.url).toBe('https://cosmos.test/es/projects/alpha');
     expect(ld.author.url).toBe('https://cosmos.test/es');
+    expect(ld.author['@id']).toBe(personId(ORIGIN));
     expect(ld.description).toBe('Resumen de Alpha.');
     expect(ld.inLanguage).toBe('es');
   });
