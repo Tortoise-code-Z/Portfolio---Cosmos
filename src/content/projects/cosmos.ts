@@ -2,6 +2,7 @@
 // process y highlights quedan vacíos hasta F6 (solo se publica lo que está hecho).
 
 import type { Project } from '../types';
+import { RESPONSIVE_DESIGN } from './labels';
 
 export const cosmos: Project = {
   slug: 'cosmos',
@@ -55,7 +56,7 @@ export const cosmos: Project = {
   stack: {
     core: ['React', 'TypeScript', 'Three.js', 'React Three Fiber', 'GLSL'],
     libraries: ['React Router', 'Zustand'],
-    design: ['CSS Modules', { en: 'Responsive design', es: 'Diseño responsive' }],
+    design: ['CSS Modules', RESPONSIVE_DESIGN],
     tooling: [
       'Vite',
       'Vitest',

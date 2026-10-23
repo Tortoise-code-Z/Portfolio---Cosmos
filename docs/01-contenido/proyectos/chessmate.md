@@ -56,7 +56,7 @@
 
 - core: React, TypeScript
 - libraries: React Query, Zustand, React Router, React Hook Form, Zod (+ resolvers), Embla Carousel, React Player
-- design: CSS Modules, Figma, responsive design
+- design: CSS Modules, Figma, responsive design (EN: Responsive design · ES: Diseño responsive)
 - tooling: Vite, Git, npm
 
 ## Process

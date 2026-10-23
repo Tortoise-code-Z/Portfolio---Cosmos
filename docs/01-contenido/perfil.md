@@ -70,5 +70,5 @@ Texto visible (lo arma la interfaz a partir de los datos):
 | `masterd-fullstack` | Full-Stack Development Program / Curso de programación Fullstack | MasterD | 2023/24 | 948 | completed | HTML, CSS, JavaScript, PHP, MySQL, Apache, Git |
 | `holamundo-react-ts` | React + TypeScript Course / Curso de React + TypeScript | Hola Mundo | 2025 | 13 | completed | React, TypeScript |
 
-La nota de los cursos no se muestra (decisión del paso 2).
+La nota de los cursos no se muestra (decisión de la fase de documentación).
 Curso de Hola Mundo terminado: confirmado por Víctor (F2 · paso 2).

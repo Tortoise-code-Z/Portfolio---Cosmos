@@ -1,6 +1,7 @@
 // Fuente: docs/01-contenido/proyectos/astrohub.md.
 
 import type { Project } from '../types';
+import { DEMO_USER_LABEL, RESPONSIVE_DESIGN } from './labels';
 
 export const astrohub: Project = {
   slug: 'astrohub',
@@ -52,7 +53,7 @@ export const astrohub: Project = {
   stack: {
     core: ['HTML', 'CSS', 'JavaScript', 'PHP', 'MySQL'],
     libraries: [],
-    design: ['Figma', { en: 'Responsive design', es: 'Diseño responsive' }],
+    design: ['Figma', RESPONSIVE_DESIGN],
     tooling: ['Apache', 'XAMPP', 'phpMyAdmin'],
   },
   process: {
@@ -116,7 +117,7 @@ export const astrohub: Project = {
     ],
     // Cuentas de demo públicas de la base de datos de ejemplo (modelo-de-datos.md → «Credenciales de demo»).
     credentials: [
-      { label: { en: 'User', es: 'Usuario' }, user: 'lisa12', password: '123456' },
+      { label: DEMO_USER_LABEL, user: 'lisa12', password: '123456' },
       { label: { en: 'Admin', es: 'Administrador' }, user: 'root', password: '1234567' },
     ],
   },

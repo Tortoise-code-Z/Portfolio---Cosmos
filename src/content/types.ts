@@ -132,7 +132,7 @@ export interface Project {
   readonly highlights: readonly Localized[];
   readonly notes: readonly ProjectNote[];
   readonly tryIt: TryIt | null;
-  /** `null` hasta que las capturas lleguen en F2.8. */
+  /** `null` = sin portada todavía: la interfaz no la pinta (Chessmate y AstroHub hasta F2.8; Cosmos hasta F6). */
   readonly cover: ImageAsset | null;
   readonly gallery: readonly ImageAsset[];
   readonly links: {

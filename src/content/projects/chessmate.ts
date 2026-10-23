@@ -1,6 +1,7 @@
 // Fuente: docs/01-contenido/proyectos/chessmate.md.
 
 import type { Project } from '../types';
+import { DEMO_USER_LABEL, RESPONSIVE_DESIGN } from './labels';
 
 export const chessmate: Project = {
   slug: 'chessmate',
@@ -47,7 +48,7 @@ export const chessmate: Project = {
       'Embla Carousel',
       'React Player',
     ],
-    design: ['CSS Modules', 'Figma', { en: 'Responsive design', es: 'Diseño responsive' }],
+    design: ['CSS Modules', 'Figma', RESPONSIVE_DESIGN],
     tooling: ['Vite', 'Git', 'npm'],
   },
   process: {
@@ -106,7 +107,7 @@ export const chessmate: Project = {
       },
     ],
     // Cuenta de demo pública del proyecto de ejemplo (modelo-de-datos.md → «Credenciales de demo»).
-    credentials: [{ label: { en: 'User', es: 'Usuario' }, user: 'admin', password: '1234' }],
+    credentials: [{ label: DEMO_USER_LABEL, user: 'admin', password: '1234' }],
   },
   cover: null,
   gallery: [],

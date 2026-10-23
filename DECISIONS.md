@@ -82,7 +82,10 @@
 - Estado: Aceptada
 - Fecha: 2026-10-22
 - Contexto: sitio bilingüe con EN como idioma principal, indexable en los dos idiomas.
-- Decisión: diccionarios TypeScript `src/content/ui/en.ts` y `es.ts` con las mismas claves (lo comprueba un test);
+- Decisión: diccionarios TypeScript `src/content/texts/en.ts` y `es.ts` (objeto `uiTexts`) con **claves planas**
+  (`'project.stack.core'`) y las mismas claves y huecos `{x}` en los dos (`UiKey` sale de `en.ts`; `es` se tipa con
+  él y lo comprueba además un test). La carpeta no se llama `ui/` porque chocaría con la capa `ui` en las reglas de
+  importación de ESLint (patrón `**/ui/**`). Actualizado en F2 · paso 2 (AUD-F2-2-3);
   idioma derivado de la ruta; EN en `/`, ES en `/es`; `hreflang` en/es/x-default. Sin redirección automática:
   sugerencia descartable «¿Ver en español?». Segmento `projects` igual en los dos idiomas.
 - Alternativas descartadas: react-i18next (dependencia innecesaria); redirección automática por idioma del
