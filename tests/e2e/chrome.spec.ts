@@ -154,16 +154,19 @@ test.describe('chapter rail', () => {
   }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await expect(rail(page).getByText('Cosmic turtle')).toBeVisible();
-    // Los puntos forman una columna, aunque cada texto mida distinto.
+    // Los puntos forman una columna, aunque cada texto mida distinto. Se admite 1 px de diferencia:
+    // Firefox reparte los subpíxeles de otra forma y el redondeo puede caer a un lado u otro; sin la
+    // columna, los puntos se separan decenas de píxeles.
     const dotCenters = await rail(page)
       .locator('button > span:last-child')
       .evaluateAll((dots) =>
         dots.map((dot) => {
           const { left, width } = dot.getBoundingClientRect();
-          return Math.round(left + width / 2);
+          return left + width / 2;
         }),
       );
-    expect(new Set(dotCenters).size).toBe(1);
+    expect(dotCenters).toHaveLength(5);
+    expect(Math.max(...dotCenters) - Math.min(...dotCenters)).toBeLessThanOrEqual(1);
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(rail(page).getByText('Cosmic turtle')).toBeHidden();
     for (const button of await rail(page).getByRole('button').all()) {
