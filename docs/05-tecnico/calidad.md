@@ -51,7 +51,8 @@
 
 | Métrica | Límite |
 |---|---|
-| JS inicial (sin escena), gzip | **Framework ≤ 112 KB** (dependencias, chunk `entry.client`; 107,3 KB en F2.4) + **código propio ≤ 35 KB por página** (home 17,4 · proyecto 12,6 · 404 7,0 KB en F2.4). Alarma propia, no requisito externo (mandan los Core Web Vitals y Lighthouse del brief). E2E `budgets.spec.ts` sobre el build, una página de cada tipo en EN y ES (ADR-020) |
+| JS inicial (sin escena), gzip | **Framework ≤ 112 KB** (las dependencias del JS inicial, chunk `entry.client` o `framework`; 107,3 KB en F2.4; las de la escena van en su chunk diferido) + **código propio ≤ 35 KB por página** (home 17,4 · proyecto 12,6 · 404 7,0 KB en F2.4). Alarma propia, no requisito externo (mandan los Core Web Vitals y Lighthouse del brief). E2E `budgets.spec.ts` sobre el build, en **todos** los HTML del build (ADR-020) |
+| CSS (hoja única), gzip | ≤ 50 KB (ADR-019: por encima, revisar si conviene volver a partirla; 4,3 KB en F2.4). E2E `budgets.spec.ts` sobre la hoja que piden las páginas |
 | Chunk de la escena, gzip | ≤ 250 KB |
 | Fuentes (todas, woff2 subconjunto latino) | ≤ 150 KB (e2e `budgets.spec.ts` desde F2; Lighthouse CI en F6) |
 | LCP móvil (simulado) | < 2,5 s |

@@ -12,7 +12,7 @@ describe('Icon', () => {
     expect(svg).toHaveAttribute('aria-hidden', 'true');
     expect(svg).toHaveAttribute('focusable', 'false');
     expect(svg).toHaveAttribute('stroke', 'currentColor');
-    expect(svg?.querySelector('path')?.getAttribute('d')).not.toBe('');
+    expect(svg?.querySelector('path')?.getAttribute('d')).toMatch(/^M/);
   });
 
   it('defaults to 16 px and accepts 20 px', () => {

@@ -73,10 +73,11 @@ test.describe('the journey (home)', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     const button = page.getByRole('button', { name: 'Hold to detonate' });
     await button.focus();
+    // Se mantiene hasta ver el resultado: la duración exacta la vigila charge.test.ts y un CI lento
+    // no suelta antes de tiempo.
     await page.keyboard.down('Space');
-    await page.waitForTimeout(1_700);
+    await expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 });
     await page.keyboard.up('Space');
-    await expect(button).toHaveAttribute('aria-disabled', 'true');
     const about = await offsetTop(page, 'about');
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(about);
     // El foco viaja con la vista: al título de About, sin anillo cortado ni otro salto de scroll.
@@ -88,10 +89,15 @@ test.describe('the journey (home)', () => {
     await expect(button).not.toHaveAttribute('aria-disabled');
   });
 
-  test('a short click does not detonate', async ({ page }) => {
+  test('a short click does not detonate: the charge drains back to 0', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
-    await page.getByRole('button', { name: 'Hold to detonate' }).click();
-    await page.waitForTimeout(600);
+    const button = page.getByRole('button', { name: 'Hold to detonate' });
+    await button.click();
+    // Si soltar no funcionara, la carga seguiría subiendo hasta detonar y nunca volvería a 0.
+    await expect
+      .poll(() => button.evaluate((element) => element.style.getPropertyValue('--_charge')))
+      .toBe('0');
+    await expect(button).not.toHaveAttribute('aria-disabled');
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
   });
 
@@ -125,30 +131,36 @@ test.describe('the journey (home)', () => {
       await page.goto('/', { waitUntil: 'networkidle' });
       await page.evaluate(() => document.fonts.ready);
       const layout = await page.evaluate(() => {
-        const core = document.querySelector('[aria-hidden="true"] > span:last-child');
-        const lines = [...document.querySelectorAll('h1 > span')];
-        const coreBox = core?.getBoundingClientRect();
-        const overlaps = lines.some((line) => {
+        const hero = document.querySelector('section[data-chapter="0"]');
+        const core = hero?.querySelector('[aria-hidden="true"] > span:last-child');
+        const title = hero?.querySelector('h1');
+        const kicker = title?.previousElementSibling;
+        const textBox = (element: Element): DOMRect => {
           const range = document.createRange();
-          range.selectNodeContents(line);
-          const box = range.getBoundingClientRect();
-          return (
-            coreBox !== undefined &&
-            box.left < coreBox.right &&
-            box.right > coreBox.left &&
-            box.top < coreBox.bottom &&
-            box.bottom > coreBox.top
-          );
-        });
+          range.selectNodeContents(element);
+          return range.getBoundingClientRect();
+        };
+        const overlap = (a: DOMRect, b: DOMRect): boolean =>
+          a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        if (core == null || title == null || kicker == null) return null;
+        const coreBox = core.getBoundingClientRect();
+        const kickerBox = textBox(kicker);
+        const lines = [...title.querySelectorAll(':scope > span')].map(textBox);
         return {
-          overflow: document.documentElement.scrollWidth - window.innerWidth,
-          hasCore: coreBox !== undefined && coreBox.width > 0,
-          overlaps,
+          // clientWidth no cuenta la barra de scroll (innerWidth sí): un elemento a 100vw desborda.
+          overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          hasCore: coreBox.width > 0,
+          nameOverCore: lines.some((line) => overlap(line, coreBox)),
+          kickerOverCore: overlap(kickerBox, coreBox),
+          kickerOverName: lines.some((line) => overlap(line, kickerBox)),
         };
       });
-      expect(layout.overflow).toBeLessThanOrEqual(0);
-      expect(layout.hasCore).toBe(true);
-      expect(layout.overlaps).toBe(false);
+      expect(layout).not.toBeNull();
+      expect(layout?.overflow).toBeLessThanOrEqual(0);
+      expect(layout?.hasCore).toBe(true);
+      expect(layout?.nameOverCore).toBe(false);
+      expect(layout?.kickerOverCore).toBe(false);
+      expect(layout?.kickerOverName).toBe(false);
     });
   }
 
@@ -159,9 +171,19 @@ test.describe('the journey (home)', () => {
     test.skip(browserName === 'webkit', 'Safari only tabs to links with a system setting on');
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/', { waitUntil: 'networkidle' });
-    const total = await page.locator('main a[href], main button').count();
+    // Se marca cada enlace y botón de main para saber cuáles visita el Tab (con lo que haya delante,
+    // como la barra superior de F2.5, el recorrido sigue hasta salir de main).
+    const total = await page.evaluate(() => {
+      const focusables = [...document.querySelectorAll('main a[href], main button')];
+      focusables.forEach((element, index) => {
+        element.setAttribute('data-tab-check', String(index));
+      });
+      return focusables.length;
+    });
+    const visited = new Set<string>();
     const hidden: string[] = [];
-    for (let index = 0; index < total; index += 1) {
+    const MAX_TABS = total + 20;
+    for (let tab = 0; tab < MAX_TABS; tab += 1) {
       await page.keyboard.press('Tab');
       const focused = await page.evaluate(() => {
         const element = document.activeElement;
@@ -173,13 +195,20 @@ test.describe('the journey (home)', () => {
           Number.parseFloat(root.getPropertyValue('--focus-offset')) +
           Number.parseFloat(root.getPropertyValue('--focus-width'));
         return {
+          id: element.getAttribute('data-tab-check'),
           name: element.textContent.trim(),
           visible: box.top - ring >= 0 && box.bottom + ring <= window.innerHeight,
         };
       });
       if (focused === null) break;
+      if (focused.id === null) {
+        if (visited.size > 0) break; // Ha salido de main: recorrido completo.
+        continue;
+      }
+      visited.add(focused.id);
       if (!focused.visible) hidden.push(focused.name);
     }
+    expect(visited.size).toBe(total);
     expect(hidden).toEqual([]);
   });
 
@@ -216,33 +245,42 @@ test.describe('the journey (home)', () => {
     }
   });
 
-  test('loading the hero with slow fonts keeps CLS under 0.1', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium', 'Layout shift entries and network throttling: Chromium');
-    const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Network.enable');
-    await cdp.send('Network.emulateNetworkConditions', {
-      offline: false,
-      latency: 150,
-      downloadThroughput: 200 * 1024,
-      uploadThroughput: 100 * 1024,
+  for (const viewport of [REFERENCE_VIEWPORTS[0], REFERENCE_VIEWPORTS[2]]) {
+    test(`${String(viewport.width)}×${String(viewport.height)}: loading the hero with slow fonts keeps CLS under 0.1`, async ({
+      page,
+      browserName,
+    }) => {
+      test.skip(
+        browserName !== 'chromium',
+        'Layout shift entries and network throttling: Chromium',
+      );
+      await page.setViewportSize(viewport);
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Network.enable');
+      await cdp.send('Network.emulateNetworkConditions', {
+        offline: false,
+        latency: 150,
+        downloadThroughput: 200 * 1024,
+        uploadThroughput: 100 * 1024,
+      });
+      await page.addInitScript(() => {
+        const store = window as unknown as { __cls: number };
+        store.__cls = 0;
+        new PerformanceObserver((list) => {
+          for (const entry of list.getEntries() as (PerformanceEntry & {
+            value: number;
+            hadRecentInput: boolean;
+          })[]) {
+            if (!entry.hadRecentInput) store.__cls += entry.value;
+          }
+        }).observe({ type: 'layout-shift', buffered: true });
+      });
+      await page.goto('/', { waitUntil: 'networkidle' });
+      await page.evaluate(() => document.fonts.ready);
+      const cls = await page.evaluate(() => (window as unknown as { __cls: number }).__cls);
+      expect(cls).toBeLessThan(0.1);
     });
-    await page.addInitScript(() => {
-      const store = window as unknown as { __cls: number };
-      store.__cls = 0;
-      new PerformanceObserver((list) => {
-        for (const entry of list.getEntries() as (PerformanceEntry & {
-          value: number;
-          hadRecentInput: boolean;
-        })[]) {
-          if (!entry.hadRecentInput) store.__cls += entry.value;
-        }
-      }).observe({ type: 'layout-shift', buffered: true });
-    });
-    await page.goto('/', { waitUntil: 'networkidle' });
-    await page.evaluate(() => document.fonts.ready);
-    const cls = await page.evaluate(() => (window as unknown as { __cls: number }).__cls);
-    expect(cls).toBeLessThan(0.1);
-  });
+  }
 });
 
 test.describe('on a touch screen', () => {

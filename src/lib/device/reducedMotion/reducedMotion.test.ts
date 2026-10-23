@@ -2,11 +2,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { jumpBehavior, prefersReducedMotion } from './reducedMotion';
 
-function stubMatchMedia(matches: boolean): void {
-  vi.stubGlobal(
-    'matchMedia',
-    vi.fn((query: string) => ({ matches: matches && query.includes('reduce'), media: query })),
-  );
+/** `matchMedia` falso que solo casa la consulta exacta de movimiento reducido. */
+function stubMatchMedia(matches: boolean): ReturnType<typeof vi.fn> {
+  const matchMedia = vi.fn((query: string) => ({
+    matches: matches && query === '(prefers-reduced-motion: reduce)',
+    media: query,
+  }));
+  vi.stubGlobal('matchMedia', matchMedia);
+  return matchMedia;
 }
 
 afterEach(() => {
@@ -15,8 +18,9 @@ afterEach(() => {
 
 describe('prefersReducedMotion', () => {
   it('reads prefers-reduced-motion: reduce', () => {
-    stubMatchMedia(true);
+    const matchMedia = stubMatchMedia(true);
     expect(prefersReducedMotion()).toBe(true);
+    expect(matchMedia).toHaveBeenCalledWith('(prefers-reduced-motion: reduce)');
     expect(jumpBehavior()).toBe('auto');
   });
 
