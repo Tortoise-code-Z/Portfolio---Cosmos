@@ -13,6 +13,10 @@ import { parseSiteUrl } from './src/lib/env/siteUrl/siteUrl.ts';
  * sin barra final a su `index.html` pre-renderizado si existe y, si no, a la 404 de su idioma
  * (`/es/…` → `es/404/index.html`; el resto → `404.html`), para que los e2e prueben lo mismo que
  * se desplegará (la 404 ES en Vercel se configura en F7). El estado HTTP sigue siendo 200 aquí.
+ * Una ruta con mayúsculas va siempre a la 404, como en el disco de Vercel, que las distingue: en
+ * Windows (NTFS) `existsSync` no las distingue y `/ES` daría el `index.html` de `/es`. Es la regla
+ * de `isLowerCasePathname` (`lib/i18n/paths`), escrita aquí porque importarla mete en la config la
+ * cadena de imports de `content/` (Vite avisa de los imports sin extensión).
  */
 function previewDirectoryIndex(): Plugin {
   return {
@@ -28,11 +32,12 @@ function previewDirectoryIndex(): Plugin {
           !pathname.endsWith('/') && !pathname.includes('.') && !pathname.includes('..');
         if (isDirectoryLike) {
           const isSpanish = pathname === '/es' || pathname.startsWith('/es/');
-          const target = existsSync(join(outDir, pathname, 'index.html'))
-            ? `${pathname}/index.html`
-            : isSpanish
-              ? '/es/404/index.html'
-              : '/404.html';
+          const target =
+            pathname === pathname.toLowerCase() && existsSync(join(outDir, pathname, 'index.html'))
+              ? `${pathname}/index.html`
+              : isSpanish
+                ? '/es/404/index.html'
+                : '/404.html';
           req.url = `${target}${query === undefined ? '' : `?${query}`}`;
         }
         next();

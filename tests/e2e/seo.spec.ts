@@ -112,12 +112,16 @@ test.describe('404 por idioma (sin redirecciones)', () => {
   for (const [path, locale, title] of [
     ['/projects/no-existe', 'en', 'Lost in space'],
     ['/projects/Chessmate', 'en', 'Lost in space'],
+    ['/PROJECTS/chessmate', 'en', 'Lost in space'],
+    ['/Es/projects/chessmate', 'en', 'Lost in space'],
+    ['/ES', 'en', 'Lost in space'],
     ['/projects', 'en', 'Lost in space'],
     ['/en/x', 'en', 'Lost in space'],
     ['/loquesea', 'en', 'Lost in space'],
     ['/es/loquesea', 'es', 'Perdido en el espacio'],
     ['/es/projects', 'es', 'Perdido en el espacio'],
     ['/es/projects/no-existe', 'es', 'Perdido en el espacio'],
+    ['/es/PROJECTS/chessmate', 'es', 'Perdido en el espacio'],
   ] as const) {
     test(`${path} → 404 ${locale}, noindex, sin canónica`, async ({ page }) => {
       const errors = collectConsoleErrors(page);

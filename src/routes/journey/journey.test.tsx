@@ -24,4 +24,9 @@ describe('Journey («hello» hasta F2.4)', () => {
     render(<Stub initialEntries={['/es']} />);
     expect(await screen.findByText(/Mi código también\./)).toBeInTheDocument();
   });
+
+  it('/ES (mayúsculas) es la 404 en inglés, aunque el cliente case la ruta de /es', async () => {
+    render(<Stub initialEntries={['/ES']} />);
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Lost in space');
+  });
 });

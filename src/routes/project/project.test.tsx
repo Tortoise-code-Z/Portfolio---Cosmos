@@ -35,9 +35,15 @@ describe('ProjectPage (mínima hasta F2.7)', () => {
   it.each([
     ['/projects/no-existe', 'Lost in space'],
     ['/projects/Chessmate', 'Lost in space'],
+    ['/PROJECTS/chessmate', 'Lost in space'],
+    ['/Es/projects/chessmate', 'Lost in space'],
     ['/es/projects/no-existe', 'Perdido en el espacio'],
-  ])('slug desconocido %s: la página 404 del idioma, sin lanzar', async (path, title) => {
-    render(<Stub initialEntries={[path]} />);
-    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(title);
-  });
+    ['/es/PROJECTS/chessmate', 'Perdido en el espacio'],
+  ])(
+    'slug desconocido o ruta con mayúsculas %s: la 404 del idioma, sin lanzar',
+    async (path, title) => {
+      render(<Stub initialEntries={[path]} />);
+      expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(title);
+    },
+  );
 });

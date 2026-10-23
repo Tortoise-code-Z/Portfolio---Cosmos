@@ -69,8 +69,8 @@ export default function App(): ReactNode {
 /**
  * Lo que se pinta mientras el cliente descarga el módulo de una ruta que el HTML no traía. Solo
  * pasa cuando el servidor da una 404 (`404.html`, ruta `*`) y el cliente casa otra ruta: un slug
- * desconocido (`/projects/no-existe`) o en mayúsculas (`/projects/Chessmate`; React Router 8.4 no
- * pasa `caseSensitive` a las rutas del cliente). Pinta la misma 404, así que coincide con el HTML
+ * desconocido (`/projects/no-existe`) o una ruta con mayúsculas (`/projects/Chessmate`, `/ES`;
+ * React Router 8.4 no pasa `caseSensitive` a las rutas del cliente). Pinta la misma 404, así que coincide con el HTML
  * servido; sin esto React dejaba ese `<main>` y añadía otro (dos `<h1>`, viva S5 #1).
  */
 export function HydrateFallback(): ReactNode {
