@@ -17,7 +17,7 @@ describe('prefersReducedMotion', () => {
   it('reads prefers-reduced-motion: reduce', () => {
     stubMatchMedia(true);
     expect(prefersReducedMotion()).toBe(true);
-    expect(jumpBehavior()).toBe('instant');
+    expect(jumpBehavior()).toBe('auto');
   });
 
   it('defaults to full motion', () => {

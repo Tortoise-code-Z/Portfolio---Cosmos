@@ -32,16 +32,16 @@ describe('Projects', () => {
     '%s: page, demo (if any) and code links, named with the project',
     (name, project) => {
       renderAt('/es');
-      expect(screen.getByRole('link', { name: `Ver proyecto, ${name}` })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: `Ver proyecto ${name}` })).toHaveAttribute(
         'href',
         `/es/projects/${project.slug}`,
       );
       const code = screen.getByRole('link', {
-        name: `Código, ${name} (se abre en una pestaña nueva)`,
+        name: `Código ${name} (se abre en una pestaña nueva)`,
       });
       expect(code).toHaveAttribute('href', project.links.code);
       const demo = screen.queryByRole('link', {
-        name: `Demo, ${name} (se abre en una pestaña nueva)`,
+        name: `Demo ${name} (se abre en una pestaña nueva)`,
       });
       if (project.links.demo === null) expect(demo).toBeNull();
       else expect(demo).toHaveAttribute('href', project.links.demo);

@@ -9,7 +9,10 @@ export function prefersReducedMotion(): boolean {
   return window.matchMedia(REDUCED_MOTION_QUERY).matches;
 }
 
-/** Comportamiento de un salto de scroll: suave, o instantáneo con movimiento reducido. */
+/**
+ * Comportamiento de un salto de scroll: suave, o instantáneo con movimiento reducido. Instantáneo es
+ * `auto` (el CSS no pide scroll suave): `instant` aún no lo entienden todos los motores.
+ */
 export function jumpBehavior(): ScrollBehavior {
-  return prefersReducedMotion() ? 'instant' : 'smooth';
+  return prefersReducedMotion() ? 'auto' : 'smooth';
 }
