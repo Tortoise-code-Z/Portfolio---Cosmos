@@ -68,7 +68,8 @@ Víctor decide el Visto Bueno entendiendo el paso, no solo leyéndolo.
 - **Movimiento reducido de primera clase**, no un parche (`docs/02-experiencia/estados-y-accesibilidad.md`).
 - **Accesibilidad:** teclado, foco visible, contraste AA, área táctil ≥ 44 px, ningún estado comunicado solo con color.
 - **Archivos con el mismo nombre, en su carpeta** (ADR-018): `x.ts` + `x.test.ts` (o `x.module.css`) van en `x/`
-  con su nombre, sin `index.ts`. Solo en `src/` y `tests/`. Lo vigila `src/structure.test.ts`.
+  con su nombre, sin `index.ts`. Solo en `src/` y `tests/`; excepción: `src/root.tsx` + `src/root.test.tsx`. Lo
+  vigila `src/structure.test.ts`.
 
 ## 6. Versiones y dependencias
 

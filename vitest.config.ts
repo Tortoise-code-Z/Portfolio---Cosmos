@@ -19,7 +19,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
-      // root.tsx (documento HTML) y routes.ts (configuración) se cubren con los e2e.
+      // Fuera de la cobertura: root.tsx (el documento HTML solo lo pintan los e2e; su lógica, `meta`,
+      // `ErrorBoundary` y `HydrateFallback`, la prueba root.test.tsx) y routes.ts (configuración).
       exclude: ['src/**/*.test.{ts,tsx}', 'src/**/*.d.ts', 'src/root.tsx', 'src/routes.ts'],
       thresholds: {
         lines: 70,

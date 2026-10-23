@@ -13,7 +13,9 @@ Sin servidor ni base de datos en la v1. Hosting estático en Vercel.
 ```
 cosmos-portfolio/
 ├─ src/                         ← appDirectory de React Router
-│  ├─ root.tsx                  ← documento HTML, <html lang>, fuentes, meta comunes, ErrorBoundary raíz
+│  ├─ root.tsx                  ← documento HTML, <html lang>, fuentes, meta de reserva, ErrorBoundary y
+│  │                               HydrateFallback raíz
+│  ├─ root.test.tsx             ← meta de reserva, ErrorBoundary y HydrateFallback (excepción de ADR-018)
 │  ├─ entry.client.tsx          ← (si hace falta personalizar la hidratación)
 │  ├─ routes.ts                 ← configuración de rutas EN/ES
 │  ├─ routes/                   ← una carpeta por ruta, con su test (ADR-018)
@@ -56,6 +58,7 @@ Alias de importación: `~/` → `src/`.
 nombre base (lo que va antes del primer punto: `meta.ts`, `meta.test.ts`, `meta.module.css`), van juntos en una
 carpeta con ese nombre y conservan el suyo, sin `index.ts`: `lib/seo/meta/meta.ts` + `lib/seo/meta/meta.test.ts`
 (se importa como `~/lib/seo/meta/meta`). Vale para `src/` y `tests/`; un archivo sin pareja se queda suelto.
+Única excepción: `src/root.tsx` (React Router fija su nombre y su sitio) y su test, `src/root.test.tsx`.
 `src/structure.test.ts` lo vigila.
 
 ## Capas y reglas de dependencia
@@ -162,8 +165,11 @@ Regla: nada que cambie en cada frame pasa por estado de React.
 
 ## Gestión de errores
 
-- `ErrorBoundary` raíz con página de error en el idioma activo (`error.*`, o `notFound.*` si es un 404), su título
-  por la `meta` de `root.tsx` y enlace al inicio.
+- `ErrorBoundary` raíz: con un 404 de ruta pinta la misma `NotFoundPage` (y la `meta` de la 404); con cualquier
+  otro error, la página de error en el idioma activo (`error.*`), título `meta.error.title`, `noindex` y enlace al
+  inicio con `<a>` (recarga completa, no `<Link>`). Lo prueba `src/root.test.tsx`.
+- Toda ruta exporta su `meta`: si no, heredaría la de reserva de `root.tsx` (la de la 404, con `noindex`).
+  `src/root.test.tsx` lo comprueba para cada ruta de `routes.ts`.
 - `ErrorBoundary` propio de la escena (aislado: un fallo 3D nunca tumba la página).
 - `CopyButton` y similares: siempre con alternativa (seleccionar texto) y mensaje.
 - Nada de `catch` vacíos: todo error capturado se registra con contexto (`console.error` en desarrollo y
