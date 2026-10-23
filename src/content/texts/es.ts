@@ -27,7 +27,7 @@ export const es: UiTexts = {
   'chapter.4': 'Contacto · Tierra',
   'rail.label': 'Capítulos',
   'hud.zero': 't = 0 s · singularidad',
-  'hud.seconds': 't = 10^{exp} s',
+  'hud.seconds': 't = 10{exp} s',
   'hud.years': 't ≈ {n} años',
   'hud.millionYears': 't ≈ {n} millones de años',
   'hud.billionYears': 't ≈ {n} millones de años',

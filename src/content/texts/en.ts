@@ -25,7 +25,7 @@ export const en = {
   'chapter.4': 'Contact · Earth',
   'rail.label': 'Chapters',
   'hud.zero': 't = 0 s · singularity',
-  'hud.seconds': 't = 10^{exp} s',
+  'hud.seconds': 't = 10{exp} s',
   'hud.years': 't ≈ {n} years',
   'hud.millionYears': 't ≈ {n} million years',
   'hud.billionYears': 't ≈ {n} billion years',

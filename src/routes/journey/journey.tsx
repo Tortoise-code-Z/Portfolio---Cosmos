@@ -4,6 +4,7 @@ import { useLocation } from 'react-router';
 import { CHAPTER_MORPH_START } from '~/content/chapters';
 import { profile } from '~/content/profile';
 import { skillGroups } from '~/content/skills';
+import { CosmicHud } from '~/features/hud/CosmicHud/CosmicHud';
 import { About } from '~/features/journey/About/About';
 import { CHAPTER_SELECTOR } from '~/features/journey/ChapterSection/ChapterSection';
 import { Contact } from '~/features/journey/Contact/Contact';
@@ -45,12 +46,15 @@ export default function Journey(): ReactNode {
   if (!isLowerCasePathname(pathname)) return <NotFoundPage />;
 
   return (
-    <main ref={mainRef}>
-      <Hero />
-      <About />
-      <Skills />
-      <Projects />
-      <Contact />
-    </main>
+    <>
+      <main ref={mainRef}>
+        <Hero />
+        <About />
+        <Skills />
+        <Projects />
+        <Contact />
+      </main>
+      <CosmicHud />
+    </>
   );
 }
