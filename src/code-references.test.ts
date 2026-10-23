@@ -8,9 +8,9 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 /**
- * Regla de citas (DEVELOPMENT_RULES.md §5): el código cita docs y ADR del repo, nunca las notas de
- * trabajo que viven fuera de git (el buzón, las decisiones vivas, las claves de encargo). El repo es
- * público y esas referencias no se pueden seguir.
+ * Regla de citas (DEVELOPMENT_RULES.md §5): el código, `DECISIONS.md` y `docs/` citan docs y ADR del
+ * repo, nunca las notas de trabajo que viven fuera de git (el buzón, las decisiones vivas, las claves de
+ * encargo). El repo es público y esas referencias no se pueden seguir.
  */
 
 const REPO_DIR = fileURLToPath(new URL('..', import.meta.url));
@@ -62,6 +62,21 @@ describe('el código no cita notas de fuera del repo', () => {
       // Este archivo no: sus ejemplos son citas a propósito.
       .filter(({ path }) => path !== THIS_FILE);
     expect(files.length).toBeGreaterThan(0);
+    expect(offRepoReferences(files)).toEqual([]);
+  });
+
+  it('DECISIONS.md y docs/ tampoco (salvo el historial de cierres, que es diario de trabajo)', () => {
+    const paths = [
+      join(REPO_DIR, 'DECISIONS.md'),
+      ...listFiles(join(REPO_DIR, 'docs')).filter(
+        (path) => path.endsWith('.md') && !relative(REPO_DIR, path).includes('_historial'),
+      ),
+    ];
+    const files = paths.map((path) => ({
+      path: relative(REPO_DIR, path).replaceAll('\\', '/'),
+      text: readFileSync(path, 'utf8'),
+    }));
+    expect(files.length).toBeGreaterThan(1);
     expect(offRepoReferences(files)).toEqual([]);
   });
 });

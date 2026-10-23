@@ -22,7 +22,8 @@
 
 ### Título de capítulo (`h2`) · Párrafo · Lista de etiquetas (fortalezas)
 - Títulos según escala. Párrafos `--color-ink-soft`.
-- Etiqueta: mono 12 px, borde 1 px `--color-faint`, relleno 6/10 px, sin radio.
+- Etiqueta: mono 12 px, borde 1 px `--color-faint`, relleno `--space-2`/`--space-3` (8/12 px, en la rejilla de 4),
+  sin radio.
 
 ## Acciones
 

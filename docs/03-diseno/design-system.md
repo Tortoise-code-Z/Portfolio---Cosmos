@@ -3,8 +3,11 @@
 > Tokens y reglas visuales. Componentes en `componentes.md`; movimiento en `movimiento.md`.
 > En el código, los tokens viven como **variables CSS** en `src/styles/tokens.css` y se usan desde los
 > CSS Modules. Ningún componente usa un color, tamaño, duración ni familia tipográfica literal: siempre un token.
-> Única excepción: las **variables privadas** de un componente, con prefijo `--_` (`--_progress`), que se definen
-> en su CSS Module o desde el código (`style={{ '--_progress': … }}`). Lo vigila `src/styles/styles.test.ts`.
+> Excepciones escritas: las **variables privadas** de un componente, con prefijo `--_` (`--_progress`), que se
+> definen en su CSS Module o desde el código (`style={{ '--_progress': … }}`); las **unidades de viewport** que
+> colocan algo respecto a la ventana (`50svh`, `100svh`: el punto del hero, su altura, el tope del panel *sticky*);
+> y el patrón **visualmente oculto** (`VisuallyHidden`, caja de `1px`), que es un mecanismo y no una medida de
+> diseño. Lo vigila `src/styles/styles.test.ts`.
 
 ## Concepto
 
@@ -92,7 +95,9 @@ En el código, cada tamaño `--text-*` va con su interlineado `--leading-*` (`--
 Los ajustes de la tabla también son tokens: `--weight-display` 800, `--weight-hero` 850, `--weight-body` 400,
 `--weight-strong` 600, `--weight-mono` 400, `--weight-mono-strong` 500 · `--wdth-hero-rest` 62 %, `--wdth-h1`
 135 %, `--wdth-h2` 128 %, `--wdth-h3` 140 % (se aplican con `font-stretch`) · `--tracking-label` 0.14em,
-`--tracking-micro` 0.1em, `--tracking-logo` 0.16em · `--hero-accent-room` 0.14em · `--underline-offset` 0.2em
+`--tracking-micro` 0.1em, `--tracking-logo` 0.16em (la pareja tamaño/tracking de la tabla es la de partida: una
+etiqueta puede cruzarlos por uso, como la pista del hero o las etiquetas de bloque en `--text-micro` con
+`--tracking-label`, o la disponibilidad de Contacto en `--text-label` con `--tracking-micro`) · `--hero-accent-room` 0.14em · `--underline-offset` 0.2em
 (separación del subrayado de los enlaces) · `--measure` 62ch.
 `global.css` da a `h1`–`h3` el rol display (Anybody 800, mayúsculas, su tamaño, interlineado y `wdth`).
 
@@ -170,12 +175,16 @@ su propio contenido con `z-index: -1` (el brillo «hot» de la fila de proyecto)
 ## Iconos
 
 - Conjunto mínimo de **SVG en línea** propios: flecha, enlace externo, copiar, cerrar, chevrones, GitHub,
-  LinkedIn, descarga. Trazo 1,5 px, tamaños 16 y 20 px, `currentColor`.
+  LinkedIn, descarga. Trazo 1,5 px (`vector-effect: non-scaling-stroke`: no engorda a 20 px), tamaños 16 y 20 px,
+  `currentColor`. Bajan `--icon-baseline-shift` (−0,125em) para centrarse ópticamente con la x.
 - Van **en línea** con el texto: `global.css` no les da `display: block`; el componente de icono fija su propio
   `display` según dónde se use.
 - Una flecha dentro de un texto (por ejemplo «Go to Courses → All courses») se pinta con el **icono SVG de
   flecha**, no con el carácter «→»: el subconjunto latino de las fuentes no trae U+2192 y saldría con la fuente del
   sistema.
+- Excepción aceptada: el «≈» de los eyebrows de About y Skills (U+2248) tampoco está en el subconjunto y sale con la
+  mono del sistema. Es un solo glifo, en texto pequeño y atenuado; no compensa un icono ni ampliar el subconjunto
+  (bytes del presupuesto de fuentes), y «~» cambiaría el sentido. Se mira en los tres motores en F6.
 - Decorativos con `aria-hidden="true"`; el botón lleva el texto o el `aria-label`.
 
 ## Marca

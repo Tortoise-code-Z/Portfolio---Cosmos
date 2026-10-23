@@ -2,5 +2,5 @@
 .icon {
   display: inline-block;
   flex: none;
-  vertical-align: -0.125em;
+  vertical-align: var(--icon-baseline-shift);
 }

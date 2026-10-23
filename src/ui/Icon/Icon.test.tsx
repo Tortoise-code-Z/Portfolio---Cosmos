@@ -15,6 +15,11 @@ describe('Icon', () => {
     expect(svg?.querySelector('path')?.getAttribute('d')).toMatch(/^M/);
   });
 
+  it('the stroke does not scale with the size (1.5 px at 16 and 20 px)', () => {
+    const { container } = render(<Icon name="external" size={20} />);
+    expect(container.querySelector('path')).toHaveAttribute('vector-effect', 'non-scaling-stroke');
+  });
+
   it('defaults to 16 px and accepts 20 px', () => {
     const { container, rerender } = render(<Icon name="external" />);
     expect(container.querySelector('svg')).toHaveAttribute('width', '16');
