@@ -1,0 +1,30 @@
+/*
+ * Capítulo del viaje (docs/02-experiencia/scroll-y-escena.md → «Capítulos y alturas»).
+ * La altura da recorrido al scroll para la escena; es mínima para no recortar nunca el texto (P1).
+ */
+.chapter {
+  position: relative;
+  display: flow-root;
+  padding-inline: var(--gutter);
+}
+
+.chapter[data-chapter='0'] {
+  min-block-size: var(--chapter-h-0);
+}
+
+.chapter[data-chapter='1'] {
+  min-block-size: var(--chapter-h-1);
+}
+
+.chapter[data-chapter='2'] {
+  min-block-size: var(--chapter-h-2);
+}
+
+.chapter[data-chapter='3'] {
+  min-block-size: var(--chapter-h-3);
+}
+
+.chapter[data-chapter='4'] {
+  min-block-size: var(--chapter-h-4);
+  padding-block-end: var(--chapter-end-room);
+}

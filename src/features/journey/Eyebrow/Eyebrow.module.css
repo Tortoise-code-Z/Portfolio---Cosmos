@@ -1,0 +1,17 @@
+/* Eyebrow (docs/03-diseno/componentes.md → «Eyebrow»). */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-mono);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.section {
+  color: var(--color-star);
+}
+
+.rest {
+  color: var(--color-dim);
+}

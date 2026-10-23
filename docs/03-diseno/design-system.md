@@ -32,6 +32,8 @@ activo.
 | `--color-star` | `#ffc46b` | **Acento**: activo, foco, resaltados, enlaces al pasar | 12,9 : 1 |
 | `--color-aurora` | `#62e8cf` | Acento secundario: naturaleza, «Featured», disponibilidad | 13,5 : 1 |
 | `--color-veil` | `rgb(4 5 11 / 0.82)` | Fondo de los paneles sobre la escena | — |
+| `--color-veil-soft` | `rgb(4 5 11 / 0.62)` | Paso intermedio del velo radial de los paneles (escritorio) | — |
+| `--gradient-panel` · `--gradient-panel-mobile` | velo radial · velo que entra desde arriba (`--space-8`) | Fondo del panel en escritorio · en móvil | — |
 | `--color-flash` | `#fff4dc` | Destello del Big Bang | — |
 
 **Garantía de lectura:** el peor caso medido (texto sobre el velo encima de la zona más brillante de la escena)
@@ -114,6 +116,11 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--panel-w-wide` | 600 px | Panel de contacto |
 | `--read-w` | 720 px | Columna de la página de proyecto |
 | `--content-max` | 1200 px | Ancho máximo de galería y portada |
+| `--panel-top` | 14vh | Separación superior del panel y su posición *sticky* (escritorio) |
+| `--scene-clear-mobile` | 70vh | Escena limpia antes del panel en móvil (< md) |
+| `--corner-size` | 14 px | Corchetes de esquina de los paneles |
+| `--chapter-h-0` … `--chapter-h-4` | 150 / 210 / 220 / 240 / 130 vh (< md: 150 / 230 / 240 / 260 / 130) | Altura **mínima** de recorrido de cada capítulo (`scroll-y-escena.md`) |
+| `--chapter-end-room` | 12vh | Aire bajo el último capítulo |
 
 (Los breakpoints no son tokens: una variable CSS no puede usarse en una media query. Se escriben como número
 en las media queries y están anotados en la cabecera de `tokens.css`.)
