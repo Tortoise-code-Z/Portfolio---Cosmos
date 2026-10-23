@@ -50,16 +50,44 @@ describe('HoldButton', () => {
     expect(button).toHaveClass('wide');
   });
 
-  it('primary pointer down presses; up, leave and cancel release', () => {
+  it.each(['pointerUp', 'pointerLeave', 'pointerCancel'] as const)(
+    'primary pointer down presses; %s of that pointer releases',
+    (end) => {
+      const { button, onPress, onRelease } = setup();
+      fireEvent.pointerDown(button, { button: 2, pointerId: 1 });
+      expect(onPress).not.toHaveBeenCalled();
+      fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+      expect(onPress).toHaveBeenCalledTimes(1);
+      fireEvent[end](button, { pointerId: 1 });
+      expect(onRelease).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it('a second finger that touches and lifts does not cut the first one', () => {
     const { button, onPress, onRelease } = setup();
-    fireEvent.pointerDown(button, { button: 2 });
-    expect(onPress).not.toHaveBeenCalled();
-    fireEvent.pointerDown(button, { button: 0 });
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+    fireEvent.pointerDown(button, { button: 0, pointerId: 2 });
+    fireEvent.pointerUp(button, { pointerId: 2 });
     expect(onPress).toHaveBeenCalledTimes(1);
-    fireEvent.pointerUp(button);
-    fireEvent.pointerLeave(button);
-    fireEvent.pointerCancel(button);
-    expect(onRelease).toHaveBeenCalledTimes(3);
+    expect(onRelease).not.toHaveBeenCalled();
+    fireEvent.pointerUp(button, { pointerId: 1 });
+    expect(onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it('the same pointer pressing again (its up was lost outside) starts over', () => {
+    const { button, onPress } = setup();
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+    expect(onPress).toHaveBeenCalledTimes(2);
+  });
+
+  it('losing focus releases and frees the pointer for the next press', () => {
+    const { button, onPress, onRelease } = setup();
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+    fireEvent.blur(button);
+    expect(onRelease).toHaveBeenCalledTimes(1);
+    fireEvent.pointerDown(button, { button: 0, pointerId: 2 });
+    expect(onPress).toHaveBeenCalledTimes(2);
   });
 
   it.each([' ', 'Enter'])('holding the %j key presses once and releases on key up', (key) => {

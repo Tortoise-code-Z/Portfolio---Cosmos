@@ -38,6 +38,7 @@
 - Nombre accesible = texto visible («Hold to detonate»); la explicación larga va en `aria-describedby`, en un
   elemento `hidden` (el lector la toma igual y en modo exploración no la repite como texto suelto).
 - Estados: reposo · cargando · detonado (`aria-disabled`, sin perder el foco, hasta volver al inicio).
+- Con varios dedos manda el que empezó la carga. Si la ventana pierde el foco o la pestaña se oculta, suelta.
 
 ### Enlace de acción (`ActionLink`)
 - Mono 12 px en mayúsculas con subrayado de 1 px `--color-faint` separado 2 px; al pasar, ámbar.

@@ -54,16 +54,23 @@ export function Hero(): ReactNode {
   useEffect(() => {
     const area = areaRef.current;
     if (area === null) return undefined;
+    // Un gesto = un puntero: con varios dedos manda el que empezó. Sus escuchas de `window` se quitan
+    // juntas al acabar (soltar o cancelar), así que ninguna queda colgada para el gesto siguiente.
     let gesture: AbortController | null = null;
-    const endGesture = (): void => {
+    let pointerId: number | null = null;
+    const endGesture = (event: PointerEvent): void => {
+      if (event.pointerId !== pointerId) return;
       gesture?.abort();
       gesture = null;
+      pointerId = null;
       release();
     };
     const onPointerDown = (event: PointerEvent): void => {
       if (event.button !== 0 || event.target !== area) return;
+      if (pointerId !== null && pointerId !== event.pointerId) return;
       gesture?.abort();
       gesture = new AbortController();
+      pointerId = event.pointerId;
       const { signal } = gesture;
       window.addEventListener('pointerup', endGesture, { signal });
       window.addEventListener('pointercancel', endGesture, { signal });

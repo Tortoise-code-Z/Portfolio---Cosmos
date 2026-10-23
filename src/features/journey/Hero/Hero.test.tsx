@@ -136,11 +136,38 @@ describe('Hero', () => {
     expect(pending).toBeNull();
   });
 
-  it('a pointer down on the button itself is not counted twice', () => {
-    renderHero();
+  it('a pointer down on the button is the button gesture: releasing elsewhere does not cut it', () => {
+    const { scrollIntoView } = renderHero();
     fireEvent.pointerDown(screen.getByRole('button', { name: 'Hold to detonate' }), {
       button: 0,
+      pointerId: 1,
     });
-    expect(requestAnimationFrame).toHaveBeenCalledTimes(1);
+    // Si la zona lo contara como suyo, este «soltar» en la ventana cortaría la carga.
+    fireEvent.pointerUp(window, { pointerId: 1 });
+    advance(0);
+    advance(100, 15);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('on the area, a second finger that touches and lifts does not cut the first one', () => {
+    const { scrollIntoView, area } = renderHero();
+    fireEvent.pointerDown(area, { button: 0, pointerId: 1 });
+    fireEvent.pointerDown(area, { button: 0, pointerId: 2 });
+    fireEvent.pointerUp(window, { pointerId: 2 });
+    advance(0);
+    advance(100, 15);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('a finished area gesture leaves nothing listening on the window', () => {
+    const { scrollIntoView, area } = renderHero();
+    fireEvent.pointerDown(area, { button: 0, pointerId: 1 });
+    fireEvent.pointerUp(window, { pointerId: 1 });
+    // Carga nueva desde el teclado: un `pointercancel` cualquiera (un scroll táctil) no la corta.
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Hold to detonate' }), { key: ' ' });
+    fireEvent.pointerCancel(window, { pointerId: 1 });
+    advance(0);
+    advance(100, 15);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 });

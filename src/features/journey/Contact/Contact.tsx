@@ -91,7 +91,11 @@ export function Contact(): ReactNode {
         </ul>
 
         <footer className={styles.footer}>
-          {/* El año sale del reloj de quien pinta: el HTML del build y el del navegador pueden diferir. */}
+          {/*
+           * Año: en la primera carga se ve el del build (con `suppressHydrationWarning`, React conserva
+           * el texto pre-renderizado y no lo corrige al hidratar); si Contact se vuelve a montar en el
+           * cliente (navegar y volver), el del navegador.
+           */}
           <p suppressHydrationWarning>
             {t('footer.line', { year: String(new Date().getFullYear()) })}
           </p>

@@ -21,7 +21,9 @@ export interface HoldCharge {
  * Carga de «mantén pulsado para detonar» (docs/02-experiencia/capitulos/00-singularidad.md).
  * La carga avanza en un bucle de `requestAnimationFrame` y se escribe como variable CSS en `target`:
  * nada que cambie en cada frame pasa por el estado de React (ADR-004); solo `detonated` lo hace, una
- * vez. Al llegar a 1 llama a `onDetonate`; volver arriba del todo la deja lista otra vez.
+ * vez. Al llegar a 1 llama a `onDetonate`; volver arriba del todo la deja lista otra vez. Si la
+ * ventana pierde el foco o la pestaña se oculta, suelta: un `pointerup` que se pierde fuera (Alt+Tab
+ * con el botón pulsado) no puede dejar la carga llenándose sola.
  */
 export function useHoldCharge(
   target: RefObject<HTMLElement | null>,
@@ -54,11 +56,14 @@ export function useHoldCharge(
 
   const tickRef = useRef<FrameRequestCallback | null>(null);
 
-  const schedule = useCallback((): void => {
-    frame.current = requestAnimationFrame((time) => {
-      tickRef.current?.(time);
-    });
+  // Una sola función para todos los frames: el bucle no crea nada nuevo en cada vuelta.
+  const loop = useCallback((time: number): void => {
+    tickRef.current?.(time);
   }, []);
+
+  const schedule = useCallback((): void => {
+    frame.current = requestAnimationFrame(loop);
+  }, [loop]);
 
   // Un paso del bucle: avanza la carga, la escribe y decide si sigue, detona o se detiene.
   useEffect(() => {
@@ -93,6 +98,19 @@ export function useHoldCharge(
   const release = useCallback((): void => {
     holding.current = false;
   }, []);
+
+  // Salvaguarda: sin foco en la ventana o con la pestaña oculta no se sigue cargando.
+  useEffect(() => {
+    const onHidden = (): void => {
+      if (document.visibilityState === 'hidden') release();
+    };
+    window.addEventListener('blur', release);
+    document.addEventListener('visibilitychange', onHidden);
+    return () => {
+      window.removeEventListener('blur', release);
+      document.removeEventListener('visibilitychange', onHidden);
+    };
+  }, [release]);
 
   // Detonado: se vuelve a armar al regresar arriba del todo.
   useEffect(() => {

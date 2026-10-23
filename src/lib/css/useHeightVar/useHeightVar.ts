@@ -2,8 +2,8 @@ import { useEffect, type RefObject } from 'react';
 
 /**
  * Escribe la altura del elemento (px) en una variable CSS suya y la mantiene al día con un
- * `ResizeObserver` (fuentes que cargan, cambio de ancho, idioma). Sin `ResizeObserver` (pre-render,
- * jsdom) no hace nada y el CSS usa su valor de reserva.
+ * `ResizeObserver` (fuentes que cargan, cambio de ancho, idioma). Sin `ResizeObserver` (jsdom) no hace
+ * nada; en el pre-render el efecto ni se ejecuta. En ambos casos el CSS usa su valor de reserva.
  */
 export function useHeightVar(
   target: RefObject<HTMLElement | null>,
