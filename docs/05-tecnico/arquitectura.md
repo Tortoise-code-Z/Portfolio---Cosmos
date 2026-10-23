@@ -92,6 +92,12 @@ Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import pr
 - Slug desconocido (también en mayúsculas: `/projects/Chessmate`): la ruta de proyecto pinta la **misma página
   404** (`NotFoundPage`) y su `meta` es la de la 404; no lanza error. Así el HTML coincide con el `404.html` y
   hidrata sin errores de consola. Son 404 sin redirección: slug desconocido, `/projects` sin slug, `/en/…`.
+- Al hidratar ese `404.html` el cliente casa la ruta de proyecto, cuyo módulo no venía en el HTML. Mientras lo
+  descarga pinta el `HydrateFallback` de `root.tsx`, que es la misma `NotFoundPage`: coincide con el HTML servido.
+  Sin él, React dejaba el `<main>` del HTML y añadía otro (dos `<h1>`). En la `<head>` pasa lo mismo: mientras
+  tanto se pinta la `meta` de la raíz (con `error: null`), que devuelve la de la 404. React Router 8.4 no pasa
+  `caseSensitive` a las rutas del cliente, así que `/projects/Chessmate` también casa la ruta de proyecto en el
+  navegador.
 - `react-router.config.ts` **no** resuelve el alias `~/`: lo que importa (contenido, `lib/seo/{pages,urls,sitemap}`,
   `lib/i18n/paths`, `lib/env/siteUrl`) usa imports relativos. Si alguien lo cambia, el build falla al cargar la
   config. Su `buildEnd` escribe `sitemap.xml`, `robots.txt` y `404.html` (copia de la 404 EN) en `build/client`.

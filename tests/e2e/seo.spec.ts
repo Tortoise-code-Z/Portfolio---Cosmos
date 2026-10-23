@@ -122,6 +122,9 @@ test.describe('404 por idioma (sin redirecciones)', () => {
     test(`${path} → 404 ${locale}, noindex, sin canónica`, async ({ page }) => {
       const errors = collectConsoleErrors(page);
       await page.goto(path);
+      // Tras hidratar y cargar el módulo de la ruta que casa el cliente: un solo <h1> (viva S5 #1).
+      await page.waitForLoadState('networkidle');
+      await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
       await expect(page).toHaveURL(path);
       const meta = await head(page);
