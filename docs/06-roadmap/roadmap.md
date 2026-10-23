@@ -46,7 +46,8 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
 
 ## F3 · Motor de escena
 
-1. `SceneMount` diferido, detección de WebGL2, niveles de rendimiento y `ErrorBoundary` de escena.
+1. `SceneMount` diferido, detección de WebGL2, niveles de rendimiento y `ErrorBoundary` de escena. Antes de
+   importar la escena, sacar `three` y `@react-three/*` del grupo `framework` de `vite.config.ts` (ADR-020).
 2. Utilidades puras (PRNG, ruido, hex) y generadores de las 4 formas en el worker, con sus tests.
 3. `Particles` con el shader de morph entre las 5 formas; estrellas de fondo.
 4. `CameraRig` con keyframes, encuadre por capítulo, FOV para móvil y paralaje.
