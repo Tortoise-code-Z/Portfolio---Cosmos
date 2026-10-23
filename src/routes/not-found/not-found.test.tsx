@@ -9,6 +9,7 @@ const Stub = createRoutesStub([{ path: '*', Component: NotFound }]);
 describe('NotFound', () => {
   it.each([
     ['/loquesea', 'Lost in space', 'Back to the start', '/'],
+    ['/en', 'Lost in space', 'Back to the start', '/'],
     ['/en/x', 'Lost in space', 'Back to the start', '/'],
     ['/es/loquesea', 'Perdido en el espacio', 'Volver al inicio', '/es'],
   ])('%s → 404 del idioma del prefijo', async (path, title, cta, home) => {

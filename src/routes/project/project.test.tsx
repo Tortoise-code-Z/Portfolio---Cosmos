@@ -2,7 +2,19 @@ import { render, screen } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
+import { projects } from '~/content/projects';
+import type { Project } from '~/content/types';
+
 import ProjectPage from './project';
+
+function projectBySlug(slug: string): Project {
+  const project = projects.find((candidate) => candidate.slug === slug);
+  if (project === undefined) throw new Error(`project.test: no hay proyecto «${slug}»`);
+  return project;
+}
+
+const chessmate = projectBySlug('chessmate');
+const astrohub = projectBySlug('astrohub');
 
 const Stub = createRoutesStub([
   { path: '/', Component: () => <p>home</p> },
@@ -13,19 +25,20 @@ const Stub = createRoutesStub([
 describe('ProjectPage (mínima hasta F2.7)', () => {
   it('nombre, tagline y resumen del proyecto en inglés', async () => {
     render(<Stub initialEntries={['/projects/chessmate']} />);
-    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Chessmate');
-    expect(
-      screen.getByText('An online chess academy with interactive courses.'),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(chessmate.name);
+    expect(screen.getByText(chessmate.tagline.en)).toBeInTheDocument();
+    expect(screen.getByText(chessmate.summary.en)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Back to the shell' })).toHaveAttribute(
       'href',
       '/#projects',
     );
   });
 
-  it('en español, con la vuelta a /es', async () => {
+  it('nombre, tagline y resumen en español, con la vuelta a /es', async () => {
     render(<Stub initialEntries={['/es/projects/astrohub']} />);
-    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('AstroHub');
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(astrohub.name);
+    expect(screen.getByText(astrohub.tagline.es)).toBeInTheDocument();
+    expect(screen.getByText(astrohub.summary.es)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Volver al caparazón' })).toHaveAttribute(
       'href',
       '/es#projects',

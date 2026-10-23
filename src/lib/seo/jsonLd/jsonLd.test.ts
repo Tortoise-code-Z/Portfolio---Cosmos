@@ -38,6 +38,12 @@ describe('personJsonLd', () => {
   });
 
   it('el @id es el mismo en los dos idiomas', () => {
+    const idIn = (locale: 'en' | 'es'): unknown =>
+      personJsonLd({ origin: ORIGIN, locale, profile: fakeProfile, skillGroups: fakeSkillGroups })[
+        '@id'
+      ];
+    expect(idIn('en')).toBe(personId(ORIGIN));
+    expect(idIn('es')).toBe(personId(ORIGIN));
     expect(personId(ORIGIN)).toBe('https://cosmos.test/#person');
   });
 });
@@ -72,6 +78,7 @@ describe('projectJsonLd', () => {
     });
     expect(ld.url).toBe('https://cosmos.test/es/projects/alpha');
     expect(ld.author.url).toBe('https://cosmos.test/es');
+    expect(ld.author['@id']).toBe(personId(ORIGIN));
     expect(ld.description).toBe('Resumen de Alpha.');
     expect(ld.inLanguage).toBe('es');
   });

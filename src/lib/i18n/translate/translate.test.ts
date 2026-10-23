@@ -2,7 +2,12 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 
 import { uiTexts } from '~/content/texts';
 
-import { translate, type PlaceholderName, type TranslateParams } from './translate';
+import {
+  fillPlaceholders,
+  translate,
+  type PlaceholderName,
+  type TranslateParams,
+} from './translate';
 
 describe('translate', () => {
   it('devuelve el texto del idioma pedido', () => {
@@ -10,13 +15,17 @@ describe('translate', () => {
     expect(translate('es', 'nav.skip')).toBe('Saltar al contenido');
   });
 
-  it('rellena todos los huecos, también repetidos o en otro orden', () => {
+  it('rellena los huecos de la clave', () => {
     expect(translate('en', 'project.gallery.open', { n: '2', total: '9' })).toBe(
       'Open image 2 of 9',
     );
     expect(translate('es', 'meta.project.title', { project: 'Chessmate' })).toBe(
       'Chessmate · Víctor Pérez',
     );
+  });
+
+  it('el relleno cubre huecos repetidos y en otro orden que el objeto', () => {
+    expect(fillPlaceholders('{b}-{a}-{b}', { a: '1', b: '2' })).toBe('2-1-2');
   });
 
   it('deja a la vista un hueco sin valor (solo posible saltándose el tipo)', () => {
