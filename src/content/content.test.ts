@@ -4,6 +4,7 @@
 
 import { describe, expect, it } from 'vitest';
 
+import { CHAPTER_ANCHORS, CHAPTER_INDICES, CHAPTER_MORPH_START } from './chapters';
 import { profile } from './profile';
 import { projects } from './projects';
 import { skillGroups } from './skills';
@@ -21,6 +22,22 @@ import {
 } from './validate/validate';
 
 describe('contenido', () => {
+  it('cinco capítulos en orden; ancla en todos menos el inicio, y todas distintas', () => {
+    expect(CHAPTER_INDICES).toEqual([0, 1, 2, 3, 4]);
+    expect(CHAPTER_ANCHORS[0]).toBeNull();
+    const anchors = CHAPTER_INDICES.slice(1).map((index) => CHAPTER_ANCHORS[index]);
+    expect(anchors.every((anchor) => anchor !== null)).toBe(true);
+    expect(new Set(anchors).size).toBe(anchors.length);
+  });
+
+  it('una ventana de morph por capítulo salvo el último, dentro de [0, 1)', () => {
+    expect(CHAPTER_MORPH_START).toHaveLength(CHAPTER_INDICES.length - 1);
+    for (const start of CHAPTER_MORPH_START) {
+      expect(start).toBeGreaterThanOrEqual(0);
+      expect(start).toBeLessThan(1);
+    }
+  });
+
   it('EN es el idioma principal y hay exactamente EN y ES', () => {
     expect(LOCALES).toEqual(['en', 'es']);
     expect(DEFAULT_LOCALE).toBe(LOCALES[0]);

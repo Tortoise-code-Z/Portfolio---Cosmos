@@ -4,6 +4,9 @@ import { CHAPTER_ANCHORS, type ChapterIndex } from '~/content/chapters';
 
 import styles from './ChapterSection.module.css';
 
+/** Cómo se encuentran los capítulos en el DOM (lo usan el mapeo de scroll y sus tests). */
+export const CHAPTER_SELECTOR = '[data-chapter]';
+
 interface ChapterSectionProps {
   readonly index: ChapterIndex;
   /** Id del título que da nombre a la sección (`aria-labelledby`). */
