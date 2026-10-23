@@ -3,7 +3,7 @@
 // vacía = todo bien. `content.test.ts` las pasa sobre el contenido real; `validate.test.ts`
 // demuestra con casos rotos que cada una detecta lo que dice. No se usan en tiempo de ejecución.
 
-import { DEFAULT_LOCALE, LOCALES, type Locale, type Project } from './types';
+import { DEFAULT_LOCALE, LOCALES, type Locale, type Project } from '../types';
 
 /** Ids y slugs: minúsculas, dígitos y guiones sueltos entre palabras ('react-ts'). */
 export const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

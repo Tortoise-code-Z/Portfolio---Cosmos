@@ -2,9 +2,9 @@ import { expect, test, type Page } from '@playwright/test';
 import { loadEnv } from 'vite';
 
 import { projects } from '../../src/content/projects/index.ts';
-import { parseSiteUrl } from '../../src/lib/env/siteUrl.ts';
-import { indexablePaths, sitePages } from '../../src/lib/seo/pages.ts';
-import { absoluteUrl } from '../../src/lib/seo/urls.ts';
+import { parseSiteUrl } from '../../src/lib/env/siteUrl/siteUrl.ts';
+import { indexablePaths, sitePages } from '../../src/lib/seo/pages/pages.ts';
+import { absoluteUrl } from '../../src/lib/seo/urls/urls.ts';
 
 /**
  * SEO sobre el HTML real del build (EST-F2-3): cada página indexable con su canónica, hreflang,

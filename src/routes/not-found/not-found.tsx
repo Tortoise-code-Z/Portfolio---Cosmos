@@ -2,10 +2,10 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import { profile } from '~/content/profile';
-import { localeFromPathname } from '~/lib/i18n/locale';
-import { homePath } from '~/lib/i18n/paths';
-import { useLocale, useT } from '~/lib/i18n/useT';
-import { notFoundMeta } from '~/lib/seo/meta';
+import { localeFromPathname } from '~/lib/i18n/locale/locale';
+import { homePath } from '~/lib/i18n/paths/paths';
+import { useLocale, useT } from '~/lib/i18n/useT/useT';
+import { notFoundMeta } from '~/lib/seo/meta/meta';
 
 import type { Route } from './+types/not-found';
 

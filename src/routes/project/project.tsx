@@ -4,13 +4,13 @@ import { Link, useParams } from 'react-router';
 import { profile } from '~/content/profile';
 import { projects } from '~/content/projects';
 import type { Project } from '~/content/types';
-import { SITE_ORIGIN } from '~/lib/env/site';
-import { localeFromPathname } from '~/lib/i18n/locale';
-import { homePath } from '~/lib/i18n/paths';
-import { useLocale, useT } from '~/lib/i18n/useT';
-import { notFoundMeta, projectMeta } from '~/lib/seo/meta';
+import { SITE_ORIGIN } from '~/lib/env/site/site';
+import { localeFromPathname } from '~/lib/i18n/locale/locale';
+import { homePath } from '~/lib/i18n/paths/paths';
+import { useLocale, useT } from '~/lib/i18n/useT/useT';
+import { notFoundMeta, projectMeta } from '~/lib/seo/meta/meta';
 
-import { NotFoundPage } from './not-found';
+import { NotFoundPage } from '../not-found/not-found';
 import type { Route } from './+types/project';
 
 /** El slug tiene que coincidir exacto (en minúsculas): `/projects/Chessmate` es 404, sin redirección. */

@@ -1,7 +1,7 @@
 import type { Locale, WorkMode } from '~/content/types';
 
-import { capitalize, formatList } from './format';
-import { translate } from './translate';
+import { capitalize, formatList } from '../format/format';
+import { translate } from '../translate/translate';
 
 /**
  * Frase de los modos de trabajo armada desde `profile.availability.modes` (una sola fuente,

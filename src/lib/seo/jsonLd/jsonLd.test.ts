@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { fakeProfile, fakeProject, fakeSkillGroups, ORIGIN } from './fixtures';
+import { fakeProfile, fakeProject, fakeSkillGroups, ORIGIN } from '../fixtures';
 import { personId, personJsonLd, projectJsonLd } from './jsonLd';
 
 describe('personJsonLd', () => {

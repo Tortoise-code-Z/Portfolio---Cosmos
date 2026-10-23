@@ -6,10 +6,10 @@ import { describe, expect, it } from 'vitest';
 import { LOCALES } from '~/content/types';
 
 import { fakeProfile, fakeProjects, fakeSkillGroups, ORIGIN } from './fixtures';
-import { homeMeta, projectMeta } from './meta';
-import { indexablePaths, sitePages } from './pages';
-import { sitemapXml } from './sitemap';
-import { absoluteUrl } from './urls';
+import { homeMeta, projectMeta } from './meta/meta';
+import { indexablePaths, sitePages } from './pages/pages';
+import { sitemapXml } from './sitemap/sitemap';
+import { absoluteUrl } from './urls/urls';
 
 function urlsIn(descriptors: readonly MetaDescriptor[]): {
   canonical: string[];

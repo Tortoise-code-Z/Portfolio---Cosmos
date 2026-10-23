@@ -16,10 +16,10 @@ cosmos-portfolio/
 │  ├─ root.tsx                  ← documento HTML, <html lang>, fuentes, meta comunes, ErrorBoundary raíz
 │  ├─ entry.client.tsx          ← (si hace falta personalizar la hidratación)
 │  ├─ routes.ts                 ← configuración de rutas EN/ES
-│  ├─ routes/
-│  │  ├─ journey.tsx            ← el viaje (home): monta los 5 capítulos
-│  │  ├─ project.tsx            ← /projects/:slug
-│  │  └─ not-found.tsx
+│  ├─ routes/                   ← una carpeta por ruta, con su test (ADR-018)
+│  │  ├─ journey/journey.tsx    ← el viaje (home): monta los 5 capítulos
+│  │  ├─ project/project.tsx    ← /projects/:slug
+│  │  └─ not-found/not-found.tsx
 │  ├─ content/                  ← datos tipados (docs/01-contenido)
 │  ├─ features/                 ← piezas de interfaz con lógica propia
 │  │  ├─ journey/               ← Hero, ChapterSection, ChapterPanel, About, Skills, Projects, Contact
@@ -51,6 +51,12 @@ cosmos-portfolio/
 ```
 
 Alias de importación: `~/` → `src/`.
+
+**Archivos con el mismo nombre, en su carpeta (ADR-018).** Si dos o más archivos de la misma carpeta comparten el
+nombre base (lo que va antes del primer punto: `meta.ts`, `meta.test.ts`, `meta.module.css`), van juntos en una
+carpeta con ese nombre y conservan el suyo, sin `index.ts`: `lib/seo/meta/meta.ts` + `lib/seo/meta/meta.test.ts`
+(se importa como `~/lib/seo/meta/meta`). Vale para `src/` y `tests/`; un archivo sin pareja se queda suelto.
+`src/structure.test.ts` lo vigila.
 
 ## Capas y reglas de dependencia
 
@@ -86,7 +92,7 @@ Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import pr
 
 - El idioma se deriva de la ruta (no del navegador); `useLocale()` lo lee del **prefijo** (lo único que sirve
   también en la ruta `*`).
-- Una sola lista de páginas, `sitePages(projects)` (`lib/seo/pages.ts`): de ella salen el `prerender`, el sitemap
+- Una sola lista de páginas, `sitePages(projects)` (`lib/seo/pages/pages.ts`): de ella salen el `prerender`, el sitemap
   y el `hreflang`. Se pre-renderizan 2 idiomas × (1 + nº de proyectos) páginas y la 404 de cada idioma
   (`/404` y `/es/404`, servidas por la ruta `*`).
 - Slug desconocido (también en mayúsculas: `/projects/Chessmate`): la ruta de proyecto pinta la **misma página
@@ -98,11 +104,11 @@ Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import pr
   tanto se pinta la `meta` de la raíz (con `error: null`), que devuelve la de la 404. React Router 8.4 no pasa
   `caseSensitive` a las rutas del cliente, así que `/projects/Chessmate` también casa la ruta de proyecto en el
   navegador.
-- `react-router.config.ts` **no** resuelve el alias `~/`: lo que importa (contenido, `lib/seo/{pages,urls,sitemap}`,
-  `lib/i18n/paths`, `lib/env/siteUrl`) usa imports relativos. Si alguien lo cambia, el build falla al cargar la
+- `react-router.config.ts` **no** resuelve el alias `~/`: lo que importa (contenido, `lib/seo/{pages,urls,sitemap}/`,
+  `lib/i18n/paths/`, `lib/env/siteUrl/`) usa imports relativos. Si alguien lo cambia, el build falla al cargar la
   config. Su `buildEnd` escribe `sitemap.xml`, `robots.txt` y `404.html` (copia de la 404 EN) en `build/client`.
 - Segmento `projects` igual en ambos idiomas (decisión: URLs estables y sin mapa de traducción de rutas).
-- `meta` de cada ruta (`lib/seo/meta.ts`): título, descripción (en proyectos, el `summary`), canónica propia de
+- `meta` de cada ruta (`lib/seo/meta/meta.ts`): título, descripción (en proyectos, el `summary`), canónica propia de
   cada idioma, `hreflang` en/es/x-default (= EN), Open Graph (`og:locale` `en_US`/`es_ES` con su alternativa,
   `og:type` `website` o `article`, sin `og:image` hasta que haya imágenes: entonces `cover` o, si es `null`, la
   del sitio de su idioma), `twitter:card` y JSON-LD (`Person` en la home, sin email; `SoftwareSourceCode` en cada
@@ -136,7 +142,7 @@ Regla: nada que cambie en cada frame pasa por estado de React.
   Las rutas **no** montan la escena: así el lienzo no se recrea al navegar.
 - `SceneRoot` comprueba WebGL2, elige nivel, lanza el worker y monta el `<Canvas>`. Envuelto en un
   `ErrorBoundary` que, ante cualquier fallo, marca `no-gl` y desmonta.
-- El lienzo vive en `root.tsx` (persistente entre rutas); `routes/journey.tsx` y `routes/project.tsx` le
+- El lienzo vive en `root.tsx` (persistente entre rutas); `routes/journey/journey.tsx` y `routes/project/project.tsx` le
   comunican su estado (viaje, proyecto activo, atenuación) vía `sceneStore`.
 
 ## Configuración y entorno
@@ -147,7 +153,7 @@ Regla: nada que cambie en cada frame pasa por estado de React.
 
 - `.env.example` en el repo; `.env` fuera de git. No hay secretos en la v1.
 - Validación al arrancar el build, el servidor de desarrollo y el preview (`vite.config.ts`): si `VITE_SITE_URL`
-  falta o no es `https://`, falla con un mensaje claro. El cliente la lee en un solo sitio (`lib/env/site.ts`,
+  falta o no es `https://`, falla con un mensaje claro. El cliente la lee en un solo sitio (`lib/env/site/site.ts`,
   `SITE_ORIGIN`); los tests fijan `https://cosmos.test` en `tests/setup.ts`.
 
 ## Gestión de errores

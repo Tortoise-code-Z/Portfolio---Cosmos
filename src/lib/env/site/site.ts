@@ -1,4 +1,4 @@
-import { parseSiteUrl } from './siteUrl';
+import { parseSiteUrl } from '../siteUrl/siteUrl';
 
 /**
  * Origen público del sitio (`https://…`, sin barra final), validado al cargar el módulo. En dev y en

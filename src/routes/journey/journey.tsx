@@ -2,10 +2,10 @@ import type { ReactNode } from 'react';
 
 import { profile } from '~/content/profile';
 import { skillGroups } from '~/content/skills';
-import { SITE_ORIGIN } from '~/lib/env/site';
-import { localeFromPathname } from '~/lib/i18n/locale';
-import { useT } from '~/lib/i18n/useT';
-import { homeMeta } from '~/lib/seo/meta';
+import { SITE_ORIGIN } from '~/lib/env/site/site';
+import { localeFromPathname } from '~/lib/i18n/locale/locale';
+import { useT } from '~/lib/i18n/useT/useT';
+import { homeMeta } from '~/lib/seo/meta/meta';
 
 import type { Route } from './+types/journey';
 

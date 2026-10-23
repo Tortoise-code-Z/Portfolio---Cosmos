@@ -1,8 +1,8 @@
 // La lista única de páginas indexables (EST-F2-3, «Lo que doy por fijado»): de aquí salen el
 // prerender, el sitemap y los hreflang. Imports relativos: lo carga `react-router.config.ts`.
 
-import { LOCALES, type Locale } from '../../content/types';
-import { homePath, notFoundPath, projectPath } from '../i18n/paths';
+import { LOCALES, type Locale } from '../../../content/types';
+import { homePath, notFoundPath, projectPath } from '../../i18n/paths/paths';
 
 export type SitePage =
   | { readonly kind: 'home'; readonly paths: Readonly<Record<Locale, string>> }

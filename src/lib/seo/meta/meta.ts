@@ -5,12 +5,12 @@
 import type { MetaDescriptor } from 'react-router';
 
 import { LOCALES, type Locale, type Profile, type Project, type SkillGroup } from '~/content/types';
-import { homePath, projectPath } from '~/lib/i18n/paths';
-import { translate } from '~/lib/i18n/translate';
+import { homePath, projectPath } from '~/lib/i18n/paths/paths';
+import { translate } from '~/lib/i18n/translate/translate';
 
-import { personJsonLd, projectJsonLd } from './jsonLd';
-import { byLocale } from './pages';
-import { absoluteUrl } from './urls';
+import { personJsonLd, projectJsonLd } from '../jsonLd/jsonLd';
+import { byLocale } from '../pages/pages';
+import { absoluteUrl } from '../urls/urls';
 
 /** Open Graph exige región (EST-F2-3-5). */
 export const OG_LOCALE: Readonly<Record<Locale, string>> = { en: 'en_US', es: 'es_ES' };

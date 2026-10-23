@@ -13,12 +13,12 @@ import anybodyLatin from '@fontsource-variable/anybody/files/anybody-latin-stand
 import geologicaLatin from '@fontsource-variable/geologica/files/geologica-latin-wght-normal.woff2?url';
 
 import { profile } from '~/content/profile';
-import { localeFromPathname } from '~/lib/i18n/locale';
-import { homePath } from '~/lib/i18n/paths';
-import { translate } from '~/lib/i18n/translate';
-import { useLocale, useT } from '~/lib/i18n/useT';
-import { notFoundMeta } from '~/lib/seo/meta';
-import { NotFoundPage } from '~/routes/not-found';
+import { localeFromPathname } from '~/lib/i18n/locale/locale';
+import { homePath } from '~/lib/i18n/paths/paths';
+import { translate } from '~/lib/i18n/translate/translate';
+import { useLocale, useT } from '~/lib/i18n/useT/useT';
+import { notFoundMeta } from '~/lib/seo/meta/meta';
+import { NotFoundPage } from '~/routes/not-found/not-found';
 
 import '~/styles/fonts.css';
 import '~/styles/tokens.css';

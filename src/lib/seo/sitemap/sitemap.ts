@@ -1,7 +1,7 @@
 // sitemap.xml y robots.txt, generados en el build (EST-F2-3-14). Imports relativos: los carga
 // `react-router.config.ts`.
 
-import { absoluteUrl } from './urls';
+import { absoluteUrl } from '../urls/urls';
 
 function escapeXml(text: string): string {
   return text
