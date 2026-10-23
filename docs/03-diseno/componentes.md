@@ -28,9 +28,11 @@
 - Uso: «Quick mission», «Back to the journey», «Copy».
 
 ### Botón de mantener (`HoldButton`)
-- Anillo de progreso (conic-gradient ámbar) de 26 px + texto mono. La variable `--charge` (0–1) dibuja el anillo.
+- Anillo de progreso SVG ámbar de 26 px (pista `--color-faint`) + texto mono. La variable privada `--_charge`
+  (0–1), que escribe en el botón quien lleva la carga, dibuja el trazo (`stroke-dashoffset`).
 - `touch-action: none`, sin selección de texto, sin menú contextual.
-- Estados: reposo · cargando · detonado (deshabilitado hasta volver al inicio).
+- Nombre accesible = texto visible («Hold to detonate»); la explicación larga va en `aria-describedby`.
+- Estados: reposo · cargando · detonado (`aria-disabled`, sin perder el foco, hasta volver al inicio).
 
 ### Enlace de acción (`ActionLink`)
 - Mono 12 px en mayúsculas con subrayado de 1 px `--color-faint` separado 2 px; al pasar, ámbar.

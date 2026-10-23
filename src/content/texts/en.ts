@@ -39,7 +39,7 @@ export const en = {
   'hero.lead': 'Everything that exists started as a single point. So did my code.',
   'hero.detonate': 'Hold to detonate',
   'hero.detonate.aria': 'Hold to trigger the Big Bang and start the journey',
-  'hero.scroll': 'or scroll ↓',
+  'hero.scroll': 'or scroll',
   'about.eyebrow': 'About · nebula · t ≈ 200 million years',
   'about.title': 'A star born from curiosity',
   'about.strengths': 'Strengths',

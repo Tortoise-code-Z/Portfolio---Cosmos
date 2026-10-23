@@ -32,6 +32,14 @@
     var(--color-veil) 100%
   );
   --color-flash: #fff4dc;
+  --color-singularity: #fff2d9;
+  --gradient-singularity-halo: radial-gradient(
+    circle,
+    rgb(255 246 230 / 0.55) 0%,
+    rgb(255 196 107 / 0.18) 22%,
+    rgb(120 140 255 / 0.06) 45%,
+    transparent 68%
+  );
 
   /* ── Tipografía · familias ────────────────────────────────────── */
   --font-display: 'Anybody', 'Arial Narrow', 'Helvetica Neue', sans-serif;
@@ -73,6 +81,8 @@
   --tracking-micro: 0.1em;
   --tracking-logo: 0.16em;
   --hero-accent-room: 0.14em;
+  --hero-indent: 0.6em;
+  --hero-lead-measure: 40ch;
   --underline-offset: 0.2em;
   --measure: 62ch;
 
@@ -105,11 +115,19 @@
   --chapter-h-4: 130vh;
   --chapter-end-room: 12vh;
 
+  /* ── Hero (capítulo 0) ────────────────────────────────────────── */
+  --hero-room-bottom: 12vh;
+  --singularity-halo-size: 46vmin;
+  --singularity-core-size: 6px;
+  --hold-ring-size: 26px;
+  --hold-ring-stroke: 3px;
+
   /* ── Forma y profundidad ──────────────────────────────────────── */
   --border-width: 1px;
   --focus-width: 2px;
   --focus-offset: 3px;
   --glow-star: 0 0 12px var(--color-star);
+  --glow-singularity: 0 0 18px 4px var(--color-singularity);
   --blur-chrome: 6px;
   --opacity-disabled: 0.4;
   --target-min: 44px;
@@ -130,6 +148,7 @@
   --dur-base: 250ms;
   --dur-slow: 400ms;
   --dur-flight: 800ms;
+  --dur-breathe: 4s;
   --dur-fade-base: var(--dur-base);
   --dur-fade-slow: var(--dur-slow);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -140,6 +159,7 @@
 @media (width < 520px) {
   :root {
     --gutter: max(var(--space-4), env(safe-area-inset-left), env(safe-area-inset-right));
+    --hero-room-bottom: 10vh;
   }
 }
 

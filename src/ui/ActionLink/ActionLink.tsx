@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { useT } from '~/lib/i18n/useT/useT';
 
 import { Icon, type IconName } from '../Icon/Icon';
+import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import styles from './ActionLink.module.css';
 
 type ActionLinkKind = 'internal' | 'external' | 'download';
@@ -46,7 +47,7 @@ export function ActionLink({ href, kind, icon, children }: ActionLinkProps): Rea
   return (
     <a href={href} className={styles.link} target="_blank" rel="noopener noreferrer">
       <span className={styles.text}>{children}</span>{' '}
-      <span className={styles.hidden}>{t('link.newTab')}</span>
+      <VisuallyHidden>{t('link.newTab')}</VisuallyHidden>
       <Icon name="external" />
     </a>
   );

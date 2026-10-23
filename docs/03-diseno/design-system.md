@@ -35,6 +35,8 @@ activo.
 | `--color-veil-soft` | `rgb(4 5 11 / 0.62)` | Paso intermedio del velo radial de los paneles (escritorio) | — |
 | `--gradient-panel` · `--gradient-panel-mobile` | velo radial · velo que entra desde arriba (`--space-8`) | Fondo del panel en escritorio · en móvil | — |
 | `--color-flash` | `#fff4dc` | Destello del Big Bang | — |
+| `--color-singularity` | `#fff2d9` | Punto CSS de la singularidad (hero sin escena) | — |
+| `--gradient-singularity-halo` | radial cálido → azul → transparente | Halo CSS del punto | — |
 
 **Garantía de lectura:** el peor caso medido (texto sobre el velo encima de la zona más brillante de la escena)
 da `--color-dim` 5,9 : 1 y `--color-ink` > 10 : 1: todo el texto cumple AA.
@@ -121,6 +123,10 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--corner-size` | 14 px | Corchetes de esquina de los paneles |
 | `--chapter-h-0` … `--chapter-h-4` | 150 / 210 / 220 / 240 / 130 vh (< md: 150 / 230 / 240 / 260 / 130) | Altura **mínima** de recorrido de cada capítulo (`scroll-y-escena.md`) |
 | `--chapter-end-room` | 12vh | Aire bajo el último capítulo |
+| `--hero-room-bottom` | 12vh (< sm: 10vh) | Aire bajo el contenido del hero |
+| `--hero-indent` · `--hero-lead-measure` | 0.6em · 40ch | Sangría de la segunda línea del nombre · ancho de la frase del hero |
+| `--singularity-halo-size` · `--singularity-core-size` | 46vmin · 6 px | Halo y punto de la singularidad en CSS |
+| `--hold-ring-size` · `--hold-ring-stroke` | 26 px · 3 px | Anillo de carga del `HoldButton` |
 
 (Los breakpoints no son tokens: una variable CSS no puede usarse en una media query. Se escriben como número
 en las media queries y están anotados en la cabecera de `tokens.css`.)
@@ -132,7 +138,7 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 - Foco visible: contorno `--focus-width` (2 px) `--color-star` con separación `--focus-offset` (3 px), global en
   `:focus-visible`.
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
-  (`--glow-star` = `0 0 12px --color-star`).
+  (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`).
 - Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins y botones
   flotantes.
 - Deshabilitado: `--opacity-disabled` (0,4). Área táctil mínima: `--target-min` (44 px).

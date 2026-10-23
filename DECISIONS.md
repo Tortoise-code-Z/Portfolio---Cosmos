@@ -253,3 +253,26 @@
   mueve el que había a su carpeta. Las rutas de `routes.ts` apuntan a `routes/<ruta>/<ruta>.tsx`; los tipos
   `./+types/<ruta>` siguen funcionando porque `typegen` copia la estructura.
 - Detalle: `docs/05-tecnico/arquitectura.md` → «Estructura del repositorio»; `DEVELOPMENT_RULES.md` §5.
+
+## ADR-019 · Todo el CSS en un solo archivo (`build.cssCodeSplit: false`)
+- Estado: Aceptada
+- Fecha: 2026-10-23
+- Contexto: al dar CSS propio a la ruta del viaje (F2 · paso 4), `/ES` empezó a dar el error de hidratación
+  React #418. Vercel entrega para `/ES` el HTML de la 404 (una hoja de estilo), pero en el navegador React Router
+  casa la ruta `journey-es` (no distingue mayúsculas) y `<Links>` añade al `<head>` la hoja de esa ruta, que no
+  estaba en el HTML. Pasaría igual con `/projects/<slug-desconocido>` en cuanto la página de proyecto tenga CSS
+  (era el riesgo AUD-F2-3-P2 de F2.7). Víctor elige la opción A (viva S7 #16).
+- Decisión: Vite emite **un único archivo CSS** para todo el sitio (`build: { cssCodeSplit: false }` en
+  `vite.config.ts`), que enlaza la raíz. Todas las páginas llevan la misma lista de hojas, así que el `<head>` del
+  HTML servido coincide siempre con el que pinta el cliente, sea cual sea la ruta que case. El código no cambia:
+  cada componente sigue con su CSS Module y los tokens siguen en `tokens.css` (ADR-005). El JS sigue dividido por
+  ruta.
+- Alternativas descartadas: no hidratar la 404 (queda estática, pero pierde la escena de nebulosa que pide
+  `estados-y-accesibilidad.md` y obliga a un `entry.client.tsx`); redirigir mayúsculas a minúsculas (contradice
+  «404 sin redirección» de `arquitectura.md` y no arregla el slug desconocido); importar los mismos estilos en la
+  ruta de la 404 (frágil: vuelve a romperse con cada ruta nueva con CSS).
+- Consecuencias: con el 4c, 9,7 KB (≈ 3 KB gzip); al final de F2 se estiman 6–8 KB gzip, de los que la home baja
+  2–3 KB que no usa (≈ 15 ms en 4G lento). A cambio, una petición menos, CSS en caché para todas las páginas y
+  ningún salto sin estilos al navegar. Revisar si el CSS total pasa de ~50 KB gzip. Lo vigila el e2e
+  `design-system.spec.ts` (todas las páginas enlazan la misma hoja única) y el de la 404 de `/ES` (0 errores).
+- Detalle: `docs/05-tecnico/arquitectura.md` → «Rutas e idiomas».

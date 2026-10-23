@@ -3,10 +3,10 @@ import { useLocation } from 'react-router';
 
 import { profile } from '~/content/profile';
 import { skillGroups } from '~/content/skills';
+import { Hero } from '~/features/journey/Hero/Hero';
 import { SITE_ORIGIN } from '~/lib/env/site/site';
 import { localeFromPathname } from '~/lib/i18n/locale/locale';
 import { isLowerCasePathname } from '~/lib/i18n/paths/paths';
-import { useT } from '~/lib/i18n/useT/useT';
 import { homeMeta, notFoundMeta } from '~/lib/seo/meta/meta';
 
 import { NotFoundPage } from '../not-found/not-found';
@@ -19,18 +19,15 @@ export function meta({ location }: Route.MetaArgs): Route.MetaDescriptors {
   return homeMeta({ origin: SITE_ORIGIN, locale, profile, skillGroups });
 }
 
-// Provisional hasta F2.4: página «hello» (nombre y frase del hero), ya con los textos del contenido.
-// En F2.4 esta ruta monta los cinco capítulos.
+/** El viaje: los cinco capítulos en orden (docs/02-experiencia/README.md), sin escena (F2.4). */
 export default function Journey(): ReactNode {
-  const t = useT();
   const { pathname } = useLocation();
 
   if (!isLowerCasePathname(pathname)) return <NotFoundPage />;
 
   return (
     <main>
-      <h1>{profile.name}</h1>
-      <p>{t('hero.lead')}</p>
+      <Hero />
     </main>
   );
 }

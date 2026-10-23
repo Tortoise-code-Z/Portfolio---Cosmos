@@ -41,7 +41,7 @@ export const es: UiTexts = {
   'hero.lead': 'Todo lo que existe empezó siendo un punto. Mi código también.',
   'hero.detonate': 'Mantén pulsado para detonar',
   'hero.detonate.aria': 'Mantén pulsado para provocar el Big Bang y empezar el viaje',
-  'hero.scroll': 'o haz scroll ↓',
+  'hero.scroll': 'o haz scroll',
   'about.eyebrow': 'Sobre mí · nebulosa · t ≈ 200 millones de años',
   'about.title': 'Una estrella que nace de la curiosidad',
   'about.strengths': 'Fortalezas',

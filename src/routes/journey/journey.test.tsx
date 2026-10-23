@@ -9,7 +9,7 @@ const Stub = createRoutesStub([
   { path: '/es', Component: Journey },
 ]);
 
-describe('Journey («hello» hasta F2.4)', () => {
+describe('Journey', () => {
   it('el nombre es el único h1', async () => {
     render(<Stub initialEntries={['/']} />);
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Víctor Pérez');

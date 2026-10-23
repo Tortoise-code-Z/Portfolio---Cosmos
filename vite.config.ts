@@ -54,6 +54,9 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [reactRouter(), previewDirectoryIndex()],
+    // Un solo CSS para todo el sitio (ADR-019): el <head> de la 404 servida coincide con el que pinta el
+    // cliente aunque case otra ruta (`/ES`, slug desconocido), y la hidratación no falla.
+    build: { cssCodeSplit: false },
     resolve: {
       alias: { '~': fileURLToPath(new URL('./src', import.meta.url)) },
     },
