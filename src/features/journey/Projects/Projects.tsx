@@ -25,7 +25,9 @@ export function Projects(): ReactNode {
     <ChapterSection index={3} labelledBy={TITLE_ID}>
       <ChapterPanel>
         <Eyebrow text={t('projects.eyebrow')} />
-        <h2 id={TITLE_ID}>{t('projects.title')}</h2>
+        <h2 id={TITLE_ID} tabIndex={-1}>
+          {t('projects.title')}
+        </h2>
         <p>{t('projects.lead')}</p>
         <ul role="list" className={cx(shared.plainList, styles.rows)}>
           {ordered.map((project) => (

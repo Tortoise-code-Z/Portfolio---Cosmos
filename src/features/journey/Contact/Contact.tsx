@@ -33,7 +33,9 @@ export function Contact(): ReactNode {
     <ChapterSection index={4} labelledBy={TITLE_ID}>
       <ChapterPanel wide>
         <Eyebrow text={t('contact.eyebrow')} />
-        <h2 id={TITLE_ID}>{t('contact.title')}</h2>
+        <h2 id={TITLE_ID} tabIndex={-1}>
+          {t('contact.title')}
+        </h2>
         <p>{t('contact.lead')}</p>
 
         {availability.openToWork ? (

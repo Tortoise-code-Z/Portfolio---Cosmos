@@ -66,6 +66,8 @@
   --leading-label: 1.4;
   --text-micro: 0.6875rem;
   --leading-micro: 1.3;
+  --text-nano: 0.625rem;
+  --leading-nano: 1.15;
   --text-email: clamp(1.05rem, 2.3vw, 1.5rem);
   --leading-email: 1.2;
 
@@ -73,6 +75,7 @@
   --weight-display: 800;
   --weight-hero: 850;
   --weight-body: 400;
+  --weight-medium: 500;
   --weight-strong: 600;
   --weight-mono: 400;
   --weight-mono-strong: 500;
@@ -126,6 +129,11 @@
   --singularity-core-size: 6px;
   --hold-ring-size: 26px;
   --hold-ring-stroke: 3px;
+
+  /* ── Raíl de capítulos ────────────────────────────────────────── */
+  --rail-dot-size: 7px;
+  --rail-dot-scale-active: 1.4;
+  --opacity-muted: 0.45;
 
   /* ── Forma y profundidad ──────────────────────────────────────── */
   --border-width: 1px;

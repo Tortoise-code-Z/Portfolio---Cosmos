@@ -7,6 +7,11 @@ import styles from './ChapterSection.module.css';
 /** Cómo se encuentran los capítulos en el DOM (lo usan el mapeo de scroll y sus tests). */
 export const CHAPTER_SELECTOR = '[data-chapter]';
 
+/** El capítulo `index` en el DOM (también el inicio, que no tiene ancla), o `null` si no está. */
+export function findChapter(index: ChapterIndex): HTMLElement | null {
+  return document.querySelector<HTMLElement>(`[data-chapter="${String(index)}"]`);
+}
+
 interface ChapterSectionProps {
   readonly index: ChapterIndex;
   /** Id del título que da nombre a la sección (`aria-labelledby`). */

@@ -71,3 +71,106 @@ test.describe('HUD', () => {
     await expect(hud(page)).toBeHidden();
   });
 });
+
+const rail = (page: Page): ReturnType<Page['locator']> =>
+  page.getByRole('navigation', { name: 'Chapters' });
+
+test.describe('chapter rail', () => {
+  test('marks the chapter you are reading, also when you just scroll', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    const current = rail(page).locator('[aria-current="step"]');
+    await expect(current).toHaveAccessibleName('Home · Singularity');
+    await scrollToChapter(page, 'skills');
+    await expect(current).toHaveAccessibleName('Skills · Galaxy');
+    await expect(current).toHaveCount(1);
+  });
+
+  test('a click travels to the chapter, focuses its title and writes its anchor in place', async ({
+    page,
+  }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    const entries = await page.evaluate(() => window.history.length);
+    await rail(page).getByRole('button', { name: 'Projects · Cosmic turtle' }).click();
+    await expect
+      .poll(async () => Math.abs((await page.locator('#projects').boundingBox())?.y ?? 99))
+      .toBeLessThanOrEqual(2);
+    await expect(page.getByRole('heading', { name: 'What I carry on my shell' })).toBeFocused();
+    await expect(page).toHaveURL(/\/#projects$/);
+    expect(await page.evaluate(() => window.history.length)).toBe(entries);
+    await expect(rail(page).locator('[aria-current="step"]')).toHaveAccessibleName(
+      'Projects · Cosmic turtle',
+    );
+
+    await rail(page).getByRole('button', { name: 'Home · Singularity' }).click();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
+    await expect(page).toHaveURL(/\/$/);
+  });
+
+  test('with the keyboard: Enter on a chapter jumps there (instantly with reduced motion)', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/es', { waitUntil: 'networkidle' });
+    await page
+      .getByRole('navigation', { name: 'Capítulos' })
+      .getByRole('button', { name: 'Contacto · Tierra' })
+      .focus();
+    // El último capítulo puede quedar más cerca del final que una pantalla: el scroll se para antes.
+    const target = await page.evaluate(() =>
+      Math.min(
+        document.getElementById('contact')?.offsetTop ?? -1,
+        document.documentElement.scrollHeight - window.innerHeight,
+      ),
+    );
+    await page.keyboard.press('Enter');
+    // Instantáneo: en el primer frame ya está.
+    const landed = await page.evaluate(
+      () =>
+        new Promise<number>((resolve) => {
+          requestAnimationFrame(() => {
+            resolve(window.scrollY);
+          });
+        }),
+    );
+    expect(Math.abs(landed - target)).toBeLessThanOrEqual(2);
+    await expect(page.getByRole('heading', { name: 'Aterrizaje' })).toBeFocused();
+    await expect(page).toHaveURL(/\/es#contact$/);
+  });
+
+  test('desktop shows section and scene; 390 px keeps only the dots, 44 px each', async ({
+    page,
+  }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await expect(rail(page).getByText('Cosmic turtle')).toBeVisible();
+    // Los puntos forman una columna, aunque cada texto mida distinto.
+    const dotCenters = await rail(page)
+      .locator('button > span:last-child')
+      .evaluateAll((dots) =>
+        dots.map((dot) => {
+          const { left, width } = dot.getBoundingClientRect();
+          return Math.round(left + width / 2);
+        }),
+      );
+    expect(new Set(dotCenters).size).toBe(1);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(rail(page).getByText('Cosmic turtle')).toBeHidden();
+    for (const button of await rail(page).getByRole('button').all()) {
+      const box = await button.boundingBox();
+      expect(box?.width).toBeGreaterThanOrEqual(44);
+      expect(box?.height).toBeGreaterThanOrEqual(44);
+    }
+  });
+
+  test('comes after the content in the tab order (top bar → chapter → rail)', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    const order = await page.evaluate(() => {
+      const main = document.querySelector('main');
+      const nav = document.querySelector('nav[aria-label="Chapters"]');
+      return main !== null && nav !== null
+        ? main.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING
+        : 0;
+    });
+    expect(order).toBeTruthy();
+  });
+});

@@ -11,6 +11,7 @@ import { Contact } from '~/features/journey/Contact/Contact';
 import { Hero } from '~/features/journey/Hero/Hero';
 import { Projects } from '~/features/journey/Projects/Projects';
 import { Skills } from '~/features/journey/Skills/Skills';
+import { ChapterRail } from '~/features/navigation/ChapterRail/ChapterRail';
 import { SITE_ORIGIN } from '~/lib/env/site/site';
 import { localeFromPathname } from '~/lib/i18n/locale/locale';
 import { isLowerCasePathname } from '~/lib/i18n/paths/paths';
@@ -54,6 +55,7 @@ export default function Journey(): ReactNode {
         <Projects />
         <Contact />
       </main>
+      <ChapterRail />
       <CosmicHud />
     </>
   );
