@@ -1,0 +1,47 @@
+/*
+ * HUD (docs/03-diseno/componentes.md → «HUD», docs/02-experiencia/navegacion.md → «HUD»): abajo a la
+ * derecha en escritorio, abajo a la izquierda en tableta y oculto en móvil pequeño. No recibe el
+ * puntero: nunca tapa un clic.
+ */
+.hud {
+  position: fixed;
+  z-index: var(--z-chrome);
+  inset-block-end: calc(var(--space-5) + env(safe-area-inset-bottom));
+  inset-inline-end: var(--gutter);
+  display: grid;
+  gap: var(--space-1);
+  color: var(--color-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-mono);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-micro);
+  text-align: end;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.clock {
+  color: var(--color-ink);
+  font-size: var(--text-small);
+}
+
+.value {
+  color: var(--color-star);
+}
+
+/* Tableta (< md 900px): a la izquierda, para no chocar con el raíl. */
+@media (width < 900px) {
+  .hud {
+    inset-inline: var(--gutter) auto;
+    text-align: start;
+  }
+}
+
+/* Móvil pequeño (< sm 520px): sin HUD; el eyebrow de cada capítulo ya dice lo mismo. */
+@media (width < 520px) {
+  .hud {
+    display: none;
+  }
+}

@@ -87,13 +87,15 @@ Las fuentes se autoalojan con `@font-face` propios en `src/styles/fonts.css` (fa
 | `--text-small` | `0.8125rem` (13 px) | 1.5 | Body 400 |
 | `--text-label` | `0.75rem` (12 px) | 1.4 | Mono 400–500, mayúsculas, `letter-spacing: var(--tracking-label)` |
 | `--text-micro` | `0.6875rem` (11 px) | 1.3 | Mono 400, mayúsculas, `letter-spacing: var(--tracking-micro)` |
+| `--text-nano` | `0.625rem` (10 px) | 1.15 | Mono 400, mayúsculas, `letter-spacing: var(--tracking-label)` (escena del raíl) |
 
 El email de contacto tiene su propio tamaño y ajustes: `--text-email` `clamp(1.05rem, 2.3vw, 1.5rem)`
 (interlineado `--leading-email` 1.2), `--weight-email` 700 y `--wdth-email` 112 %.
 
 En el código, cada tamaño `--text-*` va con su interlineado `--leading-*` (`--leading-hero`, `--leading-h1`…).
 Los ajustes de la tabla también son tokens: `--weight-display` 800, `--weight-hero` 850, `--weight-body` 400,
-`--weight-strong` 600, `--weight-mono` 400, `--weight-mono-strong` 500 · `--wdth-hero-rest` 62 %, `--wdth-h1`
+`--weight-strong` 600, `--weight-medium` 500 (sección del raíl, en Geologica), `--weight-mono` 400,
+`--weight-mono-strong` 500 · `--wdth-hero-rest` 62 %, `--wdth-h1`
 135 %, `--wdth-h2` 128 %, `--wdth-h3` 140 % (se aplican con `font-stretch`) · `--tracking-label` 0.14em,
 `--tracking-micro` 0.1em, `--tracking-logo` 0.16em (la pareja tamaño/tracking de la tabla es la de partida: una
 etiqueta puede cruzarlos por uso, como la pista del hero o las etiquetas de bloque en `--text-micro` con
@@ -128,6 +130,7 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--read-w` | 720 px | Columna de la página de proyecto |
 | `--content-max` | 1200 px | Ancho máximo de galería y portada |
 | `--panel-top` | 14vh | Separación superior del panel y su posición *sticky* (escritorio) |
+| `--topbar-h` | 64 px | Altura fija de la barra superior (sin contar la zona segura de arriba) |
 | `--scene-clear-mobile` | 70vh | Escena limpia antes del panel en móvil (< md) |
 | `--corner-size` | 14 px | Corchetes de esquina de los paneles |
 | `--chapter-h-0` … `--chapter-h-4` | 150 / 210 / 220 / 240 / 130 vh (< md: 150 / 230 / 240 / 260 / 130) | Altura **mínima** de recorrido de cada capítulo (`scroll-y-escena.md`) |
@@ -136,6 +139,7 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--hero-indent` · `--hero-lead-measure` | 0.6em · 40ch | Sangría de la segunda línea del nombre · ancho de la frase del hero |
 | `--singularity-halo-size` · `--singularity-core-size` | 46vmin · 6 px | Halo y punto de la singularidad en CSS |
 | `--hold-ring-size` · `--hold-ring-stroke` | 26 px · 3 px | Anillo de carga del `HoldButton` |
+| `--rail-dot-size` · `--rail-dot-scale-active` | 7 px · 1,4 | Punto del raíl y su escala cuando es el activo |
 
 (Los breakpoints no son tokens: una variable CSS no puede usarse en una media query. Se escriben como número
 en las media queries y están anotados en la cabecera de `tokens.css`.)
@@ -146,14 +150,16 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 - Bordes: `--border-width` (1 px) `--color-faint`; activo: `--border-width` `--color-star`.
 - Foco visible: contorno `--focus-width` (2 px) `--color-star` con separación `--focus-offset` (3 px), global en
   `:focus-visible`.
-- Al llevar el foco con Tab, el navegador deja `--space-6` de aire con el borde inferior (`scroll-padding-block-end`
-  en `global.css`): ni el elemento ni su anillo quedan cortados (WCAG 2.4.11). La barra superior fija de F2.5
-  añadirá su altura arriba (`scroll-padding-block-start`).
+- Al llevar el foco con Tab o saltar a un ancla, el navegador deja libre arriba lo que tapa la barra fija
+  (`scroll-padding-block-start` = `--topbar-h` + zona segura) y `--space-6` de aire abajo
+  (`scroll-padding-block-end`), en `global.css`: ni el elemento ni su anillo quedan cortados ni debajo de la barra
+  (WCAG 2.4.11). Las anclas dejan su capítulo justo bajo la barra.
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
   (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`).
 - Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins y botones
   flotantes.
-- Deshabilitado: `--opacity-disabled` (0,4). Área táctil mínima: `--target-min` (44 px).
+- Deshabilitado: `--opacity-disabled` (0,4). Apagado sin estar deshabilitado (texto de los capítulos inactivos del
+  raíl): `--opacity-muted` (0,45). Área táctil mínima: `--target-min` (44 px).
 
 ## Capas (z-index)
 
@@ -166,6 +172,7 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 | `--z-content` | 5 | Capítulos y paneles |
 | `--z-chrome` | 15 | Raíl y HUD |
 | `--z-topbar` | 20 | Barra superior |
+| `--z-skip` | 30 | «Skip to content» al recibir el foco (por encima de la barra) |
 | `--z-dialog` | 40 | Modo misión rápida y visor de galería |
 | `--z-toast` | 50 | Avisos (sin WebGL, sugerencia de idioma) |
 

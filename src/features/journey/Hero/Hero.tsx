@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, type ReactNode } from 'react';
 
 import { CHAPTER_ANCHORS } from '~/content/chapters';
 import { profile } from '~/content/profile';
-import { jumpBehavior } from '~/lib/device/reducedMotion/reducedMotion';
 import { useHoldCharge } from '~/lib/hold/useHoldCharge/useHoldCharge';
 import { useT } from '~/lib/i18n/useT/useT';
+import { jumpToChapter } from '~/lib/scroll/jumpToChapter/jumpToChapter';
 import { HoldButton } from '~/ui/HoldButton/HoldButton';
 import { Icon } from '~/ui/Icon/Icon';
 
@@ -12,21 +12,12 @@ import { ChapterSection } from '../ChapterSection/ChapterSection';
 import { Eyebrow } from '../Eyebrow/Eyebrow';
 import styles from './Hero.module.css';
 
-const TITLE_ID = 'hero-title';
+/** Id del nombre (el `h1`): destino de «Skip to content» sin JavaScript. */
+export const HERO_TITLE_ID = 'hero-title';
 
 const preventDefault = (event: Event): void => {
   event.preventDefault();
 };
-
-/**
- * Lleva el foco al título que nombra el capítulo (`aria-labelledby`), sin mover el scroll: quien
- * detona con teclado o lector sigue leyendo donde ha llegado, como con un enlace de salto.
- */
-function focusChapterTitle(chapter: HTMLElement): void {
-  const titleId = chapter.getAttribute('aria-labelledby');
-  if (titleId === null) return;
-  document.getElementById(titleId)?.focus({ preventScroll: true });
-}
 
 /**
  * Capítulo 0 · Singularidad (docs/02-experiencia/capitulos/00-singularidad.md). Sin escena: el punto
@@ -43,8 +34,7 @@ export function Hero(): ReactNode {
     if (about === null) return;
     const chapter = document.getElementById(about);
     if (chapter === null) return;
-    chapter.scrollIntoView({ behavior: jumpBehavior(), block: 'start' });
-    focusChapterTitle(chapter);
+    jumpToChapter(chapter);
   }, []);
 
   const { detonated, press, release } = useHoldCharge(buttonRef, onDetonate);
@@ -88,14 +78,14 @@ export function Hero(): ReactNode {
   const [firstName, ...rest] = profile.name.split(' ');
 
   return (
-    <ChapterSection index={0} labelledBy={TITLE_ID}>
+    <ChapterSection index={0} labelledBy={HERO_TITLE_ID}>
       <div className={styles.singularity} aria-hidden="true">
         <span className={styles.halo} />
         <span className={styles.core} />
       </div>
       <div ref={areaRef} className={styles.inner}>
         <Eyebrow text={t('hero.kicker')} />
-        <h1 id={TITLE_ID} className={styles.name}>
+        <h1 id={HERO_TITLE_ID} className={styles.name} tabIndex={-1}>
           <span className={styles.line}>{firstName ?? ''}</span>{' '}
           <span className={styles.indent}>{rest.join(' ')}</span>
         </h1>

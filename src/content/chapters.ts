@@ -6,6 +6,9 @@ export type ChapterIndex = 0 | 1 | 2 | 3 | 4;
 
 export type ChapterAnchor = 'about' | 'skills' | 'projects' | 'contact';
 
+/** Los capítulos en orden de lectura. */
+export const CHAPTER_INDICES: readonly ChapterIndex[] = [0, 1, 2, 3, 4];
+
 export const CHAPTER_ANCHORS: Readonly<Record<ChapterIndex, ChapterAnchor | null>> = {
   0: null,
   1: 'about',
@@ -13,3 +16,10 @@ export const CHAPTER_ANCHORS: Readonly<Record<ChapterIndex, ChapterAnchor | null
   3: 'projects',
   4: 'contact',
 };
+
+/**
+ * Dónde empieza, en cada capítulo, el cambio hacia la forma siguiente: fracción de su altura
+ * (scroll-y-escena.md → «Capítulos y alturas», columna «Ventana de morph»). Antes de ese punto la forma
+ * se queda quieta; el cambio acaba al empezar el capítulo siguiente. El último no cambia.
+ */
+export const CHAPTER_MORPH_START: readonly number[] = [0, 0.52, 0.52, 0.55];

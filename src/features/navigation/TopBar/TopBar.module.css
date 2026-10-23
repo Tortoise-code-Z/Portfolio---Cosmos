@@ -1,0 +1,65 @@
+/*
+ * Barra superior (docs/03-diseno/componentes.md → «Barra superior»): fija, transparente con desenfoque
+ * de fondo y de altura fija (`--topbar-h`), que es también lo que el documento deja libre arriba al
+ * saltar a un ancla o enfocar algo (`scroll-padding-block-start` en global.css).
+ */
+.bar {
+  position: fixed;
+  z-index: var(--z-topbar);
+  inset-block-start: 0;
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  block-size: calc(var(--topbar-h) + env(safe-area-inset-top));
+  padding-block-start: env(safe-area-inset-top);
+  padding-inline: var(--gutter);
+  -webkit-backdrop-filter: blur(var(--blur-chrome));
+  backdrop-filter: blur(var(--blur-chrome));
+  font-family: var(--font-mono);
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--target-min);
+  color: var(--color-ink);
+  font-size: var(--text-small);
+  font-weight: var(--weight-mono-strong);
+  letter-spacing: var(--tracking-logo);
+  text-decoration: none;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.link,
+.chapterLink {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--target-min);
+  padding-inline: var(--space-3);
+  color: var(--color-ink-soft);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.logo:hover,
+.link:hover,
+.chapterLink:hover {
+  color: var(--color-star);
+}
+
+/* Por debajo de md (900px), el raíl sustituye a Projects y Contact. */
+@media (width < 900px) {
+  .chapterLink {
+    display: none;
+  }
+}

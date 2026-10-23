@@ -304,3 +304,28 @@
   `@react-three/*` en diferido, el grupo los arrastraría al chunk inicial. En F3.1 el `test` debe excluirlos
   (`/node_modules[\\/](?!three[\\/]|@react-three[\\/])/`); el presupuesto saltaría si no, pero mejor no llegar ahí.
 - Detalle: `docs/05-tecnico/calidad.md` → «Presupuestos».
+
+## ADR-021 · Interfaz fija sin escena: `m` sin suavizar y lectura bajo una barra de altura fija
+- Estado: Aceptada
+- Fecha: 2026-10-23
+- Contexto: F2 · paso 5 conecta el scroll con el raíl, el HUD y la barra superior antes de que exista la escena
+  (F3), que es quien suaviza `m` por frame. La barra es fija y tapa la parte de arriba de la ventana: un ancla
+  (`/#projects`) dejaba el capítulo debajo de ella, y si `m` se midiera desde el borde de la ventana más la
+  barra, arriba del todo ya no sería 0 (el reloj saldría de la singularidad sin hacer scroll).
+- Decisión: (1) sin escena, `sceneStore` guarda `m = mTarget` tal cual: los únicos que lo leen (raíl, HUD,
+  idioma) cambian a saltos. (2) La barra tiene **altura fija** (`--topbar-h`, 64 px) en vez de medirse con JS; el
+  documento la deja libre arriba con `scroll-padding-block-start`, así anclas y foco nunca quedan debajo.
+  (3) `mapM` compara `scrollY` con los capítulos pasados a posiciones de scroll (`toScrollLayout`: cada uno empieza
+  en `max(0, inicio − barra)`): un ancla da el índice exacto de su capítulo y la parte de arriba sigue siendo
+  `m = 0`. (4) El selector de idioma conserva el capítulo **activo según el scroll**, no el ancla de la URL, porque
+  la URL no cambia al hacer scroll. Víctor elige estas opciones al aprobar el paso.
+- Alternativas descartadas: suavizar ya en un bucle `requestAnimationFrame` propio (se tiraría en F3 y gastaría
+  batería sin nada que animar); medir la barra con un ResizeObserver (posible salto al cargar y otra pieza que
+  coordinar; la barra es una sola fila); medir desde el borde de la ventana más la barra (adelanta la explosión);
+  conservar solo el ancla de la URL (quien llega con scroll perdería su sitio al cambiar de idioma).
+- Consecuencias: la escena de F3 tendrá que dejar de escribir `m` en `setScrollTarget` y suavizarlo ella (sin
+  WebGL se queda como hoy). Si la barra cambia de alto (dos filas en algún ancho), hay que cambiar el token. Lo
+  vigilan los e2e de `tests/e2e/chrome.spec.ts` (anclas bajo la barra, HUD a 0 arriba, EN → ES en el mismo
+  capítulo) y el recorrido con Tab de `journey.spec.ts` (nada enfocado debajo de la barra).
+- Detalle: `docs/02-experiencia/scroll-y-escena.md`, `docs/02-experiencia/navegacion.md` y
+  `docs/05-tecnico/arquitectura.md` → «Puente scroll → escena».

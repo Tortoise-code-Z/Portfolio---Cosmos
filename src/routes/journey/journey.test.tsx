@@ -1,8 +1,15 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { sceneStore } from '~/stores/sceneStore/sceneStore';
 
 import Journey from './journey';
+
+afterEach(() => {
+  sceneStore.setState(sceneStore.getInitialState(), true);
+  Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+});
 
 const Stub = createRoutesStub([
   { path: '/', Component: Journey },
@@ -28,5 +35,21 @@ describe('Journey', () => {
   it('/ES (mayúsculas) es la 404 en inglés, aunque el cliente case la ruta de /es', async () => {
     render(<Stub initialEntries={['/ES']} />);
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Lost in space');
+  });
+
+  it('el scroll fija el m de sceneStore, capítulo a capítulo', async () => {
+    // jsdom no maqueta: cada capítulo mide 1000 px y empieza donde acaba el anterior.
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const index = Number(this.dataset.chapter ?? 0);
+      return { top: index * 1000 - window.scrollY, height: 1000 } as DOMRect;
+    });
+    render(<Stub initialEntries={['/']} />);
+    await screen.findByRole('heading', { level: 1 });
+
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 3000 });
+    fireEvent.scroll(window);
+    expect(sceneStore.getState().mTarget).toBe(3);
   });
 });

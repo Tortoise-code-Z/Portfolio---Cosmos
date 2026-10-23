@@ -26,7 +26,9 @@ export function Skills(): ReactNode {
     <ChapterSection index={2} labelledBy={TITLE_ID}>
       <ChapterPanel>
         <Eyebrow text={t('skills.eyebrow')} />
-        <h2 id={TITLE_ID}>{t('skills.title')}</h2>
+        <h2 id={TITLE_ID} tabIndex={-1}>
+          {t('skills.title')}
+        </h2>
         {/* Las dos frases van en el HTML; el CSS muestra la del tipo de puntero (sin JS, sin saltos). */}
         <p className={styles.leadPointer}>{t('skills.lead.pointer')}</p>
         <p className={styles.leadTouch}>{t('skills.lead.touch')}</p>

@@ -27,7 +27,8 @@ cosmos-portfolio/
 │  ├─ features/                 ← piezas de interfaz con lógica propia
 │  │  ├─ journey/               ← Hero, ChapterSection, ChapterPanel, Eyebrow, About, Skills, Projects,
 │  │  │                           ProjectRow, Contact y `shared.module.css` (piezas de texto comunes)
-│  │  ├─ navigation/            ← TopBar, ChapterRail, LanguageSwitch, QuickMissionDialog, SkipLink
+│  │  ├─ navigation/            ← TopBar, ChapterRail, LanguageSwitch, SkipLink, goToChapter (salto con
+│  │  │                           ancla en la URL) y, en F2.6, QuickMissionDialog
 │  │  ├─ hud/                   ← CosmicHud
 │  │  └─ project/               ← ProjectHeader, FeatureGrid, StackGroups, Gallery, Lightbox, TryIt
 │  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido
@@ -36,14 +37,15 @@ cosmos-portfolio/
 │  ├─ lib/                      ← funciones puras y hooks transversales
 │  │  ├─ env/                   ← variables de entorno validadas: siteUrl (parseSiteUrl), site (SITE_ORIGIN)
 │  │  ├─ i18n/                  ← tipos, useLocale, useT, formateadores Intl, rutas localizadas
-│  │  ├─ scroll/                ← mapM (puro), useChapterLayout, useScrollTarget
+│  │  ├─ scroll/                ← mapM y toScrollLayout (puros), useChapterLayout, useScrollTarget,
+│  │  │                           jumpToChapter (scroll + foco al título + ancla)
 │  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
 │  │  │                           sitemap y robots (reciben origen y datos por parámetro, ADR-017)
 │  │  ├─ device/                ← señales del dispositivo: reducedMotion (prefersReducedMotion, jumpBehavior);
 │  │  │                           después nivel de rendimiento y usePointerType
 │  │  ├─ hold/                  ← carga de «mantén pulsado»: charge (puro) y useHoldCharge (rAF + variable CSS)
 │  │  ├─ css/                   ← cx (unir clases) y useHeightVar (altura de un elemento como variable CSS)
-│  │  └─ math/                  ← smoothstep, lerp, clamp, easing
+│  │  └─ math/                  ← clamp, smoothstep, lerp (después, easing)
 │  ├─ stores/                   ← uiStore (React) · sceneStore (mutable, sin re-render)
 │  ├─ styles/                   ← tokens.css, global.css, fonts.css
 │  └─ assets/projects/<slug>/   ← capturas originales (vite-imagetools genera las variantes)
@@ -146,16 +148,21 @@ Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import pr
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
 | `uiStore` (Zustand) | modo misión rápida abierto, grupo de skills activo, proyecto activo, aviso de idioma descartado, nivel de rendimiento, escena disponible | Componentes React (selectores finos) |
-| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m`, carga, puntero, peso de capítulos, flags de pausa | `useFrame` y el HUD por `getState()`/suscripción, **sin re-render** |
+| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; sin escena, `m = mTarget`), y desde F3 carga, puntero, peso de capítulos, flags de pausa | `useFrame` y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
 Regla: nada que cambie en cada frame pasa por estado de React.
 
 ## Puente scroll → escena
 
-1. `useChapterLayout` mide `offsetTop`/`offsetHeight` de los capítulos (ResizeObserver + `document.fonts.ready`).
-2. Un único listener de scroll pasivo calcula `mTarget = mapM(scrollY, layout)` y lo escribe en `sceneStore`.
-3. `useFrame` suaviza `m`, actualiza uniforms, cámara y etiquetas.
-4. El HUD y el raíl se suscriben a cambios de `round(m)` y del texto del reloj (cambios discretos, no por frame).
+1. `useChapterLayout` mide el inicio y la altura de cada capítulo (`getBoundingClientRect` + `scrollY`) al montar,
+   con un ResizeObserver sobre `<main>` y tras `document.fonts.ready`; `useScrollTarget` las pasa a posiciones de
+   scroll bajo la barra fija (`toScrollLayout`).
+2. Un único listener de scroll pasivo calcula `mTarget = mapM(scrollY, layout)` y lo escribe en `sceneStore`
+   (`setScrollTarget`; también al montar, para una recarga a mitad del viaje). La ruta del viaje los conecta:
+   `lib` no importa `stores`, así que el destino le llega por parámetro.
+3. `useFrame` suaviza `m`, actualiza uniforms, cámara y etiquetas (F3). Hasta entonces, y sin WebGL, `m = mTarget`.
+4. El raíl y el idioma eligen `round(m)` (`selectActiveChapter`); el HUD se suscribe y solo toca el DOM cuando
+   cambia su texto (cambios discretos, no por frame).
 
 ## Carga de la escena
 
