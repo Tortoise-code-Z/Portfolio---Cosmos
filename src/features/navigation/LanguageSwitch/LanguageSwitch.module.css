@@ -1,0 +1,30 @@
+/* Selector de idioma (docs/03-diseno/componentes.md → «Barra superior»). */
+.switch {
+  display: flex;
+  align-items: center;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  color: var(--color-ink-soft);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.link:hover {
+  color: var(--color-star);
+}
+
+.link[aria-current='true'] {
+  color: var(--color-ink);
+  text-decoration: underline var(--border-width) var(--color-star);
+  text-underline-offset: var(--underline-offset);
+}
+
+.separator {
+  color: var(--color-dim);
+}

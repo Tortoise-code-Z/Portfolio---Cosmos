@@ -10,7 +10,19 @@ const hud = (page: Page): ReturnType<Page['locator']> =>
     hasText: /^t [=≈]/,
   });
 
-/** Lleva el inicio de un capítulo a la línea de lectura (debajo de la barra fija, si la hay). */
+/** Alto que tapa la barra fija arriba (`scroll-padding-block-start`). */
+const barHeight = (page: Page): Promise<number> =>
+  page.evaluate(() =>
+    Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart),
+  );
+
+/** Cuánto falta para que el capítulo quede justo bajo la barra (0 = ha llegado). */
+async function distanceToLanding(page: Page, id: string): Promise<number> {
+  const box = await page.locator(`#${id}`).boundingBox();
+  return Math.abs((box?.y ?? 9999) - (await barHeight(page)));
+}
+
+/** Lleva el inicio de un capítulo a la línea de lectura (debajo de la barra fija). */
 async function scrollToChapter(page: Page, id: string): Promise<void> {
   await page.evaluate((anchor) => {
     document.getElementById(anchor)?.scrollIntoView({ block: 'start' });
@@ -91,9 +103,7 @@ test.describe('chapter rail', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     const entries = await page.evaluate(() => window.history.length);
     await rail(page).getByRole('button', { name: 'Projects · Cosmic turtle' }).click();
-    await expect
-      .poll(async () => Math.abs((await page.locator('#projects').boundingBox())?.y ?? 99))
-      .toBeLessThanOrEqual(2);
+    await expect.poll(() => distanceToLanding(page, 'projects')).toBeLessThanOrEqual(2);
     await expect(page.getByRole('heading', { name: 'What I carry on my shell' })).toBeFocused();
     await expect(page).toHaveURL(/\/#projects$/);
     expect(await page.evaluate(() => window.history.length)).toBe(entries);
@@ -119,7 +129,8 @@ test.describe('chapter rail', () => {
     // El último capítulo puede quedar más cerca del final que una pantalla: el scroll se para antes.
     const target = await page.evaluate(() =>
       Math.min(
-        document.getElementById('contact')?.offsetTop ?? -1,
+        (document.getElementById('contact')?.offsetTop ?? -1) -
+          Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart),
         document.documentElement.scrollHeight - window.innerHeight,
       ),
     );
@@ -172,5 +183,90 @@ test.describe('chapter rail', () => {
         : 0;
     });
     expect(order).toBeTruthy();
+  });
+});
+
+const bar = (page: Page): ReturnType<Page['locator']> => page.getByRole('banner');
+
+test.describe('top bar', () => {
+  test('the first Tab shows «Skip to content»; Enter goes to the name, past the bar', async ({
+    page,
+  }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.keyboard.press('Tab');
+    const skip = page.getByRole('link', { name: 'Skip to content' });
+    await expect(skip).toBeFocused();
+    const box = await skip.boundingBox();
+    expect(box?.y).toBeGreaterThanOrEqual(0);
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
+    await expect(page).toHaveURL(/\/$/);
+    // El Tab siguiente ya está en el contenido, no en la barra.
+    await page.keyboard.press('Tab');
+    expect(await page.evaluate(() => document.activeElement?.closest('main') !== null)).toBe(true);
+  });
+
+  test('Projects and Contact jump like the rail: below the bar, title focused, anchor in place', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await bar(page).getByRole('link', { name: 'Projects' }).click();
+    await expect.poll(() => distanceToLanding(page, 'projects')).toBeLessThanOrEqual(2);
+    await expect(page.getByRole('heading', { name: 'What I carry on my shell' })).toBeFocused();
+    await expect(page).toHaveURL(/\/#projects$/);
+
+    await bar(page).getByRole('link', { name: 'TORTOISE_CODE' }).click();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
+    await expect(page).toHaveURL(/\/$/);
+  });
+
+  test('EN → ES keeps the chapter you are reading, without errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    page.on('console', (message) => {
+      if (message.type() === 'error') errors.push(message.text());
+    });
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await scrollToChapter(page, 'skills');
+    const spanish = bar(page).getByRole('link', { name: 'Español' });
+    await expect(spanish).toHaveAttribute('href', '/es#skills');
+    await spanish.click();
+    await expect(page).toHaveURL(/\/es#skills$/);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+    await expect.poll(() => distanceToLanding(page, 'skills')).toBeLessThanOrEqual(2);
+    await expect(bar(page).getByRole('link', { name: 'Español' })).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
+    await expect(
+      page.getByRole('navigation', { name: 'Capítulos' }).locator('[aria-current="step"]'),
+    ).toHaveAccessibleName('Habilidades · Galaxia');
+    expect(errors).toEqual([]);
+  });
+
+  test('390 px: logo and EN / ES stay, Projects and Contact give way to the rail', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await expect(bar(page).getByRole('link', { name: 'TORTOISE_CODE' })).toBeVisible();
+    await expect(bar(page).getByRole('link', { name: 'Español' })).toBeVisible();
+    await expect(bar(page).getByRole('link', { name: 'Projects' })).toBeHidden();
+    await expect(bar(page).getByRole('link', { name: 'Contact' })).toBeHidden();
+    const box = await bar(page).boundingBox();
+    expect(box?.height).toBe(await barHeight(page));
+  });
+});
+
+test.describe('top bar without JavaScript', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('its links are real: Projects leads to its chapter', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'load' });
+    await bar(page).getByRole('link', { name: 'Projects' }).click();
+    await expect(page).toHaveURL(/\/#projects$/);
+    await expect.poll(() => distanceToLanding(page, 'projects')).toBeLessThanOrEqual(2);
   });
 });

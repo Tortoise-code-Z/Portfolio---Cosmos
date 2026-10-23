@@ -112,6 +112,7 @@
   --read-w: 720px;
   --content-max: 1200px;
   --panel-top: 14vh;
+  --topbar-h: 64px;
   --scene-clear-mobile: 70vh;
   --corner-size: 14px;
 
@@ -154,6 +155,7 @@
   --z-content: 5;
   --z-chrome: 15;
   --z-topbar: 20;
+  --z-skip: 30;
   --z-dialog: 40;
   --z-toast: 50;
 

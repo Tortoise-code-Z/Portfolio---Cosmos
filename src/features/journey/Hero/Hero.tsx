@@ -12,7 +12,8 @@ import { ChapterSection } from '../ChapterSection/ChapterSection';
 import { Eyebrow } from '../Eyebrow/Eyebrow';
 import styles from './Hero.module.css';
 
-const TITLE_ID = 'hero-title';
+/** Id del nombre (el `h1`): destino de «Skip to content» sin JavaScript. */
+export const HERO_TITLE_ID = 'hero-title';
 
 const preventDefault = (event: Event): void => {
   event.preventDefault();
@@ -77,14 +78,14 @@ export function Hero(): ReactNode {
   const [firstName, ...rest] = profile.name.split(' ');
 
   return (
-    <ChapterSection index={0} labelledBy={TITLE_ID}>
+    <ChapterSection index={0} labelledBy={HERO_TITLE_ID}>
       <div className={styles.singularity} aria-hidden="true">
         <span className={styles.halo} />
         <span className={styles.core} />
       </div>
       <div ref={areaRef} className={styles.inner}>
         <Eyebrow text={t('hero.kicker')} />
-        <h1 id={TITLE_ID} className={styles.name} tabIndex={-1}>
+        <h1 id={HERO_TITLE_ID} className={styles.name} tabIndex={-1}>
           <span className={styles.line}>{firstName ?? ''}</span>{' '}
           <span className={styles.indent}>{rest.join(' ')}</span>
         </h1>

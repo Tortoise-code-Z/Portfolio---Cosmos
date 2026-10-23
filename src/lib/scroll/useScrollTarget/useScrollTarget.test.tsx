@@ -79,9 +79,13 @@ describe('useScrollTarget', () => {
         { selector: '[data-chapter]', morphStart: WINDOWS, onTarget },
       );
     });
+    expect(onTarget).toHaveBeenLastCalledWith(0);
     // Un ancla deja el capítulo 64 px por debajo del borde de la ventana: justo bajo la barra.
     scrollTo(1000 - 64);
     expect(onTarget).toHaveBeenLastCalledWith(1);
+    // Arriba del todo sigue siendo la singularidad: la barra no adelanta la explosión.
+    scrollTo(0);
+    expect(onTarget).toHaveBeenLastCalledWith(0);
   });
 
   it('without a scroll padding (`auto`) the reading line is the top of the window', () => {

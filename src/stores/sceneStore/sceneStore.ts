@@ -29,3 +29,8 @@ export function activeChapter(m: number): ChapterIndex {
   const last = CHAPTER_INDICES.length - 1;
   return CHAPTER_INDICES[clamp(Math.round(m), 0, last)] ?? 0;
 }
+
+/** Selector del capítulo activo, para `useStore(sceneStore, selectActiveChapter)`: re-renderiza solo al cambiar. */
+export function selectActiveChapter({ m }: SceneState): ChapterIndex {
+  return activeChapter(m);
+}

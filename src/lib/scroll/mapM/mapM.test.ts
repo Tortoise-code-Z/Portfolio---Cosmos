@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { mapM, type ChapterLayout } from './mapM';
+import { mapM, toScrollLayout, type ChapterLayout } from './mapM';
 
 // Alturas del prototipo a 1000 px de ventana: 150 / 210 / 220 / 240 / 130 vh.
 const LAYOUT: ChapterLayout = [
@@ -88,5 +88,29 @@ describe('mapM', () => {
   it('a single chapter is always 0, and no chapters is 0', () => {
     expect(mapM(500, [{ top: 0, height: 1000 }], WINDOWS)).toBe(0);
     expect(mapM(500, [], WINDOWS)).toBe(0);
+  });
+});
+
+describe('toScrollLayout', () => {
+  it('moves every chapter start up by the bar, never before 0, and keeps them back to back', () => {
+    expect(toScrollLayout(LAYOUT, 64)).toEqual([
+      { top: 0, height: 1436 },
+      { top: 1436, height: 2100 },
+      { top: 3536, height: 2200 },
+      { top: 5736, height: 2400 },
+      { top: 8136, height: 1300 },
+    ]);
+  });
+
+  it('with the bar, the top of the page is still the singularity and an anchor is its chapter', () => {
+    const scroll = toScrollLayout(LAYOUT, 64);
+    expect(mapM(0, scroll, WINDOWS)).toBe(0);
+    expect(mapM(1500 - 64, scroll, WINDOWS)).toBe(1);
+    expect(mapM(8200 - 64, scroll, WINDOWS)).toBe(4);
+  });
+
+  it('without a bar nothing changes', () => {
+    expect(toScrollLayout(LAYOUT, 0)).toEqual(LAYOUT);
+    expect(toScrollLayout([], 64)).toEqual([]);
   });
 });

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { activeChapter, sceneStore, setScrollTarget } from './sceneStore';
+import { activeChapter, sceneStore, selectActiveChapter, setScrollTarget } from './sceneStore';
 
 afterEach(() => {
   sceneStore.setState(sceneStore.getInitialState(), true);
@@ -39,5 +39,11 @@ describe('activeChapter', () => {
     expect(activeChapter(-1)).toBe(0);
     expect(activeChapter(9)).toBe(4);
     expect(activeChapter(Number.NaN)).toBe(0);
+  });
+});
+
+describe('selectActiveChapter', () => {
+  it('reads the active chapter from the state', () => {
+    expect(selectActiveChapter({ mTarget: 3.2, m: 3.2 })).toBe(3);
   });
 });

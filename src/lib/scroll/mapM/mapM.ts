@@ -10,7 +10,22 @@ export interface ChapterBox {
 export type ChapterLayout = readonly ChapterBox[];
 
 /**
- * Traduce una posición de lectura `y` (px) al valor continuo `m` de 0 al último capítulo
+ * Pasa los capítulos medidos a posiciones de scroll cuando una barra fija tapa `offset` px arriba:
+ * cada capítulo «empieza» en el scroll que lo deja justo bajo la barra (`top − offset`, nunca antes de
+ * 0) y mide hasta el siguiente. Así un ancla (`/#projects`) da su índice exacto y arriba del todo `m`
+ * sigue siendo 0: la barra no adelanta la explosión. El último conserva su altura.
+ */
+export function toScrollLayout(layout: ChapterLayout, offset: number): ChapterLayout {
+  const starts = layout.map(({ top }) => Math.max(0, top - offset));
+  return layout.map(({ height }, index) => {
+    const start = starts[index] ?? 0;
+    const next = starts[index + 1];
+    return { top: start, height: next === undefined ? height : next - start };
+  });
+}
+
+/**
+ * Traduce una posición de scroll `y` (px) al valor continuo `m` de 0 al último capítulo
  * (docs/02-experiencia/scroll-y-escena.md → «Cálculo de m»). En el capítulo `i` que contiene `y`,
  * `m = i + smoothstep(ventana_i, 1, f)`, con `f` la fracción recorrida: la forma se queda quieta hasta
  * su ventana y llega a la siguiente justo al empezar el capítulo siguiente. Sin capítulos, 0.

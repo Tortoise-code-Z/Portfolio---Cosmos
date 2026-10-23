@@ -4,7 +4,7 @@ import { useStore } from 'zustand';
 import { CHAPTER_INDICES, type ChapterIndex } from '~/content/chapters';
 import type { UiKey } from '~/content/types';
 import { useT } from '~/lib/i18n/useT/useT';
-import { activeChapter, sceneStore } from '~/stores/sceneStore/sceneStore';
+import { sceneStore, selectActiveChapter } from '~/stores/sceneStore/sceneStore';
 
 import { goToChapter } from '../goToChapter/goToChapter';
 import styles from './ChapterRail.module.css';
@@ -23,8 +23,6 @@ export function splitChapterLabel(label: string): { section: string; scene: stri
   return { section, scene };
 }
 
-const selectActive = ({ m }: { readonly m: number }): ChapterIndex => activeChapter(m);
-
 /**
  * Raíl de capítulos (docs/02-experiencia/navegacion.md → «Raíl»; docs/03-diseno/componentes.md):
  * un `<nav>` con una lista ordenada de botones, uno por capítulo. El activo es `round(m)`: punto ámbar
@@ -34,7 +32,7 @@ const selectActive = ({ m }: { readonly m: number }): ChapterIndex => activeChap
  */
 export function ChapterRail(): ReactNode {
   const t = useT();
-  const active = useStore(sceneStore, selectActive);
+  const active = useStore(sceneStore, selectActiveChapter);
 
   return (
     <nav aria-label={t('rail.label')} className={styles.rail}>

@@ -37,8 +37,21 @@ const REFERENCE_VIEWPORTS = [
   { width: 390, height: 844 },
 ] as const;
 
-const offsetTop = (page: Page, id: string): Promise<number> =>
-  page.evaluate((anchor) => document.getElementById(anchor)?.offsetTop ?? -1, id);
+/** Scroll en el que un capítulo queda justo bajo la barra fija (`scroll-padding-block-start`). */
+const landingY = (page: Page, id: string): Promise<number> =>
+  page.evaluate((anchor) => {
+    const top = document.getElementById(anchor)?.offsetTop ?? -1;
+    const bar = Number.parseFloat(
+      getComputedStyle(document.documentElement).scrollPaddingBlockStart,
+    );
+    return top - bar;
+  }, id);
+
+/** Alto que tapa la barra fija arriba. */
+const barHeight = (page: Page): Promise<number> =>
+  page.evaluate(() =>
+    Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart),
+  );
 
 test.describe('the journey (home)', () => {
   for (const [path, locale] of [
@@ -60,10 +73,14 @@ test.describe('the journey (home)', () => {
     });
   }
 
-  test('a chapter link (/#projects) lands on its chapter', async ({ page }) => {
+  test('a chapter link (/#projects) lands on its chapter, just below the top bar', async ({
+    page,
+  }) => {
     await page.goto('/#projects', { waitUntil: 'networkidle' });
+    const bar = await barHeight(page);
+    expect(bar).toBeGreaterThan(0);
     await expect
-      .poll(async () => Math.abs((await page.locator('#projects').boundingBox())?.y ?? 99))
+      .poll(async () => Math.abs(((await page.locator('#projects').boundingBox())?.y ?? 99) - bar))
       .toBeLessThanOrEqual(2);
   });
 
@@ -78,7 +95,7 @@ test.describe('the journey (home)', () => {
     await page.keyboard.down('Space');
     await expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 });
     await page.keyboard.up('Space');
-    const about = await offsetTop(page, 'about');
+    const about = await landingY(page, 'about');
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(about);
     // El foco viaja con la vista: al título de About, sin anillo cortado ni otro salto de scroll.
     await expect(page.getByRole('heading', { level: 2, name: CHAPTERS.en[0][1] })).toBeFocused();
@@ -120,7 +137,7 @@ test.describe('the journey (home)', () => {
         }),
     );
     await page.mouse.up();
-    expect(atDetonation).toBe(await offsetTop(page, 'about'));
+    expect(atDetonation).toBe(await landingY(page, 'about'));
   });
 
   for (const viewport of REFERENCE_VIEWPORTS) {
@@ -189,15 +206,17 @@ test.describe('the journey (home)', () => {
         const element = document.activeElement;
         if (element === null || element === document.body) return null;
         const box = element.getBoundingClientRect();
-        // El anillo de foco sobresale --focus-offset + --focus-width alrededor de la caja.
+        // El anillo de foco sobresale --focus-offset + --focus-width alrededor de la caja, y nada
+        // puede quedar debajo de la barra fija (lo que tapa arriba, `scroll-padding-block-start`).
         const root = getComputedStyle(document.documentElement);
         const ring =
           Number.parseFloat(root.getPropertyValue('--focus-offset')) +
           Number.parseFloat(root.getPropertyValue('--focus-width'));
+        const bar = Number.parseFloat(root.scrollPaddingBlockStart);
         return {
           id: element.getAttribute('data-tab-check'),
           name: element.textContent.trim(),
-          visible: box.top - ring >= 0 && box.bottom + ring <= window.innerHeight,
+          visible: box.top - ring >= bar && box.bottom + ring <= window.innerHeight,
         };
       });
       if (focused === null) break;

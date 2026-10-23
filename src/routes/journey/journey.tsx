@@ -12,6 +12,8 @@ import { Hero } from '~/features/journey/Hero/Hero';
 import { Projects } from '~/features/journey/Projects/Projects';
 import { Skills } from '~/features/journey/Skills/Skills';
 import { ChapterRail } from '~/features/navigation/ChapterRail/ChapterRail';
+import { SkipLink } from '~/features/navigation/SkipLink/SkipLink';
+import { TopBar } from '~/features/navigation/TopBar/TopBar';
 import { SITE_ORIGIN } from '~/lib/env/site/site';
 import { localeFromPathname } from '~/lib/i18n/locale/locale';
 import { isLowerCasePathname } from '~/lib/i18n/paths/paths';
@@ -36,8 +38,9 @@ const SCROLL_TARGET = {
 } as const;
 
 /**
- * El viaje: los cinco capítulos en orden (docs/02-experiencia/README.md), sin escena. Su scroll fija
- * el `m` de `sceneStore`, que leen el raíl y el HUD (y, desde F3, la escena).
+ * El viaje: los cinco capítulos en orden (docs/02-experiencia/README.md), sin escena, con la interfaz
+ * fija en el orden del Tab (Skip → barra → contenido → raíl; el HUD es decorativo). Su scroll fija el
+ * `m` de `sceneStore`, que leen el raíl, el HUD y el idioma (y, desde F3, la escena).
  */
 export default function Journey(): ReactNode {
   const { pathname } = useLocation();
@@ -48,6 +51,8 @@ export default function Journey(): ReactNode {
 
   return (
     <>
+      <SkipLink />
+      <TopBar />
       <main ref={mainRef}>
         <Hero />
         <About />
