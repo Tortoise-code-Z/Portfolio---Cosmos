@@ -11,7 +11,9 @@ import { DEFAULT_LOCALE, LOCALES } from './types';
 import { uiTexts } from './texts';
 import {
   findEmailProblems,
+  findEmptyListProblems,
   findIdProblems,
+  findPositiveIntegerProblems,
   findProjectOrderProblems,
   findTextProblems,
   findUiProblems,
@@ -43,17 +45,18 @@ describe('contenido', () => {
   });
 
   it('enlaces de proyectos y contacto con https:// (regla 4) y email válido', () => {
-    const urls: Record<string, string | null> = {
-      'contact.github': profile.contact.github,
-      'contact.linkedin': profile.contact.linkedin,
-    };
+    // Todas las URL de contacto y de cada proyecto; el email tiene su propia comprobación.
+    const urls: Record<string, string | null> = {};
+    for (const [key, url] of Object.entries(profile.contact)) {
+      if (key !== 'email') urls[`contact.${key}`] = url;
+    }
     for (const project of projects) {
       for (const [key, url] of Object.entries(project.links)) {
         urls[`${project.slug}.links.${key}`] = url;
       }
     }
 
-    expect(Object.keys(urls)).toHaveLength(2 + projects.length * 3);
+    expect(Object.keys(urls).length).toBeGreaterThan(0);
     expect(findUrlProblems(urls)).toEqual([]);
     expect(findEmailProblems(profile.contact.email, 'contact.email')).toEqual([]);
   });
@@ -69,15 +72,41 @@ describe('contenido', () => {
   });
 
   it('formación con ids únicos y horas enteras positivas', () => {
+    expect(profile.education.length).toBeGreaterThan(0);
     expect(
       findIdProblems(
         profile.education.map((item) => item.id),
         'formación',
       ),
     ).toEqual([]);
-    for (const item of profile.education) {
-      expect(Number.isInteger(item.hours) && item.hours > 0).toBe(true);
+    expect(
+      findPositiveIntegerProblems(
+        Object.fromEntries(
+          profile.education.map((item) => [`education.${item.id}.hours`, item.hours]),
+        ),
+      ),
+    ).toEqual([]);
+  });
+
+  it('las listas que siempre se pintan tienen al menos un elemento (regla 8)', () => {
+    // process y highlights pueden ir vacíos: la sección no se pinta (Cosmos hasta F6).
+    const lists: Record<string, readonly unknown[]> = {
+      'profile.bio.en': profile.bio.en,
+      'profile.bio.es': profile.bio.es,
+      'profile.strengths': profile.strengths,
+      'profile.availability.modes': profile.availability.modes,
+    };
+    for (const project of projects) {
+      lists[`${project.slug}.about.en`] = project.about.en;
+      lists[`${project.slug}.about.es`] = project.about.es;
+      lists[`${project.slug}.features`] = project.features;
+      lists[`${project.slug}.stack.core`] = project.stack.core;
+      if (project.tryIt !== null) {
+        lists[`${project.slug}.tryIt.steps`] = project.tryIt.steps;
+      }
     }
+
+    expect(findEmptyListProblems(lists)).toEqual([]);
   });
 
   it('textos de interfaz: mismas claves y mismos huecos {x} en EN y ES (regla 7)', () => {

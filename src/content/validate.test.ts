@@ -5,7 +5,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
   findEmailProblems,
+  findEmptyListProblems,
   findIdProblems,
+  findPositiveIntegerProblems,
   findProjectOrderProblems,
   findTextProblems,
   findUiProblems,
@@ -22,6 +24,8 @@ describe('findTextProblems', () => {
         bio: { en: ['a', 'b'], es: ['c', 'd'] },
         cv: { en: null, es: null },
         list: [{ en: 'x', es: 'y' }, 'z'],
+        process: { en: [], es: [] },
+        highlights: [],
         count: 3,
         flag: true,
       }),
@@ -31,15 +35,19 @@ describe('findTextProblems', () => {
   it.each([
     ['texto vacío', { name: '' }, '$.name: texto vacío'],
     ['solo espacios', { name: '   ' }, '$.name: texto vacío'],
-    ['espacios en los extremos', { name: ' Chessmate' }, '$.name: espacios sobrantes'],
+    ['espacio al principio', { name: ' Chessmate' }, '$.name: espacios sobrantes'],
+    ['espacio al final', { name: 'Chessmate ' }, '$.name: espacios sobrantes'],
     ['traducción vacía', { t: { en: 'A', es: '' } }, '$.t.es: texto vacío'],
+    ['original vacío', { t: { en: '', es: 'B' } }, '$.t.en: texto vacío'],
     ['falta un idioma', { t: { en: 'A' } }, '$.t: un Localized lleva exactamente en y es'],
     ['idioma de más', { t: { en: 'A', es: 'B', fr: 'C' } }, '$.t: un Localized lleva'],
     ['clave ajena', { t: { en: 'A', esp: 'B' } }, '$.t: un Localized lleva'],
     ['null en un solo idioma', { cv: { en: '/cv.pdf', es: null } }, '$.cv: null en un idioma'],
     ['tipos distintos', { t: { en: 'A', es: ['B'] } }, '$.t: en y es deben ser'],
-    ['listas de distinta longitud', { bio: { en: ['a', 'b'], es: ['c'] } }, '$.bio: 2 elementos'],
-    ['párrafo vacío', { bio: { en: ['a'], es: [''] } }, '$.bio.es[0]: texto vacío'],
+    ['ES más corta', { bio: { en: ['a', 'b'], es: ['c'] } }, '$.bio: 2 elementos en en y 1'],
+    ['ES más larga', { bio: { en: ['a'], es: ['b', 'c'] } }, '$.bio: 1 elementos en en y 2'],
+    ['párrafo ES vacío', { bio: { en: ['a'], es: [''] } }, '$.bio.es[0]: texto vacío'],
+    ['párrafo EN vacío', { bio: { en: [''], es: ['a'] } }, '$.bio.en[0]: texto vacío'],
     ['dentro de listas anidadas', { items: [{ t: { en: 'A', es: ' ' } }] }, '$.items[0].t.es'],
   ])('detecta: %s', (_case, value, expected) => {
     const problems = findTextProblems(value);
@@ -50,7 +58,7 @@ describe('findTextProblems', () => {
 
 describe('findIdProblems', () => {
   it('acepta ids en minúsculas con guiones sueltos', () => {
-    expect(findIdProblems(['react-ts', 'r3f', 'html'], 'skill')).toEqual([]);
+    expect(findIdProblems(['react-ts', 'r3f', 'html', 'a-b-c', '3d'], 'skill')).toEqual([]);
   });
 
   it.each([['React'], ['react_ts'], ['-react'], ['react-'], ['react--ts'], ['']])(
@@ -105,24 +113,63 @@ describe('findUrlProblems', () => {
     ['sin protocolo', 'github.com/x', 'URL no válida'],
     ['relativa', '/projects/x', 'URL no válida'],
     ['otro esquema', 'mailto:a@b.c', 'debe empezar por https://'],
+    ['https mal formada', 'https://exa mple.com', 'URL no válida'],
   ])('rechaza %s', (_case, url, expected) => {
     expect(findUrlProblems({ code: url })).toEqual([expect.stringContaining(expected)]);
   });
 });
 
 describe('findEmailProblems', () => {
-  it('acepta un email normal', () => {
-    expect(findEmailProblems('a.b@mail.com', 'email')).toEqual([]);
+  it.each([['a.b@mail.com'], ['victorperez.brmte@passmail.com'], ['a@sub.mail.com']])(
+    'acepta «%s»',
+    (email) => {
+      expect(findEmailProblems(email, 'email')).toEqual([]);
+    },
+  );
+
+  it.each([
+    ['sin-arroba.com'],
+    ['a@b'],
+    ['a b@c.com'],
+    [''],
+    ['mailto:a@b.c'],
+    ['a@b..c'],
+    ['a@b.c.'],
+    ['a@b.com x'],
+    ['a@b@c.com'],
+  ])('rechaza «%s»', (email) => {
+    expect(findEmailProblems(email, 'email')).toHaveLength(1);
+  });
+});
+
+describe('findPositiveIntegerProblems', () => {
+  it('acepta enteros mayores que cero', () => {
+    expect(findPositiveIntegerProblems({ a: 1, b: 948 })).toEqual([]);
   });
 
-  it.each([['sin-arroba.com'], ['a@b'], ['a b@c.com'], ['']])('rechaza «%s»', (email) => {
-    expect(findEmailProblems(email, 'email')).toHaveLength(1);
+  it.each([[0], [-3], [1.5], [Number.NaN]])('rechaza %s', (value) => {
+    expect(findPositiveIntegerProblems({ 'education.x.hours': value })).toEqual([
+      `education.x.hours: ${String(value)} no es un entero positivo`,
+    ]);
+  });
+});
+
+describe('findEmptyListProblems', () => {
+  it('acepta listas con elementos', () => {
+    expect(findEmptyListProblems({ a: ['x'], b: [1, 2] })).toEqual([]);
+  });
+
+  it('detecta la lista vacía con su ruta', () => {
+    expect(findEmptyListProblems({ a: ['x'], 'profile.bio.en': [] })).toEqual([
+      'profile.bio.en: lista vacía',
+    ]);
   });
 });
 
 describe('placeholdersOf', () => {
   it('saca los huecos ordenados y sin repetir', () => {
     expect(placeholdersOf('Open image {n} of {total} ({n})')).toEqual(['n', 'total']);
+    expect(placeholdersOf('{total} y {n}')).toEqual(['n', 'total']);
     expect(placeholdersOf('Sin huecos')).toEqual([]);
   });
 });
@@ -132,20 +179,40 @@ describe('findUiProblems', () => {
     expect(findUiProblems({ en: { a: 'Hi {name}' }, es: { a: 'Hola {name}' } })).toEqual([]);
   });
 
+  it('acepta los huecos en distinto orden en cada idioma', () => {
+    expect(findUiProblems({ en: { a: '{n} of {total}' }, es: { a: '{total}: {n}' } })).toEqual([]);
+  });
+
   it.each([
     [
       'falta una clave en ES',
       { en: { a: 'A', b: 'B' }, es: { a: 'A' } },
-      'ui.es: falta la clave «b»',
+      'uiTexts.es: falta la clave «b»',
     ],
     [
       'sobra una clave en ES',
       { en: { a: 'A' }, es: { a: 'A', b: 'B' } },
-      'ui.es: sobra la clave «b»',
+      'uiTexts.es: sobra la clave «b»',
     ],
-    ['texto vacío', { en: { a: 'A' }, es: { a: '' } }, 'ui.es.a: texto vacío'],
-    ['falta un hueco', { en: { a: '{n} h' }, es: { a: 'h' } }, 'ui.es.a: huecos {}'],
-    ['hueco con otro nombre', { en: { a: '{n} h' }, es: { a: '{m} h' } }, 'ui.es.a: huecos {m}'],
+    ['texto vacío', { en: { a: 'A' }, es: { a: '' } }, 'uiTexts.es.a: texto vacío'],
+    ['falta un hueco', { en: { a: '{n} h' }, es: { a: 'h' } }, 'uiTexts.es.a: huecos {}'],
+    [
+      'hueco con otro nombre',
+      { en: { a: '{n} h' }, es: { a: '{m} h' } },
+      'uiTexts.es.a: huecos {m}',
+    ],
+    ['hueco de más en ES', { en: { a: 'h' }, es: { a: '{n} h' } }, 'uiTexts.es.a: huecos {n}'],
+    ['texto EN vacío', { en: { a: '' }, es: { a: 'A' } }, 'uiTexts.en.a: texto vacío'],
+    [
+      'falta una clave heredable (constructor)',
+      { en: { constructor: 'A' }, es: {} },
+      'uiTexts.es: falta la clave «constructor»',
+    ],
+    [
+      'sobra una clave heredable (toString)',
+      { en: {}, es: { toString: 'A' } },
+      'uiTexts.es: sobra la clave «toString»',
+    ],
   ])('detecta: %s', (_case, texts, expected) => {
     const problems = findUiProblems(texts);
     expect(problems).toHaveLength(1);

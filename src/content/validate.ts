@@ -3,12 +3,13 @@
 // vacía = todo bien. `content.test.ts` las pasa sobre el contenido real; `validate.test.ts`
 // demuestra con casos rotos que cada una detecta lo que dice. No se usan en tiempo de ejecución.
 
-import { DEFAULT_LOCALE, LOCALES, type Locale } from './types';
+import { DEFAULT_LOCALE, LOCALES, type Locale, type Project } from './types';
 
 /** Ids y slugs: minúsculas, dígitos y guiones sueltos entre palabras ('react-ts'). */
 export const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/** Parte local sin espacios, `@` ni `:` (nada de `mailto:` delante); dominio con puntos entre trozos no vacíos. */
+const EMAIL_PATTERN = /^[^\s@:]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 const PLACEHOLDER_PATTERN = /\{(\w+)\}/g;
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
@@ -86,11 +87,7 @@ export function findIdProblems(ids: readonly string[], what: string): string[] {
   });
 }
 
-interface OrderedProject {
-  readonly slug: string;
-  readonly order: number;
-  readonly featured: boolean;
-}
+type OrderedProject = Pick<Project, 'slug' | 'order' | 'featured'>;
 
 /** La lista va en orden de lectura: `order` = 1, 2, 3… en su posición; exactamente un `featured`. */
 export function findProjectOrderProblems(projects: readonly OrderedProject[]): string[] {
@@ -117,6 +114,24 @@ export function findUrlProblems(urls: Readonly<Record<string, string | null>>): 
   });
 }
 
+/** Números enteros y mayores que cero (horas de un curso…), por ruta. */
+export function findPositiveIntegerProblems(values: Readonly<Record<string, number>>): string[] {
+  return Object.entries(values).flatMap(([path, value]) =>
+    Number.isInteger(value) && value > 0
+      ? []
+      : [`${path}: ${String(value)} no es un entero positivo`],
+  );
+}
+
+/** Listas que la interfaz siempre pinta (bio, features…): al menos un elemento, por ruta. */
+export function findEmptyListProblems(
+  lists: Readonly<Record<string, readonly unknown[]>>,
+): string[] {
+  return Object.entries(lists).flatMap(([path, list]) =>
+    list.length > 0 ? [] : [`${path}: lista vacía`],
+  );
+}
+
 export function findEmailProblems(email: string, path: string): string[] {
   return EMAIL_PATTERN.test(email) ? [] : [`${path}: email no válido («${email}»)`];
 }
@@ -141,19 +156,19 @@ export function findUiProblems(
   return LOCALES.flatMap((locale) => {
     const current = texts[locale];
     const missing = referenceKeys
-      .filter((key) => !(key in current))
-      .map((key) => `ui.${locale}: falta la clave «${key}»`);
+      .filter((key) => !Object.hasOwn(current, key))
+      .map((key) => `uiTexts.${locale}: falta la clave «${key}»`);
     const extra = Object.keys(current)
-      .filter((key) => !(key in reference))
-      .map((key) => `ui.${locale}: sobra la clave «${key}»`);
+      .filter((key) => !Object.hasOwn(reference, key))
+      .map((key) => `uiTexts.${locale}: sobra la clave «${key}»`);
     const perKey = Object.entries(current).flatMap(([key, text]) => {
-      const problem = textProblem(text, `ui.${locale}.${key}`);
-      const base = reference[key];
+      const problem = textProblem(text, `uiTexts.${locale}.${key}`);
+      const base = Object.hasOwn(reference, key) ? reference[key] : undefined;
       const placeholders =
         base === undefined || placeholdersOf(base).join() === placeholdersOf(text).join()
           ? []
           : [
-              `ui.${locale}.${key}: huecos {${placeholdersOf(text).join(', ')}}, se esperaban {${placeholdersOf(base).join(', ')}}`,
+              `uiTexts.${locale}.${key}: huecos {${placeholdersOf(text).join(', ')}}, se esperaban {${placeholdersOf(base).join(', ')}}`,
             ];
       return problem === null ? placeholders : [problem, ...placeholders];
     });

@@ -15,6 +15,7 @@ src/content/
     astrohub.ts
     cosmos.ts
     index.ts          ← lista ordenada de proyectos
+    labels.ts         ← etiquetas que comparten varias fichas (RESPONSIVE_DESIGN, DEMO_USER_LABEL)
   texts/
     en.ts             ← textos-sitio.md (EN); sus claves definen `UiKey`
     es.ts             ← textos-sitio.md (ES), tipado como `UiTexts`
@@ -44,7 +45,7 @@ export const LOCALES: readonly Locale[] = ['en', 'es'];
 /** Texto en los dos idiomas. Obligatorio en ambos. */
 export type Localized<T = string> = Readonly<Record<Locale, T>>;
 
-/** Para nombres propios que no se traducen. */
+/** Nombres propios que no se traducen (string) o etiquetas que sí (Localized). */
 export type Label = string | Localized;
 
 /** Claves de los textos de interfaz, sacadas de texts/en.ts. */
@@ -131,7 +132,8 @@ export interface Project {
   readonly highlights: readonly Localized[]; // retos técnicos resueltos; vacío = no se pinta
   readonly notes: readonly ProjectNote[];
   readonly tryIt: TryIt | null;
-  readonly cover: ImageAsset | null;        // null hasta F2.8 (capturas)
+  readonly cover: ImageAsset | null;        // null = sin portada todavía: no se pinta (Chessmate y AstroHub
+                                             // hasta F2.8; Cosmos hasta F6)
   readonly gallery: readonly ImageAsset[];
   readonly links: {
     readonly code: string;                   // URL del repo
@@ -173,7 +175,11 @@ export interface DemoCredential {
 6. Cada `Skill.id` es único entre todos los grupos (desde F2.2) y existe en el mapa de posiciones de la escena
    (`docs/04-escena/`, **desde F4**).
 7. Los textos `en` y `es` tienen exactamente las mismas claves (el compilador y un test) y, en cada clave, los
-   mismos huecos `{x}`.
+   mismos huecos `{x}` (en cualquier orden).
+8. Además: `LOCALES` = `en`, `es`, con EN primero; las 4 constelaciones en su orden y ninguna vacía; formación con
+   ids únicos y horas enteras positivas; y al menos un elemento en las listas que la interfaz siempre pinta
+   (`bio`, `strengths`, `availability.modes`, y por proyecto `about`, `features`, `stack.core` y `tryIt.steps`).
+   `process` y `highlights` sí pueden ir vacíos: la sección no se pinta.
 
 ## Relación con la escena
 

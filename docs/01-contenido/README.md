@@ -7,7 +7,7 @@
 
 | Archivo | Qué contiene |
 |---|---|
-| `modelo-de-datos.md` | Tipos TypeScript del contenido, reglas de validación y dónde vivirá en el código |
+| `modelo-de-datos.md` | Tipos TypeScript del contenido, reglas de validación y dónde vive en el código |
 | `perfil.md` | Datos personales: identidad, bio, fortalezas, disponibilidad, contacto, formación |
 | `habilidades.md` | Grupos de habilidades (las constelaciones) |
 | `textos-sitio.md` | Todos los textos de interfaz EN/ES: capítulos, navegación, HUD, modo misión rápida, 404, SEO |
@@ -32,9 +32,9 @@
 
 ## Correcciones respecto al sitio actual
 
-- **Nota del curso Fullstack:** no se muestra en ningún sitio (decisión del paso 2). En su lugar, la bio destaca
+- **Nota del curso Fullstack:** no se muestra en ningún sitio (decisión de la fase de documentación). En su lugar, la bio destaca
   las 948 horas de formación intensiva.
 - **Curso de React + TypeScript (Hola Mundo):** el dato actual mezcla «terminado» con «En progreso».
   Se marca como **completado (2025, 13 h)**, confirmado por Víctor (F2 · paso 2).
 - El email del pie de la web actual enlaza a la home; en la nueva se muestra como texto copiable con botón «Copy».
-- «Portfolio Web» (sitio actual) deja de ser proyecto: su placa la ocupa **Cosmos** (decisión del paso 2).
+- «Portfolio Web» (sitio actual) deja de ser proyecto: su placa la ocupa **Cosmos** (decisión de la fase de documentación).

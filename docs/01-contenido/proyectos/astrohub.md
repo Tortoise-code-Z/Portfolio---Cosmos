@@ -64,7 +64,7 @@
 
 - core: HTML, CSS, JavaScript, PHP, MySQL
 - libraries: —
-- design: Figma, responsive design
+- design: Figma, responsive design (EN: Responsive design · ES: Diseño responsive)
 - tooling: Apache, XAMPP, phpMyAdmin
 
 ## Process

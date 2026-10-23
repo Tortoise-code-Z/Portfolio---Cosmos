@@ -8,7 +8,7 @@ ella, para que las etiquetas se lean quietas.
 
 ### Regiones (plano X–Z, cámara de la galaxia con encuadre de escritorio)
 
-Hay **4 grupos y 29 estrellas** (ver `docs/01-contenido/habilidades.md`). Cada grupo ocupa una región de la
+Hay **4 grupos y 31 estrellas** (ver `docs/01-contenido/habilidades.md`). Cada grupo ocupa una región de la
 zona libre (fuera del panel y del raíl):
 
 ```
@@ -17,11 +17,14 @@ zona libre (fuera del panel y del raíl):
    │ web (7)       │ libraries (10)   │
    │ x −4…1        │ x 2…7 · 2 filas  │
    ├───────────────┼──────────────────┤   z ≈ 0
-   │ ai (4)        │ tools (8)        │
+   │ ai (6)        │ tools (8)        │
    │ x −4…0,5      │ x 1,5…6,5        │
    └───────────────┴──────────────────┘
           z = +5,5
 ```
+
+El grupo `ai` pasó de 4 a 6 estrellas en F2 · paso 2 (las 4 prácticas + Claude y ChatGPT): su región hace sitio
+para las 6 en F4.3, con las mismas reglas de colocación.
 
 ### Reglas de colocación (comprobadas por test)
 

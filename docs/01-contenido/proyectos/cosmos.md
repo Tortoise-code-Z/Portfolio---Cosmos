@@ -1,7 +1,7 @@
 # Proyecto · Cosmos (este portfolio)
 
 > Ficha nueva. Lo marcado con ⏳ se completa con datos reales a medida que se construye
-> (stack con versiones, retos resueltos, capturas). No se publica nada que no esté hecho.
+> (proceso, retos resueltos, capturas). No se publica nada que no esté hecho.
 
 ## Ficha
 
@@ -59,7 +59,8 @@
 
 ## Stack
 
-Desde `docs/05-tecnico/stack.md` (sin versiones):
+Selección de `docs/05-tecnico/stack.md`, sin versiones: lo que reconoce quien revisa un CV de frontend (no salen
+piezas internas como Testing Library, Husky, vite-imagetools, Docker o Lighthouse CI).
 
 - core: React, TypeScript, Three.js, React Three Fiber, GLSL
 - libraries: React Router, Zustand
