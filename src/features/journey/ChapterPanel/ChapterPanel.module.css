@@ -15,6 +15,11 @@
   background: var(--gradient-panel-mobile);
 }
 
+/* Ancho de lectura de los párrafos (design-system.md → «Tipografía»). */
+.panel p {
+  max-inline-size: var(--measure);
+}
+
 .panel[data-wide] {
   max-inline-size: var(--panel-w-wide);
 }
@@ -44,7 +49,12 @@
 @media (width >= 900px) {
   .panel {
     position: sticky;
-    inset-block-start: var(--panel-top);
+    /*
+     * Se fija a --panel-top si cabe. Si el panel es más alto que la ventana, el tope se vuelve negativo:
+     * sube con el scroll hasta que su borde inferior queda a --space-6 del fondo y ahí se fija, así que
+     * todo su texto pasa por la pantalla. Sin JS (--_panel-h sin escribir) vale --panel-top.
+     */
+    inset-block-start: min(var(--panel-top), calc(100svh - var(--_panel-h, 0px) - var(--space-6)));
     margin-block-start: var(--panel-top);
     margin-inline-end: 0;
     padding: var(--space-6);

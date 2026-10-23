@@ -33,6 +33,7 @@ activo.
 | `--color-aurora` | `#62e8cf` | Acento secundario: naturaleza, «Featured», disponibilidad | 13,5 : 1 |
 | `--color-veil` | `rgb(4 5 11 / 0.82)` | Fondo de los paneles sobre la escena | — |
 | `--color-veil-soft` | `rgb(4 5 11 / 0.62)` | Paso intermedio del velo radial de los paneles (escritorio) | — |
+| `--gradient-row-hot` | degradado ámbar al 8 % → transparente | Fondo de una fila de proyecto «hot» | — |
 | `--gradient-panel` · `--gradient-panel-mobile` | velo radial · velo que entra desde arriba (`--space-8`) | Fondo del panel en escritorio · en móvil | — |
 | `--color-flash` | `#fff4dc` | Destello del Big Bang | — |
 | `--color-singularity` | `#fff2d9` | Punto CSS de la singularidad (hero sin escena) | — |
@@ -83,6 +84,9 @@ Las fuentes se autoalojan con `@font-face` propios en `src/styles/fonts.css` (fa
 | `--text-small` | `0.8125rem` (13 px) | 1.5 | Body 400 |
 | `--text-label` | `0.75rem` (12 px) | 1.4 | Mono 400–500, mayúsculas, `letter-spacing: var(--tracking-label)` |
 | `--text-micro` | `0.6875rem` (11 px) | 1.3 | Mono 400, mayúsculas, `letter-spacing: var(--tracking-micro)` |
+
+El email de contacto tiene su propio tamaño y ajustes: `--text-email` `clamp(1.05rem, 2.3vw, 1.5rem)`
+(interlineado `--leading-email` 1.2), `--weight-email` 700 y `--wdth-email` 112 %.
 
 En el código, cada tamaño `--text-*` va con su interlineado `--leading-*` (`--leading-hero`, `--leading-h1`…).
 Los ajustes de la tabla también son tokens: `--weight-display` 800, `--weight-hero` 850, `--weight-body` 400,

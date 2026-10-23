@@ -3,7 +3,11 @@ import { useLocation } from 'react-router';
 
 import { profile } from '~/content/profile';
 import { skillGroups } from '~/content/skills';
+import { About } from '~/features/journey/About/About';
+import { Contact } from '~/features/journey/Contact/Contact';
 import { Hero } from '~/features/journey/Hero/Hero';
+import { Projects } from '~/features/journey/Projects/Projects';
+import { Skills } from '~/features/journey/Skills/Skills';
 import { SITE_ORIGIN } from '~/lib/env/site/site';
 import { localeFromPathname } from '~/lib/i18n/locale/locale';
 import { isLowerCasePathname } from '~/lib/i18n/paths/paths';
@@ -28,6 +32,10 @@ export default function Journey(): ReactNode {
   return (
     <main>
       <Hero />
+      <About />
+      <Skills />
+      <Projects />
+      <Contact />
     </main>
   );
 }

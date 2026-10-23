@@ -12,7 +12,10 @@
 - Contenedor del texto de cada capítulo. Fondo: degradado radial de `--color-veil` (opaco a la izquierda,
   transparente hacia los bordes) para que no se vea un rectángulo duro sobre la escena.
 - **Corchetes de esquina** ámbar en la izquierda (arriba y abajo), 14 px, 1 px.
-- Relleno `--space-6`/`--space-7`; ancho `--panel-w`. *Sticky* (`top: 14vh`) en escritorio; normal en móvil.
+- Relleno `--space-6`; ancho `--panel-w`. *Sticky* (`top: --panel-top`, 14vh) en escritorio; normal en móvil.
+- **Panel más alto que la ventana** (Proyectos a 1280×720): el panel publica su altura (`--_panel-h`) y su tope
+  pasa a `min(--panel-top, 100svh − altura − --space-6)`. Sube con el scroll hasta que su borde inferior queda
+  a la vista y ahí se fija: todo el texto y cada enlace enfocado pasan por la pantalla.
 
 ### Eyebrow
 - Una línea `--text-label` en mono: **sección** en ámbar + `· escena · tiempo` en `--color-dim`.
@@ -70,7 +73,9 @@
 
 ### Grupo de habilidades (`SkillGroup`)
 - Bloque con borde izquierdo de 1 px; título mono en `--color-dim` y skills en texto normal. *Hot*: borde y
-  título ámbar. Es enfocable (`tabindex="0"`) para encender la constelación con teclado.
+  título ámbar. Es enfocable (`tabindex="0"`) para encender la constelación con teclado **desde F4.3**: sin
+  escena no enciende nada, así que hasta entonces no entra en el orden de tabulación y solo se resalta al pasar el
+  puntero.
 
 ### Fila de proyecto (`ProjectRow`)
 - Borde izquierdo de 1 px; nombre en display (`--text-h3`), año alineado a la derecha en mono, metadatos en mono
