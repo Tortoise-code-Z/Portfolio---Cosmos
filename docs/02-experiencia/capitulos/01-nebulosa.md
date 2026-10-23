@@ -27,8 +27,9 @@ tu profesión.
 
 ## Layout
 
-- **Escritorio:** panel a la izquierda (máx. ~540 px), *sticky* mientras dura la primera mitad del capítulo; la
-  nebulosa a la derecha (encuadre desplazado).
+- **Escritorio:** panel a la izquierda (máx. ~540 px), *sticky* durante su capítulo (si es más alto que la ventana,
+  se fija por abajo); la nebulosa a la derecha (encuadre desplazado). Soltarlo a mitad del capítulo, cuando la
+  forma empieza a cambiar, se decide en F3–F4 con la escena delante.
 - **Móvil:** primero ~70 vh de escena limpia; después el panel sube por encima con un fondo degradado que
   asegura el contraste. Los paneles no son *sticky* en móvil.
 - El panel lleva los corchetes de esquina del design system.

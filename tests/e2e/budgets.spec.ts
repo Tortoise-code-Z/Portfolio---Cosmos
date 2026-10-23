@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
@@ -19,25 +19,30 @@ const EXPECTED_FONT_FILES = 4;
 /**
  * JS inicial (sin escena), gzip, en dos partes (ADR-020). Es una alarma propia, no un requisito externo:
  * lo que manda son los Core Web Vitals y Lighthouse del brief (F6).
- * - Framework: React 19 + React Router 8 y demás dependencias, en un solo chunk (`entry.client-*`, por
- *   el grupo `framework` de `vite.config.ts`). Medido en F2.4: 107,3 KB. Salta si una subida de versión
+ * - Framework: React 19 + React Router 8 y demás dependencias del JS inicial, en un solo chunk por el
+ *   grupo `framework` de `vite.config.ts`. Se llama `entry.client-*` porque la entrada por defecto de
+ *   React Router vive en node_modules y el grupo la absorbe; con una entrada propia en src/ saldría como
+ *   `framework-*`: se aceptan los dos nombres. Medido en F2.4: 107,3 KB. Salta si una subida de versión
  *   lo engorda.
  * - Código propio de cada página: todo lo demás que pide su HTML. Medido en F2.4: home 17,4 KB, proyecto
  *   12,6 KB, 404 7,0 KB; el margen cubre lo que falta de F2 (navegación, misión rápida, galería).
  */
 const FRAMEWORK_JS_BUDGET_BYTES = 112_000;
 const PAGE_OWN_JS_BUDGET_BYTES = 35_000;
-const FRAMEWORK_CHUNK = /\/assets\/entry\.client-[^/]+\.js$/;
+const FRAMEWORK_CHUNK = /\/assets\/(?:entry\.client|framework)-[^/]+\.js$/;
+/** Hoja única (ADR-019), gzip: por encima, revisar si conviene volver a partirla. */
+const CSS_BUDGET_BYTES = 50_000;
 
-/** Una página de cada tipo, en los dos idiomas. */
-const PAGES = [
-  'index.html',
-  'es/index.html',
-  'projects/chessmate/index.html',
-  'es/projects/chessmate/index.html',
-  '404.html',
-  'es/404/index.html',
-] as const;
+/** Todos los HTML del build, relativos a build/client: una página nueva entra sola en el presupuesto. */
+function htmlPages(dir = CLIENT_DIR): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) return htmlPages(path);
+    return entry.name.endsWith('.html') ? [relative(CLIENT_DIR, path).replaceAll('\\', '/')] : [];
+  });
+}
+
+const PAGES = htmlPages();
 
 /** JS que pide el HTML pre-renderizado (scripts y modulepreload), comprimido con gzip estándar. */
 function initialJs(htmlFile: string): {
@@ -67,6 +72,39 @@ test.describe('build budgets', () => {
     const totalBytes = fonts.reduce((sum, name) => sum + statSync(join(ASSETS_DIR, name)).size, 0);
     expect(fonts).toHaveLength(EXPECTED_FONT_FILES);
     expect(totalBytes).toBeLessThanOrEqual(FONT_BUDGET_BYTES);
+  });
+
+  test('the single stylesheet stays within the CSS budget', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
+    // La hoja que piden las páginas (no lo que haya en assets/, que puede guardar restos de otro build).
+    const sheets = new Set(
+      PAGES.flatMap((page) =>
+        Array.from(
+          readFileSync(join(CLIENT_DIR, page), 'utf8').matchAll(/\/assets\/[^"']+\.css/g),
+          (match) => match[0],
+        ),
+      ),
+    );
+    expect(sheets.size).toBe(1);
+    for (const sheet of sheets) {
+      expect(gzipSync(readFileSync(join(CLIENT_DIR, sheet))).length).toBeLessThanOrEqual(
+        CSS_BUDGET_BYTES,
+      );
+    }
+  });
+
+  test('the budgets see every page type (home, project and 404, in both languages)', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
+    expect(PAGES).toEqual(
+      expect.arrayContaining([
+        'index.html',
+        'es/index.html',
+        'projects/chessmate/index.html',
+        'es/projects/chessmate/index.html',
+        '404.html',
+        'es/404/index.html',
+      ]),
+    );
   });
 
   for (const page of PAGES) {

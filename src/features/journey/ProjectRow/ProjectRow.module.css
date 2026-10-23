@@ -1,20 +1,40 @@
 /* Fila de proyecto (docs/03-diseno/componentes.md → «Fila de proyecto (ProjectRow)»). */
 .row {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-4) 0 var(--space-3) var(--space-4);
   border-inline-start: var(--border-width) solid var(--color-faint);
-  transition:
-    border-color var(--dur-base) var(--ease-out),
-    background-color var(--dur-base) var(--ease-out);
+  transition: border-color var(--dur-base) var(--ease-out);
+}
+
+/*
+ * El brillo de fondo va en su capa: un degradado no se interpola, su opacidad sí (fundido de
+ * movimiento.md, que el movimiento reducido acorta solo). `-1` es local: la fila aísla su apilado
+ * (design-system.md → «Capas»).
+ */
+.row::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--gradient-row-hot);
+  opacity: 0;
+  content: '';
+  pointer-events: none;
+  transition: opacity var(--dur-fade-base) var(--ease-out);
 }
 
 /* «Hot» sin escena: puntero encima o foco en uno de sus enlaces. La placa se ilumina en F4. */
 .row:hover,
 .row:focus-within {
   border-color: var(--color-star);
-  background-image: var(--gradient-row-hot);
+}
+
+.row:hover::before,
+.row:focus-within::before {
+  opacity: 1;
 }
 
 .top {

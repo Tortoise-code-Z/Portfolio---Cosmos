@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { profile } from '~/content/profile';
 import { SITE_REPOSITORY } from '~/content/site';
 
 import { Contact } from './Contact';
@@ -70,6 +71,11 @@ describe('Contact', () => {
     expect(within(renderAt('/')).queryByRole('link', { name: /Download CV/ })).toBeNull();
   });
 
+  it('a CV of another language does not show: /es has no link while only the English one exists', () => {
+    state.cvEn = '/cv/victor-perez-en.pdf';
+    expect(within(renderAt('/es')).queryByRole('link', { name: /CV/ })).toBeNull();
+  });
+
   it('with a CV for the language, a download link to it', () => {
     state.cvEn = '/cv/victor-perez-en.pdf';
     const cv = within(renderAt('/')).getByRole('link', { name: 'Download CV (PDF)' });
@@ -77,20 +83,14 @@ describe('Contact', () => {
     expect(cv).toHaveAttribute('download');
   });
 
-  it('GitHub, LinkedIn and the repo open in a new tab', () => {
-    const region = renderAt('/');
-    expect(within(region).getByRole('link', { name: /^GitHub/ })).toHaveAttribute(
-      'target',
-      '_blank',
-    );
-    expect(within(region).getByRole('link', { name: /^LinkedIn/ })).toHaveAttribute(
-      'target',
-      '_blank',
-    );
-    expect(within(region).getByRole('link', { name: /^This site is open source/ })).toHaveAttribute(
-      'href',
-      SITE_REPOSITORY,
-    );
+  it.each([
+    [/^GitHub/, profile.contact.github],
+    [/^LinkedIn/, profile.contact.linkedin],
+    [/^This site is open source/, SITE_REPOSITORY],
+  ])('%s points to its profile and opens in a new tab', (name, href) => {
+    const link = within(renderAt('/')).getByRole('link', { name });
+    expect(link).toHaveAttribute('href', href);
+    expect(link).toHaveAttribute('target', '_blank');
   });
 
   it('education: one orbit per course with period and formatted hours', () => {

@@ -85,7 +85,7 @@
 - Decisión: diccionarios TypeScript `src/content/texts/en.ts` y `es.ts` (objeto `uiTexts`) con **claves planas**
   (`'project.stack.core'`) y las mismas claves y huecos `{x}` en los dos (`UiKey` sale de `en.ts`; `es` se tipa con
   él y lo comprueba además un test). La carpeta no se llama `ui/` porque chocaría con la capa `ui` en las reglas de
-  importación de ESLint (patrón `**/ui/**`). Actualizado en F2 · paso 2 (AUD-F2-2-3);
+  importación de ESLint (patrón `**/ui/**`). Actualizado en F2 · paso 2 (tras su auditoría);
   idioma derivado de la ruta; EN en `/`, ES en `/es`; `hreflang` en/es/x-default. Sin redirección automática:
   sugerencia descartable «¿Ver en español?». Segmento `projects` igual en los dos idiomas.
 - Alternativas descartadas: react-i18next (dependencia innecesaria); redirección automática por idioma del
@@ -184,7 +184,7 @@
 - Estado: Aceptada
 - Fecha: 2026-10-22
 - Contexto: ADR-007 (F0) decidió el tema único oscuro; este ADR lo concreta al implementarlo en F2 · paso 1
-  (cómo se declara y cómo se garantiza el contraste) y lo sustituye (auditoría AUD-F2-1-1). El sitio es un único
+  (cómo se declara y cómo se garantiza el contraste) y lo sustituye (lo pidió la auditoría del paso). El sitio es un único
   mundo visual (el espacio): la escena es lo único con color y brillo y la interfaz es un panel de instrumento
   sobre fondo negro.
 - Decisión: un solo tema oscuro. `color-scheme: dark` en `:root` y en `<meta name="color-scheme">`, fondo
@@ -201,7 +201,7 @@
 ## ADR-016 · Navegadores soportados: las dos últimas versiones de cada motor
 - Estado: Aceptada
 - Fecha: 2026-10-22
-- Contexto: no estaba escrito en ningún doc (auditoría AUD-F2-1-P2), y hace falta un criterio para usar CSS
+- Contexto: no estaba escrito en ningún doc (lo preguntó la auditoría de F2 · paso 1), y hace falta un criterio para usar CSS
   moderno: la sintaxis de rango de `@media (width < 520px)` (Safari ≥ 16.4), `[popover]`, `text-wrap`, `svh`.
 - Decisión: se soportan las **dos últimas versiones estables** de cada motor: Chromium (Chrome, Edge), Firefox y
   WebKit (Safari en macOS e iOS). Lo que entienden esas versiones se usa sin alternativa; lo demás, solo como
@@ -217,7 +217,7 @@
 - Fecha: 2026-10-23
 - Contexto: la tabla de capas decía «`lib` → `content` (tipos)», pero `useT` (en `lib/i18n`) necesita el valor
   `uiTexts` y los builders de SEO necesitan perfil y proyectos. ESLint no lo vigilaba (solo bloqueaba otras capas).
-  Estudio EST-F2-3-2 y auditoría AUD-F2-2-P1.
+  Salió en la auditoría de F2 · paso 2 y en el estudio de F2 · paso 3.
 - Decisión: `lib` puede importar de `content` **`content/types`** (tipos y las constantes `DEFAULT_LOCALE` y
   `LOCALES`) y **`content/texts`** (diccionarios de `useT`), y nada más. Los builders de `lib/seo` son funciones
   puras que reciben el origen y los datos (`profile`, `project`, `skillGroups`) por parámetro; se los pasan las
@@ -238,12 +238,12 @@
 - Fecha: 2026-10-23
 - Contexto: cada módulo de `lib`, `content` y `routes` tiene su test al lado (`meta.ts` + `meta.test.ts`). Con
   los componentes llegarán más archivos por pieza (`Button.tsx`, `Button.test.tsx`, `Button.module.css`) y las
-  carpetas mezclan parejas sueltas. Víctor lo pide como regla (viva S5 #8).
+  carpetas mezclan parejas sueltas. Víctor lo pide como regla.
 - Decisión: si dos o más archivos de la misma carpeta comparten el nombre base (lo que va antes del primer punto),
   van en una carpeta con ese nombre y conservan el suyo: `lib/seo/meta/meta.ts` + `lib/seo/meta/meta.test.ts`.
   Sin `index.ts`: se importa la ruta completa (`~/lib/seo/meta/meta`). Vale para `src/` y `tests/`; un archivo
   sin pareja se queda suelto y los docs no entran. Se migró todo lo existente (18 parejas). `src/structure.test.ts`
-  falla si vuelve a haber una pareja suelta. **Excepción** (añadida el 2026-10-23, al corregir AUD-F2-3):
+  falla si vuelve a haber una pareja suelta. **Excepción** (añadida el 2026-10-23, al corregir la auditoría de F2 · paso 3):
   `src/root.tsx`, cuyo nombre y sitio fija React Router, lleva su test al lado (`src/root.test.tsx`); nada más
   puede formar pareja con él.
 - Alternativas descartadas: `index.ts` en cada carpeta (imports más cortos, pero un archivo más por carpeta, dos
@@ -261,7 +261,7 @@
   React #418. Vercel entrega para `/ES` el HTML de la 404 (una hoja de estilo), pero en el navegador React Router
   casa la ruta `journey-es` (no distingue mayúsculas) y `<Links>` añade al `<head>` la hoja de esa ruta, que no
   estaba en el HTML. Pasaría igual con `/projects/<slug-desconocido>` en cuanto la página de proyecto tenga CSS
-  (era el riesgo AUD-F2-3-P2 de F2.7). Víctor elige la opción A (viva S7 #16).
+  (era un riesgo anotado para F2.7). Víctor elige un solo CSS para todo el sitio.
 - Decisión: Vite emite **un único archivo CSS** para todo el sitio (`build: { cssCodeSplit: false }` en
   `vite.config.ts`), que enlaza la raíz. Todas las páginas llevan la misma lista de hojas, así que el `<head>` del
   HTML servido coincide siempre con el que pinta el cliente, sea cual sea la ruta que case. El código no cambia:
@@ -283,17 +283,24 @@
 - Contexto: el presupuesto único de ≤ 120 KB gzip de JS inicial ya no cabía con la home maquetada (126 KB en
   F2 · paso 4) y la página de proyecto estaba por encima desde F2.3 (~123 KB). React 19 + React Router 8 ocupan
   ~107 KB que no dependen de nosotros: el límite medía sobre todo el framework y dejaba ~10 KB para el sitio.
-  Víctor elige un ADR que separe las dos partes (viva S7 #3, P4-2-A) en vez de un `loader` en el build.
-- Decisión: dos límites, medidos por `tests/e2e/budgets.spec.ts` sobre el build en una página de cada tipo y
-  en los dos idiomas: **framework ≤ 112 KB** (todas las dependencias, que el grupo `framework` de
-  `vite.config.ts` junta con la entrada del cliente en `entry.client-*`; medido 107,3 KB) y **código propio
-  ≤ 35 KB por página** (todo lo demás que pide su HTML; medido home 17,4 KB, proyecto 12,6 KB, 404 7,0 KB).
+  Víctor elige un ADR que separe las dos partes en vez de un `loader` en el build.
+- Decisión: dos límites, medidos por `tests/e2e/budgets.spec.ts` sobre el build en todas sus páginas HTML (los
+  dos idiomas): **framework ≤ 112 KB** (las dependencias del JS inicial, que el grupo `framework` de
+  `vite.config.ts` junta en un chunk; medido 107,3 KB) y **código propio ≤ 35 KB por página** (todo lo demás que
+  pide su HTML; medido home 17,4 KB, proyecto 12,6 KB, 404 7,0 KB). Las dependencias de la escena (Three.js, R3F)
+  no son del JS inicial: van en su chunk diferido (ADR-002). El chunk se llama `entry.client-*` porque la entrada
+  por defecto de React Router vive en `node_modules` y el grupo la absorbe; con una entrada propia en `src/` se
+  llamaría `framework-*`, y el test acepta los dos nombres.
 - Alternativas descartadas: `loader` en el build para sacar los datos del JS (los bytes llegarían igual, como
-  datos, y las features dejarían de importar el contenido: cambia la arquitectura de ADR-017); subir el límite
+  datos, y las features dejarían de importar el contenido: cambia la tabla de capas, `arquitectura.md` → «Capas
+  y reglas de dependencia»); subir el límite
   único a 130 KB (seguiría midiendo sobre todo el framework y avisaría tarde de lo nuestro).
 - Consecuencias: el límite del framework salta con una subida de versión que lo engorde (se revisa entonces, con
   `stack.md`); el del código propio, con lo que añadamos. El margen de la home cubre lo que falta de F2
   (navegación, misión rápida). Si una dependencia nueva sale del chunk `entry.client`, el test lo nota (exige un
   único chunk de framework y su peso cuenta como código propio). Los dos diccionarios de textos (EN y ES) siguen
-  en el JS inicial (ADR-017): si el código propio aprieta, es lo primero que se puede partir por idioma.
+  en el JS inicial (ADR-017): si el código propio aprieta, es lo primero que se puede partir por idioma. **Trampa
+  para F3.1:** hoy el `test` del grupo es todo `node_modules`; cuando la escena importe `three` y
+  `@react-three/*` en diferido, el grupo los arrastraría al chunk inicial. En F3.1 el `test` debe excluirlos
+  (`/node_modules[\\/](?!three[\\/]|@react-three[\\/])/`); el presupuesto saltaría si no, pero mejor no llegar ahí.
 - Detalle: `docs/05-tecnico/calidad.md` → «Presupuestos».

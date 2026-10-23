@@ -19,16 +19,28 @@ function advance(ms: number, frames = 1): void {
   }
 }
 
-function renderHero(path = '/'): { scrollIntoView: ReturnType<typeof vi.fn> } {
+function renderHero(path = '/'): {
+  scrollIntoView: ReturnType<typeof vi.fn>;
+  area: HTMLElement;
+  aboutTitle: HTMLElement;
+} {
   render(
     <MemoryRouter initialEntries={[path]}>
       <Hero />
-      <section id="about">About</section>
+      <section id="about" aria-labelledby="about-title">
+        <h2 id="about-title" tabIndex={-1}>
+          About
+        </h2>
+      </section>
     </MemoryRouter>,
   );
   const scrollIntoView = vi.fn();
-  screen.getByText('About').scrollIntoView = scrollIntoView;
-  return { scrollIntoView };
+  const aboutTitle = screen.getByRole('heading', { name: 'About' });
+  const about = aboutTitle.parentElement;
+  const area = screen.getByRole('heading', { level: 1 }).parentElement;
+  if (about === null || area === null) throw new Error('Hero or About not rendered');
+  about.scrollIntoView = scrollIntoView;
+  return { scrollIntoView, area, aboutTitle };
 }
 
 beforeEach(() => {
@@ -76,43 +88,86 @@ describe('Hero', () => {
     expect(container.querySelector('[aria-hidden="true"] > span')).not.toBeNull();
   });
 
-  it('holding the button 1.5 s scrolls to About and leaves the button aria-disabled', () => {
-    const { scrollIntoView } = renderHero();
+  it('holding the button 1.5 s scrolls to About, focuses its title and leaves the button aria-disabled', () => {
+    const { scrollIntoView, aboutTitle } = renderHero();
     const button = screen.getByRole('button', { name: 'Hold to detonate' });
+    button.focus();
     fireEvent.keyDown(button, { key: ' ' });
     advance(0);
     advance(100, 15);
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
     expect(button).toHaveAttribute('aria-disabled', 'true');
+    expect(aboutTitle).toHaveFocus();
   });
 
-  it('holding an empty area of the hero also charges; links and buttons do not', () => {
-    const { scrollIntoView } = renderHero();
-    const lead = screen.getByText(/So did my code\./);
-    fireEvent.pointerDown(lead, { button: 0 });
+  it('holding the empty area of the hero also charges; releasing anywhere drains it', () => {
+    const { scrollIntoView, area } = renderHero();
+    fireEvent.pointerDown(area, { button: 0 });
     advance(0);
     advance(100, 5);
     fireEvent.pointerUp(window);
     advance(100, 5);
     expect(scrollIntoView).not.toHaveBeenCalled();
 
-    fireEvent.pointerDown(lead, { button: 0 });
+    fireEvent.pointerDown(area, { button: 0 });
     advance(0);
     advance(100, 15);
     expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 
-  it('a secondary pointer button on the area does nothing', () => {
+  it('holding the text of the hero does not charge (it stays selectable)', () => {
     renderHero();
-    fireEvent.pointerDown(screen.getByText(/So did my code\./), { button: 2 });
+    fireEvent.pointerDown(screen.getByText(/So did my code\./), { button: 0 });
+    fireEvent.pointerDown(screen.getByRole('heading', { level: 1 }), { button: 0 });
     expect(pending).toBeNull();
   });
 
-  it('a pointer down on the button itself is not counted twice', () => {
-    renderHero();
+  it('while the area charges, a long press does not open the context menu; after, it does', () => {
+    const { area } = renderHero();
+    fireEvent.pointerDown(area, { button: 0 });
+    expect(fireEvent.contextMenu(area)).toBe(false);
+    fireEvent.pointerUp(window);
+    expect(fireEvent.contextMenu(area)).toBe(true);
+  });
+
+  it('a secondary pointer button on the area does nothing', () => {
+    const { area } = renderHero();
+    fireEvent.pointerDown(area, { button: 2 });
+    expect(pending).toBeNull();
+  });
+
+  it('a pointer down on the button is the button gesture: releasing elsewhere does not cut it', () => {
+    const { scrollIntoView } = renderHero();
     fireEvent.pointerDown(screen.getByRole('button', { name: 'Hold to detonate' }), {
       button: 0,
+      pointerId: 1,
     });
-    expect(requestAnimationFrame).toHaveBeenCalledTimes(1);
+    // Si la zona lo contara como suyo, este «soltar» en la ventana cortaría la carga.
+    fireEvent.pointerUp(window, { pointerId: 1 });
+    advance(0);
+    advance(100, 15);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('on the area, a second finger that touches and lifts does not cut the first one', () => {
+    const { scrollIntoView, area } = renderHero();
+    fireEvent.pointerDown(area, { button: 0, pointerId: 1 });
+    fireEvent.pointerDown(area, { button: 0, pointerId: 2 });
+    fireEvent.pointerUp(window, { pointerId: 2 });
+    advance(0);
+    advance(100, 15);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('a finished area gesture leaves nothing listening on the window', () => {
+    const { scrollIntoView, area } = renderHero();
+    fireEvent.pointerDown(area, { button: 0, pointerId: 1 });
+    fireEvent.pointerUp(window, { pointerId: 1 });
+    // Carga nueva desde el teclado: un `pointercancel` cualquiera (un scroll táctil) no la corta.
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Hold to detonate' }), { key: ' ' });
+    fireEvent.pointerCancel(window, { pointerId: 1 });
+    advance(0);
+    advance(100, 15);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 });

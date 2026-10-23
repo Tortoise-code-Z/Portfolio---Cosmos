@@ -71,7 +71,10 @@ Los números los formatea `Intl` según el idioma. En `hud.billionYears`, `{n}` 
 | `hero.lead` | Everything that exists started as a single point. So did my code. | Todo lo que existe empezó siendo un punto. Mi código también. |
 | `hero.detonate` | Hold to detonate | Mantén pulsado para detonar |
 | `hero.detonate.aria` | Hold to trigger the Big Bang and start the journey | Mantén pulsado para provocar el Big Bang y empezar el viaje |
-| `hero.scroll` | or scroll (+ icono de flecha abajo) | o haz scroll (+ icono de flecha abajo) |
+| `hero.scroll` | or scroll | o haz scroll |
+
+La pista `hero.scroll` va seguida del icono de flecha abajo (SVG, `design-system.md` → «Iconos»), que no forma parte
+del texto.
 
 ## Capítulo 1 · Sobre mí (Nebulosa)
 

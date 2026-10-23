@@ -14,13 +14,24 @@ import styles from './Hero.module.css';
 
 const TITLE_ID = 'hero-title';
 
-/** Lo pulsable del hero: mantener pulsado encima no carga la detonación (lo hace su propio gesto). */
-const INTERACTIVE = 'a, button, input, select, textarea, [tabindex]';
+const preventDefault = (event: Event): void => {
+  event.preventDefault();
+};
+
+/**
+ * Lleva el foco al título que nombra el capítulo (`aria-labelledby`), sin mover el scroll: quien
+ * detona con teclado o lector sigue leyendo donde ha llegado, como con un enlace de salto.
+ */
+function focusChapterTitle(chapter: HTMLElement): void {
+  const titleId = chapter.getAttribute('aria-labelledby');
+  if (titleId === null) return;
+  document.getElementById(titleId)?.focus({ preventScroll: true });
+}
 
 /**
  * Capítulo 0 · Singularidad (docs/02-experiencia/capitulos/00-singularidad.md). Sin escena: el punto
- * y su halo son CSS. Mantener pulsado el botón (o una zona vacía del hero) 1,5 s detona y lleva a
- * «About»; los efectos (temblor, destello, eje `wdth`) llegan con la escena.
+ * y su halo son CSS. Mantener pulsado el botón (o la zona vacía del hero) 1,5 s detona y lleva a
+ * «About», con el foco en su título; los efectos (temblor, destello, eje `wdth`) llegan con la escena.
  */
 export function Hero(): ReactNode {
   const t = useT();
@@ -30,27 +41,47 @@ export function Hero(): ReactNode {
   const onDetonate = useCallback((): void => {
     const about = CHAPTER_ANCHORS[1];
     if (about === null) return;
-    document.getElementById(about)?.scrollIntoView({ behavior: jumpBehavior(), block: 'start' });
+    const chapter = document.getElementById(about);
+    if (chapter === null) return;
+    chapter.scrollIntoView({ behavior: jumpBehavior(), block: 'start' });
+    focusChapterTitle(chapter);
   }, []);
 
   const { detonated, press, release } = useHoldCharge(buttonRef, onDetonate);
 
-  // Mantener pulsado en una zona vacía del hero también carga (no sobre enlaces ni botones).
+  // Mantener pulsado en la zona vacía del hero también carga. Solo la zona misma: sobre el texto se
+  // selecciona (y en táctil el toque largo es del sistema) y lo pulsable tiene su propio gesto.
   useEffect(() => {
     const area = areaRef.current;
     if (area === null) return undefined;
+    // Un gesto = un puntero: con varios dedos manda el que empezó. Sus escuchas de `window` se quitan
+    // juntas al acabar (soltar o cancelar), así que ninguna queda colgada para el gesto siguiente.
+    let gesture: AbortController | null = null;
+    let pointerId: number | null = null;
+    const endGesture = (event: PointerEvent): void => {
+      if (event.pointerId !== pointerId) return;
+      gesture?.abort();
+      gesture = null;
+      pointerId = null;
+      release();
+    };
     const onPointerDown = (event: PointerEvent): void => {
-      if (event.button !== 0) return;
-      if (event.target instanceof Element && event.target.closest(INTERACTIVE) !== null) return;
+      if (event.button !== 0 || event.target !== area) return;
+      if (pointerId !== null && pointerId !== event.pointerId) return;
+      gesture?.abort();
+      gesture = new AbortController();
+      pointerId = event.pointerId;
+      const { signal } = gesture;
+      window.addEventListener('pointerup', endGesture, { signal });
+      window.addEventListener('pointercancel', endGesture, { signal });
+      // Mientras carga, el toque largo no abre el menú contextual.
+      window.addEventListener('contextmenu', preventDefault, { signal });
       press();
-      window.addEventListener('pointerup', release, { once: true });
-      window.addEventListener('pointercancel', release, { once: true });
     };
     area.addEventListener('pointerdown', onPointerDown);
     return () => {
       area.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('pointerup', release);
-      window.removeEventListener('pointercancel', release);
+      gesture?.abort();
     };
   }, [press, release]);
 
@@ -72,6 +103,7 @@ export function Hero(): ReactNode {
           <p className={styles.lead}>{t('hero.lead')}</p>
           <HoldButton
             ref={buttonRef}
+            className={styles.detonate}
             label={t('hero.detonate')}
             description={t('hero.detonate.aria')}
             done={detonated}

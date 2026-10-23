@@ -136,6 +136,7 @@
   --blur-chrome: 6px;
   --opacity-disabled: 0.4;
   --target-min: 44px;
+  --icon-baseline-shift: -0.125em;
 
   /* ── Capas (z-index) ──────────────────────────────────────────── */
   --z-scene: 0;

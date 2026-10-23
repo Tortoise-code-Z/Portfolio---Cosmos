@@ -37,7 +37,7 @@ export function Contact(): ReactNode {
         <p>{t('contact.lead')}</p>
 
         {availability.openToWork ? (
-          <ul className={cx(shared.dotted, styles.availability)} data-availability="">
+          <ul role="list" className={cx(shared.dotted, styles.availability)} data-availability="">
             <li className={styles.open}>{t('nav.availability')}</li>
             <li>{workModesText(locale, availability.modes)}</li>
             {availability.openToRelocation ? <li>{t('contact.availability.relocation')}</li> : null}
@@ -49,7 +49,7 @@ export function Contact(): ReactNode {
           {contact.email}
         </a>
 
-        <ul className={styles.links}>
+        <ul role="list" className={styles.links}>
           <li>
             <ActionLink href={contact.github} kind="external">
               GitHub
@@ -72,7 +72,11 @@ export function Contact(): ReactNode {
         <h3 id={EDUCATION_ID} className={cx(shared.label, styles.educationTitle)}>
           {t('education.title')}
         </h3>
-        <ul aria-labelledby={EDUCATION_ID} className={cx(shared.plainList, styles.orbits)}>
+        <ul
+          role="list"
+          aria-labelledby={EDUCATION_ID}
+          className={cx(shared.plainList, styles.orbits)}
+        >
           {profile.education.map((item) => (
             <li key={item.id} className={styles.orbit}>
               <span className={styles.orbitTitle}>{item.title[locale]}</span>
@@ -87,7 +91,11 @@ export function Contact(): ReactNode {
         </ul>
 
         <footer className={styles.footer}>
-          {/* El año sale del reloj de quien pinta: el HTML del build y el del navegador pueden diferir. */}
+          {/*
+           * Año: en la primera carga se ve el del build (con `suppressHydrationWarning`, React conserva
+           * el texto pre-renderizado y no lo corrige al hidratar); si Contact se vuelve a montar en el
+           * cliente (navegar y volver), el del navegador.
+           */}
           <p suppressHydrationWarning>
             {t('footer.line', { year: String(new Date().getFullYear()) })}
           </p>

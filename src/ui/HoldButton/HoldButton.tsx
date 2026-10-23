@@ -1,6 +1,14 @@
-import { useId, type KeyboardEvent, type PointerEvent, type ReactNode, type Ref } from 'react';
+import {
+  useId,
+  useRef,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+  type Ref,
+} from 'react';
 
-import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
+import { cx } from '~/lib/css/cx/cx';
+
 import styles from './HoldButton.module.css';
 
 /** Teclas que cargan mientras se mantienen (con el foco en el botón). */
@@ -15,6 +23,8 @@ interface HoldButtonProps {
   readonly done: boolean;
   readonly onPress: () => void;
   readonly onRelease: () => void;
+  /** Clase extra del dueño para colocarlo en su maqueta (p. ej., el ancho en móvil). */
+  readonly className?: string | undefined;
   /** Elemento donde el dueño escribe la carga (`--_charge`, 0–1) que dibuja el anillo. */
   readonly ref?: Ref<HTMLButtonElement>;
 }
@@ -22,7 +32,8 @@ interface HoldButtonProps {
 /**
  * Botón de mantener pulsado (docs/03-diseno/componentes.md → «Botón de mantener»): carga mientras se
  * mantiene con ratón, dedo o `Espacio`/`Enter`, y descarga al soltar. Un clic corto no hace nada.
- * La lógica de la carga es del dueño; este componente solo traduce gestos y dibuja el anillo.
+ * La lógica de la carga es del dueño; este componente solo traduce gestos y dibuja el anillo. Con
+ * varios dedos manda el que empezó: otro que toque y suelte no corta la carga.
  */
 export function HoldButton({
   label,
@@ -30,13 +41,30 @@ export function HoldButton({
   done,
   onPress,
   onRelease,
+  className,
   ref,
 }: HoldButtonProps): ReactNode {
   const descriptionId = useId();
+  /** Puntero que está cargando (`null` si ninguno). */
+  const activePointer = useRef<number | null>(null);
 
   const onPointerDown = (event: PointerEvent<HTMLButtonElement>): void => {
     if (event.button !== 0) return;
+    // Otro dedo mientras uno carga: no cuenta. El mismo puntero (su «soltar» se perdió) empieza de nuevo.
+    if (activePointer.current !== null && activePointer.current !== event.pointerId) return;
+    activePointer.current = event.pointerId;
     onPress();
+  };
+
+  const onPointerEnd = (event: PointerEvent<HTMLButtonElement>): void => {
+    if (event.pointerId !== activePointer.current) return;
+    activePointer.current = null;
+    onRelease();
+  };
+
+  const onBlur = (): void => {
+    activePointer.current = null;
+    onRelease();
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
@@ -56,16 +84,16 @@ export function HoldButton({
       <button
         ref={ref}
         type="button"
-        className={styles.button}
+        className={cx(styles.button, className)}
         aria-describedby={descriptionId}
         aria-disabled={done ? true : undefined}
         onPointerDown={onPointerDown}
-        onPointerUp={onRelease}
-        onPointerLeave={onRelease}
-        onPointerCancel={onRelease}
+        onPointerUp={onPointerEnd}
+        onPointerLeave={onPointerEnd}
+        onPointerCancel={onPointerEnd}
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
-        onBlur={onRelease}
+        onBlur={onBlur}
         onContextMenu={(event) => {
           event.preventDefault();
         }}
@@ -76,7 +104,10 @@ export function HoldButton({
         </svg>
         <span>{label}</span>
       </button>
-      <VisuallyHidden id={descriptionId}>{description}</VisuallyHidden>
+      {/* Oculto del todo: `aria-describedby` lo lee igual y en modo exploración no se oye dos veces. */}
+      <span id={descriptionId} hidden>
+        {description}
+      </span>
     </>
   );
 }

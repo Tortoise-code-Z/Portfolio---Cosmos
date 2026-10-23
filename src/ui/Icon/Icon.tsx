@@ -4,7 +4,8 @@ import styles from './Icon.module.css';
 
 /**
  * Iconos propios en SVG en línea (docs/03-diseno/design-system.md → «Iconos»): trazo 1,5 px sobre una
- * rejilla de 16, `currentColor` y siempre decorativos. El botón o enlace que lo lleva pone el texto.
+ * rejilla de 16, `currentColor` y siempre decorativos. El botón o enlace que lo lleva pone el texto. El
+ * trazo no escala con el tamaño: a 20 px sigue midiendo 1,5 px.
  */
 const PATHS = {
   'arrow-down': 'M8 2.5v11M3.5 9 8 13.5 12.5 9',
@@ -37,7 +38,7 @@ export function Icon({ name, size = 16 }: IconProps): ReactNode {
       aria-hidden="true"
       focusable="false"
     >
-      <path d={PATHS[name]} />
+      <path d={PATHS[name]} vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }

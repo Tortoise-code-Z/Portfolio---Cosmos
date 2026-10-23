@@ -3,6 +3,8 @@ import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
 import { projects } from '~/content/projects';
+import { uiTexts } from '~/content/texts';
+import { localize } from '~/lib/i18n/localize/localize';
 
 import { Projects } from './Projects';
 
@@ -15,6 +17,13 @@ function renderAt(path: string): void {
 }
 
 const ordered = [...projects].sort((a, b) => a.order - b.order);
+
+/** La fila (`<li>`) del proyecto con ese nombre. */
+function rowOf(name: string): HTMLElement {
+  const row = screen.getByRole('heading', { name }).closest('li');
+  if (row === null) throw new Error(`Row of ${name} not found`);
+  return row;
+}
 
 describe('Projects', () => {
   it('region #projects with one row per project, in reading order', () => {
@@ -48,20 +57,30 @@ describe('Projects', () => {
     },
   );
 
-  it('only the featured project carries the «Featured» label', () => {
-    renderAt('/');
-    const featured = projects.filter((project) => project.featured);
-    expect(screen.getAllByText('Featured')).toHaveLength(featured.length);
-  });
+  it.each(ordered.map((project) => [project.name, project] as const))(
+    '%s: the «Featured» label sits in its row only if the project is featured',
+    (name, project) => {
+      renderAt('/');
+      const row = rowOf(name);
+      if (project.featured) expect(within(row).getByText('Featured')).toBeInTheDocument();
+      else expect(within(row).queryByText('Featured')).toBeNull();
+    },
+  );
 
-  it('meta line: role, context and core stack in the active language', () => {
-    renderAt('/es');
-    const first = ordered[0];
-    if (first === undefined) throw new Error('No projects');
-    const row = screen.getByRole('heading', { name: first.name }).closest('li');
-    if (row === null) throw new Error('Row not found');
-    const meta = row.querySelector('[data-meta]');
-    expect(meta?.textContent).toContain('Proyecto personal');
-    expect(within(row).getByText(first.summary.es)).toBeInTheDocument();
-  });
+  it.each(ordered.map((project) => [project.name, project] as const))(
+    '%s: meta line with role, context and core stack in the active language, then the summary',
+    (name, project) => {
+      renderAt('/es');
+      const row = rowOf(name);
+      const meta = row.querySelector('[data-meta]');
+      if (!(meta instanceof HTMLElement)) throw new Error('Meta line not found');
+      const items = within(meta)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent);
+      expect(items).toContain(uiTexts.es[`projects.role.${project.role}`]);
+      expect(items).toContain(uiTexts.es[`projects.context.${project.context}`]);
+      for (const label of project.stack.core) expect(items).toContain(localize('es', label));
+      expect(within(row).getByText(project.summary.es)).toBeInTheDocument();
+    },
+  );
 });

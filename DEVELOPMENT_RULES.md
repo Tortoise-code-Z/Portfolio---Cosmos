@@ -67,9 +67,12 @@ Víctor decide el Visto Bueno entendiendo el paso, no solo leyéndolo.
 - **Determinismo:** PRNG con semilla, nunca `Math.random` en la escena (ADR-011).
 - **Movimiento reducido de primera clase**, no un parche (`docs/02-experiencia/estados-y-accesibilidad.md`).
 - **Accesibilidad:** teclado, foco visible, contraste AA, área táctil ≥ 44 px, ningún estado comunicado solo con color.
-- **El código cita docs y ADR del repo**, nunca las notas de trabajo que viven fuera de git (el buzón
-  `_claude/`, las decisiones vivas, las claves de encargo `EST-…`/`AUD-…`): el repo es público y esas referencias no
-  se pueden seguir. Si la frase ya se explica sola, sin cita. Lo vigila `src/code-references.test.ts`.
+- **El código, `DECISIONS.md` y `docs/` citan docs y ADR del repo**, nunca las notas de trabajo que viven fuera de
+  git (el buzón `_claude/`, las decisiones vivas, las claves de encargo `EST-…`/`AUD-…`, «la opción A»): el repo es
+  público y esas referencias no se pueden seguir (quien lo lea en una entrevista no puede abrir una viva). Un ADR
+  escribe lo decidido («Víctor elige un solo CSS»), no la clave. Si la frase ya se explica sola, sin cita.
+  `STATE.md` y su historial (`docs/_historial/`) son el diario de trabajo y sí pueden nombrarlas. Lo vigila
+  `src/code-references.test.ts`.
 - **Archivos con el mismo nombre, en su carpeta** (ADR-018): `x.ts` + `x.test.ts` (o `x.module.css`) van en `x/`
   con su nombre, sin `index.ts`. Solo en `src/` y `tests/`; excepción: `src/root.tsx` + `src/root.test.tsx`. Lo
   vigila `src/structure.test.ts`.
@@ -147,7 +150,7 @@ Método general en las skills `taller` y `mesa`; aquí, solo lo propio del proye
 
 - **Fuente de verdad:** `DECISIONS.md` > `docs/00-vision/brief.md` > doc específico del tema (Mapa de `CLAUDE.md`).
   Al cerrar, cada decisión viva va a su doc del Mapa y, si cambia arquitectura, producto o método, a un ADR en
-  `DECISIONS.md`; lecciones y dudas, a `STATE.md`.
+  `DECISIONS.md`, escrita con lo decidido y sin su clave del buzón (§5); lecciones y dudas, a `STATE.md`.
 - **Buzón:** `_claude/cadena/` (tablero, decisiones vivas, una carpeta por encargo, `hecho/AAAA-MM-DD/`). Fuera de
   git con `.git/info/exclude` en el equipo de Víctor (no se añade a `.gitignore`).
 - **Zona horaria:** `Europe/Dublin`.
