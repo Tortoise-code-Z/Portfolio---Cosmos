@@ -32,13 +32,15 @@ cosmos-portfolio/
 │  ├─ lib/                      ← funciones puras y hooks transversales
 │  │  ├─ i18n/                  ← tipos, useLocale, useT, formateadores Intl, rutas localizadas
 │  │  ├─ scroll/                ← mapM (puro), useChapterLayout, useScrollTarget
-│  │  ├─ seo/                   ← builders de meta, hreflang y JSON-LD
+│  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
+│  │  │                           sitemap y robots (reciben origen y datos por parámetro, ADR-017)
 │  │  ├─ device/                ← señales para el nivel de rendimiento, useReducedMotion, usePointerType
 │  │  └─ math/                  ← smoothstep, lerp, clamp, easing
 │  ├─ stores/                   ← uiStore (React) · sceneStore (mutable, sin re-render)
 │  ├─ styles/                   ← tokens.css, global.css, fonts.css
 │  └─ assets/projects/<slug>/   ← capturas originales (vite-imagetools genera las variantes)
-├─ public/                      ← favicon.svg, apple-touch-icon.png, robots.txt, og/, cv/
+├─ public/                      ← favicon.svg, apple-touch-icon.png, og/, cv/ (robots.txt y sitemap.xml
+│                                  se generan en el build)
 ├─ tests/
 │  ├─ e2e/                      ← Playwright: recorridos
 │  └─ visual/                   ← Playwright: capturas por capítulo y tamaño
@@ -61,7 +63,7 @@ content  ◄── lib ◄── stores ◄── ui ◄── features ◄─�
 | Capa | Puede importar | No puede importar |
 |---|---|---|
 | `content` | nada (solo sus tipos) | React, Three, cualquier otra capa |
-| `lib` | `content` (tipos) | React DOM de features, Three |
+| `lib` | `content/types` (tipos y constantes de idioma) y `content/texts` (para `useT`) (ADR-017) | Los datos de `content` (perfil, proyectos, skills: le llegan por parámetro), React DOM de features, Three |
 | `stores` | `lib`, `content` | `features`, `scene` |
 | `ui` | `lib` | `features`, `scene`, `content` (recibe datos por props) |
 | `features` | `ui`, `lib`, `stores`, `content` | `three`, `@react-three/*`, `scene` (salvo el punto de montaje diferido) |
@@ -82,12 +84,28 @@ Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import pr
 | `/es/projects/:slug` | `project-es` | es |
 | `*` | `not-found` | según prefijo |
 
-- El idioma se deriva de la ruta (no del navegador); `useLocale()` lo lee del `id` o del prefijo.
-- `prerender` enumera todas las rutas a partir de `content/projects` (2 idiomas × (1 + nº de proyectos) + 404).
+- El idioma se deriva de la ruta (no del navegador); `useLocale()` lo lee del **prefijo** (lo único que sirve
+  también en la ruta `*`).
+- Una sola lista de páginas, `sitePages(projects)` (`lib/seo/pages.ts`): de ella salen el `prerender`, el sitemap
+  y el `hreflang`. Se pre-renderizan 2 idiomas × (1 + nº de proyectos) páginas y la 404 de cada idioma
+  (`/404` y `/es/404`, servidas por la ruta `*`).
+- Slug desconocido (también en mayúsculas: `/projects/Chessmate`): la ruta de proyecto pinta la **misma página
+  404** (`NotFoundPage`) y su `meta` es la de la 404; no lanza error. Así el HTML coincide con el `404.html` y
+  hidrata sin errores de consola. Son 404 sin redirección: slug desconocido, `/projects` sin slug, `/en/…`.
+- `react-router.config.ts` **no** resuelve el alias `~/`: lo que importa (contenido, `lib/seo/{pages,urls,sitemap}`,
+  `lib/i18n/paths`, `lib/env/siteUrl`) usa imports relativos. Si alguien lo cambia, el build falla al cargar la
+  config. Su `buildEnd` escribe `sitemap.xml`, `robots.txt` y `404.html` (copia de la 404 EN) en `build/client`.
 - Segmento `projects` igual en ambos idiomas (decisión: URLs estables y sin mapa de traducción de rutas).
-- `meta` de cada ruta: título, descripción, canónica, `hreflang` en/es/x-default, Open Graph y JSON-LD
-  (`Person` en la home, `CreativeWork` en cada proyecto). URL base desde `VITE_SITE_URL`.
-- `sitemap.xml` generado en el build con las mismas rutas del `prerender`.
+- `meta` de cada ruta (`lib/seo/meta.ts`): título, descripción (en proyectos, el `summary`), canónica propia de
+  cada idioma, `hreflang` en/es/x-default (= EN), Open Graph (`og:locale` `en_US`/`es_ES` con su alternativa,
+  `og:type` `website` o `article`, sin `og:image` hasta que haya imágenes: entonces `cover` o, si es `null`, la
+  del sitio de su idioma), `twitter:card` y JSON-LD (`Person` en la home, sin email; `SoftwareSourceCode` en cada
+  proyecto, con el autor embebido). URL base desde `VITE_SITE_URL`.
+- Forma única de las URL absolutas (`absoluteUrl`): origen + ruta, sin barra final salvo la home EN
+  (`https://…/`, `https://…/es`, `https://…/projects/chessmate`), sin `?` ni `#`. Un test comprueba que
+  canónicas, `hreflang`, `og:url` y sitemap son el mismo conjunto.
+- 404: `noindex`, sin canónica, `hreflang` ni JSON-LD, fuera del sitemap.
+- `sitemap.xml` (solo `<loc>`) y `robots.txt` (`Allow: /` + `Sitemap:` absoluto) generados en el build.
 
 ## Estado
 
@@ -122,11 +140,14 @@ Regla: nada que cambie en cada frame pasa por estado de React.
 | `VITE_SITE_URL` | `https://cosmos-portfolio-two.vercel.app` | URLs absolutas de canónica, hreflang, OG y sitemap |
 
 - `.env.example` en el repo; `.env` fuera de git. No hay secretos en la v1.
-- Validación al arrancar el build: si `VITE_SITE_URL` falta o no es `https://`, el build falla con un mensaje claro.
+- Validación al arrancar el build, el servidor de desarrollo y el preview (`vite.config.ts`): si `VITE_SITE_URL`
+  falta o no es `https://`, falla con un mensaje claro. El cliente la lee en un solo sitio (`lib/env/site.ts`,
+  `SITE_ORIGIN`); los tests fijan `https://cosmos.test` en `tests/setup.ts`.
 
 ## Gestión de errores
 
-- `ErrorBoundary` raíz con página de error en el idioma activo y enlace al inicio.
+- `ErrorBoundary` raíz con página de error en el idioma activo (`error.*`, o `notFound.*` si es un 404), su título
+  por la `meta` de `root.tsx` y enlace al inicio.
 - `ErrorBoundary` propio de la escena (aislado: un fallo 3D nunca tumba la página).
 - `CopyButton` y similares: siempre con alternativa (seleccionar texto) y mensaje.
 - Nada de `catch` vacíos: todo error capturado se registra con contexto (`console.error` en desarrollo y

@@ -62,8 +62,11 @@ install (npm ci)
 - Salida estática del pre-renderizado (`build/client`). `VITE_SITE_URL` configurada en Vercel por entorno.
 - Cabeceras: caché larga e inmutable para `/assets/*`; `Content-Security-Policy` sin `unsafe-eval`;
   `Referrer-Policy`, `X-Content-Type-Options`, `Permissions-Policy` restrictiva.
-- 404 real: la página `not-found` pre-renderizada se sirve con estado 404 (⚠ verificar la configuración exacta
-  al preparar el despliegue).
+- 404 por idioma: el build deja `404.html` (EN, la que Vercel sirve para cualquier ruta sin archivo) y
+  `es/404/index.html` (ES). En F7: que `/es/*` reciba la ES y que las dos salgan con estado 404 real (⚠
+  verificar la configuración exacta de Vercel; si no se puede, plan B: una sola 404 EN también en cliente).
+- `robots.txt` y `sitemap.xml` los genera el build con `VITE_SITE_URL`: no hay copia estática en `public/`. Las
+  previews de Vercel suelen llevar `X-Robots-Tag: noindex` automático (⚠ comprobar con `curl -I`).
 - Variables en Vercel: `VITE_SITE_URL` en **Production, Preview y Development**, con «Sensitive» **apagado**
   (las variables `VITE_` acaban en el cliente y Vercel no deja marcarlas como secretas). Sin ella en Preview, el
   build de los PR falla a propósito.

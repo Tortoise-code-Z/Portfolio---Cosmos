@@ -40,7 +40,7 @@
 | Unitarios (Vitest) | Toda la lógica pura | `mapM`, suavizado, cámara, proyección, generadores de formas, elección de nivel, formato del HUD, `i18n`, builders de SEO, asignación de placas; invariantes de estilos (`src/styles/styles.test.ts`: tokens definidos, sin colores, duraciones ni familias literales, fundidos con `--dur-fade-*`, contraste AA) |
 | Contenido (Vitest) | Invariantes del contenido | Reglas de `docs/01-contenido/modelo-de-datos.md`; paridad de claves EN/ES; skills ↔ posiciones de constelación |
 | Componentes (Vitest + Testing Library) | Comportamiento visible | `HoldButton` (teclado y puntero), `CopyButton` (éxito y fallo), `ChapterRail` (`aria-current`), `QuickMissionDialog` (foco y Esc), `LanguageSwitch` (conserva ancla), `SceneMount` (pasa a sin WebGL ante error) |
-| Extremo a extremo (Playwright) | Recorridos reales en Chromium, Firefox y WebKit | Recruiter: home → Projects → página de Chessmate → código; misión rápida; cambio de idioma; detonación; WebGL desactivado; movimiento reducido; 404; cimientos visuales (`design-system.spec.ts`: fuentes y su precarga, eje `wdth`, foco, margen lateral, duraciones, reset); presupuesto de fuentes sobre el build (`budgets.spec.ts`) |
+| Extremo a extremo (Playwright) | Recorridos reales en Chromium, Firefox y WebKit | Recruiter: home → Projects → página de Chessmate → código; misión rápida; cambio de idioma; detonación; WebGL desactivado; movimiento reducido; 404; cimientos visuales (`design-system.spec.ts`: fuentes y su precarga, eje `wdth`, foco, margen lateral, duraciones, reset); presupuestos de fuentes y de JS inicial de la home sobre el build (`budgets.spec.ts`); SEO sobre el HTML real (`seo.spec.ts`: canónica, `hreflang`, Open Graph y JSON-LD de cada página, sitemap y robots, 404 por idioma) |
 | Regresión visual (Playwright + Docker) | Un estado por capítulo y por tamaño de referencia | Capturas en 1440×900 y 390×844, tolerancia de píxeles acordada |
 | Lighthouse CI | Rendimiento, accesibilidad, SEO | Presupuestos de abajo |
 
@@ -51,7 +51,7 @@
 
 | Métrica | Límite |
 |---|---|
-| JS inicial (sin escena), gzip | ≤ 120 KB |
+| JS inicial (sin escena), gzip | ≤ 120 KB · alarma propia, no requisito externo (lo que manda son los Core Web Vitals y Lighthouse del brief). E2E `budgets.spec.ts` sobre la home desde F2.3 (118,5 KB). Proyecto ~123 KB: se revisa en F2.4 (`loader` en build o ADR) |
 | Chunk de la escena, gzip | ≤ 250 KB |
 | Fuentes (todas, woff2 subconjunto latino) | ≤ 150 KB (e2e `budgets.spec.ts` desde F2; Lighthouse CI en F6) |
 | LCP móvil (simulado) | < 2,5 s |

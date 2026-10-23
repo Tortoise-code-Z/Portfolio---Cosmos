@@ -211,3 +211,24 @@
 - Consecuencias: el CI ya prueba los tres motores (Playwright). Fuera de ese rango la web puede verse peor, pero
   el contenido sigue legible (HTML pre-renderizado, P1). Se revisa en la actualización trimestral de `stack.md`.
 - Detalle: `docs/05-tecnico/stack.md` → «Navegadores soportados».
+
+## ADR-017 · `lib` importa de `content` solo sus tipos y los textos; los datos le llegan por parámetro
+- Estado: Aceptada
+- Fecha: 2026-10-23
+- Contexto: la tabla de capas decía «`lib` → `content` (tipos)», pero `useT` (en `lib/i18n`) necesita el valor
+  `uiTexts` y los builders de SEO necesitan perfil y proyectos. ESLint no lo vigilaba (solo bloqueaba otras capas).
+  Estudio EST-F2-3-2 y auditoría AUD-F2-2-P1.
+- Decisión: `lib` puede importar de `content` **`content/types`** (tipos y las constantes `DEFAULT_LOCALE` y
+  `LOCALES`) y **`content/texts`** (diccionarios de `useT`), y nada más. Los builders de `lib/seo` son funciones
+  puras que reciben el origen y los datos (`profile`, `project`, `skillGroups`) por parámetro; se los pasan las
+  rutas y `react-router.config.ts`. Una regla de `no-restricted-imports` en `src/lib/**` lo hace cumplir (también
+  con rutas relativas). Los módulos que carga `react-router.config.ts` usan imports relativos, porque ahí no existe
+  el alias `~/`.
+- Alternativas descartadas: que `lib` importe cualquier dato de `content` (acopla las utilidades al contenido real
+  y obliga a probarlas con él); que `lib` solo importe tipos y `root.tsx` pase el diccionario por un contexto (un
+  contexto solo para esquivar la regla).
+- Consecuencias: los tests de `lib/seo` usan datos de mentira (`lib/seo/fixtures.ts`) y el contenido real se
+  prueba en el e2e sobre el build (`tests/e2e/seo.spec.ts`). Los dos diccionarios (EN y ES) van en el JS inicial
+  (~3,4 KB gzip con `translate`).
+- Detalle: `docs/05-tecnico/arquitectura.md` → «Capas y reglas de dependencia» y «Rutas e idiomas»;
+  `eslint.config.js`.
