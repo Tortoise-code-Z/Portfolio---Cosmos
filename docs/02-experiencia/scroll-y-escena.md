@@ -34,12 +34,19 @@ para el capítulo i que contiene la posición y:
 
 Así, cada forma **se queda quieta** mientras lees la primera mitad de su capítulo y solo cambia en la segunda.
 
+La posición `y` es la de scroll y los capítulos se miden **bajo la barra fija**: cada uno empieza en el scroll que
+lo deja justo debajo (`max(0, inicio − barra)`, `toScrollLayout`). Un ancla da el índice exacto de su capítulo y,
+arriba del todo, `m` sigue siendo 0 (la barra no adelanta la explosión). Código: `src/lib/scroll/` (`mapM`,
+`useChapterLayout`, `useScrollTarget`) y `src/stores/sceneStore/`.
+
 ## Suavizado
 
 - `m` persigue al valor objetivo con un amortiguado exponencial: `m += (objetivo − m) · min(1, dt · k)`,
   con `k ≈ 3,4` (y `k ≈ 12` con movimiento reducido, que equivale a casi sin inercia).
 - El suavizado es **independiente de los fps** (usa `dt`). Por debajo de un umbral (`|objetivo − m| < 1e-4`)
   se iguala para no recalcular sin fin.
+- **Sin escena (hasta F3, y con WebGL desactivado) no hay suavizado:** `m` es el objetivo tal cual. Quienes lo
+  leen entonces (raíl, HUD, idioma) cambian a saltos, así que no lo necesitan.
 - No se usa scroll suavizado de terceros (Lenis, etc.): el scroll del navegador se respeta tal cual, solo se
   suaviza la escena. Así no se rompen la accesibilidad, los atajos de teclado ni la restauración del scroll.
 
@@ -56,7 +63,7 @@ Así, cada forma **se queda quieta** mientras lees la primera mitad de su capít
 | Elemento | Comportamiento |
 |---|---|
 | Raíl | Capítulo activo = `round(m)` |
-| HUD · reloj | Tiempo cósmico interpolado en escala logarítmica entre capítulos (0 → 1 → 2); `∞` en la tortuga; 13.800 Ma en la Tierra |
+| HUD · reloj | `t = 0 s` hasta `m` 0,004; después, tiempo cósmico interpolado en escala logarítmica entre capítulos (0 → 1 → 2): del tiempo de Planck (10⁻⁴³ s) a 200 Ma y a 1000 Ma, en segundos hasta 1 año y con 2 cifras significativas; 1000 Ma hasta `m` 2,5; `∞` de 2,5 a 3,5 (la tortuga es el capítulo activo); 13.800 Ma desde 3,5 |
 | HUD · escala | La del capítulo activo |
 | Hero · nombre | Ancho tipográfico de 62 a 150 (eje `wdth`) y espaciado al detonar; se va con el scroll |
 | Destello | Pico al principio de la explosión (`m` de 0 a 0,2) |

@@ -44,15 +44,20 @@
 | `chapter.4` | Contact · Earth | Contacto · Tierra |
 | `rail.label` | Chapters | Capítulos |
 
+Cada `chapter.N` es el nombre accesible del botón del raíl. Su texto visible se parte por « · »: la sección encima
+y la escena debajo (lo comprueba un test: exactamente una sección y una escena por clave).
+
 ## HUD (reloj cósmico y escala)
 
 Los números los formatea `Intl` según el idioma. En `hud.billionYears`, `{n}` va en miles de millones en EN
-(`13.8`) y en millones en ES (`13.800`), según la regla 5 de `README.md`.
+(`13.8`) y en millones en ES (`13.800`), según la regla 5 de `README.md`. En `hud.seconds`, `{exp}` es el
+exponente ya escrito en superíndice (`t = 10⁻⁴³ s`). El HUD pinta en ámbar el valor que inserta (`{n}` o
+`{exp}`); `hud.zero` y `hud.mythic` no llevan valor.
 
 | Clave | EN | ES |
 |---|---|---|
 | `hud.zero` | t = 0 s · singularity | t = 0 s · singularidad |
-| `hud.seconds` | t = 10^{exp} s | t = 10^{exp} s |
+| `hud.seconds` | t = 10{exp} s | t = 10{exp} s |
 | `hud.years` | t ≈ {n} years | t ≈ {n} años |
 | `hud.millionYears` | t ≈ {n} million years | t ≈ {n} millones de años |
 | `hud.billionYears` | t ≈ {n} billion years | t ≈ {n} millones de años |

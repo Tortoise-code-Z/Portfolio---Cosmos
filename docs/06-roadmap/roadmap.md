@@ -37,7 +37,8 @@ se abre. Etiqueta `v0.0.1`.
 3. i18n propio, rutas EN/ES, `meta`, `hreflang`, JSON-LD y `sitemap.xml`.
 4. Capítulos del viaje con su layout, paneles y textos (sin escena; punto de la singularidad en CSS).
 5. Mapeo de scroll (`mapM`) con tests; raíl, HUD y barra superior conectados.
-6. Modo misión rápida (incluido `/#quick`), copiar email, chip de disponibilidad, sugerencia de idioma.
+6. Modo misión rápida (incluido `/#quick` y su botón en la barra), copiar email, chip de disponibilidad en la barra,
+   sugerencia de idioma.
 7. Páginas de proyecto completas (galería con visor accesible) y 404.
 8. Imágenes de proyectos migradas desde el repo antiguo y optimizadas.
 
@@ -51,7 +52,8 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
 2. Utilidades puras (PRNG, ruido, hex) y generadores de las 4 formas en el worker, con sus tests.
 3. `Particles` con el shader de morph entre las 5 formas; estrellas de fondo.
 4. `CameraRig` con keyframes, encuadre por capítulo, FOV para móvil y paralaje.
-5. Puente `sceneStore` ↔ scroll; pausa con pestaña oculta y en misión rápida.
+5. Puente `sceneStore` ↔ scroll (el scroll ya escribe `mTarget` desde F2.5, ADR-021: la escena pasa a suavizar `m`);
+   pausa con pestaña oculta y en misión rápida.
 6. Primeras capturas de regresión visual (Docker) y medición de fps.
 
 **Hecho cuando:** el viaje se ve de punta a punta con las 5 formas, 60 fps en escritorio y sin errores con WebGL

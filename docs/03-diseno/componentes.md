@@ -51,20 +51,35 @@
 ## Navegación
 
 ### Barra superior (`TopBar`)
-- Fija, transparente, con el logo a la izquierda y las acciones a la derecha. Margen lateral de página.
-- El selector de idioma `EN / ES` es un par de enlaces; el activo, subrayado ámbar y `aria-current="true"`.
+- Fija, transparente con desenfoque de fondo (`--blur-chrome`), con el logo a la izquierda y las acciones a la
+  derecha. Margen lateral de página. Altura fija `--topbar-h` (64 px) más la zona segura de arriba.
+- Logo en mono 13 px (`--tracking-logo`); acciones en mono `--text-label` en mayúsculas. Todo con 44 px de alto.
+- El selector de idioma `EN / ES` (`LanguageSwitch`) es un par de enlaces en un grupo con nombre («Language»),
+  cada uno nombrado en su idioma («English», «Español», con `lang`); el activo, subrayado ámbar y
+  `aria-current="true"`.
+
+### Enlace de salto (`SkipLink`)
+- «Skip to content», mono `--text-label` en mayúsculas, ámbar sobre `--color-void` con borde ámbar. Fuera de la
+  vista (por encima de la ventana) hasta que recibe el foco; entonces aparece arriba a la izquierda, sobre la
+  barra (`--z-skip`).
 
 ### Chip de disponibilidad (`AvailabilityChip`)
 - Punto turquesa de 6 px que «respira» (opacidad, sin escala) + «Open to work». Borde `--color-faint`.
 - Con movimiento reducido el punto no respira.
 
 ### Raíl (`ChapterRail`)
-- Columna de 5 botones alineados a la derecha: texto (sección en 13 px + escena en mono 10 px) y punto de 7 px.
-- Activo: punto ámbar relleno, escala 1,4 y halo; texto opaco. Inactivos: texto al 45 %.
-- Por debajo de `--bp-md`: solo puntos, con `aria-label`.
+- Columna de 5 botones alineados a la derecha: texto (sección en Geologica 500 a 13 px + escena en mono 10 px,
+  `--text-nano`) y punto de 7 px. Los botones miden lo que el más ancho: los puntos forman una columna.
+- Activo: punto ámbar relleno, escala 1,4 y halo; texto opaco. Inactivos: texto al 45 % (`--opacity-muted`).
+- Nombre accesible = `aria-label` con el texto completo («About · Nebula»), también en escritorio.
+- Por debajo de `--bp-md`: solo puntos, cada botón de 44 × 44 px.
+- Solo se repinta cuando cambia el capítulo activo, no con cada píxel de scroll.
 
 ### HUD (`CosmicHud`)
-- Dos líneas en mono: reloj (13 px, valores en ámbar) y escala (11 px, `--color-dim`). `aria-hidden`.
+- Dos líneas en mono: reloj (13 px, valores en ámbar) y escala (11 px, `--color-dim`). `aria-hidden`, sin
+  puntero. El valor en ámbar es el número que se inserta (`200`, `⁻⁴³`); «t = 0 s» y «t = ∞» van sin ámbar.
+- Abajo a la derecha en escritorio, abajo a la izquierda por debajo de 900 px y oculto por debajo de 520 px.
+- Lee `m` por suscripción y escribe en el DOM solo cuando cambia su texto, sin re-renderizar.
 
 ## Escena ↔ interfaz
 
