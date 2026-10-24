@@ -59,4 +59,29 @@ describe('ActionLink', () => {
     expect(link).toHaveAttribute('download');
     expect(link).not.toHaveAttribute('target');
   });
+
+  it('internal with a leading icon draws it before the text', () => {
+    renderAt(
+      '/projects/chessmate',
+      <ActionLink href="/#projects" kind="internal" leadingIcon="arrow-left">
+        Back to the shell
+      </ActionLink>,
+    );
+    const link = screen.getByRole('link', { name: 'Back to the shell' });
+    expect(link.firstElementChild?.tagName.toLowerCase()).toBe('svg');
+    expect(link.querySelectorAll('svg')).toHaveLength(1);
+  });
+
+  it('mail: mailto in the same tab, without the new-tab notice', () => {
+    renderAt(
+      '/',
+      <ActionLink href="hello@example.com" kind="mail">
+        hello@example.com
+      </ActionLink>,
+    );
+    const link = screen.getByRole('link', { name: 'hello@example.com' });
+    expect(link).toHaveAttribute('href', 'mailto:hello@example.com');
+    expect(link).not.toHaveAttribute('target');
+    expect(link.querySelector('svg')).toBeNull();
+  });
 });

@@ -145,6 +145,10 @@
   /* ── Modo misión rápida ───────────────────────────────────────── */
   --quick-col-min: 280px;
 
+  /* ── Página de proyecto ───────────────────────────────────────── */
+  --project-col-min: 220px;
+  --note-border-width: 2px;
+
   /* ── Forma y profundidad ──────────────────────────────────────── */
   --border-width: 1px;
   --focus-width: 2px;

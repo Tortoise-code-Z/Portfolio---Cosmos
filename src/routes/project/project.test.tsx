@@ -2,47 +2,22 @@ import { render, screen } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
-import { projects } from '~/content/projects';
-import type { Project } from '~/content/types';
-
-import ProjectPage from './project';
-
-function projectBySlug(slug: string): Project {
-  const project = projects.find((candidate) => candidate.slug === slug);
-  if (project === undefined) throw new Error(`project.test: no hay proyecto «${slug}»`);
-  return project;
-}
-
-const chessmate = projectBySlug('chessmate');
-const astrohub = projectBySlug('astrohub');
+import ProjectRoute from './project';
 
 const Stub = createRoutesStub([
   { path: '/', Component: () => <p>home</p> },
-  { path: '/projects/:slug', Component: ProjectPage },
-  { path: '/es/projects/:slug', Component: ProjectPage },
+  { path: '/projects/:slug', Component: ProjectRoute },
+  { path: '/es/projects/:slug', Component: ProjectRoute },
 ]);
 
-describe('ProjectPage (mínima hasta F2.7)', () => {
-  it('nombre, tagline y resumen del proyecto en inglés', async () => {
-    render(<Stub initialEntries={['/projects/chessmate']} />);
-    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(chessmate.name);
-    expect(screen.getByText(chessmate.tagline.en)).toBeInTheDocument();
-    expect(screen.getByText(chessmate.summary.en)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Back to the shell' })).toHaveAttribute(
-      'href',
-      '/#projects',
-    );
-  });
-
-  it('nombre, tagline y resumen en español, con la vuelta a /es', async () => {
-    render(<Stub initialEntries={['/es/projects/astrohub']} />);
-    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(astrohub.name);
-    expect(screen.getByText(astrohub.tagline.es)).toBeInTheDocument();
-    expect(screen.getByText(astrohub.summary.es)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Volver al caparazón' })).toHaveAttribute(
-      'href',
-      '/es#projects',
-    );
+describe('ProjectRoute', () => {
+  it.each([
+    ['/projects/chessmate', 'Chessmate', 'About the project'],
+    ['/es/projects/astrohub', 'AstroHub', 'Sobre el proyecto'],
+  ])('%s → la página del proyecto en su idioma', async (path, name, about) => {
+    render(<Stub initialEntries={[path]} />);
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(name);
+    expect(screen.getByRole('heading', { level: 2, name: about })).toBeInTheDocument();
   });
 
   it.each([

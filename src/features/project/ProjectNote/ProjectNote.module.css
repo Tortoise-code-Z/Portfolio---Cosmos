@@ -1,0 +1,18 @@
+/* Nota de proyecto (docs/03-diseno/componentes.md → «Nota de proyecto (ProjectNote)»). */
+.note {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-inline-start: var(--note-border-width) solid var(--color-aurora);
+  color: var(--color-aurora);
+}
+
+.note[data-kind='warning'] {
+  border-color: var(--color-star);
+  color: var(--color-star);
+}
+
+.text {
+  color: var(--color-ink-soft);
+}

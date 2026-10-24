@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react';
-import { Link, useLocation, useParams } from 'react-router';
+import { useLocation, useParams } from 'react-router';
 
 import { profile } from '~/content/profile';
 import { projects } from '~/content/projects';
 import type { Project } from '~/content/types';
 import { NotFoundPage } from '~/features/errors/NotFoundPage/NotFoundPage';
+import { ProjectPage } from '~/features/project/ProjectPage/ProjectPage';
 import { SITE_ORIGIN } from '~/lib/env/site/site';
 import { localeFromPathname } from '~/lib/i18n/locale/locale';
-import { homePath, isLowerCasePathname } from '~/lib/i18n/paths/paths';
-import { useLocale, useT } from '~/lib/i18n/useT/useT';
+import { isLowerCasePathname } from '~/lib/i18n/paths/paths';
 import { notFoundMeta, projectMeta } from '~/lib/seo/meta/meta';
 
 import type { Route } from './+types/project';
@@ -30,25 +30,16 @@ export function meta({ location, params }: Route.MetaArgs): Route.MetaDescriptor
     : projectMeta({ origin: SITE_ORIGIN, locale, profile, project });
 }
 
-// Página mínima: nombre, tagline, resumen y vuelta al caparazón. F2.7 la completa
-// sin tocar la meta. Los datos van en el JS de esta ruta (deuda en STATE.md: se mide en F2.4).
-export default function ProjectPage(): ReactNode {
-  const t = useT();
-  const locale = useLocale();
+/**
+ * La página de un proyecto (`features/project/ProjectPage`), o la 404 del idioma si el slug no existe o
+ * la ruta lleva mayúsculas.
+ */
+export default function ProjectRoute(): ReactNode {
   const { pathname } = useLocation();
   const project = findProject(pathname, useParams().slug);
 
   // Slug desconocido o ruta con mayúsculas: la misma página que la 404, sin lanzar error.
   if (project === undefined) return <NotFoundPage />;
 
-  return (
-    <main>
-      <h1>{project.name}</h1>
-      <p>{project.tagline[locale]}</p>
-      <p>{project.summary[locale]}</p>
-      <p>
-        <Link to={`${homePath(locale)}#projects`}>{t('project.back')}</Link>
-      </p>
-    </main>
-  );
+  return <ProjectPage project={project} />;
 }

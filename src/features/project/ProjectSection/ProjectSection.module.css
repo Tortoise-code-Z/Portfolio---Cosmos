@@ -1,0 +1,19 @@
+/* Sección de la página de proyecto (docs/02-experiencia/pagina-proyecto.md → «Estructura»). */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  /* Una URL o una palabra larga se parte antes que provocar scroll lateral (texto al 200 %). */
+  overflow-wrap: anywhere;
+}
+
+/* El h2 de la página va con la escala de h3: el display grande es solo el nombre del proyecto (h1). */
+.title {
+  font-size: var(--text-h3);
+  font-stretch: var(--wdth-h3);
+  line-height: var(--leading-h3);
+}
+
+.section p {
+  max-inline-size: var(--measure);
+}
