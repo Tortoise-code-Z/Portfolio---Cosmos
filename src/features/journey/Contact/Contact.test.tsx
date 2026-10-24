@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -44,6 +44,24 @@ describe('Contact', () => {
     const email = within(region).getByRole('link', { name: 'victorperez.brmte@passmail.com' });
     expect(email).toHaveAttribute('href', 'mailto:victorperez.brmte@passmail.com');
   });
+
+  it.each([
+    ['/', 'Copy email'],
+    ['/es', 'Copiar el email'],
+  ])(
+    '%s: a copy button next to the email, which it selects when the clipboard fails',
+    (path, name) => {
+      const region = renderAt(path);
+      const button = within(region).getByRole('button', { name });
+      const email = within(region).getByRole('link', { name: profile.contact.email });
+      expect(email.parentElement).toBe(button.parentElement);
+      // Sin portapapeles en jsdom: el botón cae en «selecciónalo», sobre el email de este capítulo.
+      fireEvent.click(button);
+      expect(window.getSelection()?.toString()).toBe(profile.contact.email);
+      expect(email).toHaveAttribute('id', 'contact-email');
+      window.getSelection()?.removeAllRanges();
+    },
+  );
 
   it.each([
     ['/', 'Open to work', 'Remote, hybrid, or on-site', 'Open to relocation', 'Killarney, Ireland'],
