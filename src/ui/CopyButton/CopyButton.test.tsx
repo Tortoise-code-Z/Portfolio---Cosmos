@@ -135,4 +135,18 @@ describe('CopyButton', () => {
     await flush();
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it('copying again before 1.8 s announces it again (a new node in the live region)', async () => {
+    mockClipboard(() => Promise.resolve());
+    const button = setup();
+    fireEvent.click(button);
+    await flush();
+    const first = screen.getByRole('status').firstElementChild;
+    expect(first).toHaveTextContent('Copied');
+    fireEvent.click(button);
+    await flush();
+    const second = screen.getByRole('status').firstElementChild;
+    expect(second).toHaveTextContent('Copied');
+    expect(second).not.toBe(first);
+  });
 });

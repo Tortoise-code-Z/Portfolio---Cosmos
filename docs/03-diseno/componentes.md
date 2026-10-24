@@ -55,8 +55,10 @@
 - Un `ButtonOutline`. Estados de texto: Copy → Copied (1,8 s) / Select and copy it (también 1,8 s).
 - Nombre accesible con lo que copia («Copy email»: el sujeto va oculto a la vista).
 - Si el portapapeles no existe (http) o lo rechaza, selecciona el texto (el email) para copiarlo a mano.
-- El resultado se anuncia en una región `role="status"` aparte; el foco no se mueve. Lo usan Contacto y el modo
-  misión rápida, cada uno con su email.
+- El resultado se anuncia en una región `role="status"` aparte; el foco no se mueve. Cada intento pinta el mensaje
+  en un nodo nuevo: copiar dos veces seguidas se anuncia dos veces. Etiquetas comunes `copy.*`
+  (textos-sitio.md → «Botón copiar»). Lo usan Contacto y el modo misión rápida (el email) y el «Try it» de la ficha
+  (usuario y contraseña de las cuentas de demo).
 
 ## Navegación
 

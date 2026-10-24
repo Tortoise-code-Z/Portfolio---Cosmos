@@ -10,7 +10,7 @@ import {
   useUiStore,
 } from '~/stores/uiStore/uiStore';
 
-import { QUICK_OPENER_ID } from '../quickMission/quickMission';
+import { QUICK_OPENER_ID } from '../quickMission';
 import { QuickMissionDialog } from './QuickMissionDialog';
 
 /**
@@ -135,6 +135,40 @@ describe('QuickMissionDialog', () => {
       fireEvent(window, new HashChangeEvent('hashchange'));
     });
     expect(isOpen()).toBe(true);
+  });
+
+  it('opened by typing #quick in the address (hashchange), closing gives back the anchor it had', () => {
+    window.history.replaceState(null, '', '/#projects');
+    renderDialog();
+    act(() => {
+      window.history.pushState(null, '', '/#quick');
+      fireEvent(
+        window,
+        new HashChangeEvent('hashchange', {
+          oldURL: 'http://localhost/#projects',
+          newURL: 'http://localhost/#quick',
+        }),
+      );
+    });
+    expect(isOpen()).toBe(true);
+    act(() => {
+      dialogElement().close();
+    });
+    expect(address()).toBe('/#projects');
+  });
+
+  it('Back while open (the anchor stops being #quick) closes it, with the focus on the bar button', () => {
+    window.history.replaceState(null, '', '/#quick');
+    renderDialog();
+    expect(isOpen()).toBe(true);
+    act(() => {
+      window.history.replaceState(null, '', '/#about');
+      fireEvent(window, new HashChangeEvent('hashchange', { oldURL: 'http://localhost/#quick' }));
+    });
+    expect(isOpen()).toBe(false);
+    expect(dialogElement()).not.toHaveAttribute('open');
+    expect(address()).toBe('/#about');
+    expect(document.getElementById(QUICK_OPENER_ID)).toHaveFocus();
   });
 
   it('closing from the store (not from the dialog) closes the <dialog> as well', () => {

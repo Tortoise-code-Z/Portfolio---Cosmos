@@ -243,7 +243,8 @@
   van en una carpeta con ese nombre y conservan el suyo: `lib/seo/meta/meta.ts` + `lib/seo/meta/meta.test.ts`.
   Sin `index.ts`: se importa la ruta completa (`~/lib/seo/meta/meta`). Vale para `src/` y `tests/`; un archivo
   sin pareja se queda suelto y los docs no entran. Se migró todo lo existente (18 parejas). `src/structure.test.ts`
-  falla si vuelve a haber una pareja suelta. **Excepción** (añadida el 2026-10-23, al corregir la auditoría de F2 · paso 3):
+  falla si vuelve a haber una pareja suelta y, desde el 2026-10-24, también si un archivo está solo en una carpeta
+  con su nombre (va suelto). **Excepción** (añadida el 2026-10-23, al corregir la auditoría de F2 · paso 3):
   `src/root.tsx`, cuyo nombre y sitio fija React Router, lleva su test al lado (`src/root.test.tsx`); nada más
   puede formar pareja con él.
 - Alternativas descartadas: `index.ts` en cada carpeta (imports más cortos, pero un archivo más por carpeta, dos

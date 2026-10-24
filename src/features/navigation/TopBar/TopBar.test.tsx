@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { selectQuickMissionOpen, useUiStore } from '~/stores/uiStore/uiStore';
 
-import { QUICK_OPENER_ID } from '../quickMission/quickMission';
+import { QUICK_OPENER_ID } from '../quickMission';
 import { TopBar } from './TopBar';
 
 /** Perfil real con el CV como interruptor. */

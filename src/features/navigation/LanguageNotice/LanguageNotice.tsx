@@ -18,6 +18,14 @@ import styles from './LanguageNotice.module.css';
 export const LANGUAGE_NOTICE_KEY = 'cosmos.languageNotice';
 const ANSWERED = 'answered';
 
+/**
+ * Apunta que ya se contestó. Lo usan el propio aviso y el selector `EN / ES`: elegir idioma a mano es
+ * una respuesta explícita y el aviso no vuelve a ofrecer el otro.
+ */
+export function rememberLanguageAnswer(): void {
+  writeStorage(LANGUAGE_NOTICE_KEY, ANSWERED);
+}
+
 /** Ni el idioma del navegador ni lo guardado avisan de sus cambios: basta con leerlos al hidratar. */
 function noSubscription(): () => void {
   return () => undefined;
@@ -55,7 +63,7 @@ export function LanguageNotice({ pathFor }: LanguageNoticeProps): ReactNode {
   const target = answered ? null : suggested;
 
   function answer(): void {
-    writeStorage(LANGUAGE_NOTICE_KEY, ANSWERED);
+    rememberLanguageAnswer();
     setAnswered(true);
   }
 

@@ -90,6 +90,29 @@ test.describe('quick mission', () => {
     await expect(opener(page, 'Modo misión rápida')).toBeFocused();
   });
 
+  test('#quick typed in the address: Esc gives back the old anchor, and Back closes it', async ({
+    page,
+  }) => {
+    await page.goto('/#projects', { waitUntil: 'networkidle' });
+    // Un cambio de ancla en el mismo documento: entrada nueva en el historial y `hashchange`.
+    await page.evaluate(() => {
+      window.location.hash = '#quick';
+    });
+    await expect(quickDialog(page)).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(quickDialog(page)).toBeHidden();
+    await expect(page).toHaveURL(/\/#projects$/);
+
+    await page.evaluate(() => {
+      window.location.hash = '#quick';
+    });
+    await expect(quickDialog(page)).toBeVisible();
+    await page.goBack();
+    await expect(page).toHaveURL(/\/#projects$/);
+    await expect(quickDialog(page)).toBeHidden();
+    await expect(opener(page)).toBeFocused();
+  });
+
   test('Tab stays inside while it is open (the page behind is inert)', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await opener(page).click();

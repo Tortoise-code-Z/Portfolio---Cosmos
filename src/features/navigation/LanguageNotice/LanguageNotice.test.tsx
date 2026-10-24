@@ -99,7 +99,16 @@ describe('LanguageNotice', () => {
     expect(window.localStorage.getItem(LANGUAGE_NOTICE_KEY)).not.toBeNull();
   });
 
-  it('without storage (private window), it still shows and hides; it just forgets', async () => {
+  it('without storage (private window), it still shows and hides, and keeps the answer until a reload', async () => {
+    // Módulos recién cargados: lo que `lib/storage` recuerda en memoria no pasa a otros tests.
+    vi.resetModules();
+    const { LanguageNotice: FreshNotice } = await import('./LanguageNotice');
+    const renderFresh = (): (() => void) =>
+      render(
+        <MemoryRouter initialEntries={['/']}>
+          <FreshNotice />
+        </MemoryRouter>,
+      ).unmount;
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new DOMException('blocked', 'SecurityError');
     });
@@ -107,8 +116,13 @@ describe('LanguageNotice', () => {
       throw new DOMException('blocked', 'SecurityError');
     });
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    renderNotice();
+    const unmount = renderFresh();
     await userEvent.click(screen.getByRole('button', { name: 'No, gracias' }));
+    expect(notice()).toBeEmptyDOMElement();
+
+    // Ir a un proyecto y volver monta el aviso otra vez: no vuelve a salir.
+    unmount();
+    renderFresh();
     expect(notice()).toBeEmptyDOMElement();
   });
 });

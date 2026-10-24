@@ -10,7 +10,7 @@ import { ButtonOutline } from '~/ui/ButtonOutline/ButtonOutline';
 import { AvailabilityChip } from '../AvailabilityChip/AvailabilityChip';
 import { chapterHref, onChapterLinkClick } from '../goToChapter/goToChapter';
 import { LanguageSwitch } from '../LanguageSwitch/LanguageSwitch';
-import { QUICK_OPENER_ID } from '../quickMission/quickMission';
+import { QUICK_OPENER_ID } from '../quickMission';
 import styles from './TopBar.module.css';
 
 /** Logotipo (docs/03-diseno/design-system.md → «Logotipo»): la marca, igual en los dos idiomas. */
