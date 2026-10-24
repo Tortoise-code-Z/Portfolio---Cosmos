@@ -68,7 +68,7 @@
   `--topbar-h` (64 px) más la zona segura de arriba.
 - Logo en mono 13 px (`--tracking-logo`); acciones en mono `--text-label` en mayúsculas. Todo con 44 × 44 px como
   mínimo. Si falta sitio, solo el logo cede (se recorta con «…»); las acciones no encogen.
-- Orden: logo · chip de disponibilidad (desde md) · Projects · Contact (desde md) · CV · EN / ES · «Quick mission».
+- Orden: logo · chip de disponibilidad (desde md) · Projects y Contact (desde md) · CV · EN / ES · «Quick mission».
 - «Quick mission» es un `ButtonOutline` (`aria-haspopup="dialog"`). Por debajo de sm (520 px) enseña la forma
   corta (`nav.quickShort`: «Quick», «Rápida»), que cabe a 390 px con el texto al 200 %.
 - **Texto ampliado:** la barra es un contenedor (`container: topbar`). El chip pide además que la barra mida
@@ -146,9 +146,11 @@
 - Cabecera: «Quick mission · everything on one page» en mono atenuado y «Back to the journey» (`ButtonOutline`).
   Se queda fija arriba al hacer scroll (`position: sticky`, sobre `--color-void` opaco y con la zona segura libre).
   El nombre del diálogo es el título; el rótulo va en `aria-describedby` (el lector dice los dos al abrir).
-  Ocupa también el hueco de la barra de scroll que reserva la página (`100vw`). Título `h2` «Víctor Pérez · Frontend Developer» (escala de `h3` por debajo de sm) y secciones con su `h3` en mono
-  ámbar: About (bio y fortalezas), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Skills, Education,
-  Availability (si `openToWork`) y Contact (email con su `CopyButton`, GitHub, LinkedIn, CV).
+  Ocupa también el hueco de la barra de scroll que reserva la página (`100vw`).
+- Título `h2` «Víctor Pérez · Frontend Developer» (escala de `h3` por debajo de sm) y secciones con su `h3` en mono
+  ámbar: About (bio y fortalezas), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Skills, Education
+  (título, centro, periodo y horas; las habilidades de cada curso solo en Contacto), Availability (si
+  `openToWork`) y Contact (email con su `CopyButton`, GitHub, LinkedIn, CV).
 - Marcado propio y compacto: lee `src/content/` como los capítulos, pero no reutiliza sus componentes (ADR-022).
 
 ### Visor de galería (`Lightbox`)

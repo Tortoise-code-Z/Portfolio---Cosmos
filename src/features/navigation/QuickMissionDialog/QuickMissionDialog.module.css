@@ -1,7 +1,7 @@
 /*
  * Modo misión rápida (docs/03-diseno/componentes.md → «Modo misión rápida»): `<dialog>` modal a
  * pantalla completa sobre un velo casi opaco (`--color-veil-dialog`), con su propio scroll. Entra con
- * un fundido (docs/03-diseno/movimiento.md → diálogos).
+ * un fundido (docs/03-diseno/movimiento.md → Tokens, `--dur-fade-slow`).
  */
 .dialog {
   position: fixed;

@@ -76,8 +76,8 @@ sube a mitad de visita para no causar tirones). Valores en `docs/04-escena/`.
 7. Las listas sin viñetas declaran `role="list"`: Safari quita el rol a un `<ul>` o `<ol>` con `list-style: none` y
    VoiceOver deja de anunciar «lista, 3 elementos». ESLint (`jsx-a11y-x/no-redundant-roles`) lo permite en `<ul>`
    y `<ol>` (el raíl), también dentro de `<nav>`.
-8. Saltos que mueven la vista (la detonación del hero, el raíl, Projects y Contact de la barra, el logo y «Skip to
-   content») llevan también el foco al título del destino (`tabindex="-1"` y `focus({ preventScroll: true })`),
+8. Saltos que mueven la vista (la detonación del hero, el raíl, Projects y Contact de la barra, el chip «Open to
+   work», el logo y «Skip to content») llevan también el foco al título del destino (`tabindex="-1"` y `focus({ preventScroll: true })`),
    como un enlace de salto. Límite conocido: en modo
    exploración, NVDA y JAWS activan con un clic sintético, que el botón de mantener ignora (un clic corto no hace
    nada); esos usuarios avanzan por encabezados. Se revisa con NVDA en F6.

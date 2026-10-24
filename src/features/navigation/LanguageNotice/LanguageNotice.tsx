@@ -26,7 +26,10 @@ export function rememberLanguageAnswer(): void {
   writeStorage(LANGUAGE_NOTICE_KEY, ANSWERED);
 }
 
-/** Ni el idioma del navegador ni lo guardado avisan de sus cambios: basta con leerlos al hidratar. */
+/**
+ * El idioma del navegador (`languagechange`) y lo guardado (`storage`) no se escuchan a propósito: basta con
+ * leerlos al hidratar (contestar en otra pestaña se nota al recargar).
+ */
 function noSubscription(): () => void {
   return () => undefined;
 }

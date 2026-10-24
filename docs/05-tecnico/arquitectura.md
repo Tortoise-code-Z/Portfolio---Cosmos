@@ -213,5 +213,6 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   `src/root.test.tsx` lo comprueba para cada ruta de `routes.ts`.
 - `ErrorBoundary` propio de la escena (aislado: un fallo 3D nunca tumba la página).
 - `CopyButton` y similares: siempre con alternativa (seleccionar texto) y mensaje.
-- Nada de `catch` vacíos: todo error capturado se registra con contexto (`console.error` en desarrollo y
-  producción; sin datos personales) o se muestra al usuario si le afecta.
+- Nada de `catch` vacíos: todo error capturado se registra con contexto y sin datos personales (en desarrollo y
+  producción) o se muestra al usuario si le afecta. `console.error` para los fallos; `console.warn` para las
+  degradaciones previstas que la interfaz ya cubre (portapapeles que rechaza, `localStorage` bloqueado).
