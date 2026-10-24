@@ -3,55 +3,58 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** F2 · paso 7 en `main` (PR #27, `b350dad`) · **AUD-F2-6 decidida, sin corregir** · la Mesa
-audita **AUD-F2-7** (lanzada, sin entrega) · siguiente: corregir AUD-F2-6 en `fix/aud-f2-6`.
+**Dónde estamos:** F2 · paso 7 en `main` y **AUD-F2-6 corregida** (PR #29, `2746f2a`) · **AUD-F2-7 entregada, sin
+decidir** · siguiente: Víctor elige qué se corrige de AUD-F2-7 y se corrige en `fix/aud-f2-7`.
 
-_Última actualización: 2026-10-24 (**CIERRE DE SESIÓN · 12**) · F2.7 hecho en 5 commits (PR #27, squash): 404
-maquetada, página de proyecto completa, galería con visor accesible, la interfaz fija en la ficha y la vuelta al
-viaje con el foco en la fila; sin ADR nuevo. 710 unitarios y 130 e2e en Chromium._
+_Última actualización: 2026-10-24 (**CIERRE DE SESIÓN · 13**) · AUD-F2-6 corregida entera en 5 commits (PR #29,
+squash): los 20 hallazgos y P1-C, P2-A, P3-B, P4-A, P5-A, P6-A, más un arreglo para Firefox que pidió el CI; sin ADR
+nuevo (una línea en ADR-018). 727 unitarios y 139 e2e en Chromium; CI en verde en los tres navegadores._
 
-**Hecho esta sesión** (vivas S12 en `_claude/cadena/hecho/2026-10-24/decisiones-vivas-S12.md`):
-1. **404** (`618e27f`): `NotFoundPage` pasa a `features/errors/` y se maqueta (centrada, corchetes de esquina,
-   título, frase y «Back to the start»).
-2. **Ficha de proyecto** (`0300f38`): `features/project/` (ProjectPage, ProjectHeader, ProjectSection,
-   ProjectStack, ProjectNote, ProjectTryIt, ProjectPager y `neighbours`), `ui/ArrowText` (las «→» con el icono),
-   `ActionLink` con `kind="mail"` y `leadingIcon`, iconos `arrow-left`, `info`, `warning`; tokens
-   `--project-col-min` y `--note-border-width`. Las secciones sin datos no se pintan; anterior/siguiente **sin
-   vuelta**; cuentas de demo con un copiar por dato («Copy password (Admin)») en una rejilla con `subgrid`.
-3. **Galería y visor** (`aeaf27c`): `ui/Lightbox` (modal nativo, foco en «Close», ← → con vuelta, Esc, anuncio
-   «3 of 9: alt», foco de vuelta a la miniatura) y `ProjectGallery`; token `--gallery-thumb-ratio`. Probado en
-   Chromium con imágenes temporales; las galerías siguen vacías hasta F2.8.
-4. **Interfaz fija en la ficha y vuelta** (`5e006e5`): SkipLink (`targetId` → nombre del proyecto), TopBar,
-   misión rápida y sugerencia de idioma; `pathFor` hace que EN / ES y la sugerencia lleven al mismo proyecto.
-   `uiStore.visitedProject` + `takeVisitedProject`: al volver (Atrás, «Back to the shell» o «Projects»), el foco
-   queda en la fila del proyecto visto. Arreglo: la misión rápida ya no se reabre en la página a la que lleva uno
-   de sus enlaces. e2e nuevo `tests/e2e/project-page.spec.ts`.
-5. **Docs** (`ec60c92`): pagina-proyecto, navegacion, estados-y-accesibilidad, componentes, design-system,
-   textos-sitio, arquitectura y roadmap; e2e de la 404 con una sola hoja de estilos.
-6. **AUD-F2-6** entregada y decidida (vivas S12 #25): corrige 1–20 con las opciones recomendadas y responde
-   P1-C, P2-A, P3-B, P4-A, P5-A, P6-A. **AUD-F2-7** lanzada.
+**Hecho esta sesión** (vivas S13 en `_claude/cadena/hecho/2026-10-24/decisiones-vivas-S13.md`):
+1. **Letra grande y foco** (`5054d72`): la barra es un contenedor (`container: topbar`); el chip pide además 52em y
+   la etiqueta larga de «Quick mission» 28em (con el texto al 100 % mandan md y sm). Mientras se ve el aviso de
+   idioma, su alto (`--_notice-h`, `useHeightVar(…, 'root')`) amplía el `scroll-padding` de abajo y el final de la
+   página. `ButtonOutline` parte su texto en vez de salirse. `scrollbar-gutter: stable` en `:root`; el modo usa
+   `100vw`. Cabecera del modo fija (`--color-void`) y el rótulo como `aria-describedby`.
+2. **Lógica** (`2119c28`): el modo abierto por un cambio de ancla devuelve el ancla de antes y Atrás lo cierra;
+   `quickMission.ts` suelto (ADR-018; `structure.test.ts` caza una carpeta con un solo archivo de su nombre);
+   `lib/storage` recuerda en memoria lo que no pudo guardar y avisa una vez por clave; `CopyButton` anuncia cada
+   intento (`key`) y usa `copy.idle/copied/failed`; elegir idioma con EN / ES contesta el aviso
+   (`rememberLanguageAnswer`).
+3. **Tests** (`e752b10`): Tab del modo con `:modal` y cruzando los dos bordes, temporizador y StrictMode de
+   `CopyButton`, el aviso el último en el Tab (viaje y ficha), sin portapapeles explícito, negativas e2e tras hidratar,
+   44 px de los controles de F2.6. Cada uno, comprobado rompiendo el código.
+4. **Docs** (`422c1c3`): `console.error`/`warn` en arquitectura, ADR-006, tres comentarios, componentes,
+   design-system, estados-y-accesibilidad, `calidad.md` (nombra ya los e2e de F2.6 y F2.7) y `01-nebulosa.md`.
+5. **Firefox** (último commit del PR): Firefox no mira el `scroll-padding` si lo enfocado ya está en la ventana,
+   aunque quede bajo el aviso; `Notice` sube la página lo justo tras cada `focusin` (en Chromium no hace nada).
+6. **AUD-F2-7** entregada por la Mesa: 7 recomendados, 16 menores y P1–P5. Sin decidir.
 
 **Incidencias y lecciones:**
 - Método de siempre en el contenedor (Node 24 de `node-linux-x64`, enlaces `chromium*-1248 → -1243`, `.env`), clon
-  de GitHub; cada commit se pasó con un `tar` a `_claude/cadena/tmp/arbol-s12-cN.tar.gz`, `cat > destino` en el
-  equipo y `git hash-object` por archivo contra una lista de blobs (`cN.blobs`). `HEAD^{tree}` igual tras cada
-  commit. Los avisos de `tar` («time stamp in the future») son inofensivos.
-- Se trabajó un commit por delante: mientras Víctor commiteaba el N, el N+1 se preparaba en el contenedor, sin tocar
-  su carpeta hasta el «commit hecho».
-- **`pkill -f "vite preview"` vuelve a matar la shell del contenedor**: arrancar el preview con `setsid` y dejarlo.
-- **Montar el mismo diálogo en dos rutas** hereda su estado de Zustand al navegar: el `useLayoutEffect` de la página
-  nueva corre antes que la limpieza de la vieja. Lo cazó un e2e que ya existía.
-- `display: contents` en `dl`/`dd` puede quitar la semántica: para alinear columnas entre listas se usó `subgrid`.
-- En jsdom el espacio final dentro de un `VisuallyHidden` se pierde en el nombre accesible: el espacio va fuera.
-  jsdom trata un `<header>` dentro de `<main>` como `banner` (el navegador no).
-- El aviso de «push» del contenedor tras el merge se resuelve alineando la copia con `origin/main`; nunca se sube
-  desde allí.
+  de GitHub; cada commit pasado con `tar` a `_claude/cadena/tmp/arbol-s13-cN.tar.gz`, `cat > destino` y
+  `git hash-object` contra `s13-cN.blobs`; `HEAD^{tree}` igual tras cada commit. Un archivo movido: Víctor hace el
+  `git rm` del viejo (la sesión no borra en su equipo).
+- **El contenedor no tiene Firefox ni WebKit** (no se pueden instalar): lo que dependa del scroll al enfocar o de la
+  barra de scroll, mirarlo en el CI antes de dar un paso por cerrado. Para imitar a Firefox en Chromium sirve
+  `focus({ preventScroll: true })`.
+- **Chromium headless reserva el hueco de `scrollbar-gutter: stable`** (15 px) aunque oculte las barras: medir
+  centrados contra un `position: fixed; inset: 0` y no contra `innerWidth`. El salto lateral en sí no se ve allí.
+- Los umbrales en `em` de una auditoría se miden antes de aplicarlos: los propuestos (66em/35em) habrían quitado el
+  chip con el texto al 100 % entre 900 y ~1100 px. Un barrido de anchos × tamaños de letra lo resolvió.
+- Estado de módulo (`lib/storage`): los tests lo aíslan con `vi.resetModules()` e `import()` dinámico.
+- El preview del contenedor puede morir entre turnos: relanzarlo con `setsid`. El aviso de «push» del contenedor se
+  ignora (nunca se sube desde allí).
 
 **Deuda anotada:**
-- **AUD-F2-6** (decidida, sin corregir): lista completa en `_claude/cadena/hecho/2026-10-24/aud-f2-6/auditoria.md`.
-  Al corregir, contrastar con `b350dad`: F2.7 ya tocó QuickMissionDialog, SkipLink, TopBar y LanguageNotice, y
-  reutiliza `CopyButton` (claves `contact.*`, P4) en Try it; el arreglo 9 («Selecciónalo y cópialo» al 200 %) y el
-  2 (el aviso tapa el foco) valen también para la ficha. `calidad.md` sigue sin nombrar los e2e de F2.6 y F2.7.
+- **AUD-F2-7** (entregada, sin decidir): `_claude/cadena/aud-f2-7/auditoria.md`. Al corregir, contrastar con
+  `2746f2a`: de su hallazgo 23 ya están la memoria de `lib/storage`, el hueco de la barra de scroll (vale para el
+  visor), el aviso el último en el Tab en la ficha, el foco bajo el aviso en la ficha y `project-page.spec.ts` en
+  `calidad.md`; faltan el e2e de la barra al 200 % en una ficha, los 44 px de la ficha, asentar la posición en el e2e
+  de Atrás y el test nuevo de `seo.spec.ts` en `calidad.md`. Su 17 (`ui/Lightbox` con claves `project.gallery.*`)
+  sigue el camino de `copy.*`.
+- **Windows/Edge:** comprobar a mano que abrir y cerrar «Quick mission» no hace saltar la página de lado
+  (`scrollbar-gutter`), si no se hizo antes del merge.
 - **F2.8:** e2e del visor con las imágenes reales; portadas y galerías (se pintan solas al tener datos).
 - **F5:** la placa iluminada al volver lee `uiStore.visitedProject` (el mismo dato del foco en la fila).
 - En el visor y en la misión rápida (modal nativo), el Tab puede pasar por la interfaz del navegador antes de volver
@@ -88,17 +91,15 @@ viaje con el foco en la fila; sin ADR nuevo. 710 unitarios y 130 e2e en Chromium
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **Corregir AUD-F2-6** en `fix/aud-f2-6` (esquema → VB): los 20 hallazgos con las opciones recomendadas y P1-C,
-   P2-A, P3-B, P4-A, P5-A, P6-A (vivas S12 #25), contrastando cada uno con `b350dad`.
-3. **AUD-F2-7** (base `1e9fbd8` · hasta `b350dad`; entrega en `_claude/cadena/aud-f2-7/auditoria.md`, citará las
-   vivas S12): cuando llegue, Víctor elige qué se corrige.
+2. **Decidir AUD-F2-7** (Víctor): qué se corrige de 1–23 y P1–P5 (recomendadas: P1-C, P2-C, P3-A, P4-B, P5-C).
+3. Corregirla en `fix/aud-f2-7` (esquema → VB), contrastando cada hallazgo con `2746f2a`.
 4. Después, **F2 · paso 8**: imágenes de proyectos (portada y galería) y e2e del visor con ellas.
 
 **Dudas abiertas:** D2 · dominio propio (F7) · D5 · analítica (F7) · Tareas de Víctor: script de consola en el README
 de Chessmate (lo cita el «Try it»), CV en PDF EN/ES, capturas de los proyectos (F2.8).
 **Limpieza manual del usuario:** ramas locales ya fusionadas: `git branch -D feat/scroll-nav-hud
 docs/session-close-2026-10-23-4 docs/session-close-2026-10-23-5 fix/aud-f2-5 docs/session-close-2026-10-24
-feat/quick-mission docs/session-close-2026-10-24-2 feat/project-page` (y `docs/session-close-2026-10-24-3` cuando se
-fusione). En el buzón se pueden borrar `_claude/cadena/tmp/arbol*.tar.gz` y `_claude/cadena/tmp/c*.blobs` y, dentro
-de `_claude/cadena/hecho/`, los `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`). ·
-**Bloqueos:** ninguno.
+feat/quick-mission docs/session-close-2026-10-24-2 feat/project-page docs/session-close-2026-10-24-3 fix/aud-f2-6`
+(y `docs/session-close-2026-10-24-4` cuando se fusione). En el buzón se pueden borrar `_claude/cadena/tmp/arbol*.tar.gz`,
+`_claude/cadena/tmp/*.blobs` y `_claude/cadena/tmp/STATE-cierre-s12.md` y, dentro de `_claude/cadena/hecho/`, los
+`arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`). · **Bloqueos:** ninguno.
