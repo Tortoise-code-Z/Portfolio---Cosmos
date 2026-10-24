@@ -329,3 +329,20 @@
   capítulo) y el recorrido con Tab de `journey.spec.ts` (nada enfocado debajo de la barra).
 - Detalle: `docs/02-experiencia/scroll-y-escena.md`, `docs/02-experiencia/navegacion.md` y
   `docs/05-tecnico/arquitectura.md` → «Puente scroll → escena».
+
+## ADR-022 · Entre features, solo contratos sin React en un módulo propio
+- Estado: Aceptada
+- Fecha: 2026-10-24
+- Contexto: la navegación (`features/navigation`: raíl, barra, «Skip to content») necesita saber cómo se
+  encuentran los capítulos del viaje en el DOM y el id del nombre, que define `features/journey`. Los importaba de
+  los componentes `ChapterSection` y `Hero`: el primer import entre features, que la tabla de capas no regulaba, y
+  `SkipLink` arrastraba el módulo entero del Hero.
+- Decisión: una feature no importa componentes de otra. Lo que comparten es un contrato (constantes y funciones
+  sin React) que vive en un módulo aparte de la feature que lo define y que la otra importa en un solo sentido,
+  sin ciclos. Hoy, `features/journey/chapterDom` (`CHAPTER_SELECTOR`, `findChapter`, `HERO_TITLE_ID`), que leen
+  `features/navigation` y la ruta del viaje. Víctor lo elige frente a solo escribir la regla en la tabla.
+- Alternativas descartadas: permitir importar de otra feature cualquier cosa que no sea un componente (deja el
+  contrato repartido entre componentes); llevarlo a `content/chapters.ts` (`content` no toca el DOM).
+- Consecuencias: un contrato nuevo entre features se añade a ese módulo (o a uno igual) y a la frase de
+  `arquitectura.md`. ESLint no lo vigila todavía: se revisa en las auditorías.
+- Detalle: `docs/05-tecnico/arquitectura.md` → «Capas y reglas de dependencia» (párrafo «Entre features»).

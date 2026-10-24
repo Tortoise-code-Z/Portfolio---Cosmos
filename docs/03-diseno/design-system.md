@@ -36,6 +36,7 @@ activo.
 | `--color-aurora` | `#62e8cf` | Acento secundario: naturaleza, «Featured», disponibilidad | 13,5 : 1 |
 | `--color-veil` | `rgb(4 5 11 / 0.82)` | Fondo de los paneles sobre la escena | — |
 | `--color-veil-soft` | `rgb(4 5 11 / 0.62)` | Paso intermedio del velo radial de los paneles (escritorio) | — |
+| `--color-veil-chrome` | `rgb(4 5 11 / 0.7)` | Fondo de la barra superior, bajo el desenfoque: `--color-ink-soft` da 5,8:1 aunque pase `--color-ink` por debajo | — |
 | `--gradient-row-hot` | degradado ámbar al 8 % → transparente | Fondo de una fila de proyecto «hot» | — |
 | `--gradient-panel` · `--gradient-panel-mobile` | velo radial · velo que entra desde arriba (`--space-8`) | Fondo del panel en escritorio · en móvil | — |
 | `--color-flash` | `#fff4dc` | Destello del Big Bang | — |
@@ -65,7 +66,7 @@ Reglas:
 |---|---|---|---|
 | Display | `--font-display` | Anybody (variable `wdth` 50–150, `wght` 100–900) | Nombre del hero, títulos de capítulo, nombres de proyecto. Siempre en mayúsculas. |
 | Texto | `--font-body` | Geologica (variable 300–700) | Párrafos, botones de lectura, listas |
-| Datos | `--font-mono` | IBM Plex Mono 400/500 | Eyebrows, HUD, raíl, etiquetas, metadatos, botones de acción |
+| Datos | `--font-mono` | IBM Plex Mono 400/500 | Eyebrows, HUD, escena del raíl, etiquetas, metadatos, botones de acción |
 
 Fallbacks: `"Arial Narrow", "Helvetica Neue", sans-serif` · `system-ui, -apple-system, "Segoe UI", sans-serif` ·
 `ui-monospace, "SFMono-Regular", Menlo, monospace`.
@@ -157,9 +158,13 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
   (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`).
 - Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins y botones
-  flotantes.
+  flotantes. La barra lleva además un velo (`--color-veil-chrome`) para no depender de lo que pase por debajo.
 - Deshabilitado: `--opacity-disabled` (0,4). Apagado sin estar deshabilitado (texto de los capítulos inactivos del
-  raíl): `--opacity-muted` (0,45). Área táctil mínima: `--target-min` (44 px).
+  raíl): `--opacity-muted` (0,7), que mantiene AA sobre `--color-void` (8,7:1 con `--color-ink`, 4,7:1 con
+  `--color-dim`). Área táctil mínima: `--target-min` (44 px).
+- Alto contraste (`forced-colors: active`): el sistema quita fondos y sombras. Lo que se distingue solo por ellos
+  (el punto activo del raíl) se pinta con un color del sistema (`Highlight`); los colores del sistema son los
+  únicos literales permitidos fuera de `tokens.css`.
 
 ## Capas (z-index)
 
@@ -192,6 +197,9 @@ su propio contenido con `z-index: -1` (el brillo «hot» de la fila de proyecto)
 - Excepción aceptada: el «≈» de los eyebrows de About y Skills (U+2248) tampoco está en el subconjunto y sale con la
   mono del sistema. Es un solo glifo, en texto pequeño y atenuado; no compensa un icono ni ampliar el subconjunto
   (bytes del presupuesto de fuentes), y «~» cambiaría el sentido. Se mira en los tres motores en F6.
+- Misma excepción para el HUD: los superíndices `⁰ ⁴–⁹ ⁻` (U+2070–207B) del reloj y la escala («10⁻⁴³») y el «∞» de
+  la tortuga (U+221E) tampoco están en el subconjunto de Plex Mono (`¹ ² ³` sí): en un mismo exponente se mezclan
+  dos fuentes. El HUD es decorativo, pequeño y `aria-hidden`; se mira con el «≈» en F6.
 - Decorativos con `aria-hidden="true"`; el botón lleva el texto o el `aria-label`.
 
 ## Marca

@@ -12,7 +12,7 @@
 
 - Entre keyframes: interpolación lineal de posición y objetivo con `t = smoothstep(fract(m))`.
 - `shiftX` se suma **a la posición y al objetivo** (desplaza el encuadre sin cambiar el ángulo); lleva la escena
-  a la derecha para dejar sitio a los paneles. Solo en escritorio (`≥ --bp-md`).
+  a la derecha para dejar sitio a los paneles. Solo en escritorio (desde md, 900 px; los breakpoints no son tokens: `tokens.css` los lista en su cabecera).
 - Paralaje: posición `+ (puntero.x · 0,7, puntero.y · 0,45)`, suavizado a ritmo `dt · 2`. Desactivado en táctil y
   con movimiento reducido.
 - Todas las cifras viven en `config/constants.ts`; se ajustan con capturas reales en los tamaños de referencia.
