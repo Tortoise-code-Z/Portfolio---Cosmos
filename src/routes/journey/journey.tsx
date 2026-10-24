@@ -6,7 +6,7 @@ import { profile } from '~/content/profile';
 import { skillGroups } from '~/content/skills';
 import { CosmicHud } from '~/features/hud/CosmicHud/CosmicHud';
 import { About } from '~/features/journey/About/About';
-import { CHAPTER_SELECTOR } from '~/features/journey/ChapterSection/ChapterSection';
+import { CHAPTER_SELECTOR } from '~/features/journey/chapterDom/chapterDom';
 import { Contact } from '~/features/journey/Contact/Contact';
 import { Hero } from '~/features/journey/Hero/Hero';
 import { Projects } from '~/features/journey/Projects/Projects';

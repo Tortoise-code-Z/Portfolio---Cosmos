@@ -9,11 +9,9 @@ import { HoldButton } from '~/ui/HoldButton/HoldButton';
 import { Icon } from '~/ui/Icon/Icon';
 
 import { ChapterSection } from '../ChapterSection/ChapterSection';
+import { HERO_TITLE_ID } from '../chapterDom/chapterDom';
 import { Eyebrow } from '../Eyebrow/Eyebrow';
 import styles from './Hero.module.css';
-
-/** Id del nombre (el `h1`): destino de «Skip to content» sin JavaScript. */
-export const HERO_TITLE_ID = 'hero-title';
 
 const preventDefault = (event: Event): void => {
   event.preventDefault();

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import { useT } from '~/lib/i18n/useT/useT';
 
-import { HERO_TITLE_ID } from '../../journey/Hero/Hero';
+import { HERO_TITLE_ID } from '../../journey/chapterDom/chapterDom';
 import { onChapterLinkClick } from '../goToChapter/goToChapter';
 import styles from './SkipLink.module.css';
 

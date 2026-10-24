@@ -26,7 +26,8 @@ cosmos-portfolio/
 │  │                              `site.ts` (repo del sitio) incluidos
 │  ├─ features/                 ← piezas de interfaz con lógica propia
 │  │  ├─ journey/               ← Hero, ChapterSection, ChapterPanel, Eyebrow, About, Skills, Projects,
-│  │  │                           ProjectRow, Contact y `shared.module.css` (piezas de texto comunes)
+│  │  │                           ProjectRow, Contact, `chapterDom` (el contrato con el DOM que lee la
+│  │  │                           navegación) y `shared.module.css` (piezas de texto comunes)
 │  │  ├─ navigation/            ← TopBar, ChapterRail, LanguageSwitch, SkipLink, goToChapter (salto con
 │  │  │                           ancla en la URL) y, en F2.6, QuickMissionDialog
 │  │  ├─ hud/                   ← CosmicHud
@@ -93,6 +94,11 @@ content  ◄── lib ◄── stores ◄── ui ◄── features ◄─�
 | `routes` | todo lo anterior | — |
 
 Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import prohibido rompe el lint.
+
+**Entre features.** Una feature no importa componentes de otra. Si dos comparten un contrato (constantes o
+funciones sin React), vive en un módulo aparte de la feature que lo define y la otra importa solo ese módulo,
+en un solo sentido y sin ciclos. Hoy, el único: `features/journey/chapterDom` (cómo se encuentran los capítulos
+en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje.
 
 ## Rutas e idiomas
 
