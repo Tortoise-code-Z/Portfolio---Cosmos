@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
+
+import { useHeightVar } from '~/lib/css/useHeightVar/useHeightVar';
 
 import styles from './Notice.module.css';
 
@@ -19,7 +21,21 @@ interface NoticeProps {
 export function Notice({ open, lang, children }: NoticeProps): ReactNode {
   return (
     <div role="status" lang={lang}>
-      {open ? <div className={styles.notice}>{children}</div> : null}
+      {open ? <NoticeBox>{children}</NoticeBox> : null}
+    </div>
+  );
+}
+
+/**
+ * La caja visible. Mientras existe, su altura va a `--_notice-h` en `<html>`: el documento la suma al
+ * hueco de abajo que deja libre al llevar el foco, y nada enfocado queda debajo del aviso (WCAG 2.4.11).
+ */
+function NoticeBox({ children }: { readonly children: ReactNode }): ReactNode {
+  const ref = useRef<HTMLDivElement>(null);
+  useHeightVar(ref, '--_notice-h', 'root');
+  return (
+    <div ref={ref} className={styles.notice}>
+      {children}
     </div>
   );
 }

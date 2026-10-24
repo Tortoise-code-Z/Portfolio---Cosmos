@@ -1,6 +1,9 @@
 /*
  * Chip de disponibilidad (docs/03-diseno/componentes.md → «Chip de disponibilidad»): borde fino y un
- * punto turquesa que respira con la opacidad (sin escala). Solo desde md (900 px).
+ * punto turquesa que respira con la opacidad (sin escala). Solo desde md (900 px) y si la barra
+ * superior (contenedor `topbar`, TopBar.module.css) mide al menos 52em: con el texto al 100 % manda md
+ * (52em = 832px caben a 900px, también con una barra de scroll clásica); con el texto ampliado, el chip
+ * cede antes de empujar las acciones fuera de la pantalla.
  */
 .chip {
   display: none;
@@ -22,8 +25,10 @@
 }
 
 @media (width >= 900px) {
-  .chip {
-    display: inline-flex;
+  @container topbar (width >= 52em) {
+    .chip {
+      display: inline-flex;
+    }
   }
 }
 

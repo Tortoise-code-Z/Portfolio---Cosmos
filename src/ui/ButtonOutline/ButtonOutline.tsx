@@ -20,7 +20,7 @@ interface ButtonOutlineProps {
 /**
  * Botón de contorno (docs/03-diseno/componentes.md → «Botón de contorno»): mono en mayúsculas, borde
  * fino y velo con desenfoque, con el área táctil mínima. Uso: «Quick mission», «Back to the journey»,
- * «No, thanks».
+ * «No, thanks» y «Copy» (`CopyButton`).
  */
 export function ButtonOutline({
   onClick,

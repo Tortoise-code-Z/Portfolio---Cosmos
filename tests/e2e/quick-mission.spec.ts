@@ -125,6 +125,28 @@ test.describe('quick mission', () => {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 
+  test('390 px: «Back to the journey» stays at the top while the content scrolls', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/#quick', { waitUntil: 'networkidle' });
+    const dialog = quickDialog(page);
+    const back = dialog.getByRole('button', { name: 'Back to the journey' });
+    const before = await back.boundingBox();
+    await dialog.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await expect.poll(() => dialog.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await expect(back).toBeInViewport({ ratio: 1 });
+    // Quieta, en su sitio de siempre; pegada, arriba del todo y por encima del contenido.
+    expect((await back.boundingBox())?.y).toBeLessThanOrEqual(before?.y ?? 0);
+    const onTop = await back.evaluate((button) => {
+      const box = button.getBoundingClientRect();
+      return document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2) === button;
+    });
+    expect(onTop).toBe(true);
+  });
+
   test('the copy button copies the email and says so', async ({ page, browserName, context }) => {
     test.skip(browserName !== 'chromium', 'Only Chromium lets a test grant clipboard access');
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
@@ -159,5 +181,27 @@ test.describe('copy the email in Contact', () => {
     await expect(contact.getByRole('button', { name: 'Copy email' })).toBeVisible({
       timeout: 4000,
     });
+  });
+
+  test('390 px with text at 200 % (/es): «Selecciónalo y cópialo» wraps and stays on screen', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText: () => Promise.reject(new DOMException('denied', 'NotAllowedError')) },
+      });
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/es#contact', { waitUntil: 'networkidle' });
+    await page.evaluate(() => {
+      document.documentElement.style.fontSize = '200%';
+    });
+    const contact = page.getByRole('region', { name: 'Aterrizaje' });
+    await contact.getByRole('button', { name: 'Copiar el email' }).click();
+    const fallback = contact.getByRole('button', { name: 'Selecciónalo y cópialo' });
+    await expect(fallback).toBeVisible();
+    // Entero dentro de la pantalla (las filas de Proyectos aún se salen a este tamaño: deuda de F6).
+    await expect(fallback).toBeInViewport({ ratio: 1 });
   });
 });

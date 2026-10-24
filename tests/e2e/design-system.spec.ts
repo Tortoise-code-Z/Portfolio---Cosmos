@@ -249,10 +249,16 @@ test.describe('design system foundations', () => {
   test('the reset keeps modals and popovers centred and icons inline', async ({ page }) => {
     await page.goto('/');
     const layout = await page.evaluate(() => {
+      // El centro de la zona en la que se centran (sin el hueco de la barra de scroll, global.css).
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position: fixed; inset: 0; pointer-events: none';
+      document.body.append(probe);
+      const area = probe.getBoundingClientRect();
+      probe.remove();
       const centreOffset = (element: HTMLElement): number => {
         const box = element.getBoundingClientRect();
-        const dx = box.left + box.width / 2 - window.innerWidth / 2;
-        const dy = box.top + box.height / 2 - window.innerHeight / 2;
+        const dx = box.left + box.width / 2 - (area.left + area.width / 2);
+        const dy = box.top + box.height / 2 - (area.top + area.height / 2);
         return Math.max(Math.abs(dx), Math.abs(dy));
       };
 

@@ -160,7 +160,10 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 - Al llevar el foco con Tab o saltar a un ancla, el navegador deja libre arriba lo que tapa la barra fija
   (`scroll-padding-block-start` = `--topbar-h` + zona segura) y `--space-6` de aire abajo
   (`scroll-padding-block-end`), en `global.css`: ni el elemento ni su anillo quedan cortados ni debajo de la barra
-  (WCAG 2.4.11). Las anclas dejan su capítulo justo bajo la barra.
+  (WCAG 2.4.11). Las anclas dejan su capítulo justo bajo la barra. Mientras se ve un aviso (`Notice`), el hueco de
+  abajo crece con su altura (componentes.md → «Aviso»).
+- `scrollbar-gutter: stable` en `:root`: con barras de scroll clásicas (Windows), bloquear el scroll al abrir un
+  diálogo no hace saltar la página a lo ancho.
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
   (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`).
 - Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins, botones de

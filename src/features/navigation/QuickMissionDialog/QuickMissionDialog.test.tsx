@@ -73,7 +73,8 @@ describe('QuickMissionDialog', () => {
     });
     expect(showModal).toHaveBeenCalledTimes(1);
     const dialog = screen.getByRole('dialog', { name: 'Víctor Pérez · Frontend Developer' });
-    expect(dialog).toHaveTextContent('Quick mission · everything on one page');
+    // El rótulo no alarga el nombre: el lector lo añade como descripción al abrir.
+    expect(dialog).toHaveAccessibleDescription('Quick mission · everything on one page');
     expect(screen.getByRole('button', { name: 'Back to the journey' })).toHaveFocus();
   });
 

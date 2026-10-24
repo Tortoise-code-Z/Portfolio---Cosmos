@@ -32,6 +32,11 @@ dialog,
    */
   scroll-padding-block-start: calc(var(--topbar-h) + env(safe-area-inset-top));
   scroll-padding-block-end: var(--space-6);
+  /*
+   * Hueco fijo para la barra de scroll clásica (Windows): al abrir el modo misión rápida (que bloquea
+   * el scroll del documento) la página no salta a lo ancho. Sin efecto con barras superpuestas.
+   */
+  scrollbar-gutter: stable;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }

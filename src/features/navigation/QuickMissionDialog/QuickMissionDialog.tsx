@@ -16,6 +16,8 @@ import { QUICK_HASH, QUICK_OPENER_ID } from '../quickMission/quickMission';
 import styles from './QuickMissionDialog.module.css';
 
 const TITLE_ID = 'quick-mission-title';
+/** El rótulo «Quick mission · everything on one page»: descripción del diálogo (el nombre es el título). */
+const EYEBROW_ID = 'quick-mission-eyebrow';
 
 /** Si la dirección pide el modo (`/#quick`), lo abre. */
 function openFromHash(): void {
@@ -89,11 +91,19 @@ export function QuickMissionDialog(): ReactNode {
   }
 
   return (
-    <dialog ref={dialogRef} className={styles.dialog} aria-labelledby={TITLE_ID} onClose={onClose}>
+    <dialog
+      ref={dialogRef}
+      className={styles.dialog}
+      aria-labelledby={TITLE_ID}
+      aria-describedby={EYEBROW_ID}
+      onClose={onClose}
+    >
       {open ? (
         <div className={styles.inner}>
           <div className={styles.head}>
-            <p className={styles.eyebrow}>{t('quick.title')}</p>
+            <p id={EYEBROW_ID} className={styles.eyebrow}>
+              {t('quick.title')}
+            </p>
             <ButtonOutline
               ref={backRef}
               onClick={() => {

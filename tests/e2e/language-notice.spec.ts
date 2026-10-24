@@ -30,6 +30,42 @@ test.describe('language suggestion with a Spanish browser', () => {
     await expect(suggestion(page)).toHaveCount(0);
   });
 
+  // Mientras se ve, el aviso tapa el borde de abajo: el hueco que el navegador deja al llevar el foco
+  // (`scroll-padding-block-end`) crece con su altura (WCAG 2.4.11; design-system.md → «Foco»).
+  for (const path of ['/', '/projects/chessmate']) {
+    test(`390 px (${path}): with Tab, nothing focused ends up behind it`, async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(path, { waitUntil: 'networkidle' });
+      await expect(suggestion(page).getByRole('button', { name: 'No, gracias' })).toBeVisible();
+      const covered: string[] = [];
+      let reachedNotice = false;
+      for (let tab = 0; tab < 200 && !reachedNotice; tab += 1) {
+        await page.keyboard.press('Tab');
+        const focused = await page.evaluate(() => {
+          const element = document.activeElement;
+          const box = document.querySelector('[role="status"] > div')?.getBoundingClientRect();
+          if (element === null || element === document.body || box === undefined) return null;
+          if (element.closest('[role="status"]') !== null) return 'notice';
+          const root = getComputedStyle(document.documentElement);
+          const ring =
+            Number.parseFloat(root.getPropertyValue('--focus-offset')) +
+            Number.parseFloat(root.getPropertyValue('--focus-width'));
+          const rect = element.getBoundingClientRect();
+          const overlaps =
+            rect.bottom + ring > box.top &&
+            rect.top - ring < box.bottom &&
+            rect.right + ring > box.left &&
+            rect.left - ring < box.right;
+          return overlaps ? element.textContent.trim() || element.tagName : '';
+        });
+        if (focused === 'notice') reachedNotice = true;
+        else if (focused !== null && focused !== '') covered.push(focused);
+      }
+      expect(reachedNotice).toBe(true);
+      expect(covered).toEqual([]);
+    });
+  }
+
   test('390 px: it fits the screen above the bottom edge', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/', { waitUntil: 'networkidle' });

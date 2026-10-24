@@ -51,6 +51,24 @@ describe('useHeightVar', () => {
     expect(disconnect).toHaveBeenCalled();
   });
 
+  it("with on: 'root', writes it on <html> and removes it on unmount", () => {
+    stubResizeObserver();
+    const element = elementOfHeight(96);
+    const root = document.documentElement;
+    const { unmount } = renderHook(() => {
+      useHeightVar({ current: element }, '--_notice-h', 'root');
+    });
+    expect(root.style.getPropertyValue('--_notice-h')).toBe('96px');
+    expect(element.style.getPropertyValue('--_notice-h')).toBe('');
+
+    Object.defineProperty(element, 'offsetHeight', { configurable: true, get: () => 140 });
+    observed?.([], {} as ResizeObserver);
+    expect(root.style.getPropertyValue('--_notice-h')).toBe('140px');
+
+    unmount();
+    expect(root.style.getPropertyValue('--_notice-h')).toBe('');
+  });
+
   it('does nothing without ResizeObserver or without element', () => {
     vi.stubGlobal('ResizeObserver', undefined);
     const element = elementOfHeight(640);

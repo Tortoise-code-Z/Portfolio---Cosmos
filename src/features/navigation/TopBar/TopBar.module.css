@@ -19,6 +19,8 @@
   -webkit-backdrop-filter: blur(var(--blur-chrome));
   backdrop-filter: blur(var(--blur-chrome));
   font-family: var(--font-mono);
+  /* Contenedor: el chip y la etiqueta larga miran también su ancho en `em` (texto ampliado). */
+  container: topbar / inline-size;
 }
 
 /* Si falta sitio (texto ampliado en móvil), solo cede el logo: los enlaces y EN / ES siguen enteros. */
@@ -79,12 +81,27 @@
   }
 }
 
-/* «Quick mission»: la etiqueta completa desde sm (520px); por debajo, la corta («Quick», «Rápida»). */
+/*
+ * «Quick mission»: la etiqueta completa desde sm (520px) y si la barra mide al menos 28em; si no, la
+ * corta («Quick», «Rápida»). Con el texto al 100 % manda sm (28em = 448px caben a 520px, también con una
+ * barra de scroll clásica); con el texto ampliado (200 %), los `em` crecen con él y la etiqueta se
+ * acorta antes de empujar las acciones fuera de la pantalla (WCAG 1.4.4).
+ */
 .quickShort {
   display: none;
 }
 
 @media (width < 520px) {
+  .quickFull {
+    display: none;
+  }
+
+  .quickShort {
+    display: inline;
+  }
+}
+
+@container topbar (width < 28em) {
   .quickFull {
     display: none;
   }
