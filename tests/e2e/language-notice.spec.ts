@@ -59,7 +59,11 @@ test.describe('language suggestion with a Spanish browser', () => {
       let reachedNotice = false;
       for (let tab = 0; tab < 200 && !reachedNotice; tab += 1) {
         await page.keyboard.press('Tab');
-        const focused = await page.evaluate(() => {
+        const focused = await page.evaluate(async () => {
+          // Dos frames: el scroll del navegador al enfocar y, si hace falta, el de Notice.tsx.
+          await new Promise((resolve) => {
+            requestAnimationFrame(() => requestAnimationFrame(resolve));
+          });
           const element = document.activeElement;
           const box = document.querySelector('[role="status"] > div')?.getBoundingClientRect();
           if (element === null || element === document.body || box === undefined) return null;
