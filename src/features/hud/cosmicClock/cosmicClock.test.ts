@@ -66,16 +66,21 @@ describe('cosmicClock', () => {
 });
 
 describe('formatYears', () => {
-  it('counts in seconds up to a year, then in years with two significant digits', () => {
+  it('counts in seconds up to two years (never «1 years»), then in years with two significant digits', () => {
     expect(text(formatYears('en', 1 / 31_557_600))).toBe('t = 10⁰ s');
     expect(text(formatYears('en', 0.99))).toBe('t = 10⁷ s');
-    expect(text(formatYears('en', 1.5))).toBe('t ≈ 1.5 years');
+    expect(text(formatYears('en', 1))).toBe('t = 10⁷ s');
+    expect(text(formatYears('en', 1.04))).toBe('t = 10⁸ s');
+    expect(text(formatYears('en', 1.94))).toBe('t = 10⁸ s');
+    expect(text(formatYears('en', 1.96))).toBe('t ≈ 2 years');
+    expect(text(formatYears('es', 2.5))).toBe('t ≈ 2,5 años');
     expect(text(formatYears('en', 123_456))).toBe('t ≈ 120,000 years');
     expect(text(formatYears('es', 123_456))).toBe('t ≈ 120.000 años');
   });
 
-  it('switches to millions at a million and to billions once rounding reaches a thousand', () => {
-    expect(text(formatYears('en', 999_999))).toBe('t ≈ 1,000,000 years');
+  it('switches to millions and to billions once rounding reaches them', () => {
+    expect(text(formatYears('en', 994_000))).toBe('t ≈ 990,000 years');
+    expect(text(formatYears('en', 999_999))).toBe('t ≈ 1 million years');
     expect(text(formatYears('en', 1_000_000))).toBe('t ≈ 1 million years');
     expect(text(formatYears('en', 996_000_000))).toBe('t ≈ 1 billion years');
     expect(text(formatYears('es', 996_000_000))).toBe('t ≈ 1000 millones de años');

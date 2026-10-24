@@ -38,6 +38,12 @@ const MYTHIC_UNTIL_M = 3.5;
 /** Cifras significativas de los años y los millones de años mientras el reloj corre. */
 const SIGNIFICANT_DIGITS = 2;
 
+/**
+ * Desde aquí el reloj cuenta en años: por debajo seguiría en segundos, para no escribir nunca
+ * «1 years» (no hay clave en singular, y es un estado de menos de un píxel de scroll).
+ */
+const FIRST_YEARS = 2;
+
 const SCALE_KEYS = {
   0: 'hud.scale.0',
   1: 'hud.scale.1',
@@ -102,17 +108,19 @@ function yearsAt(m: number): number {
 }
 
 /**
- * Edad del universo con la unidad que le toca: segundos (en potencias de 10) hasta 1 año, después
- * años, millones y miles de millones. En miles de millones, EN cuenta en `billion` con un decimal
- * («13.8 billion») y ES en millones («13.800 millones»), según la regla 5 de docs/01-contenido.
+ * Edad del universo con la unidad que le toca: segundos (en potencias de 10) hasta 2 años, después
+ * años, millones y miles de millones. Cada unidad se elige con el valor ya redondeado (999.999 años
+ * ya es «1 million»). En miles de millones, EN cuenta en `billion` con un decimal («13.8 billion») y
+ * ES en millones («13.800 millones»), según la regla 5 de docs/01-contenido.
  */
 export function formatYears(locale: Locale, years: number): ClockText {
-  if (years < 1) {
+  const rounded = roundSignificant(years);
+  if (rounded < FIRST_YEARS) {
     const exponent = superscript(Math.round(Math.log10(years * SECONDS_PER_YEAR)));
     return splitAtValue(translate(locale, 'hud.seconds', { exp: VALUE_MARK }), exponent);
   }
-  if (years < MILLION) {
-    const n = formatNumber(locale, roundSignificant(years));
+  if (rounded < MILLION) {
+    const n = formatNumber(locale, rounded);
     return splitAtValue(translate(locale, 'hud.years', { n: VALUE_MARK }), n);
   }
   // Se redondea antes de elegir la unidad: 996 millones ya son «1 billion».

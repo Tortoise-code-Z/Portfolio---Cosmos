@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, type ReactNode } from 'react';
 
 import { useLocale } from '~/lib/i18n/useT/useT';
 import { activeChapter, sceneStore, type SceneState } from '~/stores/sceneStore/sceneStore';
@@ -10,7 +10,9 @@ import styles from './CosmicHud.module.css';
  * HUD: reloj cósmico y escala del capítulo (docs/02-experiencia/navegacion.md → «HUD»). Es decorativo
  * (`aria-hidden`): cada capítulo dice lo mismo en su eyebrow. Lee `m` de `sceneStore` por suscripción y
  * escribe en el DOM solo cuando cambia el texto, sin re-renderizar (ADR-004). El HTML pre-renderizado
- * trae el de la singularidad, que es lo que se ve al cargar arriba del todo.
+ * trae el de la singularidad, que es lo que se ve al cargar arriba del todo. Se pinta antes de que el
+ * navegador muestre el frame (`useLayoutEffect`): al cambiar de idioma, React escribe el texto de
+ * `m = 0` y no debe verse ni un frame.
  */
 export function CosmicHud(): ReactNode {
   const locale = useLocale();
@@ -19,7 +21,7 @@ export function CosmicHud(): ReactNode {
   const after = useRef<HTMLSpanElement>(null);
   const scale = useRef<HTMLParagraphElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let painted = '';
     const paint = ({ m }: SceneState): void => {
       const clock = cosmicClock(locale, m);
