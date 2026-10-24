@@ -35,7 +35,7 @@ activo.
 | `--color-star` | `#ffc46b` | **Acento**: activo, foco, resaltados, enlaces al pasar | 12,9 : 1 |
 | `--color-aurora` | `#62e8cf` | Acento secundario: naturaleza, «Featured», disponibilidad | 13,5 : 1 |
 | `--color-veil` | `rgb(4 5 11 / 0.82)` | Fondo de los paneles sobre la escena | — |
-| `--color-veil-soft` | `rgb(4 5 11 / 0.62)` | Paso intermedio del velo radial de los paneles (escritorio) | — |
+| `--color-veil-soft` | `rgb(4 5 11 / 0.62)` | Paso intermedio del velo radial de los paneles (escritorio) y fondo de los botones `ButtonOutline` y `HoldButton` | — |
 | `--color-veil-chrome` | `rgb(4 5 11 / 0.7)` | Fondo de la barra superior y de los avisos, bajo el desenfoque: `--color-ink-soft` da 5,8:1 aunque pase `--color-ink` por debajo | — |
 | `--color-veil-dialog` | `rgb(4 5 11 / 0.96)` | Fondo del modo misión rápida (pantalla completa) | — |
 | `--gradient-row-hot` | degradado ámbar al 8 % → transparente | Fondo de una fila de proyecto «hot» | — |
@@ -160,7 +160,10 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 - Al llevar el foco con Tab o saltar a un ancla, el navegador deja libre arriba lo que tapa la barra fija
   (`scroll-padding-block-start` = `--topbar-h` + zona segura) y `--space-6` de aire abajo
   (`scroll-padding-block-end`), en `global.css`: ni el elemento ni su anillo quedan cortados ni debajo de la barra
-  (WCAG 2.4.11). Las anclas dejan su capítulo justo bajo la barra.
+  (WCAG 2.4.11). Las anclas dejan su capítulo justo bajo la barra. Mientras se ve un aviso (`Notice`), el hueco de
+  abajo crece con su altura (componentes.md → «Aviso»).
+- `scrollbar-gutter: stable` en `:root`: con barras de scroll clásicas (Windows), bloquear el scroll al abrir un
+  diálogo no hace saltar la página a lo ancho.
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
   (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`).
 - Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins, botones de

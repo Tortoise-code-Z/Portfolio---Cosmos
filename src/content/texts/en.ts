@@ -66,9 +66,9 @@ export const en = {
   'contact.title': 'Touchdown',
   'contact.lead':
     "13.8 billion years later, here we are. If you have a project or a team where I'd fit, let's talk.",
-  'contact.copy': 'Copy',
-  'contact.copied': 'Copied',
-  'contact.copyFailed': 'Select and copy it',
+  'copy.idle': 'Copy',
+  'copy.copied': 'Copied',
+  'copy.failed': 'Select and copy it',
   'contact.copy.subject': 'email',
   'availability.mode.remote': 'remote',
   'availability.mode.hybrid': 'hybrid',

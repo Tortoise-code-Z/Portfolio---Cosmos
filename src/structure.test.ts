@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest';
  * Regla de estructura (ADR-018 · DEVELOPMENT_RULES.md §5): si dos o más archivos de la misma carpeta
  * comparten el nombre base (lo que va antes del primer punto: `meta.ts`, `meta.test.ts`,
  * `meta.module.css`), van juntos en una carpeta con ese nombre (`meta/meta.ts`, `meta/meta.test.ts`).
+ * Y al revés: un archivo sin pareja va suelto, no en una carpeta con su nombre en la que esté solo.
  * Vale para el código: `src/` y `tests/`. Única excepción: `src/root.tsx`, cuyo nombre y sitio fija
  * React Router; su test va al lado (`src/root.test.tsx`).
  */
@@ -36,6 +37,17 @@ function sameNameGroups(paths: readonly string[]): string[][] {
     groups.set(key, [...(groups.get(key) ?? []), normalized]);
   }
   return [...groups.values()].filter((group) => group.length > 1);
+}
+
+/** Carpetas con el nombre de su único archivo y nada más dentro (`x/x.ts` solo): sobra la carpeta. */
+function lonelyOwnFolders(paths: readonly string[]): string[] {
+  const normalized = paths.map((path) => path.replaceAll('\\', '/'));
+  return normalized.filter((path) => {
+    const folder = dirname(path);
+    const name = path.slice(path.lastIndexOf('/') + 1);
+    if (folder.slice(folder.lastIndexOf('/') + 1) !== name.split('.', 1)[0]) return false;
+    return normalized.every((other) => other === path || !other.startsWith(`${folder}/`));
+  });
 }
 
 describe('estructura: archivos con el mismo nombre, en su carpeta', () => {
@@ -66,12 +78,32 @@ describe('estructura: archivos con el mismo nombre, en su carpeta', () => {
     expect(isAllowed(['src/lib/root.ts', 'src/lib/root.test.ts'])).toBe(false);
   });
 
+  it('detecta una carpeta con su nombre y un solo archivo, y no una con pareja o con más cosas', () => {
+    expect(
+      lonelyOwnFolders([
+        'src/features/navigation/quickMission/quickMission.ts',
+        'src/lib/meta/meta.ts',
+        'src/lib/meta/meta.test.ts',
+        'src/ui/Icon/Icon.tsx',
+        'src/ui/Icon/icons/arrow.svg',
+        'src/lib/other/thing.ts',
+      ]),
+    ).toEqual(['src/features/navigation/quickMission/quickMission.ts']);
+  });
+
   it('src/ y tests/ no tienen archivos con el mismo nombre sueltos en una carpeta', () => {
     const files = CODE_DIRS.flatMap((dir) => listFiles(join(REPO_DIR, dir))).map((path) =>
       relative(REPO_DIR, path),
     );
     expect(files.length).toBeGreaterThan(0);
     expect(sameNameGroups(files).filter((group) => !isAllowed(group))).toEqual([]);
+  });
+
+  it('src/ y tests/ no tienen un archivo solo en una carpeta con su nombre (va suelto)', () => {
+    const files = CODE_DIRS.flatMap((dir) => listFiles(join(REPO_DIR, dir))).map((path) =>
+      relative(REPO_DIR, path),
+    );
+    expect(lonelyOwnFolders(files)).toEqual([]);
   });
 });
 

@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { StrictMode } from 'react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -50,6 +51,8 @@ describe('CopyButton', () => {
   });
 
   it('copies the text, shows and announces «Copied», and goes back to «Copy» after 1.8 s', async () => {
+    // La duración es la de componentes.md: si cambia la constante, cambia el documento.
+    expect(COPY_FEEDBACK_MS).toBe(1800);
     const writeText = mockClipboard(() => Promise.resolve());
     const button = setup();
     fireEvent.click(button);
@@ -100,6 +103,22 @@ describe('CopyButton', () => {
     );
   });
 
+  it('«Select and copy it» also goes back to «Copy» after 1.8 s', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    mockClipboard(() => Promise.reject(new DOMException('denied', 'NotAllowedError')));
+    const button = setup();
+    fireEvent.click(button);
+    await flush();
+    act(() => {
+      vi.advanceTimersByTime(1799);
+    });
+    expect(button).toHaveAccessibleName('Select and copy it');
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(button).toHaveAccessibleName('Copy email');
+  });
+
   it('without a clipboard (http, old browser), selects the text by hand', () => {
     const button = setup();
     fireEvent.click(button);
@@ -134,5 +153,48 @@ describe('CopyButton', () => {
     resolve();
     await flush();
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('copying again before 1.8 s announces it again (a new node in the live region)', async () => {
+    mockClipboard(() => Promise.resolve());
+    const button = setup();
+    fireEvent.click(button);
+    await flush();
+    const first = screen.getByRole('status').firstElementChild;
+    expect(first).toHaveTextContent('Copied');
+    fireEvent.click(button);
+    await flush();
+    const second = screen.getByRole('status').firstElementChild;
+    expect(second).toHaveTextContent('Copied');
+    expect(second).not.toBe(first);
+  });
+
+  it('unmounting while «Copied» shows (Esc closes the quick mission) clears its timer', async () => {
+    mockClipboard(() => Promise.resolve());
+    const { unmount } = render(
+      <MemoryRouter>
+        <CopyButton text={EMAIL} targetId="email" subject="email" />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole('button'));
+    await flush();
+    expect(screen.getByRole('button')).toHaveAccessibleName('Copied');
+    expect(vi.getTimerCount()).toBe(1);
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('works under <StrictMode> (effects run twice in development)', async () => {
+    mockClipboard(() => Promise.resolve());
+    render(
+      <StrictMode>
+        <MemoryRouter>
+          <CopyButton text={EMAIL} targetId="email" subject="email" />
+        </MemoryRouter>
+      </StrictMode>,
+    );
+    fireEvent.click(screen.getByRole('button'));
+    await flush();
+    expect(screen.getByRole('button')).toHaveAccessibleName('Copied');
   });
 });

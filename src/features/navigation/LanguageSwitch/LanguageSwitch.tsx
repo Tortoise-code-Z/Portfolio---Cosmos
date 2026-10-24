@@ -7,6 +7,7 @@ import { useLocale, useT } from '~/lib/i18n/useT/useT';
 import { sceneStore, selectActiveChapter } from '~/stores/sceneStore/sceneStore';
 
 import { chapterHref, isPlainClick } from '../goToChapter/goToChapter';
+import { rememberLanguageAnswer } from '../LanguageNotice/LanguageNotice';
 import styles from './LanguageSwitch.module.css';
 
 /** El enlace del idioma en el que ya estás no navega con un clic normal (no te mueve ni ensucia «Atrás»). */
@@ -23,7 +24,8 @@ const NAME_KEYS = {
  * Selector EN / ES de la barra (docs/02-experiencia/navegacion.md → «Idioma»; componentes.md →
  * «Barra superior»): un par de enlaces a la misma página en cada idioma, que conservan el capítulo en
  * el que estás aunque la URL no lleve su ancla (el activo según el scroll). El idioma actual va
- * subrayado en ámbar y con `aria-current="true"`. Cada enlace se nombra en su propio idioma.
+ * subrayado en ámbar y con `aria-current="true"`. Cada enlace se nombra en su propio idioma. Ir al
+ * otro idioma cuenta como respuesta a la sugerencia de idioma: no vuelve a ofrecerlo.
  */
 interface LanguageSwitchProps {
   /** La misma página en otro idioma, fuera del viaje (`/es/projects/chessmate`). Sin ella, el capítulo activo. */
@@ -51,7 +53,7 @@ export function LanguageSwitch({ pathFor }: LanguageSwitchProps): ReactNode {
             hrefLang={target}
             aria-label={t(NAME_KEYS[target])}
             aria-current={target === locale ? 'true' : undefined}
-            onClick={target === locale ? stayHere : undefined}
+            onClick={target === locale ? stayHere : rememberLanguageAnswer}
           >
             {target.toUpperCase()}
           </Link>

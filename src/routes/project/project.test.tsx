@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { useUiStore } from '~/stores/uiStore/uiStore';
 
@@ -13,8 +13,17 @@ const Stub = createRoutesStub([
 ]);
 
 afterEach(() => {
+  vi.restoreAllMocks();
+  window.localStorage.clear();
   useUiStore.setState(useUiStore.getInitialState(), true);
 });
+
+/** Lo enfocable de la página en orden de documento (el del Tab: nada usa `tabindex` positivo). */
+function focusableNames(): string[] {
+  return [...document.querySelectorAll<HTMLElement>('a[href], button')].map(
+    (element) => element.getAttribute('aria-label') ?? element.textContent.trim(),
+  );
+}
 
 describe('ProjectRoute', () => {
   it.each([
@@ -64,4 +73,14 @@ describe('ProjectRoute', () => {
       expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(title);
     },
   );
+  it('la sugerencia de idioma va la última en el orden del Tab, también en la ficha', async () => {
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['es-ES']);
+    render(<Stub initialEntries={['/projects/chessmate']} />);
+    const accept = await screen.findByRole('link', { name: 'Ver en español' });
+    expect(
+      (document.querySelector('dialog') as Node).compareDocumentPosition(accept) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(focusableNames().slice(-2)).toEqual(['Ver en español', 'No, gracias']);
+  });
 });

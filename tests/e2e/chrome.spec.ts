@@ -409,6 +409,28 @@ test.describe('top bar', () => {
     });
   }
 
+  // Desde md salen a la vez chip, Projects, Contact, EN / ES y la etiqueta larga: con el texto al 200 %
+  // ceden el chip y la etiqueta larga (consultas de contenedor en `em`), no las acciones.
+  for (const [path, quick] of [
+    ['/', 'Quick mission'],
+    ['/es', 'Modo misión rápida'],
+  ] as const) {
+    test(`960 px with text at 200 % (${path}): every action stays on screen`, async ({ page }) => {
+      await page.setViewportSize({ width: 960, height: 768 });
+      await page.goto(path, { waitUntil: 'networkidle' });
+      await page.evaluate(() => {
+        document.documentElement.style.fontSize = '200%';
+      });
+      for (const name of ['English', 'Español']) {
+        await expect(bar(page).getByRole('link', { name })).toBeInViewport({ ratio: 1 });
+      }
+      await expect(bar(page).getByRole('button', { name: quick })).toBeInViewport({ ratio: 1 });
+      for (const link of await bar(page).getByRole('link').all()) {
+        if (await link.isVisible()) await expect(link).toBeInViewport({ ratio: 1 });
+      }
+    });
+  }
+
   test('desktop: the full «Quick mission» label and the «Open to work» chip, which jumps to Contact', async ({
     page,
   }) => {

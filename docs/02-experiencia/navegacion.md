@@ -18,7 +18,9 @@
   preferencia) y la página es la inglesa, aparece abajo una sugerencia discreta, en español (`lang="es"`): «Esta
   página también está en español.» con «Ver en español» (la misma página en español, con el capítulo en el que
   estás, como el selector) y «No, gracias». Responder cualquiera de las dos se recuerda en el navegador
-  (`localStorage`) y no vuelve a salir; si el navegador no deja guardar, funciona igual y solo se olvida. No roba el
+  (`localStorage`) y no vuelve a salir; si el navegador no deja guardar, se recuerda en memoria hasta recargar (ir y
+  volver de un proyecto no lo saca otra vez). Elegir idioma a mano con el selector EN/ES también cuenta como
+  respuesta: quien pasa de `/es` a EN a propósito no recibe el aviso que le ofrece volver al español. No roba el
   foco: se anuncia (región `status`) y va al final del orden del Tab. Sale en el viaje y en la página de proyecto
   (allí ofrece ese mismo proyecto en español).
 - El selector EN/ES de la barra superior lleva a la **misma página** en el otro idioma, conservando el capítulo en
@@ -77,7 +79,9 @@ abre el modo allí también (`/projects/x#quick`).
 - Ancla compartible: `/#quick` abre el sitio con el modo ya abierto (útil para enviar a un recruiter), también si
   el ancla cambia a `#quick` con la página abierta. Al abrirlo con el botón, la URL pasa a `#quick` con
   `replaceState` (se puede copiar; sin entrada nueva en el historial: en Android, el gesto de Atrás ya cierra un
-  diálogo modal); al cerrar vuelve el ancla que había (`#projects`, o ninguna).
+  diálogo modal); al cerrar vuelve el ancla que había (`#projects`, o ninguna), también si se abrió escribiendo
+  `#quick` en la dirección (la entrada nueva que crea el navegador). Si con el modo abierto el ancla deja de ser
+  `#quick` (Atrás), se cierra.
 - Un enlace del modo lleva a su sitio (la página de un proyecto); «Atrás» vuelve a `/#quick` y el modo se abre de
   nuevo. La página de proyecto también monta el modo, pero no lo hereda abierto: si al montarse la dirección no
   pide `#quick`, lo cierra. Sin JavaScript el botón no hace nada: el viaje ya tiene todo el contenido.

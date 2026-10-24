@@ -7,6 +7,8 @@ import { sceneStore } from '~/stores/sceneStore/sceneStore';
 import Journey from './journey';
 
 afterEach(() => {
+  vi.restoreAllMocks();
+  window.localStorage.clear();
   sceneStore.setState(sceneStore.getInitialState(), true);
   Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
 });
@@ -15,6 +17,13 @@ const Stub = createRoutesStub([
   { path: '/', Component: Journey },
   { path: '/es', Component: Journey },
 ]);
+
+/** Lo enfocable de la página en orden de documento (el del Tab: nada usa `tabindex` positivo). */
+function focusableNames(): string[] {
+  return [...document.querySelectorAll<HTMLElement>('a[href], button')].map(
+    (element) => element.getAttribute('aria-label') ?? element.textContent.trim(),
+  );
+}
 
 describe('Journey', () => {
   it('el nombre es el único h1', async () => {
@@ -73,5 +82,15 @@ describe('Journey', () => {
     Object.defineProperty(window, 'scrollY', { configurable: true, value: 1760 });
     fireEvent.scroll(window);
     expect(sceneStore.getState().mTarget).toBeCloseTo(1.5);
+  });
+  it('la sugerencia de idioma va la última en el orden del Tab, después del modo misión rápida', async () => {
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['es-ES']);
+    render(<Stub initialEntries={['/']} />);
+    const accept = await screen.findByRole('link', { name: 'Ver en español' });
+    expect(
+      (document.querySelector('dialog') as Node).compareDocumentPosition(accept) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(focusableNames().slice(-2)).toEqual(['Ver en español', 'No, gracias']);
   });
 });

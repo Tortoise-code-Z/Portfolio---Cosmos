@@ -1,7 +1,12 @@
-/* docs/03-diseno/componentes.md → «Botón de contorno (ButtonOutline)». */
+/*
+ * docs/03-diseno/componentes.md → «Botón de contorno (ButtonOutline)». No encoge en una fila, pero
+ * nunca pasa del ancho de su contenedor: si la etiqueta no cabe en una línea (texto al 200 % en
+ * móvil, «Selecciónalo y cópialo»), se parte en dos en vez de empujar la página hacia los lados.
+ */
 .button {
   display: inline-flex;
   flex: none;
+  max-inline-size: 100%;
   align-items: center;
   justify-content: center;
   min-block-size: var(--target-min);
@@ -17,8 +22,8 @@
   font-weight: var(--weight-mono);
   line-height: var(--leading-label);
   letter-spacing: var(--tracking-label);
+  text-align: center;
   text-transform: uppercase;
-  white-space: nowrap;
   cursor: pointer;
   transition:
     border-color var(--dur-fast) var(--ease-out),

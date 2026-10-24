@@ -31,6 +31,8 @@
 - Mono `--text-label` en mayúsculas, borde 1 px `--color-faint`, fondo velo con desenfoque; al pasar, borde y
   texto ámbar. Siempre `type="button"` y con 44 × 44 px como mínimo.
 - Uso: «Quick mission», «Back to the journey», «Copy», «No, thanks».
+- No encoge en una fila, pero nunca pasa del ancho de su contenedor: una etiqueta que no cabe en una línea
+  («Selecciónalo y cópialo» a 390 px con el texto al 200 %) se parte en dos, centrada.
 - Si el texto visible es una forma corta («Quick»), el nombre accesible es el completo y la contiene (WCAG 2.5.3).
 
 ### Botón de mantener (`HoldButton`)
@@ -53,8 +55,10 @@
 - Un `ButtonOutline`. Estados de texto: Copy → Copied (1,8 s) / Select and copy it (también 1,8 s).
 - Nombre accesible con lo que copia («Copy email»: el sujeto va oculto a la vista).
 - Si el portapapeles no existe (http) o lo rechaza, selecciona el texto (el email) para copiarlo a mano.
-- El resultado se anuncia en una región `role="status"` aparte; el foco no se mueve. Lo usan Contacto y el modo
-  misión rápida, cada uno con su email.
+- El resultado se anuncia en una región `role="status"` aparte; el foco no se mueve. Cada intento pinta el mensaje
+  en un nodo nuevo: copiar dos veces seguidas se anuncia dos veces. Etiquetas comunes `copy.*`
+  (textos-sitio.md → «Botón copiar»). Lo usan Contacto y el modo misión rápida (el email) y el «Try it» de la ficha
+  (usuario y contraseña de las cuentas de demo).
 
 ## Navegación
 
@@ -64,9 +68,13 @@
   `--topbar-h` (64 px) más la zona segura de arriba.
 - Logo en mono 13 px (`--tracking-logo`); acciones en mono `--text-label` en mayúsculas. Todo con 44 × 44 px como
   mínimo. Si falta sitio, solo el logo cede (se recorta con «…»); las acciones no encogen.
-- Orden: logo · chip de disponibilidad (desde md) · Projects · Contact (desde md) · CV · EN / ES · «Quick mission».
+- Orden: logo · chip de disponibilidad (desde md) · Projects y Contact (desde md) · CV · EN / ES · «Quick mission».
 - «Quick mission» es un `ButtonOutline` (`aria-haspopup="dialog"`). Por debajo de sm (520 px) enseña la forma
   corta (`nav.quickShort`: «Quick», «Rápida»), que cabe a 390 px con el texto al 200 %.
+- **Texto ampliado:** la barra es un contenedor (`container: topbar`). El chip pide además que la barra mida
+  52em y la etiqueta larga, 28em: con el texto al 100 % mandan md y sm (caben también con una barra de scroll
+  clásica); con el texto al 200 % los `em` crecen con él y ceden el chip y luego la etiqueta larga antes de que
+  las acciones salgan de la pantalla (WCAG 1.4.4). Lo prueba `chrome.spec.ts` a 960 px.
 - El selector de idioma `EN / ES` (`LanguageSwitch`) es un par de enlaces en un grupo con nombre («Language»),
   cada uno nombrado en su idioma («English», «Español», con `lang`); el activo, subrayado ámbar y
   `aria-current="true"`. Un clic normal en el activo no navega.
@@ -80,7 +88,7 @@
 - Punto turquesa de 6 px (`--chip-dot-size`) que «respira» (opacidad de 1 a `--opacity-breathe-low`, sin escala,
   `--dur-breathe`) + «Open to work». Borde `--color-faint`; al pasar, borde y texto ámbar.
 - Es un enlace a `#contact` (el mismo salto que «Contact»); el punto es decorativo. Solo si el perfil dice
-  `openToWork`, y solo desde md (900 px).
+  `openToWork`, y solo desde md (900 px) si la barra mide al menos 52em (ver «Barra superior»).
 - Con movimiento reducido el punto no respira.
 
 ### Raíl (`ChapterRail`)
@@ -136,9 +144,13 @@
   y entrada con un fundido (`--dur-fade-slow`). Contenido (`QuickMissionContent`) en rejilla `auto-fit` de columnas
   de mínimo `--quick-col-min` (280 px).
 - Cabecera: «Quick mission · everything on one page» en mono atenuado y «Back to the journey» (`ButtonOutline`).
-  Título `h2` «Víctor Pérez · Frontend Developer» (escala de `h3` por debajo de sm) y secciones con su `h3` en mono
-  ámbar: About (bio y fortalezas), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Skills, Education,
-  Availability (si `openToWork`) y Contact (email con su `CopyButton`, GitHub, LinkedIn, CV).
+  Se queda fija arriba al hacer scroll (`position: sticky`, sobre `--color-void` opaco y con la zona segura libre).
+  El nombre del diálogo es el título; el rótulo va en `aria-describedby` (el lector dice los dos al abrir).
+  Ocupa también el hueco de la barra de scroll que reserva la página (`100vw`).
+- Título `h2` «Víctor Pérez · Frontend Developer» (escala de `h3` por debajo de sm) y secciones con su `h3` en mono
+  ámbar: About (bio y fortalezas), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Skills, Education
+  (título, centro, periodo y horas; las habilidades de cada curso solo en Contacto), Availability (si
+  `openToWork`) y Contact (email con su `CopyButton`, GitHub, LinkedIn, CV).
 - Marcado propio y compacto: lee `src/content/` como los capítulos, pero no reutiliza sus componentes (ADR-022).
 
 ### Visor de galería (`Lightbox`)
@@ -159,6 +171,10 @@
 - Barra flotante abajo y centrada, tan ancha como su texto (sin pasar del margen lateral ni de `--read-w`), mono
   12 px, velo (`--color-veil-chrome`) con desenfoque y borde; entra con un fundido (`--dur-fade-slow`).
 - Vive dentro de una región `role="status"` que existe siempre: lo que aparece se anuncia sin mover el foco.
+- Mientras se ve, su altura va a `--_notice-h` en `<html>`: el hueco de abajo que el navegador deja libre al llevar
+  el foco crece con ella y el documento gana ese alto al final. Nada enfocado queda debajo (WCAG 2.4.11).
+  Firefox no mira el `scroll-padding` si lo enfocado ya está dentro de la ventana (aunque sea debajo del aviso):
+  tras cada cambio de foco, el aviso comprueba si tapa lo enfocado y, si es así, sube la página lo justo.
 - Uso: sugerencia de idioma (con su `lang`) y, desde F3, sin WebGL. Descartable.
 
 ### Nota de proyecto (`ProjectNote`)

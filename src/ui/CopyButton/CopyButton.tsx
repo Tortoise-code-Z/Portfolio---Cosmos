@@ -11,9 +11,9 @@ export const COPY_FEEDBACK_MS = 1800;
 type CopyState = 'idle' | 'copied' | 'failed';
 
 const LABEL_KEYS = {
-  idle: 'contact.copy',
-  copied: 'contact.copied',
-  failed: 'contact.copyFailed',
+  idle: 'copy.idle',
+  copied: 'copy.copied',
+  failed: 'copy.failed',
 } as const;
 
 interface CopyButtonProps {
@@ -29,11 +29,14 @@ interface CopyButtonProps {
  * Botón copiar (docs/03-diseno/componentes.md → «Botón copiar»): Copy → Copied durante 1,8 s. Si el
  * portapapeles no está (http, navegador viejo) o lo rechaza, selecciona el texto y dice «Select and
  * copy it». El resultado se anuncia en una región viva aparte (el cambio de texto de un botón no se
- * anuncia solo) y el foco no se mueve.
+ * anuncia solo) y el foco no se mueve. Cada intento cambia el nodo del mensaje (`key`): copiar dos veces
+ * seguidas se anuncia dos veces, aunque el texto sea el mismo.
  */
 export function CopyButton({ text, targetId, subject }: CopyButtonProps): ReactNode {
   const t = useT();
   const [state, setState] = useState<CopyState>('idle');
+  /** Intentos de copiar: la `key` del mensaje, para que el lector lo vuelva a leer. */
+  const [attempt, setAttempt] = useState(0);
   const timer = useRef<number | undefined>(undefined);
   const mounted = useRef(true);
 
@@ -49,6 +52,7 @@ export function CopyButton({ text, targetId, subject }: CopyButtonProps): ReactN
     if (!mounted.current) return;
     window.clearTimeout(timer.current);
     setState(next);
+    setAttempt((count) => count + 1);
     timer.current = window.setTimeout(() => {
       setState('idle');
     }, COPY_FEEDBACK_MS);
@@ -89,7 +93,9 @@ export function CopyButton({ text, targetId, subject }: CopyButtonProps): ReactN
           </>
         ) : null}
       </ButtonOutline>
-      <VisuallyHidden role="status">{state === 'idle' ? '' : t(LABEL_KEYS[state])}</VisuallyHidden>
+      <VisuallyHidden role="status">
+        {state === 'idle' ? null : <span key={attempt}>{t(LABEL_KEYS[state])}</span>}
+      </VisuallyHidden>
     </>
   );
 }

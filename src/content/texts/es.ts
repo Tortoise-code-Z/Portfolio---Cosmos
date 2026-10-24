@@ -68,9 +68,9 @@ export const es: UiTexts = {
   'contact.title': 'Aterrizaje',
   'contact.lead':
     'Después de 13.800 millones de años, aquí estamos. Si tienes un proyecto o un equipo donde encaje, hablemos.',
-  'contact.copy': 'Copiar',
-  'contact.copied': 'Copiado',
-  'contact.copyFailed': 'Selecciónalo y cópialo',
+  'copy.idle': 'Copiar',
+  'copy.copied': 'Copiado',
+  'copy.failed': 'Selecciónalo y cópialo',
   'contact.copy.subject': 'el email',
   'availability.mode.remote': 'remoto',
   'availability.mode.hybrid': 'híbrido',

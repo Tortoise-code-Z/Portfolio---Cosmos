@@ -1,12 +1,13 @@
 /*
  * Modo misión rápida (docs/03-diseno/componentes.md → «Modo misión rápida»): `<dialog>` modal a
  * pantalla completa sobre un velo casi opaco (`--color-veil-dialog`), con su propio scroll. Entra con
- * un fundido (docs/03-diseno/movimiento.md → diálogos).
+ * un fundido (docs/03-diseno/movimiento.md → Tokens, `--dur-fade-slow`).
  */
 .dialog {
   position: fixed;
   inset: 0;
-  inline-size: 100%;
+  /* `100vw` (no `100%`): tapa también el hueco de la barra de scroll que la página reserva (global.css). */
+  inline-size: 100vw;
   block-size: 100%;
   max-inline-size: none;
   max-block-size: none;
@@ -49,12 +50,24 @@
   padding-inline: var(--gutter);
 }
 
+/*
+ * Cabecera fija arriba al hacer scroll: «Back to the journey» siempre a mano (en iOS no hay Esc). Sube
+ * sobre el aire de arriba de `.inner` (margen negativo y el mismo relleno) para que, quieta, quede donde
+ * siempre y, pegada, deje libre la zona segura. Fondo opaco (`--color-void`, el mismo tono que el velo
+ * del diálogo): el velo, al 96 %, dejaría leer el texto que pasa por debajo.
+ */
 .head {
+  position: sticky;
+  z-index: var(--z-chrome);
+  inset-block-start: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3) var(--space-4);
+  margin-block: calc(-1 * (var(--space-5) + env(safe-area-inset-top))) calc(-1 * var(--space-3));
+  padding-block: calc(var(--space-5) + env(safe-area-inset-top)) var(--space-3);
+  background-color: var(--color-void);
 }
 
 .eyebrow {

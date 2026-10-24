@@ -127,9 +127,6 @@ del texto.
 | `contact.eyebrow` | Contact · Earth · t = 13.8 billion years | Contacto · Tierra · t = 13.800 millones de años |
 | `contact.title` | Touchdown | Aterrizaje |
 | `contact.lead` | 13.8 billion years later, here we are. If you have a project or a team where I'd fit, let's talk. | Después de 13.800 millones de años, aquí estamos. Si tienes un proyecto o un equipo donde encaje, hablemos. |
-| `contact.copy` | Copy | Copiar |
-| `contact.copied` | Copied | Copiado |
-| `contact.copyFailed` | Select and copy it | Selecciónalo y cópialo |
 | `contact.copy.subject` | email | el email |
 | `availability.mode.remote` | remote | remoto |
 | `availability.mode.hybrid` | hybrid | híbrido |
@@ -193,6 +190,17 @@ del texto.
 - `project.copy.*` completa el nombre accesible del botón copiar («Copy password (Admin)»); `{account}` es el
   nombre de la cuenta de demo (`TryIt.credentials[].label`).
 - El contador visible del visor es «3 / 9»; `project.gallery.counter` es lo que se anuncia («3 of 9: …»).
+
+## Botón copiar (común)
+
+Las etiquetas de `CopyButton`, iguales en Contacto, el modo misión rápida y el «Try it» de la ficha. Lo que se
+copia lo dice cada uso (`contact.copy.subject`, `project.copy.*`).
+
+| Clave | EN | ES |
+|---|---|---|
+| `copy.idle` | Copy | Copiar |
+| `copy.copied` | Copied | Copiado |
+| `copy.failed` | Select and copy it | Selecciónalo y cópialo |
 
 ## Estados especiales
 

@@ -11,7 +11,6 @@ tu profesión.
 - Título: «A star born from curiosity».
 - Bio en 3 párrafos (perfil).
 - Fortalezas como etiquetas: Hard-working · Communication · Perseverance.
-- Chip de disponibilidad «Open to work · Killarney, Ireland» (el detalle completo vive en contacto).
 
 ## Escena en reposo (`m = 1`)
 

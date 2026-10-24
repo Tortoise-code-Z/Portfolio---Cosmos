@@ -30,8 +30,8 @@ cosmos-portfolio/
 │  │  │                           navegación) y `shared.module.css` (piezas de texto comunes)
 │  │  ├─ navigation/            ← TopBar, ChapterRail, LanguageSwitch, SkipLink, goToChapter (salto con
 │  │  │                           ancla en la URL), AvailabilityChip, QuickMissionDialog y
-│  │  │                           QuickMissionContent, `quickMission` (ancla `#quick` e id del botón que
-│  │  │                           lo abre) y LanguageNotice (sugerencia de idioma)
+│  │  │                           QuickMissionContent, `quickMission.ts` (suelto: ancla `#quick` e id del
+│  │  │                           botón que lo abre) y LanguageNotice (sugerencia de idioma)
 │  │  ├─ hud/                   ← CosmicHud y cosmicClock (reloj y escala, puros)
 │  │  ├─ project/               ← ProjectPage (la página), ProjectHeader, ProjectSection, ProjectStack,
 │  │  │                           ProjectNote, ProjectTryIt, ProjectGallery, ProjectPager y `neighbours`
@@ -46,7 +46,8 @@ cosmos-portfolio/
 │  │  ├─ i18n/                  ← tipos, useLocale, useT, formateadores Intl, rutas localizadas,
 │  │  │                           idioma del navegador y sugerencia (browserLocale, languageSuggestion)
 │  │  ├─ history/               ← replaceHash (cambia el ancla sin entrada nueva en el historial)
-│  │  ├─ storage/               ← readStorage / writeStorage: localStorage que nunca lanza (solo comodidades)
+│  │  ├─ storage/               ← readStorage / writeStorage: localStorage que nunca lanza; si falla, memoria
+│  │  │                           hasta recargar y un aviso por clave (solo comodidades)
 │  │  ├─ scroll/                ← mapM y toScrollLayout (puros), useChapterLayout, useScrollTarget,
 │  │  │                           jumpToChapter (scroll + foco al título + ancla)
 │  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
@@ -166,7 +167,8 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 | `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; sin escena, `m = mTarget`), y desde F3 carga, puntero, peso de capítulos, flags de pausa | `useFrame` y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
-ningún store: se guarda en `localStorage` (`lib/storage`) y la lee solo `LanguageNotice`.
+ningún store: se guarda en `localStorage` (`lib/storage`), la lee solo `LanguageNotice` y la escriben el aviso y
+el selector `EN / ES` (`rememberLanguageAnswer`).
 
 ## Puente scroll → escena
 
@@ -211,5 +213,6 @@ ningún store: se guarda en `localStorage` (`lib/storage`) y la lee solo `Langua
   `src/root.test.tsx` lo comprueba para cada ruta de `routes.ts`.
 - `ErrorBoundary` propio de la escena (aislado: un fallo 3D nunca tumba la página).
 - `CopyButton` y similares: siempre con alternativa (seleccionar texto) y mensaje.
-- Nada de `catch` vacíos: todo error capturado se registra con contexto (`console.error` en desarrollo y
-  producción; sin datos personales) o se muestra al usuario si le afecta.
+- Nada de `catch` vacíos: todo error capturado se registra con contexto y sin datos personales (en desarrollo y
+  producción) o se muestra al usuario si le afecta. `console.error` para los fallos; `console.warn` para las
+  degradaciones previstas que la interfaz ya cubre (portapapeles que rechaza, `localStorage` bloqueado).

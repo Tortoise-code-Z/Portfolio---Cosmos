@@ -27,6 +27,22 @@
   animation: fade-in var(--dur-fade-slow) var(--ease-out);
 }
 
+/*
+ * Mientras se ve, tapa el borde de abajo: el hueco que el navegador deja libre al llevar el foco
+ * (global.css) crece con su altura (`--_notice-h`, que escribe Notice.tsx) y su distancia al borde, y
+ * el documento gana ese mismo alto al final para que lo último (el pie de una ficha) pueda subir por
+ * encima. Así ni el elemento enfocado ni su anillo quedan debajo (WCAG 2.4.11).
+ */
+html:has(.notice) {
+  --_notice-room: calc(var(--_notice-h, 0px) + var(--space-4) + env(safe-area-inset-bottom));
+
+  scroll-padding-block-end: calc(var(--_notice-room) + var(--space-6));
+}
+
+html:has(.notice) body {
+  padding-block-end: var(--_notice-room);
+}
+
 /* Entra con un fundido (docs/03-diseno/movimiento.md: avisos y diálogos). */
 @keyframes fade-in {
   from {

@@ -12,14 +12,20 @@ import {
 import { ButtonOutline } from '~/ui/ButtonOutline/ButtonOutline';
 
 import { QuickMissionContent } from '../QuickMissionContent/QuickMissionContent';
-import { QUICK_HASH, QUICK_OPENER_ID } from '../quickMission/quickMission';
+import { QUICK_HASH, QUICK_OPENER_ID } from '../quickMission';
 import styles from './QuickMissionDialog.module.css';
 
 const TITLE_ID = 'quick-mission-title';
+/** El rótulo «Quick mission · everything on one page»: descripción del diálogo (el nombre es el título). */
+const EYEBROW_ID = 'quick-mission-eyebrow';
 
-/** Si la dirección pide el modo (`/#quick`), lo abre. */
-function openFromHash(): void {
-  if (window.location.hash === QUICK_HASH) openQuickMission();
+/** El ancla de una dirección (`#projects`, o nada); `''` si no se puede leer. */
+function hashOf(url: string): string {
+  try {
+    return new URL(url).hash;
+  } catch {
+    return '';
+  }
 }
 
 /**
@@ -29,7 +35,8 @@ function openFromHash(): void {
  *
  * - Al abrir, el foco va a «Back to the journey» y la URL pasa a `#quick` sin entrada nueva en el
  *   historial (se puede copiar y enviar); al cerrar, vuelve el ancla que había y el foco al botón de la
- *   barra, también si se entró por `/#quick`.
+ *   barra, también si se entró por `/#quick`. Si se abrió escribiendo `#quick` en la dirección (entrada
+ *   nueva), vuelve el ancla de antes; y si el ancla deja de ser `#quick` (Atrás), se cierra.
  * - El contenido solo se monta abierto: el HTML pre-renderizado no repite el texto del viaje.
  * - Mientras está abierto, el fondo no se desplaza (CSS) y, desde F3, la escena no pinta.
  */
@@ -41,15 +48,27 @@ export function QuickMissionDialog(): ReactNode {
   const backRef = useRef<HTMLButtonElement>(null);
   /** Ancla que había al abrir (`#about`, o nada), para dejarla igual al cerrar. */
   const hashBefore = useRef('');
+  /** Ancla de antes cuando se abre por un cambio de ancla: al abrir, la dirección ya es `#quick`. */
+  const hashBeforeChange = useRef<string | null>(null);
 
-  // `/#quick` al cargar y si el ancla cambia a `#quick` con la página abierta. Al salir del viaje (un
-  // enlace del propio modo lleva a un proyecto) se olvida que estaba abierto: al volver no reaparece
-  // solo, salvo que la dirección lo pida.
+  // `/#quick` al cargar y si el ancla cambia a `#quick` con la página abierta (guardando la de antes);
+  // si cambia a otra (Atrás con el modo abierto), se cierra. Al salir del viaje (un enlace del propio
+  // modo lleva a un proyecto) se olvida que estaba abierto: al volver no reaparece solo, salvo que la
+  // dirección lo pida.
   useEffect(() => {
-    openFromHash();
-    window.addEventListener('hashchange', openFromHash);
+    function onHashChange(event: HashChangeEvent): void {
+      if (window.location.hash !== QUICK_HASH) {
+        closeQuickMission();
+        return;
+      }
+      const before = hashOf(event.oldURL);
+      hashBeforeChange.current = before === QUICK_HASH ? '' : before;
+      openQuickMission();
+    }
+    if (window.location.hash === QUICK_HASH) openQuickMission();
+    window.addEventListener('hashchange', onHashChange);
     return () => {
-      window.removeEventListener('hashchange', openFromHash);
+      window.removeEventListener('hashchange', onHashChange);
       closeQuickMission();
     };
   }, []);
@@ -76,7 +95,8 @@ export function QuickMissionDialog(): ReactNode {
     if (!dialog.open) dialog.showModal();
     backRef.current?.focus();
     const { hash } = window.location;
-    hashBefore.current = hash === QUICK_HASH ? '' : hash;
+    hashBefore.current = hashBeforeChange.current ?? (hash === QUICK_HASH ? '' : hash);
+    hashBeforeChange.current = null;
     replaceHash(QUICK_HASH);
   }, [open]);
 
@@ -89,11 +109,19 @@ export function QuickMissionDialog(): ReactNode {
   }
 
   return (
-    <dialog ref={dialogRef} className={styles.dialog} aria-labelledby={TITLE_ID} onClose={onClose}>
+    <dialog
+      ref={dialogRef}
+      className={styles.dialog}
+      aria-labelledby={TITLE_ID}
+      aria-describedby={EYEBROW_ID}
+      onClose={onClose}
+    >
       {open ? (
         <div className={styles.inner}>
           <div className={styles.head}>
-            <p className={styles.eyebrow}>{t('quick.title')}</p>
+            <p id={EYEBROW_ID} className={styles.eyebrow}>
+              {t('quick.title')}
+            </p>
             <ButtonOutline
               ref={backRef}
               onClick={() => {

@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { sceneStore, setScrollTarget } from '~/stores/sceneStore/sceneStore';
 
+import { LANGUAGE_NOTICE_KEY } from '../LanguageNotice/LanguageNotice';
 import { LanguageSwitch } from './LanguageSwitch';
 
 /** Enseña la dirección del router: así se ve si un clic ha navegado. */
@@ -26,6 +27,7 @@ function renderSwitch(path: string): HTMLElement {
 
 afterEach(() => {
   sceneStore.setState(sceneStore.getInitialState(), true);
+  window.localStorage.clear();
 });
 
 describe('LanguageSwitch', () => {
@@ -113,5 +115,14 @@ describe('LanguageSwitch', () => {
     await user.keyboard('{/Control}');
     window.removeEventListener('click', record);
     expect(prevented).toEqual([false]);
+  });
+
+  it('choosing the other language by hand answers the language suggestion; the current one does not', async () => {
+    const group = renderSwitch('/es');
+    await userEvent.click(within(group).getByRole('link', { name: 'Español' }));
+    expect(window.localStorage.getItem(LANGUAGE_NOTICE_KEY)).toBeNull();
+    await userEvent.click(within(group).getByRole('link', { name: 'English' }));
+    expect(screen.getByRole('status').textContent).toBe('/');
+    expect(window.localStorage.getItem(LANGUAGE_NOTICE_KEY)).toBe('answered');
   });
 });
