@@ -1,6 +1,6 @@
 /*
- * Barra superior (docs/03-diseno/componentes.md → «Barra superior»): fija, transparente con desenfoque
- * de fondo y de altura fija (`--topbar-h`), que es también lo que el documento deja libre arriba al
+ * Barra superior (docs/03-diseno/componentes.md → «Barra superior»): fija, con un velo oscuro y
+ * desenfoque de fondo (el texto que pasa por debajo no le quita contraste) y de altura fija (`--topbar-h`), que es también lo que el documento deja libre arriba al
  * saltar a un ancla o enfocar algo (`scroll-padding-block-start` en global.css).
  */
 .bar {
@@ -15,27 +15,40 @@
   block-size: calc(var(--topbar-h) + env(safe-area-inset-top));
   padding-block-start: env(safe-area-inset-top);
   padding-inline: var(--gutter);
+  background-color: var(--color-veil-chrome);
   -webkit-backdrop-filter: blur(var(--blur-chrome));
   backdrop-filter: blur(var(--blur-chrome));
   font-family: var(--font-mono);
 }
 
+/* Si falta sitio (texto ampliado en móvil), solo cede el logo: los enlaces y EN / ES siguen enteros. */
 .logo {
   display: inline-flex;
   align-items: center;
+  min-inline-size: 0;
   min-block-size: var(--target-min);
   color: var(--color-ink);
   font-size: var(--text-small);
   font-weight: var(--weight-mono-strong);
+  line-height: var(--leading-small);
   letter-spacing: var(--tracking-logo);
   text-decoration: none;
 }
 
+.logoText {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .actions {
   display: flex;
+  flex: none;
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-label);
+  line-height: var(--leading-label);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
@@ -44,7 +57,9 @@
 .chapterLink {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
   padding-inline: var(--space-3);
   color: var(--color-ink-soft);
   text-decoration: none;

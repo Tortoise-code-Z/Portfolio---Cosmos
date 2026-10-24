@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, type MouseEvent, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useStore } from 'zustand';
 
@@ -6,8 +6,13 @@ import { LOCALES, type Locale, type UiKey } from '~/content/types';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
 import { sceneStore, selectActiveChapter } from '~/stores/sceneStore/sceneStore';
 
-import { chapterHref } from '../goToChapter/goToChapter';
+import { chapterHref, isPlainClick } from '../goToChapter/goToChapter';
 import styles from './LanguageSwitch.module.css';
+
+/** El enlace del idioma en el que ya estás no navega con un clic normal (no te mueve ni ensucia «Atrás»). */
+function stayHere(event: MouseEvent): void {
+  if (isPlainClick(event)) event.preventDefault();
+}
 
 const NAME_KEYS = {
   en: 'nav.langEn',
@@ -41,6 +46,7 @@ export function LanguageSwitch(): ReactNode {
             hrefLang={target}
             aria-label={t(NAME_KEYS[target])}
             aria-current={target === locale ? 'true' : undefined}
+            onClick={target === locale ? stayHere : undefined}
           >
             {target.toUpperCase()}
           </Link>

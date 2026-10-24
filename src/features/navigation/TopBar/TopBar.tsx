@@ -30,7 +30,7 @@ export function TopBar(): ReactNode {
   return (
     <header className={styles.bar}>
       <Link to={chapterHref(locale, 0)} className={styles.logo} onClick={toStart}>
-        {LOGO}
+        <span className={styles.logoText}>{LOGO}</span>
       </Link>
       <div className={styles.actions}>
         <Link to={chapterHref(locale, 3)} className={styles.chapterLink} onClick={toProjects}>

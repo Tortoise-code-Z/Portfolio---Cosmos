@@ -156,6 +156,31 @@ const NEUTRAL_COLOR_WORDS = new Set([
   'line-through',
   'wavy',
 ]);
+/**
+ * Colores del sistema (CSS Color 4): en alto contraste (`@media (forced-colors: active)`) son los que
+ * eligió el usuario, no un color escrito a mano.
+ */
+const SYSTEM_COLORS = new Set([
+  'canvas',
+  'canvastext',
+  'linktext',
+  'visitedtext',
+  'activetext',
+  'buttonface',
+  'buttontext',
+  'buttonborder',
+  'field',
+  'fieldtext',
+  'highlight',
+  'highlighttext',
+  'selecteditem',
+  'selecteditemtext',
+  'mark',
+  'marktext',
+  'graytext',
+  'accentcolor',
+  'accentcolortext',
+]);
 const NUMBER_OR_LENGTH = /^-?(?:\d+\.?\d*|\.\d+)(?:[a-z]+|%)?$/i;
 
 function colorLiterals(css: string): string[] {
@@ -167,7 +192,10 @@ function colorLiterals(css: string): string[] {
         .split(/[\s,/]+/)
         .filter((part) => part !== '')
         .some(
-          (part) => !NEUTRAL_COLOR_WORDS.has(part.toLowerCase()) && !NUMBER_OR_LENGTH.test(part),
+          (part) =>
+            !NEUTRAL_COLOR_WORDS.has(part.toLowerCase()) &&
+            !SYSTEM_COLORS.has(part.toLowerCase()) &&
+            !NUMBER_OR_LENGTH.test(part),
         ),
     )
     .map(describeDeclaration);
@@ -335,12 +363,13 @@ describe('invariant checks catch what they promise (guards)', () => {
     expect(colorLiterals(css)).toHaveLength(6);
   });
 
-  it('accepts tokens, neutral keywords and lengths, and ignores selectors', () => {
+  it('accepts tokens, neutral keywords, system colors and lengths, and ignores selectors', () => {
     const css = [
       '#add-button { color: var(--color-ink) }',
       'a { outline: var(--focus-width) solid var(--color-star) }',
       'b { border: var(--border-width) solid transparent; color: currentColor }',
       'c { box-shadow: inset 0 0 0 1px var(--color-faint, var(--color-dim)) }',
+      'd { background-color: Highlight; border-color: CanvasText }',
     ].join('\n');
     expect(colorLiterals(css)).toEqual([]);
   });

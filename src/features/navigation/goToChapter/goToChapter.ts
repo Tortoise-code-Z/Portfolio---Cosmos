@@ -31,7 +31,7 @@ export function goToChapter(index: ChapterIndex): boolean {
 }
 
 /** Clic normal: botón principal y sin teclas que pidan otra pestaña o ventana. */
-function isPlainClick(event: MouseEvent): boolean {
+export function isPlainClick(event: MouseEvent): boolean {
   return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
 }
 

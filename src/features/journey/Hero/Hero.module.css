@@ -58,6 +58,13 @@
   padding-block-end: var(--hero-room-bottom);
 }
 
+/* Por debajo de md (900px), el raíl va sobre el borde derecho: el texto le deja su columna. */
+@media (width < 900px) {
+  .inner {
+    padding-inline-end: var(--space-7);
+  }
+}
+
 /* El nombre: display gigante, eje wdth estrecho en reposo (energía contenida). */
 .name {
   padding-block-start: var(--hero-accent-room);
