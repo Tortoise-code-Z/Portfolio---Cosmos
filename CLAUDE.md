@@ -42,6 +42,7 @@ Si dos documentos chocan: `DECISIONS.md` > `docs/00-vision/brief.md` > doc espec
 ## Cómo trabajar aquí
 - Método: esquema → «Visto Bueno» → ejecución paso a paso. Reglas completas en `DEVELOPMENT_RULES.md`.
 - Git lo ejecuta Víctor en PowerShell; Claude le da siempre los comandos y el PR listo (título + descripción).
+- Con Víctor se habla **siempre en español**; los commits y los PR van en inglés (`DEVELOPMENT_RULES.md` §10).
 - Primero la web útil, después el espectáculo: si se quita la escena 3D, el sitio sigue completo (P1).
 - Carga solo los docs del Mapa que toque el paso actual; no leas `docs/` entero.
 - Terminal: Windows 11 + PowerShell.
