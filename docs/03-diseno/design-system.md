@@ -36,7 +36,8 @@ activo.
 | `--color-aurora` | `#62e8cf` | Acento secundario: naturaleza, «Featured», disponibilidad | 13,5 : 1 |
 | `--color-veil` | `rgb(4 5 11 / 0.82)` | Fondo de los paneles sobre la escena | — |
 | `--color-veil-soft` | `rgb(4 5 11 / 0.62)` | Paso intermedio del velo radial de los paneles (escritorio) | — |
-| `--color-veil-chrome` | `rgb(4 5 11 / 0.7)` | Fondo de la barra superior, bajo el desenfoque: `--color-ink-soft` da 5,8:1 aunque pase `--color-ink` por debajo | — |
+| `--color-veil-chrome` | `rgb(4 5 11 / 0.7)` | Fondo de la barra superior y de los avisos, bajo el desenfoque: `--color-ink-soft` da 5,8:1 aunque pase `--color-ink` por debajo | — |
+| `--color-veil-dialog` | `rgb(4 5 11 / 0.96)` | Fondo del modo misión rápida (pantalla completa) | — |
 | `--gradient-row-hot` | degradado ámbar al 8 % → transparente | Fondo de una fila de proyecto «hot» | — |
 | `--gradient-panel` · `--gradient-panel-mobile` | velo radial · velo que entra desde arriba (`--space-8`) | Fondo del panel en escritorio · en móvil | — |
 | `--color-flash` | `#fff4dc` | Destello del Big Bang | — |
@@ -141,6 +142,8 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--singularity-halo-size` · `--singularity-core-size` | 46vmin · 6 px | Halo y punto de la singularidad en CSS |
 | `--hold-ring-size` · `--hold-ring-stroke` | 26 px · 3 px | Anillo de carga del `HoldButton` |
 | `--rail-dot-size` · `--rail-dot-scale-active` | 7 px · 1,4 | Punto del raíl y su escala cuando es el activo |
+| `--chip-dot-size` · `--opacity-breathe-low` | 6 px · 0,35 | Punto del chip «Open to work» y la opacidad más baja de su respiración |
+| `--quick-col-min` | 280 px | Ancho mínimo de cada columna del modo misión rápida (`auto-fit`) |
 
 (Los breakpoints no son tokens: una variable CSS no puede usarse en una media query. Se escriben como número
 en las media queries y están anotados en la cabecera de `tokens.css`.)
@@ -157,8 +160,8 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
   (WCAG 2.4.11). Las anclas dejan su capítulo justo bajo la barra.
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
   (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`).
-- Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins y botones
-  flotantes. La barra lleva además un velo (`--color-veil-chrome`) para no depender de lo que pase por debajo.
+- Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins, botones de
+  contorno y avisos. La barra lleva además un velo (`--color-veil-chrome`) para no depender de lo que pase por debajo.
 - Deshabilitado: `--opacity-disabled` (0,4). Apagado sin estar deshabilitado (texto de los capítulos inactivos del
   raíl): `--opacity-muted` (0,7), que mantiene AA sobre `--color-void` (8,7:1 con `--color-ink`, 4,7:1 con
   `--color-dim`). Área táctil mínima: `--target-min` (44 px).
@@ -178,7 +181,7 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 | `--z-chrome` | 15 | Raíl y HUD |
 | `--z-topbar` | 20 | Barra superior |
 | `--z-skip` | 30 | «Skip to content» al recibir el foco (por encima de la barra) |
-| `--z-dialog` | 40 | Modo misión rápida y visor de galería |
+| `--z-dialog` | 40 | Reservado. Un `<dialog>` modal (misión rápida, visor de galería) va en la capa superior del navegador, por encima de todo, sin `z-index` |
 | `--z-toast` | 50 | Avisos (sin WebGL, sugerencia de idioma) |
 
 Excepción local: un componente que aísla su apilado (`isolation: isolate`) puede poner una capa decorativa detrás de

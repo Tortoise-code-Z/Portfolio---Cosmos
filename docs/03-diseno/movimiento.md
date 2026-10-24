@@ -18,7 +18,7 @@
 | `--dur-base` | 250 ms | Encendido de grupos, filas y pins |
 | `--dur-slow` | 400 ms | Desplazamiento corto de avisos y diálogos al entrar (lo que no es opacidad) |
 | `--dur-flight` | 800 ms | Vuelo de cámara a una placa |
-| `--dur-breathe` | 4 s | Latido lento del halo CSS de la singularidad (se quita con movimiento reducido) |
+| `--dur-breathe` | 4 s | Latido lento del halo CSS de la singularidad y del punto del chip «Open to work» (se quitan con movimiento reducido) |
 | `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Entradas y vuelos (salida exponencial) |
 | `--ease-in-out` | `cubic-bezier(0.65, 0, 0.35, 1)` | Fundidos simétricos |
 | `--dur-fade-base` | = `--dur-base` | Fundidos de opacidad de duración base |

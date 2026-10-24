@@ -53,7 +53,10 @@ sube a mitad de visita para no causar tirones). Valores en `docs/04-escena/`.
 
 ## Pestaña oculta y modo misión rápida
 
-- Con la pestaña oculta o el modo misión rápida abierto, la escena **no renderiza** (ahorro de batería).
+- Con la pestaña oculta o el modo misión rápida abierto, la escena **no renderiza** (ahorro de batería). Desde
+  F2.6, `uiStore` sabe si el modo está abierto (`quickMissionOpen`); la escena lo leerá en F3.
+- El modo es un `<dialog>` modal: el resto de la página queda inerte (ni Tab ni lector), el foco entra en «Back to
+  the journey» y vuelve al botón de la barra al cerrar, y el fondo no se desplaza.
 
 ## 404 «Lost in space»
 
@@ -66,7 +69,8 @@ sube a mitad de visita para no causar tirones). Valores en `docs/04-escena/`.
 2. Navegación completa con teclado; foco visible; «Skip to content».
 3. Un `<h1>` por página; jerarquía de encabezados sin saltos.
 4. El lienzo es `aria-hidden`; nada interactivo existe solo en él.
-5. Regiones `aria-live` para mensajes (copiado, aviso sin WebGL).
+5. Regiones `aria-live` (`role="status"`) para mensajes: copiado del email, sugerencia de idioma y, desde F3,
+   aviso sin WebGL. Existen desde el principio (vacías) para que el lector anuncie lo que aparece.
 6. Lighthouse Accessibility ≥ 95 y revisión manual con lector de pantalla (NVDA) en la fase de pulido.
 7. Las listas sin viñetas declaran `role="list"`: Safari quita el rol a un `<ul>` o `<ol>` con `list-style: none` y
    VoiceOver deja de anunciar «lista, 3 elementos». ESLint (`jsx-a11y-x/no-redundant-roles`) lo permite en `<ul>`

@@ -6,6 +6,10 @@
 > Los modos de trabajo (`availability.mode.*`, en minúscula) no forman una frase fija: la arma
 > `workModesText` (`src/lib/i18n/availability/availability.ts`) desde `profile.availability.modes` con `Intl.ListFormat`
 > (disyunción) y mayúscula inicial: EN «Remote, hybrid, or on-site» · ES «Remoto, híbrido o presencial».
+> `nav.quickShort` es la forma corta de `nav.quick` que se ve por debajo de 520 px: va contenida en ella (el nombre
+> accesible del botón es `nav.quick`). `contact.copy.subject` solo lo oye el lector («Copy email»).
+> La sugerencia de idioma (`langNotice.*`) habla en el idioma que **ofrece**: hoy solo sale en las páginas en
+> inglés y se lee de `es.ts`; la columna EN existe para que los dos diccionarios tengan las mismas claves.
 > Las cifras de 4 dígitos en ES van sin punto (norma RAE, como `Intl`): «1000 millones»; desde 5, con punto.
 
 ## SEO y metadatos
@@ -27,6 +31,7 @@
 | `nav.contact` | Contact | Contacto |
 | `nav.cv` | CV | CV |
 | `nav.quick` | Quick mission | Modo misión rápida |
+| `nav.quickShort` | Quick | Rápida |
 | `nav.language` | Language | Idioma |
 | `nav.langEn` | English | English |
 | `nav.langEs` | Español | Español |
@@ -125,6 +130,7 @@ del texto.
 | `contact.copy` | Copy | Copiar |
 | `contact.copied` | Copied | Copiado |
 | `contact.copyFailed` | Select and copy it | Selecciónalo y cópialo |
+| `contact.copy.subject` | email | el email |
 | `availability.mode.remote` | remote | remoto |
 | `availability.mode.hybrid` | hybrid | híbrido |
 | `availability.mode.onsite` | on-site | presencial |
@@ -146,6 +152,7 @@ del texto.
 | `quick.skills` | Skills | Habilidades |
 | `quick.education` | Education | Formación |
 | `quick.contact` | Contact | Contacto |
+| `quick.availability` | Availability | Disponibilidad |
 
 ## Página de proyecto
 
@@ -174,6 +181,9 @@ del texto.
 
 | Clave | EN | ES |
 |---|---|---|
+| `langNotice.text` | This page is also available in English. | Esta página también está en español. |
+| `langNotice.accept` | View in English | Ver en español |
+| `langNotice.dismiss` | No, thanks | No, gracias |
 | `noGl.notice` | Your browser can't show the 3D universe, but everything else is here. | Tu navegador no puede mostrar el universo 3D, pero todo lo demás está aquí. |
 | `notFound.title` | Lost in space | Perdido en el espacio |
 | `notFound.body` | This page drifted out of orbit. | Esta página se salió de su órbita. |

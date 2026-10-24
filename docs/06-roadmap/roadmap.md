@@ -40,7 +40,8 @@ se abre. Etiqueta `v0.0.1`.
 6. Modo misión rápida (incluido `/#quick` y su botón en la barra), copiar email, chip de disponibilidad en la barra,
    sugerencia de idioma.
 7. Páginas de proyecto completas (galería con visor accesible) y 404. La barra superior entra también en la página
-   de proyecto (en F2.5 solo vive en el viaje).
+   de proyecto (en F2.5 solo vive en el viaje); con ella, su botón «Quick mission», así que `QuickMissionDialog`
+   se monta también allí (desde F2.6 solo vive en el viaje). Decidir si la sugerencia de idioma sale también ahí.
 8. Imágenes de proyectos migradas desde el repo antiguo y optimizadas.
 
 **Hecho cuando:** el sitio completo se puede usar y desplegar sin escena; Lighthouse Accessibility ≥ 95 y SEO ≥ 95;
@@ -54,7 +55,7 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
 3. `Particles` con el shader de morph entre las 5 formas; estrellas de fondo.
 4. `CameraRig` con keyframes, encuadre por capítulo, FOV para móvil y paralaje.
 5. Puente `sceneStore` ↔ scroll (el scroll ya escribe `mTarget` desde F2.5, ADR-021: la escena pasa a suavizar `m`);
-   pausa con pestaña oculta y en misión rápida.
+   pausa con pestaña oculta y en misión rápida (`quickMissionOpen` de `uiStore`, desde F2.6).
 6. Primeras capturas de regresión visual (Docker) y medición de fps.
 
 **Hecho cuando:** el viaje se ve de punta a punta con las 5 formas, 60 fps en escritorio y sin errores con WebGL
