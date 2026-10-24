@@ -1,9 +1,10 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 import { profile } from '~/content/profile';
 import { projects } from '~/content/projects';
 import type { Project } from '~/content/types';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
+import { setVisitedProject } from '~/stores/uiStore/uiStore';
 import { ArrowText } from '~/ui/ArrowText/ArrowText';
 
 import { neighbours } from '../neighbours/neighbours';
@@ -24,6 +25,7 @@ interface ProjectPageProps {
  * Página de proyecto (docs/02-experiencia/pagina-proyecto.md): un documento normal, sin capítulos, en
  * una columna de lectura. Las secciones van en el orden de la spec y la que no tiene datos no se pinta
  * (Cosmos no tiene proceso ni «Try it»; ninguna portada ni galería existe hasta F2.8). Es el `<main>` de la ruta.
+ * Apunta el proyecto como visto: al volver al viaje, el foco queda en su fila.
  */
 export function ProjectPage({ project }: ProjectPageProps): ReactNode {
   const t = useT();
@@ -31,6 +33,11 @@ export function ProjectPage({ project }: ProjectPageProps): ReactNode {
   const about = project.about[locale];
   const process = project.process[locale];
   const { cover } = project;
+
+  // Al volver al viaje, su fila recibe el foco (Projects → `takeVisitedProject`).
+  useEffect(() => {
+    setVisitedProject(project.slug);
+  }, [project.slug]);
 
   return (
     <main className={styles.page}>

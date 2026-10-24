@@ -42,4 +42,24 @@ describe('SkipLink', () => {
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 }));
     expect(window.location.hash).toBe('');
   });
+
+  it('outside the journey: a link to the given title that focuses it, without leaving an anchor', async () => {
+    window.history.replaceState(null, '', '/projects/chessmate');
+    render(
+      <MemoryRouter initialEntries={['/projects/chessmate']}>
+        <SkipLink targetId="project-title" />
+      </MemoryRouter>,
+    );
+    const title = document.createElement('h1');
+    title.id = 'project-title';
+    title.tabIndex = -1;
+    title.textContent = 'Chessmate';
+    document.body.append(title);
+
+    const link = screen.getByRole('link', { name: 'Skip to content' });
+    expect(link).toHaveAttribute('href', '#project-title');
+    await userEvent.click(link);
+    expect(document.activeElement).toBe(title);
+    expect(window.location.hash).toBe('');
+  });
 });

@@ -53,6 +53,26 @@ describe('LanguageSwitch', () => {
     );
   });
 
+  it('outside the journey, each link goes to the same page in its language (pathFor)', () => {
+    sceneStore.setState({ mTarget: 3, m: 3 });
+    render(
+      <MemoryRouter initialEntries={['/projects/chessmate']}>
+        <LanguageSwitch
+          pathFor={(locale) => (locale === 'es' ? '/es/projects/x' : '/projects/x')}
+        />
+      </MemoryRouter>,
+    );
+    const group = screen.getByRole('group');
+    expect(within(group).getByRole('link', { name: 'English' })).toHaveAttribute(
+      'href',
+      '/projects/x',
+    );
+    expect(within(group).getByRole('link', { name: 'Español' })).toHaveAttribute(
+      'href',
+      '/es/projects/x',
+    );
+  });
+
   it('keeps the chapter you are reading, even if the URL has no anchor', () => {
     const group = renderSwitch('/');
     act(() => {

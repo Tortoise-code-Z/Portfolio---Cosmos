@@ -1,0 +1,162 @@
+import { expect, test, type Page } from '@playwright/test';
+
+/**
+ * Página de proyecto (F2 · paso 7): docs/02-experiencia/pagina-proyecto.md y navegacion.md → «Volver
+ * desde una página de proyecto». La galería sigue vacía hasta F2.8: el visor lo prueban sus tests
+ * unitarios.
+ */
+
+const bar = (page: Page): ReturnType<Page['getByRole']> => page.getByRole('banner');
+
+/** Alto que tapa la barra fija arriba (`scroll-padding-block-start`). */
+const barHeight = (page: Page): Promise<number> =>
+  page.evaluate(() =>
+    Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart),
+  );
+
+/** El capítulo `#id` empieza justo bajo la barra (o la página ya no da más de sí). */
+async function landedUnderBar(page: Page, id: string): Promise<boolean> {
+  const box = await page.locator(`#${id}`).boundingBox();
+  return box !== null && box.y >= (await barHeight(page)) - 2;
+}
+
+function collectErrors(page: Page): string[] {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  return errors;
+}
+
+test.describe('project page', () => {
+  test('every section with data, in order, and one h1', async ({ page }) => {
+    await page.goto('/projects/chessmate', { waitUntil: 'networkidle' });
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Chessmate');
+    await expect(page.getByRole('main').getByRole('heading', { level: 2 })).toHaveText([
+      'About the project',
+      'Key features',
+      'Tech stack',
+      'Development process',
+      'Notes',
+      'Try it',
+    ]);
+  });
+
+  test('«Back to the shell» lands on the projects chapter with the focus on that row', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const errors = collectErrors(page);
+    await page.goto('/projects/astrohub', { waitUntil: 'networkidle' });
+    await page.getByRole('link', { name: 'Back to the shell' }).click();
+    await expect(page).toHaveURL(/\/#projects$/);
+    const view = page.getByRole('link', { name: 'View project AstroHub' });
+    await expect(view).toBeFocused();
+    await expect(view).toBeInViewport();
+    // La fila se resalta como «hot» (borde ámbar), igual que con el puntero o el Tab.
+    const row = page.locator('[data-project="astrohub"]');
+    await expect(row).toHaveCSS('border-inline-start-color', 'rgb(255, 196, 107)');
+    expect(errors).toEqual([]);
+  });
+
+  test('the browser Back button restores the journey where it was, with the focus on that row', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/#projects', { waitUntil: 'networkidle' });
+    const view = page.getByRole('link', { name: 'View project Cosmos' });
+    await view.scrollIntoViewIfNeeded();
+    const before = await page.evaluate(() => window.scrollY);
+    await view.click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Cosmos');
+
+    await page.goBack();
+    await expect(page.getByRole('link', { name: 'View project Cosmos' })).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(before);
+  });
+
+  test('the bar is there: Contact goes to the journey and lands below the bar', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/projects/chessmate', { waitUntil: 'networkidle' });
+    await bar(page).getByRole('link', { name: 'Contact' }).click();
+    await expect(page).toHaveURL(/\/#contact$/);
+    await expect.poll(() => landedUnderBar(page, 'contact')).toBe(true);
+  });
+
+  test('Projects in the bar also brings the focus to the row of the project just seen', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/projects/chessmate', { waitUntil: 'networkidle' });
+    await bar(page).getByRole('link', { name: 'Projects' }).click();
+    await expect(page).toHaveURL(/\/#projects$/);
+    const view = page.getByRole('link', { name: 'View project Chessmate' });
+    await expect(view).toBeFocused();
+    await expect(view).toBeInViewport();
+  });
+
+  test('no rail and no HUD: there are no chapters', async ({ page }) => {
+    await page.goto('/projects/chessmate', { waitUntil: 'networkidle' });
+    await expect(page.getByRole('navigation', { name: 'Chapters' })).toHaveCount(0);
+    await expect(page.locator('[aria-hidden="true"]', { hasText: /^t [=≈]/ })).toHaveCount(0);
+  });
+
+  test('«Skip to content» is the first Tab and focuses the project name', async ({ page }) => {
+    await page.goto('/projects/cosmos', { waitUntil: 'networkidle' });
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
+    await expect(page).toHaveURL(/\/projects\/cosmos$/);
+  });
+
+  test('EN / ES goes to the same project in the other language', async ({ page }) => {
+    await page.goto('/projects/chessmate', { waitUntil: 'networkidle' });
+    await bar(page).getByRole('link', { name: 'Español' }).click();
+    await expect(page).toHaveURL(/\/es\/projects\/chessmate$/);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+    await expect(page.getByRole('heading', { level: 2 }).first()).toHaveText('Sobre el proyecto');
+  });
+
+  test('the quick mission opens here too and gives the focus back to the bar', async ({ page }) => {
+    await page.goto('/projects/chessmate', { waitUntil: 'networkidle' });
+    const opener = bar(page).getByRole('button', { name: 'Quick mission' });
+    await opener.click();
+    const dialog = page.getByRole('dialog', { name: /Víctor Pérez/ });
+    await expect(dialog).toBeVisible();
+    await expect(page).toHaveURL(/\/projects\/chessmate#quick$/);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(opener).toBeFocused();
+    await expect(page).toHaveURL(/\/projects\/chessmate$/);
+  });
+
+  for (const width of [320, 390]) {
+    test(`${String(width)} px with text at 200 %: no sideways scroll`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 });
+      for (const path of ['/projects/chessmate', '/es/projects/astrohub', '/projects/cosmos']) {
+        await page.goto(path, { waitUntil: 'networkidle' });
+        await page.addStyleTag({ content: 'html { font-size: 200%; }' });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+          width,
+        );
+      }
+    });
+  }
+});
+
+test.describe('project page with a Spanish browser', () => {
+  test.use({ locale: 'es-ES' });
+
+  test('the language suggestion offers this same project in Spanish', async ({ page }) => {
+    await page.goto('/projects/astrohub', { waitUntil: 'networkidle' });
+    const suggestion = page
+      .getByRole('status')
+      .filter({ hasText: 'Esta página también está en español.' });
+    await suggestion.getByRole('link', { name: 'Ver en español' }).click();
+    await expect(page).toHaveURL(/\/es\/projects\/astrohub$/);
+  });
+});

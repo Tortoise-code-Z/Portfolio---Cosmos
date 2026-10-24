@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import { profile } from '~/content/profile';
+import type { Locale } from '~/content/types';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
 import { openQuickMission } from '~/stores/uiStore/uiStore';
 import { ButtonOutline } from '~/ui/ButtonOutline/ButtonOutline';
@@ -25,9 +26,15 @@ const toContact = onChapterLinkClick(4);
  * existe el PDF del idioma, EN / ES y el botón del modo misión rápida. Los enlaces son de verdad
  * (`/#projects`): sin JavaScript también llevan a su sitio; en el viaje hacen el mismo salto que el
  * raíl, con el foco en el título. «Quick mission» es un botón que abre un diálogo; por debajo de sm
- * (520 px) enseña una forma corta («Quick»), contenida en su nombre accesible.
+ * (520 px) enseña una forma corta («Quick»), contenida en su nombre accesible. En una página de
+ * proyecto, los enlaces a capítulos navegan al viaje y `EN / ES` lleva a la misma página (`pathFor`).
  */
-export function TopBar(): ReactNode {
+interface TopBarProps {
+  /** La misma página en otro idioma para `EN / ES`, fuera del viaje (página de proyecto). */
+  readonly pathFor?: (locale: Locale) => string;
+}
+
+export function TopBar({ pathFor }: TopBarProps): ReactNode {
   const t = useT();
   const locale = useLocale();
   const cv = profile.cv[locale];
@@ -50,7 +57,7 @@ export function TopBar(): ReactNode {
             {t('nav.cv')}
           </a>
         )}
-        <LanguageSwitch />
+        <LanguageSwitch pathFor={pathFor} />
         <ButtonOutline
           id={QUICK_OPENER_ID}
           aria-label={t('nav.quick')}

@@ -157,6 +157,24 @@ describe('QuickMissionDialog', () => {
     expect(isOpen()).toBe(false);
   });
 
+  it('a page that mounts it while it is still open from the previous one (no #quick): closes, does not reopen', () => {
+    // Un enlace del modo lleva a un proyecto, que también lo monta: el estado llega abierto.
+    window.history.replaceState(null, '', '/projects/chessmate');
+    openQuickMission();
+    renderDialog('/projects/chessmate');
+    expect(showModal).not.toHaveBeenCalled();
+    expect(isOpen()).toBe(false);
+    expect(address()).toBe('/projects/chessmate');
+  });
+
+  it('mounted with #quick in the address and the state open, it opens', () => {
+    window.history.replaceState(null, '', '/#quick');
+    openQuickMission();
+    renderDialog('/#quick');
+    expect(showModal).toHaveBeenCalledTimes(1);
+    expect(isOpen()).toBe(true);
+  });
+
   it('does not touch an address that is no longer #quick (a link took you elsewhere)', () => {
     window.history.replaceState(null, '', '/#about');
     renderDialog();

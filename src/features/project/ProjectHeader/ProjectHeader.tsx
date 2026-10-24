@@ -7,7 +7,7 @@ import { ActionLink } from '~/ui/ActionLink/ActionLink';
 
 import styles from './ProjectHeader.module.css';
 
-/** Id del nombre del proyecto (`h1`): destino de «Skip to content» en la página de proyecto. */
+/** Id del nombre del proyecto (`h1`, enfocable por código): destino de «Skip to content» en la página. */
 export const PROJECT_TITLE_ID = 'project-title';
 
 interface ProjectHeaderProps {
@@ -30,7 +30,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps): ReactNode {
           {t('project.back')}
         </ActionLink>
       </p>
-      <h1 id={PROJECT_TITLE_ID} className={styles.name}>
+      <h1 id={PROJECT_TITLE_ID} className={styles.name} tabIndex={-1}>
         {project.name}
       </h1>
       <p className={styles.tagline}>{project.tagline[locale]}</p>

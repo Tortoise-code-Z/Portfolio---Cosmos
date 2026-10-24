@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+
+import { useUiStore } from '~/stores/uiStore/uiStore';
 
 import ProjectRoute from './project';
 
@@ -10,6 +12,10 @@ const Stub = createRoutesStub([
   { path: '/es/projects/:slug', Component: ProjectRoute },
 ]);
 
+afterEach(() => {
+  useUiStore.setState(useUiStore.getInitialState(), true);
+});
+
 describe('ProjectRoute', () => {
   it.each([
     ['/projects/chessmate', 'Chessmate', 'About the project'],
@@ -18,6 +24,30 @@ describe('ProjectRoute', () => {
     render(<Stub initialEntries={[path]} />);
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(name);
     expect(screen.getByRole('heading', { level: 2, name: about })).toBeInTheDocument();
+  });
+
+  it('lleva la interfaz fija: Skip al nombre, la barra con «Quick mission» y EN / ES a esta misma página', async () => {
+    render(<Stub initialEntries={['/es/projects/chessmate']} />);
+    await screen.findByRole('heading', { level: 1 });
+    expect(screen.getByRole('link', { name: 'Saltar al contenido' })).toHaveAttribute(
+      'href',
+      '#project-title',
+    );
+    expect(screen.getByRole('link', { name: 'TORTOISE_CODE' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Modo misión rápida' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'English' })).toHaveAttribute(
+      'href',
+      '/projects/chessmate',
+    );
+    expect(document.querySelector('dialog')).not.toBeNull();
+    // Sin capítulos no hay raíl ni HUD.
+    expect(screen.queryByRole('navigation', { name: /chapters|capítulos/i })).toBeNull();
+  });
+
+  it('apunta el proyecto como visto (el viaje dejará el foco en su fila al volver)', async () => {
+    render(<Stub initialEntries={['/projects/cosmos']} />);
+    await screen.findByRole('heading', { level: 1 });
+    expect(useUiStore.getState().visitedProject).toBe('cosmos');
   });
 
   it.each([
