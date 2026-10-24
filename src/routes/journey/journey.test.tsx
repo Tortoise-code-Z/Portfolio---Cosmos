@@ -22,6 +22,19 @@ describe('Journey', () => {
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Víctor Pérez');
   });
 
+  it('monta el modo misión rápida cerrado y vacío, después del raíl (fuera del orden del Tab)', async () => {
+    render(<Stub initialEntries={['/']} />);
+    await screen.findByRole('heading', { level: 1 });
+    const dialog = document.querySelector('dialog');
+    expect(dialog).not.toBeNull();
+    expect(dialog).not.toHaveAttribute('open');
+    expect(dialog).toBeEmptyDOMElement();
+    const rail = screen.getByRole('navigation', { name: 'Chapters' });
+    expect(
+      rail.compareDocumentPosition(dialog as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it('frase del hero en inglés en /', async () => {
     render(<Stub initialEntries={['/']} />);
     expect(await screen.findByText(/So did my code\./)).toBeInTheDocument();

@@ -12,6 +12,7 @@ import { Hero } from '~/features/journey/Hero/Hero';
 import { Projects } from '~/features/journey/Projects/Projects';
 import { Skills } from '~/features/journey/Skills/Skills';
 import { ChapterRail } from '~/features/navigation/ChapterRail/ChapterRail';
+import { QuickMissionDialog } from '~/features/navigation/QuickMissionDialog/QuickMissionDialog';
 import { SkipLink } from '~/features/navigation/SkipLink/SkipLink';
 import { TopBar } from '~/features/navigation/TopBar/TopBar';
 import { SITE_ORIGIN } from '~/lib/env/site/site';
@@ -50,7 +51,8 @@ export default function Journey(): ReactNode {
 
 /**
  * El viaje: los cinco capítulos en orden (docs/02-experiencia/README.md), sin escena, con la interfaz
- * fija en el orden del Tab (Skip → barra → contenido → raíl; el HUD es decorativo). Su scroll fija el
+ * fija en el orden del Tab (Skip → barra → contenido → raíl; el HUD es decorativo) y el modo misión
+ * rápida (un diálogo modal: fuera del orden hasta que se abre). Su scroll fija el
  * `m` de `sceneStore`, que leen el raíl, el HUD y el idioma (y, desde F3, la escena).
  */
 function JourneyPage(): ReactNode {
@@ -70,6 +72,7 @@ function JourneyPage(): ReactNode {
       </main>
       <ChapterRail />
       <CosmicHud />
+      <QuickMissionDialog />
     </>
   );
 }

@@ -78,3 +78,18 @@
     display: none;
   }
 }
+
+/* «Quick mission»: la etiqueta completa desde sm (520px); por debajo, la corta («Quick», «Rápida»). */
+.quickShort {
+  display: none;
+}
+
+@media (width < 520px) {
+  .quickFull {
+    display: none;
+  }
+
+  .quickShort {
+    display: inline;
+  }
+}
