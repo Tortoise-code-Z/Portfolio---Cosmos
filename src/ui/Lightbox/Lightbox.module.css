@@ -1,0 +1,82 @@
+/*
+ * Visor de galería (docs/03-diseno/componentes.md → «Visor de galería»): `<dialog>` modal a pantalla
+ * completa sobre el velo casi opaco de los diálogos, con la imagen centrada. Entra con un fundido.
+ */
+.dialog {
+  position: fixed;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background-color: var(--color-veil-dialog);
+  color: var(--color-ink-soft);
+  overscroll-behavior: contain;
+}
+
+.dialog[open] {
+  animation: fade-in var(--dur-fade-slow) var(--ease-out);
+}
+
+.dialog::backdrop {
+  background-color: transparent;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Mientras está abierto, la página de detrás no se desplaza y conserva su posición. */
+:global(html):has(.dialog[open]) {
+  overflow: hidden;
+}
+
+/* Tres filas: contador y cerrar · imagen (todo el alto que quede) · flechas. */
+.inner {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  block-size: 100%;
+  padding-block: calc(var(--space-4) + env(safe-area-inset-top))
+    calc(var(--space-4) + env(safe-area-inset-bottom));
+  padding-inline: var(--gutter);
+}
+
+.head,
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.counter {
+  color: var(--color-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.figure {
+  position: relative;
+  min-block-size: 0;
+}
+
+/*
+ * La imagen ocupa el hueco de la fila del medio y se ajusta dentro sin deformarse (`contain`): cabe
+ * entera sea apaisada o vertical, y las flechas nunca la tapan.
+ */
+.image {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: contain;
+}

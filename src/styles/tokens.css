@@ -148,6 +148,7 @@
   /* ── Página de proyecto ───────────────────────────────────────── */
   --project-col-min: 220px;
   --note-border-width: 2px;
+  --gallery-thumb-ratio: 16 / 10;
 
   /* ── Forma y profundidad ──────────────────────────────────────── */
   --border-width: 1px;

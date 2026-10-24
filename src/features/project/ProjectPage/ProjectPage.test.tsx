@@ -98,6 +98,17 @@ describe('ProjectPage', () => {
     expect(image).toHaveAttribute('height', '900');
   });
 
+  it('con galería: su sección va detrás de «Try it», antes del pie', async () => {
+    const chessmate = bySlug('chessmate');
+    const gallery = [
+      { src: '/g/1.webp', width: 1600, height: 900, alt: { en: 'Home page', es: 'Inicio' } },
+    ];
+    renderAt('/projects/chessmate', { ...chessmate, gallery });
+    await screen.findByRole('main');
+    expect(h2s().slice(-2)).toEqual(['Try it', 'Gallery']);
+    expect(screen.getByRole('button', { name: 'Open image 1 of 1 Home page' })).toBeInTheDocument();
+  });
+
   it('un solo main, un solo h1 y ningún salto de nivel en los títulos', async () => {
     renderAt('/projects/astrohub', bySlug('astrohub'));
     await screen.findByRole('main');

@@ -7,6 +7,7 @@ import { useLocale, useT } from '~/lib/i18n/useT/useT';
 import { ArrowText } from '~/ui/ArrowText/ArrowText';
 
 import { neighbours } from '../neighbours/neighbours';
+import { ProjectGallery } from '../ProjectGallery/ProjectGallery';
 import { ProjectHeader } from '../ProjectHeader/ProjectHeader';
 import { ProjectNote } from '../ProjectNote/ProjectNote';
 import { ProjectPager } from '../ProjectPager/ProjectPager';
@@ -22,7 +23,7 @@ interface ProjectPageProps {
 /**
  * Página de proyecto (docs/02-experiencia/pagina-proyecto.md): un documento normal, sin capítulos, en
  * una columna de lectura. Las secciones van en el orden de la spec y la que no tiene datos no se pinta
- * (Cosmos no tiene proceso ni «Try it»; ninguna portada existe hasta F2.8). Es el `<main>` de la ruta.
+ * (Cosmos no tiene proceso ni «Try it»; ninguna portada ni galería existe hasta F2.8). Es el `<main>` de la ruta.
  */
 export function ProjectPage({ project }: ProjectPageProps): ReactNode {
   const t = useT();
@@ -91,6 +92,12 @@ export function ProjectPage({ project }: ProjectPageProps): ReactNode {
         {project.tryIt === null ? null : (
           <ProjectSection titleId="project-try-it" title={t('project.tryIt')}>
             <ProjectTryIt tryIt={project.tryIt} readme={project.links.readme} />
+          </ProjectSection>
+        )}
+
+        {project.gallery.length === 0 ? null : (
+          <ProjectSection titleId="project-gallery" title={t('project.gallery')}>
+            <ProjectGallery images={project.gallery} />
           </ProjectSection>
         )}
 
