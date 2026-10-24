@@ -28,8 +28,10 @@
 ## Acciones
 
 ### Botón de contorno (`ButtonOutline`)
-- Mono `--text-label` en mayúsculas, borde 1 px `--color-faint`, fondo velo con desenfoque.
-- Uso: «Quick mission», «Back to the journey», «Copy».
+- Mono `--text-label` en mayúsculas, borde 1 px `--color-faint`, fondo velo con desenfoque; al pasar, borde y
+  texto ámbar. Siempre `type="button"` y con 44 × 44 px como mínimo.
+- Uso: «Quick mission», «Back to the journey», «Copy», «No, thanks».
+- Si el texto visible es una forma corta («Quick»), el nombre accesible es el completo y la contiene (WCAG 2.5.3).
 
 ### Botón de mantener (`HoldButton`)
 - Anillo de progreso SVG ámbar de 26 px (pista `--color-faint`) + texto mono. La variable privada `--_charge`
@@ -46,7 +48,11 @@
 - Externos: icono de enlace externo y `rel="noopener noreferrer"`; se abren en pestaña nueva.
 
 ### Botón copiar (`CopyButton`)
-- Estados de texto: Copy → Copied (1,8 s) / Select and copy it. Anuncio en `aria-live="polite"`.
+- Un `ButtonOutline`. Estados de texto: Copy → Copied (1,8 s) / Select and copy it (también 1,8 s).
+- Nombre accesible con lo que copia («Copy email»: el sujeto va oculto a la vista).
+- Si el portapapeles no existe (http) o lo rechaza, selecciona el texto (el email) para copiarlo a mano.
+- El resultado se anuncia en una región `role="status"` aparte; el foco no se mueve. Lo usan Contacto y el modo
+  misión rápida, cada uno con su email.
 
 ## Navegación
 
@@ -56,6 +62,9 @@
   `--topbar-h` (64 px) más la zona segura de arriba.
 - Logo en mono 13 px (`--tracking-logo`); acciones en mono `--text-label` en mayúsculas. Todo con 44 × 44 px como
   mínimo. Si falta sitio, solo el logo cede (se recorta con «…»); las acciones no encogen.
+- Orden: logo · chip de disponibilidad (desde md) · Projects · Contact (desde md) · CV · EN / ES · «Quick mission».
+- «Quick mission» es un `ButtonOutline` (`aria-haspopup="dialog"`). Por debajo de sm (520 px) enseña la forma
+  corta (`nav.quickShort`: «Quick», «Rápida»), que cabe a 390 px con el texto al 200 %.
 - El selector de idioma `EN / ES` (`LanguageSwitch`) es un par de enlaces en un grupo con nombre («Language»),
   cada uno nombrado en su idioma («English», «Español», con `lang`); el activo, subrayado ámbar y
   `aria-current="true"`. Un clic normal en el activo no navega.
@@ -66,7 +75,10 @@
   barra (`--z-skip`).
 
 ### Chip de disponibilidad (`AvailabilityChip`)
-- Punto turquesa de 6 px que «respira» (opacidad, sin escala) + «Open to work». Borde `--color-faint`.
+- Punto turquesa de 6 px (`--chip-dot-size`) que «respira» (opacidad de 1 a `--opacity-breathe-low`, sin escala,
+  `--dur-breathe`) + «Open to work». Borde `--color-faint`; al pasar, borde y texto ámbar.
+- Es un enlace a `#contact` (el mismo salto que «Contact»); el punto es decorativo. Solo si el perfil dice
+  `openToWork`, y solo desde md (900 px).
 - Con movimiento reducido el punto no respira.
 
 ### Raíl (`ChapterRail`)
@@ -118,14 +130,23 @@
 ## Diálogos y avisos
 
 ### Modo misión rápida (`QuickMissionDialog`)
-- `<dialog>` modal a pantalla completa, fondo `--color-void` al 96 %. Contenido en rejilla `auto-fit` de
-  columnas de mínimo 280 px.
+- `<dialog>` modal a pantalla completa, fondo `--color-veil-dialog` (`--color-void` al 96 %), con su propio scroll
+  y entrada con un fundido (`--dur-fade-slow`). Contenido (`QuickMissionContent`) en rejilla `auto-fit` de columnas
+  de mínimo `--quick-col-min` (280 px).
+- Cabecera: «Quick mission · everything on one page» en mono atenuado y «Back to the journey» (`ButtonOutline`).
+  Título `h2` «Víctor Pérez · Frontend Developer» (escala de `h3` por debajo de sm) y secciones con su `h3` en mono
+  ámbar: About (bio y fortalezas), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Skills, Education,
+  Availability (si `openToWork`) y Contact (email con su `CopyButton`, GitHub, LinkedIn, CV).
+- Marcado propio y compacto: lee `src/content/` como los capítulos, pero no reutiliza sus componentes (ADR-022).
 
 ### Visor de galería (`Lightbox`)
 - `<dialog>` con la imagen centrada, contador mono «3 / 9», flechas y cerrar. Teclado ← → Esc.
 
 ### Aviso (`Notice`)
-- Barra flotante abajo, mono 12 px, velo y borde. Uso: sin WebGL, sugerencia de idioma. Descartable.
+- Barra flotante abajo y centrada, tan ancha como su texto (sin pasar del margen lateral ni de `--read-w`), mono
+  12 px, velo (`--color-veil-chrome`) con desenfoque y borde; entra con un fundido (`--dur-fade-slow`).
+- Vive dentro de una región `role="status"` que existe siempre: lo que aparece se anuncia sin mover el foco.
+- Uso: sugerencia de idioma (con su `lang`) y, desde F3, sin WebGL. Descartable.
 
 ### Nota de proyecto (`ProjectNote`)
 - Bloque con borde izquierdo de 2 px: turquesa (`info`) o ámbar (`warning`), icono y texto.

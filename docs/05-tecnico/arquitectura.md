@@ -29,7 +29,9 @@ cosmos-portfolio/
 │  │  │                           ProjectRow, Contact, `chapterDom` (el contrato con el DOM que lee la
 │  │  │                           navegación) y `shared.module.css` (piezas de texto comunes)
 │  │  ├─ navigation/            ← TopBar, ChapterRail, LanguageSwitch, SkipLink, goToChapter (salto con
-│  │  │                           ancla en la URL) y, en F2.6, QuickMissionDialog
+│  │  │                           ancla en la URL), AvailabilityChip, QuickMissionDialog y
+│  │  │                           QuickMissionContent, `quickMission` (ancla `#quick` e id del botón que
+│  │  │                           lo abre) y LanguageNotice (sugerencia de idioma)
 │  │  ├─ hud/                   ← CosmicHud y cosmicClock (reloj y escala, puros)
 │  │  └─ project/               ← ProjectHeader, FeatureGrid, StackGroups, Gallery, Lightbox, TryIt
 │  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido
@@ -37,7 +39,10 @@ cosmos-portfolio/
 │  │                              CopyButton, Notice, Icon, VisuallyHidden
 │  ├─ lib/                      ← funciones puras y hooks transversales
 │  │  ├─ env/                   ← variables de entorno validadas: siteUrl (parseSiteUrl), site (SITE_ORIGIN)
-│  │  ├─ i18n/                  ← tipos, useLocale, useT, formateadores Intl, rutas localizadas
+│  │  ├─ i18n/                  ← tipos, useLocale, useT, formateadores Intl, rutas localizadas,
+│  │  │                           idioma del navegador y sugerencia (browserLocale, languageSuggestion)
+│  │  ├─ history/               ← replaceHash (cambia el ancla sin entrada nueva en el historial)
+│  │  ├─ storage/               ← readStorage / writeStorage: localStorage que nunca lanza (solo comodidades)
 │  │  ├─ scroll/                ← mapM y toScrollLayout (puros), useChapterLayout, useScrollTarget,
 │  │  │                           jumpToChapter (scroll + foco al título + ancla)
 │  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
@@ -153,10 +158,11 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
-| `uiStore` (Zustand) | modo misión rápida abierto, grupo de skills activo, proyecto activo, aviso de idioma descartado, nivel de rendimiento, escena disponible | Componentes React (selectores finos) |
+| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); después, grupo de skills activo, proyecto activo, nivel de rendimiento, escena disponible | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto) |
 | `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; sin escena, `m = mTarget`), y desde F3 carga, puntero, peso de capítulos, flags de pausa | `useFrame` y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
-Regla: nada que cambie en cada frame pasa por estado de React.
+Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
+ningún store: se guarda en `localStorage` (`lib/storage`) y la lee solo `LanguageNotice`.
 
 ## Puente scroll → escena
 

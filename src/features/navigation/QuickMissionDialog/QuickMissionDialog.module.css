@@ -1,0 +1,80 @@
+/*
+ * Modo misión rápida (docs/03-diseno/componentes.md → «Modo misión rápida»): `<dialog>` modal a
+ * pantalla completa sobre un velo casi opaco (`--color-veil-dialog`), con su propio scroll. Entra con
+ * un fundido (docs/03-diseno/movimiento.md → diálogos).
+ */
+.dialog {
+  position: fixed;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background-color: var(--color-veil-dialog);
+  color: var(--color-ink-soft);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dialog[open] {
+  animation: fade-in var(--dur-fade-slow) var(--ease-out);
+}
+
+.dialog::backdrop {
+  background-color: transparent;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Mientras está abierto, la página de detrás no se desplaza y conserva su posición. */
+:global(html):has(.dialog[open]) {
+  overflow: hidden;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-inline-size: var(--content-max);
+  margin-inline: auto;
+  padding-block: calc(var(--space-5) + env(safe-area-inset-top))
+    calc(var(--space-8) + env(safe-area-inset-bottom));
+  padding-inline: var(--gutter);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+}
+
+.eyebrow {
+  color: var(--color-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* Título: el `h2` de siempre; en móvil pequeño, con la escala de `h3` (las palabras largas caben enteras). */
+.title {
+  overflow-wrap: break-word;
+}
+
+@media (width < 520px) {
+  .title {
+    font-size: var(--text-h3);
+    font-stretch: var(--wdth-h3);
+    line-height: var(--leading-h3);
+  }
+}

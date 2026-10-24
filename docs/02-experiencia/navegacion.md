@@ -14,8 +14,12 @@
 
 ## Idioma
 
-- **Sin redirección automática** (perjudica al SEO y molesta). Si el navegador está en español y la página es la
-  inglesa, aparece una sugerencia discreta y descartable: «¿Ver en español?». Se recuerda la elección.
+- **Sin redirección automática** (perjudica al SEO y molesta). Si el navegador está en español (su **primera**
+  preferencia) y la página es la inglesa, aparece abajo una sugerencia discreta, en español (`lang="es"`): «Esta
+  página también está en español.» con «Ver en español» (la misma página en español, con el capítulo en el que
+  estás, como el selector) y «No, gracias». Responder cualquiera de las dos se recuerda en el navegador
+  (`localStorage`) y no vuelve a salir; si el navegador no deja guardar, funciona igual y solo se olvida. No roba el
+  foco: se anuncia (región `status`) y va al final del orden del Tab. Solo en el viaje (la página de proyecto, F2.7).
 - El selector EN/ES de la barra superior lleva a la **misma página** en el otro idioma, conservando el capítulo en
   el que estás (el activo según el scroll, aunque la URL no lleve su ancla) o el proyecto abierto.
 - `lang` del documento correcto en cada página (`en` / `es`).
@@ -25,13 +29,13 @@
 | Elemento | Comportamiento |
 |---|---|
 | Logo `TORTOISE_CODE` | Vuelve al inicio (y al hero), con el foco en el nombre |
-| Chip «Open to work» | Siempre visible en escritorio; enlaza a `#contact` (F2.6) |
+| Chip «Open to work» | Desde md (900 px) y solo si el perfil dice que busco trabajo; enlaza a `#contact` con el mismo salto que Contact |
 | Projects · Contact | Saltan a su capítulo como el raíl, con el foco en su título (ocultos en móvil: el raíl los sustituye) |
 | CV | Solo si existe el PDF del idioma activo |
 | EN / ES | Cambia de idioma conservando el capítulo activo; el idioma actual no navega |
-| Quick mission | Abre el modo misión rápida (F2.6) |
+| Quick mission | Abre el modo misión rápida. Por debajo de 520 px enseña «Quick» / «Rápida» (el nombre accesible sigue siendo el completo) |
 
-El logo, Projects, Contact, CV y EN / ES son enlaces de verdad (`/#projects`, `/es#contact`): sin JavaScript
+El logo, el chip, Projects, Contact, CV y EN / ES son enlaces de verdad (`/#projects`, `/es#contact`): sin JavaScript
 también llevan a su sitio. En el viaje, un clic normal hace el salto del raíl; con Ctrl/Cmd/Shift/Alt o con el
 botón central, el navegador hace lo suyo (abrir otra pestaña). Un clic normal en el idioma en el que ya estás no
 hace nada (ni mueve la página ni deja otra entrada en el historial). Quick mission es un botón (abre un diálogo).
@@ -59,10 +63,18 @@ móvil), solo cede el logo.
 
 - Botón siempre visible en la barra. Abre un `<dialog>` modal a pantalla completa con **todo el contenido** en
   una página limpia: sobre mí, proyectos (con enlace a su página, demo y código), habilidades, formación,
-  disponibilidad y contacto.
-- Foco al botón «Back to the journey» al abrir; `Esc` y ese botón cierran y devuelven el foco al botón de apertura.
-- Bloquea el scroll del fondo mientras está abierto; la escena se pausa (no renderiza) para ahorrar batería.
-- Ancla compartible: `/#quick` abre el sitio con el modo ya abierto (útil para enviar a un recruiter).
+  disponibilidad y contacto (con su botón de copiar el email). El contenido solo se monta al abrir: el HTML
+  pre-renderizado no repite el texto del viaje.
+- Foco al botón «Back to the journey» al abrir; `Esc` y ese botón cierran y devuelven el foco al botón de apertura
+  (también si se entró por `/#quick`). Mientras está abierto, el resto de la página es inerte (modal).
+- Bloquea el scroll del fondo mientras está abierto (la página conserva su posición); desde F3, la escena se pausa
+  (no renderiza) para ahorrar batería.
+- Ancla compartible: `/#quick` abre el sitio con el modo ya abierto (útil para enviar a un recruiter), también si
+  el ancla cambia a `#quick` con la página abierta. Al abrirlo con el botón, la URL pasa a `#quick` con
+  `replaceState` (se puede copiar; sin entrada nueva en el historial: en Android, el gesto de Atrás ya cierra un
+  diálogo modal); al cerrar vuelve el ancla que había (`#projects`, o ninguna).
+- Un enlace del modo lleva a su sitio (la página de un proyecto); «Atrás» vuelve a `/#quick` y el modo se abre de
+  nuevo. Sin JavaScript el botón no hace nada: el viaje ya tiene todo el contenido.
 
 ## Teclado y foco
 
@@ -70,7 +82,8 @@ móvil), solo cede el logo.
   principio del contenido, el hero, con el foco en el nombre. Sin JavaScript es un ancla al `h1`.
 - Todos los títulos de capítulo (el `h1` incluido) llevan `tabindex="-1"`: los saltos les dan el foco sin
   meterlos en el orden de tabulación.
-- Orden de tabulación: barra superior → contenido del capítulo → raíl.
+- Orden de tabulación: barra superior → contenido del capítulo → raíl → sugerencia de idioma (si sale). Con el modo
+  misión rápida abierto, solo su contenido.
 - Foco siempre visible (anillo ámbar). Nada interactivo vive solo en el lienzo: todo tiene su equivalente en
   el DOM.
 - Atajos opcionales (sin pisar los del navegador): ninguno en la v1.

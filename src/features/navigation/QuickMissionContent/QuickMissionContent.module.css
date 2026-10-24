@@ -1,0 +1,128 @@
+/*
+ * Contenido del modo misión rápida (docs/03-diseno/componentes.md → «Modo misión rápida»): rejilla
+ * `auto-fit` de columnas de `--quick-col-min` como mínimo; texto de lectura y etiquetas en mono.
+ */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--quick-col-min)), 1fr));
+  gap: var(--space-7) var(--space-7);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+/* Título de sección: mono en ámbar, como una etiqueta (no el display de los capítulos). */
+.heading {
+  color: var(--color-star);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-mono-strong);
+  font-stretch: normal;
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.term {
+  color: var(--color-ink);
+  font-weight: var(--weight-medium);
+}
+
+/* En la formación, academia y fechas van en su propia línea, bajo el título. */
+.list > li > .meta {
+  display: block;
+}
+
+.meta {
+  color: var(--color-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-micro);
+  text-transform: uppercase;
+}
+
+.open {
+  color: var(--color-aurora);
+}
+
+.project {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-inline-start: var(--space-3);
+  border-inline-start: var(--border-width) solid var(--color-faint);
+}
+
+.projectTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.projectName {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-lead);
+  font-weight: var(--weight-display);
+  font-stretch: var(--wdth-h3);
+  line-height: var(--leading-h3);
+  text-transform: uppercase;
+}
+
+.year {
+  flex: none;
+  color: var(--color-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+
+.emailRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.email {
+  display: inline-flex;
+  align-items: center;
+  min-inline-size: 0;
+  min-block-size: var(--target-min);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-lead);
+  font-weight: var(--weight-email);
+  font-stretch: var(--wdth-email);
+  line-height: var(--leading-email);
+  text-decoration-color: var(--color-faint);
+  text-decoration-thickness: var(--border-width);
+  overflow-wrap: anywhere;
+  -webkit-user-select: all;
+  user-select: all;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.email:hover {
+  color: var(--color-star);
+}

@@ -1,0 +1,35 @@
+/*
+ * Aviso (docs/03-diseno/componentes.md → «Aviso (Notice)»): flota abajo, centrado y tan ancho como su
+ * texto, sin pasar del margen lateral de la página ni de la zona segura de abajo.
+ */
+.notice {
+  position: fixed;
+  z-index: var(--z-toast);
+  inset-inline: var(--gutter);
+  inset-block-end: calc(var(--space-4) + env(safe-area-inset-bottom));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2) var(--space-4);
+  inline-size: fit-content;
+  max-inline-size: var(--read-w);
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-faint);
+  background-color: var(--color-veil-chrome);
+  -webkit-backdrop-filter: blur(var(--blur-chrome));
+  backdrop-filter: blur(var(--blur-chrome));
+  color: var(--color-ink-soft);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  animation: fade-in var(--dur-fade-slow) var(--ease-out);
+}
+
+/* Entra con un fundido (docs/03-diseno/movimiento.md: avisos y diálogos). */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}

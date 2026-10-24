@@ -20,6 +20,7 @@
   --color-veil: rgb(4 5 11 / 0.82);
   --color-veil-soft: rgb(4 5 11 / 0.62);
   --color-veil-chrome: rgb(4 5 11 / 0.7);
+  --color-veil-dialog: rgb(4 5 11 / 0.96);
   --gradient-panel: radial-gradient(
     130% 100% at 25% 50%,
     var(--color-veil) 0%,
@@ -136,6 +137,13 @@
   --rail-dot-size: 7px;
   --rail-dot-scale-active: 1.4;
   --opacity-muted: 0.7;
+
+  /* ── Barra superior: chip de disponibilidad ───────────────────── */
+  --chip-dot-size: 6px;
+  --opacity-breathe-low: 0.35;
+
+  /* ── Modo misión rápida ───────────────────────────────────────── */
+  --quick-col-min: 280px;
 
   /* ── Forma y profundidad ──────────────────────────────────────── */
   --border-width: 1px;

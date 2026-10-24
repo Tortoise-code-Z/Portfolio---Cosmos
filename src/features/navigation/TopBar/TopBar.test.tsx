@@ -4,6 +4,9 @@ import type { ReactNode } from 'react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { selectQuickMissionOpen, useUiStore } from '~/stores/uiStore/uiStore';
+
+import { QUICK_OPENER_ID } from '../quickMission/quickMission';
 import { TopBar } from './TopBar';
 
 /** Perfil real con el CV como interruptor. */
@@ -72,6 +75,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  useUiStore.setState(useUiStore.getInitialState(), true);
   state.cvEn = null;
   document.body.replaceChildren();
 });
@@ -88,11 +92,40 @@ describe('TopBar', () => {
     expect(within(bar).getByRole('group', { name: 'Language' })).toBeInTheDocument();
   });
 
-  it('has no quick mission button nor availability chip yet (F2.6) and no CV without its PDF', () => {
+  it('has no CV link without its PDF', () => {
     const bar = renderBar();
-    expect(within(bar).queryByRole('button')).toBeNull();
-    expect(within(bar).queryByText('Open to work')).toBeNull();
     expect(within(bar).queryByRole('link', { name: 'CV' })).toBeNull();
+  });
+
+  it('carries the availability chip, a link to Contact, first among the actions', () => {
+    const bar = renderBar();
+    const chip = within(bar).getByRole('link', { name: 'Open to work' });
+    expect(chip).toHaveAttribute('href', '/#contact');
+    expect(within(bar).getAllByRole('link')[1]).toBe(chip);
+  });
+
+  it.each([
+    ['/', 'Quick mission', 'Quick'],
+    ['/es', 'Modo misión rápida', 'Rápida'],
+  ])(
+    '%s: «%s» is a button that opens a dialog, last in the bar, with a short label inside its name',
+    (path, name, short) => {
+      const bar = renderBar(path);
+      const button = within(bar).getByRole('button', { name });
+      expect(button).toHaveAttribute('aria-haspopup', 'dialog');
+      expect(button).toHaveAttribute('id', QUICK_OPENER_ID);
+      expect(within(button).getByText(short)).toBeInTheDocument();
+      // Etiqueta en el nombre (WCAG 2.5.3): la forma corta que se ve en móvil está dentro del nombre.
+      expect(name.toLowerCase()).toContain(short.toLowerCase());
+      const focusable = bar.querySelectorAll('a, button');
+      expect(focusable[focusable.length - 1]).toBe(button);
+    },
+  );
+
+  it('the quick mission button opens the mode', async () => {
+    const bar = renderBar();
+    await userEvent.click(within(bar).getByRole('button', { name: 'Quick mission' }));
+    expect(selectQuickMissionOpen(useUiStore.getState())).toBe(true);
   });
 
   it('shows the CV link when the PDF of the language exists', () => {

@@ -1,0 +1,54 @@
+/*
+ * Chip de disponibilidad (docs/03-diseno/componentes.md → «Chip de disponibilidad»): borde fino y un
+ * punto turquesa que respira con la opacidad (sin escala). Solo desde md (900 px).
+ */
+.chip {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--target-min);
+  padding-inline: var(--space-3);
+  border: var(--border-width) solid var(--color-faint);
+  color: var(--color-ink-soft);
+  text-decoration: none;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.chip:hover {
+  border-color: var(--color-star);
+  color: var(--color-star);
+}
+
+@media (width >= 900px) {
+  .chip {
+    display: inline-flex;
+  }
+}
+
+.dot {
+  flex: none;
+  inline-size: var(--chip-dot-size);
+  block-size: var(--chip-dot-size);
+  border-radius: 50%;
+  background-color: var(--color-aurora);
+  animation: breathe var(--dur-breathe) var(--ease-in-out) infinite alternate;
+}
+
+@keyframes breathe {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: var(--opacity-breathe-low);
+  }
+}
+
+/* Con movimiento reducido el punto no respira (docs/03-diseno/movimiento.md). */
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+  }
+}

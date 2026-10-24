@@ -8,6 +8,7 @@ import { formatNumber } from '~/lib/i18n/format/format';
 import { localize } from '~/lib/i18n/localize/localize';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
 import { ActionLink } from '~/ui/ActionLink/ActionLink';
+import { CopyButton } from '~/ui/CopyButton/CopyButton';
 
 import { ChapterPanel } from '../ChapterPanel/ChapterPanel';
 import { ChapterSection } from '../ChapterSection/ChapterSection';
@@ -17,11 +18,12 @@ import styles from './Contact.module.css';
 
 const TITLE_ID = 'contact-title';
 const EDUCATION_ID = 'contact-education';
+const EMAIL_ID = 'contact-email';
 
 /**
  * Capítulo 4 · Tierra · Contacto (docs/02-experiencia/capitulos/04-tierra.md): disponibilidad (sale del
- * perfil), email, enlaces, CV si existe el del idioma, formación y pie. El botón de copiar el email llega
- * en F2.6; hasta entonces el email es un enlace `mailto:` seleccionable.
+ * perfil), email (enlace `mailto:` seleccionable y botón de copiar), enlaces, CV si existe el del
+ * idioma, formación y pie.
  */
 export function Contact(): ReactNode {
   const t = useT();
@@ -47,9 +49,16 @@ export function Contact(): ReactNode {
           </ul>
         ) : null}
 
-        <a className={styles.email} href={`mailto:${contact.email}`}>
-          {contact.email}
-        </a>
+        <div className={styles.emailRow}>
+          <a id={EMAIL_ID} className={styles.email} href={`mailto:${contact.email}`}>
+            {contact.email}
+          </a>
+          <CopyButton
+            text={contact.email}
+            targetId={EMAIL_ID}
+            subject={t('contact.copy.subject')}
+          />
+        </div>
 
         <ul role="list" className={styles.links}>
           <li>

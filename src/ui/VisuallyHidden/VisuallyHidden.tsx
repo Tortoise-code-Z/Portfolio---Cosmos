@@ -4,13 +4,15 @@ import styles from './VisuallyHidden.module.css';
 
 interface VisuallyHiddenProps {
   readonly id?: string;
-  readonly children: ReactNode;
+  /** `status`: región viva educada; lo que se escriba dentro se anuncia sin mover el foco. */
+  readonly role?: 'status';
+  readonly children?: ReactNode;
 }
 
 /** Texto solo para el lector de pantalla: no ocupa sitio en pantalla, pero se lee. */
-export function VisuallyHidden({ id, children }: VisuallyHiddenProps): ReactNode {
+export function VisuallyHidden({ id, role, children }: VisuallyHiddenProps): ReactNode {
   return (
-    <span id={id} className={styles.hidden}>
+    <span id={id} role={role} className={styles.hidden}>
       {children}
     </span>
   );

@@ -388,19 +388,51 @@ test.describe('top bar', () => {
     await expect(bar(page)).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   });
 
-  test('390 px with text at 200 %: EN / ES stay on screen (only the logo gives way)', async ({
+  for (const [path, quick, short] of [
+    ['/', 'Quick mission', 'Quick'],
+    ['/es', 'Modo misión rápida', 'Rápida'],
+  ] as const) {
+    test(`390 px with text at 200 % (${path}): EN / ES and «${short}» stay on screen (only the logo gives way)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(path, { waitUntil: 'networkidle' });
+      await page.evaluate(() => {
+        document.documentElement.style.fontSize = '200%';
+      });
+      await expect(bar(page).getByRole('link', { name: 'Español' })).toBeInViewport({ ratio: 1 });
+      await expect(bar(page).getByRole('link', { name: 'English' })).toBeInViewport({ ratio: 1 });
+      const button = bar(page).getByRole('button', { name: quick });
+      await expect(button).toBeInViewport({ ratio: 1 });
+      // Lo que se ve (`innerText` deja fuera la etiqueta oculta).
+      expect(await button.innerText()).toBe(short.toUpperCase());
+    });
+  }
+
+  test('desktop: the full «Quick mission» label and the «Open to work» chip, which jumps to Contact', async ({
     page,
   }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/', { waitUntil: 'networkidle' });
-    await page.evaluate(() => {
-      document.documentElement.style.fontSize = '200%';
-    });
-    await expect(bar(page).getByRole('link', { name: 'Español' })).toBeInViewport({ ratio: 1 });
-    await expect(bar(page).getByRole('link', { name: 'English' })).toBeInViewport({ ratio: 1 });
+    expect(await bar(page).getByRole('button', { name: 'Quick mission' }).innerText()).toBe(
+      'QUICK MISSION',
+    );
+    await bar(page).getByRole('link', { name: 'Open to work' }).click();
+    await expect(page).toHaveURL(/\/#contact$/);
+    await expect(page.getByRole('heading', { name: 'Touchdown' })).toBeFocused();
+    await expect.poll(() => distanceToLanding(page, 'contact')).toBeLessThanOrEqual(2);
   });
 
-  test('390 px: logo and EN / ES stay, Projects and Contact give way to the rail', async ({
+  test('the dot of the chip breathes, and stays still with reduced motion', async ({ page }) => {
+    const dot = bar(page)
+      .getByRole('link', { name: 'Open to work' })
+      .locator('[aria-hidden="true"]');
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await expect(dot).not.toHaveCSS('animation-name', 'none');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(dot).toHaveCSS('animation-name', 'none');
+  });
+
+  test('390 px: logo and EN / ES stay, Projects, Contact and the chip give way', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -409,6 +441,7 @@ test.describe('top bar', () => {
     await expect(bar(page).getByRole('link', { name: 'Español' })).toBeVisible();
     await expect(bar(page).getByRole('link', { name: 'Projects' })).toBeHidden();
     await expect(bar(page).getByRole('link', { name: 'Contact' })).toBeHidden();
+    await expect(bar(page).getByRole('link', { name: 'Open to work' })).toBeHidden();
     const box = await bar(page).boundingBox();
     expect(box?.height).toBe(await barHeight(page));
   });

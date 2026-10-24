@@ -1,4 +1,5 @@
 import { jumpBehavior } from '../../device/reducedMotion/reducedMotion';
+import { replaceHash } from '../../history/replaceHash/replaceHash';
 
 interface JumpOptions {
   /**
@@ -18,8 +19,5 @@ export function jumpToChapter(chapter: HTMLElement, { hash }: JumpOptions = {}):
   chapter.scrollIntoView({ behavior: jumpBehavior(), block: 'start' });
   const titleId = chapter.getAttribute('aria-labelledby');
   if (titleId !== null) document.getElementById(titleId)?.focus({ preventScroll: true });
-  if (hash === undefined) return;
-  const { pathname, search } = window.location;
-  // Se conserva el estado de la entrada: React Router guarda ahí su clave de restauración del scroll.
-  window.history.replaceState(window.history.state, '', `${pathname}${search}${hash}`);
+  if (hash !== undefined) replaceHash(hash);
 }

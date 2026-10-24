@@ -12,13 +12,21 @@
   color: var(--color-aurora);
 }
 
+/* El email y su botón de copiar, en la misma fila si caben; si no, el botón baja. */
+.emailRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
 /*
  * Email destacado: display ancho, seleccionable de una vez y con corte seguro en móvil. Tan ancho como
- * su texto (no toda la fila del panel) y con el área táctil mínima de alto.
+ * su texto (no toda la fila del panel: es un elemento de la fila flex) y con el área táctil mínima de alto.
  */
 .email {
   display: inline-flex;
-  align-self: flex-start;
+  min-inline-size: 0;
   align-items: center;
   min-block-size: var(--target-min);
   color: var(--color-ink);
