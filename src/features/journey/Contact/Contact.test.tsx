@@ -26,7 +26,14 @@ vi.mock('~/content/profile', async (importOriginal) => {
 afterEach(() => {
   state.openToWork = true;
   state.cvEn = null;
+  window.getSelection()?.removeAllRanges();
+  Reflect.deleteProperty(navigator, 'clipboard');
 });
+
+/** Sin portapapeles (http, navegador viejo), dicho explícitamente: no se depende de cómo venga jsdom. */
+function withoutClipboard(): void {
+  Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+}
 
 function renderAt(path: string): HTMLElement {
   render(
@@ -49,17 +56,17 @@ describe('Contact', () => {
     ['/', 'Copy email'],
     ['/es', 'Copiar el email'],
   ])(
-    '%s: a copy button next to the email, which it selects when the clipboard fails',
+    '%s: a copy button next to the email, which it selects when there is no clipboard',
     (path, name) => {
+      withoutClipboard();
       const region = renderAt(path);
       const button = within(region).getByRole('button', { name });
       const email = within(region).getByRole('link', { name: profile.contact.email });
       expect(email.parentElement).toBe(button.parentElement);
-      // Sin portapapeles en jsdom: el botón cae en «selecciónalo», sobre el email de este capítulo.
+      // Sin portapapeles: el botón cae en «selecciónalo», sobre el email de este capítulo.
       fireEvent.click(button);
       expect(window.getSelection()?.toString()).toBe(profile.contact.email);
       expect(email).toHaveAttribute('id', 'contact-email');
-      window.getSelection()?.removeAllRanges();
     },
   );
 

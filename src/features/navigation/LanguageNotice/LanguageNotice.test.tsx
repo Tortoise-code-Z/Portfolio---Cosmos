@@ -85,7 +85,7 @@ describe('LanguageNotice', () => {
     renderNotice();
     await userEvent.click(screen.getByRole('button', { name: 'No, gracias' }));
     expect(notice()).toBeEmptyDOMElement();
-    expect(window.localStorage.getItem(LANGUAGE_NOTICE_KEY)).not.toBeNull();
+    expect(window.localStorage.getItem(LANGUAGE_NOTICE_KEY)).toBe('answered');
 
     document.body.replaceChildren();
     renderNotice();
@@ -95,8 +95,8 @@ describe('LanguageNotice', () => {
   it('«Ver en español» goes to the Spanish page and remembers the answer too', async () => {
     renderNotice();
     await userEvent.click(screen.getByRole('link', { name: 'Ver en español' }));
-    expect(screen.getByTestId('location')).toHaveTextContent('/es');
-    expect(window.localStorage.getItem(LANGUAGE_NOTICE_KEY)).not.toBeNull();
+    expect(screen.getByTestId('location').textContent).toBe('/es');
+    expect(window.localStorage.getItem(LANGUAGE_NOTICE_KEY)).toBe('answered');
   });
 
   it('without storage (private window), it still shows and hides, and keeps the answer until a reload', async () => {

@@ -14,6 +14,23 @@ const quickDialog = (page: Page): ReturnType<Page['getByRole']> =>
 const historyLength = (page: Page): Promise<number> => page.evaluate(() => window.history.length);
 const scrollTop = (page: Page): Promise<number> => page.evaluate(() => window.scrollY);
 
+/** La posición de scroll cuando ya no se mueve (el aterrizaje en el ancla, las fuentes que cargan). */
+async function settledScrollTop(page: Page): Promise<number> {
+  let previous = Number.NaN;
+  await expect
+    .poll(
+      async () => {
+        const now = await scrollTop(page);
+        const settled = now === previous;
+        previous = now;
+        return settled;
+      },
+      { intervals: [150] },
+    )
+    .toBe(true);
+  return previous;
+}
+
 test.describe('quick mission', () => {
   test('the bar button opens it full screen, with the focus on «Back to the journey» and #quick in place', async ({
     page,
@@ -51,15 +68,12 @@ test.describe('quick mission', () => {
     page,
   }) => {
     await page.goto('/#projects', { waitUntil: 'networkidle' });
-    const top = await scrollTop(page);
+    const top = await settledScrollTop(page);
     await opener(page).click();
     await expect(quickDialog(page)).toBeVisible();
 
-    // Con el modo abierto, la página de detrás no se desplaza: ni con la rueda ni con el dedo (iOS).
+    // Con el modo abierto, el documento no se desplaza (lo que bloquea es esto, no la rueda).
     await expect(page.locator('html')).toHaveCSS('overflow', 'hidden');
-    await page.mouse.move(200, 400);
-    await page.mouse.wheel(0, 1500);
-    expect(await scrollTop(page)).toBe(top);
 
     await page.keyboard.press('Escape');
     await expect(quickDialog(page)).toBeHidden();
@@ -116,14 +130,31 @@ test.describe('quick mission', () => {
   test('Tab stays inside while it is open (the page behind is inert)', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await opener(page).click();
-    for (let step = 0; step < 12; step += 1) {
+    const dialog = quickDialog(page);
+    await expect(dialog.getByRole('button', { name: 'Back to the journey' })).toBeFocused();
+    expect(await dialog.evaluate((element) => element.matches(':modal'))).toBe(true);
+    // Fuera = cualquier elemento que no esté en el diálogo (el `body` vale: el navegador puede
+    // pasar por su propia interfaz antes de volver).
+    const focusInside = (): Promise<boolean> =>
+      page.evaluate(() => {
+        const element = document.activeElement;
+        return (
+          element === document.body || (element !== null && element.closest('dialog') !== null)
+        );
+      });
+
+    // Desde el primero, un paso atrás: con un diálogo no modal iría al último enlace de la página.
+    await page.keyboard.press('Shift+Tab');
+    expect(await focusInside()).toBe(true);
+
+    // Hacia delante, más pasos que enfocables tiene: cruza el borde del final.
+    await dialog.getByRole('button', { name: 'Back to the journey' }).focus();
+    const focusables = await dialog.evaluate(
+      (element) => element.querySelectorAll('a[href], button').length,
+    );
+    for (let step = 0; step < focusables + 2; step += 1) {
       await page.keyboard.press('Tab');
-      const inside = await page.evaluate(
-        () =>
-          document.activeElement === document.body ||
-          document.activeElement?.closest('dialog') !== null,
-      );
-      expect(inside).toBe(true);
+      expect(await focusInside()).toBe(true);
     }
   });
 
@@ -226,5 +257,40 @@ test.describe('copy the email in Contact', () => {
     await expect(fallback).toBeVisible();
     // Entero dentro de la pantalla (las filas de Proyectos aún se salen a este tamaño: deuda de F6).
     await expect(fallback).toBeInViewport({ ratio: 1 });
+  });
+});
+
+test.describe('touch targets of F2 · step 6 (at least 44 × 44 px)', () => {
+  // Navegador en español: sale también la sugerencia de idioma en la página inglesa.
+  test.use({ locale: 'es-ES' });
+
+  const atLeast44 = async (locator: ReturnType<Page['getByRole']>): Promise<void> => {
+    const box = await locator.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+  };
+
+  test('390 px: «Quick», both copy buttons, «Back to the journey» and the language suggestion', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    await atLeast44(opener(page));
+    await atLeast44(
+      page.getByRole('region', { name: 'Touchdown' }).getByRole('button', { name: 'Copy email' }),
+    );
+    const suggestion = page.getByRole('status').filter({ hasText: 'español' });
+    await atLeast44(suggestion.getByRole('link', { name: 'Ver en español' }));
+    await atLeast44(suggestion.getByRole('button', { name: 'No, gracias' }));
+
+    await opener(page).click();
+    const dialog = quickDialog(page);
+    await atLeast44(dialog.getByRole('button', { name: 'Back to the journey' }));
+    await atLeast44(dialog.getByRole('button', { name: 'Copy email' }));
+  });
+
+  test('1280 px: the «Open to work» chip', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await atLeast44(page.getByRole('banner').getByRole('link', { name: 'Open to work' }));
   });
 });

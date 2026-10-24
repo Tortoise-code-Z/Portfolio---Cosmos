@@ -28,7 +28,13 @@ afterEach(() => {
   state.openToWork = true;
   state.cvEn = null;
   window.getSelection()?.removeAllRanges();
+  Reflect.deleteProperty(navigator, 'clipboard');
 });
+
+/** Sin portapapeles (http, navegador viejo), dicho explícitamente: no se depende de cómo venga jsdom. */
+function withoutClipboard(): void {
+  Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+}
 
 function renderContent(path = '/'): HTMLElement {
   const { container } = render(
@@ -130,13 +136,14 @@ describe('QuickMissionContent', () => {
   });
 
   it('contact: the email (mailto) with its own copy button, GitHub, LinkedIn and no CV without its PDF', () => {
+    withoutClipboard();
     renderContent();
     const contact = section('Contact');
     const email = within(contact).getByRole('link', { name: profile.contact.email });
     expect(email).toHaveAttribute('href', `mailto:${profile.contact.email}`);
     expect(email).toHaveAttribute('id', 'quick-email');
     fireEvent.click(within(contact).getByRole('button', { name: 'Copy email' }));
-    // Sin portapapeles en jsdom: selecciona el email de este diálogo (no el del capítulo).
+    // Sin portapapeles: selecciona el email de este diálogo (no el del capítulo).
     expect(window.getSelection()?.toString()).toBe(profile.contact.email);
     expect(within(contact).getByRole('link', { name: /^GitHub/ })).toBeInTheDocument();
     expect(within(contact).getByRole('link', { name: /^LinkedIn/ })).toBeInTheDocument();

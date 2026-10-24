@@ -114,9 +114,9 @@ describe('TopBar', () => {
       const button = within(bar).getByRole('button', { name });
       expect(button).toHaveAttribute('aria-haspopup', 'dialog');
       expect(button).toHaveAttribute('id', QUICK_OPENER_ID);
+      // Etiqueta en el nombre (WCAG 2.5.3): la forma corta que se ve en móvil va dentro del botón cuyo
+      // nombre es el completo (lo miran `getByRole({ name })` y `getByText(short)`).
       expect(within(button).getByText(short)).toBeInTheDocument();
-      // Etiqueta en el nombre (WCAG 2.5.3): la forma corta que se ve en móvil está dentro del nombre.
-      expect(name.toLowerCase()).toContain(short.toLowerCase());
       const focusable = bar.querySelectorAll('a, button');
       expect(focusable[focusable.length - 1]).toBe(button);
     },

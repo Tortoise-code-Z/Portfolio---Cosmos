@@ -5,6 +5,20 @@ import { expect, test, type Page } from '@playwright/test';
  * docs/03-diseno/componentes.md → «Aviso». Sin redirección: solo se ofrece, y la respuesta se recuerda.
  */
 
+/**
+ * La página ya ha hidratado: el botón «Quick mission» abre y cierra su modo. Antes de eso el aviso aún no
+ * puede salir (aparece al hidratar): sin esta espera, comprobar que no está no probaría nada.
+ */
+async function hydrated(page: Page): Promise<void> {
+  const opener = page
+    .getByRole('banner')
+    .getByRole('button', { name: /Quick mission|Modo misión rápida/ });
+  await opener.click();
+  await expect(page.getByRole('dialog', { name: /Víctor Pérez/ })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: /Víctor Pérez/ })).toBeHidden();
+}
+
 test.describe('language suggestion with a Spanish browser', () => {
   test.use({ locale: 'es-ES' });
 
@@ -19,7 +33,10 @@ test.describe('language suggestion with a Spanish browser', () => {
     await expect(page.locator('body')).toBeFocused();
     await suggestion(page).getByRole('link', { name: 'Ver en español' }).click();
     await expect(page).toHaveURL(/\/es#skills$/);
-    await expect(page.getByRole('status').filter({ hasText: 'español' })).toHaveCount(0);
+    // Contestado: de vuelta en una página en inglés, no vuelve a salir.
+    await page.goto('/#skills', { waitUntil: 'networkidle' });
+    await hydrated(page);
+    await expect(suggestion(page)).toHaveCount(0);
   });
 
   test('«No, gracias» hides it for good (also after a reload)', async ({ page }) => {
@@ -27,6 +44,7 @@ test.describe('language suggestion with a Spanish browser', () => {
     await suggestion(page).getByRole('button', { name: 'No, gracias' }).click();
     await expect(suggestion(page)).toHaveCount(0);
     await page.reload({ waitUntil: 'networkidle' });
+    await hydrated(page);
     await expect(suggestion(page)).toHaveCount(0);
   });
 
@@ -80,6 +98,7 @@ test.describe('language suggestion with an English browser', () => {
 
   test('says nothing', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
+    await hydrated(page);
     await expect(page.getByText('Esta página también está en español.')).toHaveCount(0);
   });
 });
