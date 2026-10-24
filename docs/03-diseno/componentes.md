@@ -46,6 +46,8 @@
 ### Enlace de acción (`ActionLink`)
 - Mono 12 px en mayúsculas con subrayado de 1 px `--color-faint` separado 2 px; al pasar, ámbar.
 - Externos: icono de enlace externo y `rel="noopener noreferrer"`; se abren en pestaña nueva.
+- Internos: icono opcional detrás (`arrow-right`) o delante (`leadingIcon`: «← Back to the shell»).
+- Correo (`kind="mail"`): `mailto:` en la misma pestaña, sin icono ni aviso de pestaña nueva.
 
 ### Botón copiar (`CopyButton`)
 - Un `ButtonOutline`. Estados de texto: Copy → Copied (1,8 s) / Select and copy it (también 1,8 s).
@@ -140,7 +142,18 @@
 - Marcado propio y compacto: lee `src/content/` como los capítulos, pero no reutiliza sus componentes (ADR-022).
 
 ### Visor de galería (`Lightbox`)
-- `<dialog>` con la imagen centrada, contador mono «3 / 9», flechas y cerrar. Teclado ← → Esc.
+- `<dialog>` modal a pantalla completa sobre `--color-veil-dialog`, con fundido de entrada. Tres filas: contador
+  mono «3 / 9» (solo para la vista) y «Close» (`ButtonOutline`) · la imagen, que cabe entera (`object-fit:
+  contain`) · las flechas (`ButtonOutline` con icono de 20 px y nombre «Previous image» / «Next image»).
+- Al abrir, el foco va a «Close». ← → cambian de imagen desde cualquier sitio del visor, con vuelta; Esc y «Close»
+  cierran y quien lo abrió devuelve el foco (la miniatura de la imagen que se veía). Con una sola imagen, sin
+  flechas. La imagen activa se anuncia en una región `status` («3 of 9: texto alternativo»).
+- Fondo bloqueado mientras está abierto; el contenido solo se monta abierto.
+
+### Galería (`ProjectGallery`)
+- Rejilla `auto-fill` de miniaturas (columnas de `--project-col-min`), todas con `--gallery-thumb-ratio` y la
+  imagen recortada al centro. Cada miniatura es un botón con borde fino (ámbar al pasar) y cursor de lupa; su
+  nombre dice qué abre («Open image 2 of 5» + texto alternativo). Carga diferida (`loading="lazy"`).
 
 ### Aviso (`Notice`)
 - Barra flotante abajo y centrada, tan ancha como su texto (sin pasar del margen lateral ni de `--read-w`), mono
@@ -149,7 +162,33 @@
 - Uso: sugerencia de idioma (con su `lang`) y, desde F3, sin WebGL. Descartable.
 
 ### Nota de proyecto (`ProjectNote`)
-- Bloque con borde izquierdo de 2 px: turquesa (`info`) o ámbar (`warning`), icono y texto.
+- Bloque con borde izquierdo de 2 px (`--note-border-width`): turquesa (`info`) o ámbar (`warning`), icono del
+  mismo color (`info` / `warning`) y texto. Delante, oculto a la vista, «Note:» / «Warning:».
+
+## Página de proyecto
+
+### Cabecera (`ProjectHeader`)
+- «← Back to the shell» (`ActionLink`), nombre en display (`h1`, enfocable por código: destino de «Skip»),
+  tagline en `--text-lead`, metadatos en mono atenuado separados por « · » (Featured en turquesa) y acciones.
+
+### Secciones (`ProjectSection`)
+- Región con nombre: un `h2` con la escala de `h3` y el contenido debajo. Los títulos de grupo (stack, retos,
+  cuenta de demo) van en mono atenuado. Las funcionalidades, en rejilla con el borde izquierdo de las filas; los
+  retos, con una marca «+» ámbar decorativa; los pasos de Try it, numerados en mono ámbar («01»).
+
+### Cuentas de demo (`ProjectTryIt`)
+- Recuadro con borde fino: título «Demo account» y, por cuenta, su nombre y una lista de definiciones (usuario,
+  contraseña) con el valor en mono y un `CopyButton` por dato. Todas las cuentas comparten tres columnas (campo,
+  valor, botón) con `subgrid`, para que los botones queden alineados sin perder la semántica de la lista; por
+  debajo de sm, el campo va encima.
+
+### Pie (`ProjectPager`)
+- Anterior y siguiente como tarjetas con borde fino: dirección en mono con su flecha y el nombre en display
+  (ámbar al pasar); el siguiente, a la derecha. Debajo, GitHub, LinkedIn y el email (se parte si no cabe).
+
+## Página 404 (`NotFoundPage`)
+- Centrada en la pantalla, dentro de los corchetes de esquina del panel: título (`h1`), frase en `--text-lead` y
+  «Back to the start» (`ActionLink` con flecha). Sin barra ni raíl: solo hay un camino, volver.
 
 ## Accesibilidad común
 

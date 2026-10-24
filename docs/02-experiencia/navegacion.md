@@ -19,7 +19,8 @@
   página también está en español.» con «Ver en español» (la misma página en español, con el capítulo en el que
   estás, como el selector) y «No, gracias». Responder cualquiera de las dos se recuerda en el navegador
   (`localStorage`) y no vuelve a salir; si el navegador no deja guardar, funciona igual y solo se olvida. No roba el
-  foco: se anuncia (región `status`) y va al final del orden del Tab. Solo en el viaje (la página de proyecto, F2.7).
+  foco: se anuncia (región `status`) y va al final del orden del Tab. Sale en el viaje y en la página de proyecto
+  (allí ofrece ese mismo proyecto en español).
 - El selector EN/ES de la barra superior lleva a la **misma página** en el otro idioma, conservando el capítulo en
   el que estás (el activo según el scroll, aunque la URL no lleve su ancla) o el proyecto abierto.
 - `lang` del documento correcto en cada página (`en` / `es`).
@@ -41,6 +42,10 @@ botón central, el navegador hace lo suyo (abrir otra pestaña). Un clic normal 
 hace nada (ni mueve la página ni deja otra entrada en el historial). Quick mission es un botón (abre un diálogo).
 La barra tiene altura fija (`--topbar-h`) y no tapa nunca lo que se enfoca; si falta sitio (texto ampliado en
 móvil), solo cede el logo.
+
+En la **página de proyecto** la barra es la misma: el logo, el chip, Projects y Contact navegan al viaje (no hay
+capítulos que saltar) y caen bajo la barra; EN / ES lleva a ese mismo proyecto en el otro idioma; Quick mission
+abre el modo allí también (`/projects/x#quick`).
 
 ## Raíl de capítulos (fijo, a la derecha)
 
@@ -74,12 +79,14 @@ móvil), solo cede el logo.
   `replaceState` (se puede copiar; sin entrada nueva en el historial: en Android, el gesto de Atrás ya cierra un
   diálogo modal); al cerrar vuelve el ancla que había (`#projects`, o ninguna).
 - Un enlace del modo lleva a su sitio (la página de un proyecto); «Atrás» vuelve a `/#quick` y el modo se abre de
-  nuevo. Sin JavaScript el botón no hace nada: el viaje ya tiene todo el contenido.
+  nuevo. La página de proyecto también monta el modo, pero no lo hereda abierto: si al montarse la dirección no
+  pide `#quick`, lo cierra. Sin JavaScript el botón no hace nada: el viaje ya tiene todo el contenido.
 
 ## Teclado y foco
 
 - Primer elemento enfocable: **«Skip to content»** (oculto hasta recibir el foco), que salta la barra hasta el
-  principio del contenido, el hero, con el foco en el nombre. Sin JavaScript es un ancla al `h1`.
+  principio del contenido, el hero, con el foco en el nombre. Sin JavaScript es un ancla al `h1`. En una página de
+  proyecto, salta al nombre del proyecto.
 - Todos los títulos de capítulo (el `h1` incluido) llevan `tabindex="-1"`: los saltos les dan el foco sin
   meterlos en el orden de tabulación.
 - Orden de tabulación: barra superior → contenido del capítulo → raíl → sugerencia de idioma (si sale). Con el modo
@@ -91,5 +98,10 @@ móvil), solo cede el logo.
 ## Volver desde una página de proyecto
 
 - «Back to the shell» y el botón Atrás del navegador vuelven al capítulo de la tortuga (`/#projects`) con la
-  placa del proyecto que visitaste iluminada.
-- La posición de scroll del viaje se restaura al volver.
+  placa del proyecto que visitaste iluminada (desde F5).
+- Sin escena (desde F2.7): el foco queda en «View project» de la fila de ese proyecto, que se resalta como al
+  pasar el puntero. Con Atrás, la posición de scroll del viaje la restaura el navegador y el foco no la mueve;
+  con «Back to the shell» o «Projects» de la barra (`/#projects`), el foco lleva la fila a la vista. Si desde la
+  ficha se va a otro sitio del viaje (el logo, «Contact»), el foco no se toca.
+- Lo sostiene `uiStore.visitedProject`: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una
+  sola vez al montarse.

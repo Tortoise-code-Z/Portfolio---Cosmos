@@ -21,25 +21,39 @@ sin romper la sensación de estar dentro del mismo universo.
 
 ## Estructura de la página (documento normal, sin capítulos de scroll)
 
-1. **Cabecera:** «Back to the shell», nombre del proyecto (display grande), tagline, año, rol, contexto,
-   etiqueta «Featured» y acciones Live demo / Code.
+1. **Cabecera:** «Back to the shell», nombre del proyecto (display grande, `h1`), tagline, metadatos en mono
+   (Featured en turquesa · año · rol · contexto) y acciones Live demo (si hay) / Code.
 2. **Portada:** imagen `cover` a ancho completo dentro de un marco con corchetes.
 3. **About the project:** párrafos `about`.
 4. **Key features:** rejilla de `features`.
-5. **Tech stack:** cuatro grupos (core, libraries, design, tooling).
-6. **Development process:** párrafos `process` + **Technical highlights**.
-7. **Notes:** avisos `info` / `warning` con su estilo.
-8. **Try it:** pasos resumidos, cuenta de demo (con botón copiar) y enlace «Read the full guide in the README».
-9. **Gallery:** miniaturas; al abrir, visor a pantalla completa con flechas, teclado (← → Esc), contador
-   «n of total» y foco atrapado.
-10. **Pie del proyecto:** Previous / Next project + enlaces a GitHub, LinkedIn y email.
+5. **Tech stack:** cuatro grupos (core, libraries, design, tooling), cada uno con su título (`h3`) y etiquetas.
+6. **Development process:** párrafos `process` + **Technical highlights** (`h3`). Sin párrafos de proceso, los
+   retos van solos con su propio `h2`.
+7. **Notes:** avisos `info` / `warning` con su estilo. El tipo no se dice solo con color ni con el icono: el
+   lector oye «Note:» / «Warning:» delante.
+8. **Try it:** introducción, pasos numerados (las «→» del texto, con el icono), las cuentas de demo y el enlace
+   «Read the full guide in the README». Cada cuenta (User, Admin…) muestra usuario y contraseña con un botón
+   copiar por dato que dice cuál copia («Copy password (Admin)»); todas comparten columnas, para que los botones
+   queden alineados (por debajo de sm, el campo encima).
+9. **Gallery:** miniaturas (botones «Open image n of total» + texto alternativo, todas con la misma proporción);
+   al abrir, visor a pantalla completa con flechas, teclado (← → con vuelta, Esc), contador «n / total» y foco
+   atrapado (modal nativo). La imagen activa se anuncia («3 of 9: texto alternativo»); al cerrar, el foco vuelve
+   a la miniatura de la imagen que se estaba viendo.
+10. **Pie del proyecto:** Previous / Next project (sin vuelta: el primero no tiene anterior y el último no tiene
+    siguiente) + enlaces a GitHub, LinkedIn y email.
 
-Las secciones sin datos (por ejemplo, `tryIt: null`) **no se pintan**.
+Las secciones sin datos (por ejemplo, `tryIt: null`) **no se pintan**. Cada sección es una región con nombre
+(su `h2`); los `h2` van con la escala de `h3`: el display grande es solo el nombre.
 
 ## Layout
 
-- Columna de lectura de ~720 px centrada; la galería y la portada pueden ser más anchas.
-- La barra superior y el selector de idioma siguen visibles; el raíl y el HUD se ocultan (no hay capítulos).
+- Columna de lectura de `--read-w` (720 px) centrada, con aire arriba para la barra fija. La portada y la galería
+  van en la misma columna.
+- La interfaz fija del viaje, salvo lo que depende de los capítulos: «Skip to content» (lleva al nombre del
+  proyecto), barra superior (sus enlaces a capítulos navegan al viaje; `EN / ES` lleva a este mismo proyecto en el
+  otro idioma), modo misión rápida y sugerencia de idioma (ofrece este mismo proyecto en español). El raíl y el
+  HUD no salen (no hay capítulos).
+- Sin scroll lateral a 320 px con el texto al 200 %: las palabras largas y las URL se parten.
 
 ## SEO
 
@@ -55,4 +69,5 @@ Las secciones sin datos (por ejemplo, `tryIt: null`) **no se pintan**.
 1. Cada proyecto tiene su URL en los dos idiomas y funciona al cargarla directamente.
 2. Toda la página es legible y navegable sin escena.
 3. La galería se usa por completo con teclado y anuncia la imagen activa.
-4. Volver a la home deja el scroll en el capítulo de proyectos con la placa visitada iluminada.
+4. Volver a la home deja el scroll en el capítulo de proyectos con el foco en la fila del proyecto visitado
+   (`navegacion.md` → «Volver desde una página de proyecto»); desde F5, además, con la placa iluminada.

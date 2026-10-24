@@ -33,10 +33,14 @@ cosmos-portfolio/
 │  │  │                           QuickMissionContent, `quickMission` (ancla `#quick` e id del botón que
 │  │  │                           lo abre) y LanguageNotice (sugerencia de idioma)
 │  │  ├─ hud/                   ← CosmicHud y cosmicClock (reloj y escala, puros)
-│  │  └─ project/               ← ProjectHeader, FeatureGrid, StackGroups, Gallery, Lightbox, TryIt
+│  │  ├─ project/               ← ProjectPage (la página), ProjectHeader, ProjectSection, ProjectStack,
+│  │  │                           ProjectNote, ProjectTryIt, ProjectGallery, ProjectPager y `neighbours`
+│  │  │                           (proyecto anterior y siguiente, puro)
+│  │  └─ errors/                ← NotFoundPage (la 404 del idioma; la usan las rutas y `root.tsx`)
 │  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido
 │  ├─ ui/                       ← componentes genéricos sin dominio: ButtonOutline, HoldButton, ActionLink,
-│  │                              CopyButton, Notice, Icon, VisuallyHidden
+│  │                              CopyButton, Notice, Icon, VisuallyHidden, ArrowText (las «→» del texto
+│  │                              con el icono) y Lightbox (visor de imágenes)
 │  ├─ lib/                      ← funciones puras y hooks transversales
 │  │  ├─ env/                   ← variables de entorno validadas: siteUrl (parseSiteUrl), site (SITE_ORIGIN)
 │  │  ├─ i18n/                  ← tipos, useLocale, useT, formateadores Intl, rutas localizadas,
@@ -158,7 +162,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
-| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); después, grupo de skills activo, proyecto activo, nivel de rendimiento, escena disponible | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto) |
+| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); después, grupo de skills activo, nivel de rendimiento, escena disponible | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
 | `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; sin escena, `m = mTarget`), y desde F3 carga, puntero, peso de capítulos, flags de pausa | `useFrame` y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
@@ -199,9 +203,10 @@ ningún store: se guarda en `localStorage` (`lib/storage`) y la lee solo `Langua
 
 ## Gestión de errores
 
-- `ErrorBoundary` raíz: con un 404 de ruta pinta la misma `NotFoundPage` (y la `meta` de la 404); con cualquier
-  otro error, la página de error en el idioma activo (`error.*`), título `meta.error.title`, `noindex` y enlace al
-  inicio con `<a>` (recarga completa, no `<Link>`). Lo prueba `src/root.test.tsx`.
+- `ErrorBoundary` raíz: con un 404 de ruta pinta la misma `NotFoundPage` (`features/errors/`, con su CSS en el
+  archivo único de ADR-019) y la `meta` de la 404; con cualquier otro error, la página de error en el idioma
+  activo (`error.*`), título `meta.error.title`, `noindex` y enlace al inicio con `<a>` (recarga completa, no
+  `<Link>`). Lo prueba `src/root.test.tsx`; que la 404 hidratada no añada hojas de estilo, `seo.spec.ts`.
 - Toda ruta exporta su `meta`: si no, heredaría la de reserva de `root.tsx` (la de la 404, con `noindex`).
   `src/root.test.tsx` lo comprueba para cada ruta de `routes.ts`.
 - `ErrorBoundary` propio de la escena (aislado: un fallo 3D nunca tumba la página).

@@ -14,7 +14,7 @@ export interface UiState {
   /**
    * Último proyecto cuya página se ha visto (su slug), hasta que el viaje lo recoge al volver para
    * dejar el foco en su fila (docs/02-experiencia/navegacion.md → «Volver desde una página de
-   * proyecto»). Desde F4, la placa que se ilumina.
+   * proyecto»). Desde F5, la placa que se ilumina.
    */
   readonly visitedProject: string | null;
 }

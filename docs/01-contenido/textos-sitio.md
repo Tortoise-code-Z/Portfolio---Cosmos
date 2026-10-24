@@ -176,6 +176,23 @@ del texto.
 | `project.prev` | Previous project | Proyecto anterior |
 | `project.gallery.open` | Open image {n} of {total} | Abrir imagen {n} de {total} |
 | `project.gallery.close` | Close | Cerrar |
+| `project.gallery.prev` | Previous image | Imagen anterior |
+| `project.gallery.next` | Next image | Imagen siguiente |
+| `project.gallery.counter` | {n} of {total} | {n} de {total} |
+| `project.notes` | Notes | Notas |
+| `project.note.info` | Note: | Nota: |
+| `project.note.warning` | Warning: | Atención: |
+| `project.credentials.user` | Username | Nombre de usuario |
+| `project.credentials.password` | Password | Contraseña |
+| `project.copy.user` | username ({account}) | nombre de usuario ({account}) |
+| `project.copy.password` | password ({account}) | contraseña ({account}) |
+| `project.pager` | More projects | Más proyectos |
+| `project.contact` | Contact | Contacto |
+
+- `project.note.*` va oculto a la vista delante de cada nota: el tipo no se dice solo con color ni con el icono.
+- `project.copy.*` completa el nombre accesible del botón copiar («Copy password (Admin)»); `{account}` es el
+  nombre de la cuenta de demo (`TryIt.credentials[].label`).
+- El contador visible del visor es «3 / 9»; `project.gallery.counter` es lo que se anuncia («3 of 9: …»).
 
 ## Estados especiales
 

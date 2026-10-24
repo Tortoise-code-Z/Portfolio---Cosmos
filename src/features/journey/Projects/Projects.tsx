@@ -24,7 +24,7 @@ const PROJECTS_HASH = `#${CHAPTER_ANCHORS[3] ?? 'projects'}`;
  * proyecto»), el foco queda en «View project» de la fila de ese proyecto, que se resalta como «hot»
  * (`:focus-within`). Vale para el botón Atrás del navegador (el scroll lo restaura React Router: el foco
  * no lo mueve) y para los enlaces a `#projects` («Back to the shell», «Projects» de la barra). Si se
- * vuelve a otro sitio (el logo, `#contact`), no se toca el foco. Desde F4, además, se ilumina la placa.
+ * vuelve a otro sitio (el logo, `#contact`), no se toca el foco. Desde F5, además, se ilumina la placa.
  */
 function useFocusVisitedRow(list: RefObject<HTMLUListElement | null>): void {
   const navigationType = useNavigationType();
