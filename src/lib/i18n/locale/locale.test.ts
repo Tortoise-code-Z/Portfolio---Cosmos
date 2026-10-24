@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { browserLocale, localeFromPathname } from './locale';
+import { browserLocale, languageSuggestion, localeFromPathname } from './locale';
 
 describe('localeFromPathname', () => {
   it.each([
@@ -34,4 +34,20 @@ describe('browserLocale', () => {
       expect(browserLocale(languages)).toBeNull();
     },
   );
+});
+
+describe('languageSuggestion', () => {
+  it('en una página en inglés con el navegador en español, sugiere el español', () => {
+    expect(languageSuggestion('en', ['es-ES', 'en'])).toBe('es');
+  });
+
+  it.each([
+    ['en', ['en-GB', 'es']],
+    ['en', ['fr-FR']],
+    ['en', []],
+    ['es', ['es-ES']],
+    ['es', ['en-US']],
+  ] as const)('página %s con %j: nada que sugerir', (page, languages) => {
+    expect(languageSuggestion(page, languages)).toBeNull();
+  });
 });

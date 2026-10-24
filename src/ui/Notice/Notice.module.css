@@ -24,4 +24,12 @@
   font-family: var(--font-mono);
   font-size: var(--text-label);
   line-height: var(--leading-label);
+  animation: fade-in var(--dur-fade-slow) var(--ease-out);
+}
+
+/* Entra con un fundido (docs/03-diseno/movimiento.md: avisos y diálogos). */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
 }

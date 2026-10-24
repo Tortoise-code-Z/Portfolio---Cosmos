@@ -6,7 +6,7 @@ interface NoticeProps {
   /** Si se ve. La región viva existe siempre: lo que aparece dentro se anuncia sin mover el foco. */
   readonly open: boolean;
   /** Idioma del aviso si no es el de la página (la sugerencia de idioma habla en el que ofrece). */
-  readonly lang?: string;
+  readonly lang?: string | undefined;
   /** Texto y acciones (un enlace, «No, thanks»). */
   readonly children: ReactNode;
 }

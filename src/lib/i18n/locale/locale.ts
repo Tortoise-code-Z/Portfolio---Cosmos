@@ -15,3 +15,17 @@ export function browserLocale(languages: readonly string[]): Locale | null {
   const primary = languages[0]?.split('-', 1)[0]?.toLowerCase();
   return LOCALES.find((locale) => locale === primary) ?? null;
 }
+
+/**
+ * Idioma que se sugiere en una página (docs/02-experiencia/navegacion.md → «Idioma»): solo en las
+ * páginas en inglés (el idioma por defecto) y si el navegador prefiere otro de los nuestros. Si no,
+ * `null`.
+ */
+export function languageSuggestion(
+  pageLocale: Locale,
+  languages: readonly string[],
+): Locale | null {
+  if (pageLocale !== DEFAULT_LOCALE) return null;
+  const preferred = browserLocale(languages);
+  return preferred === pageLocale ? null : preferred;
+}

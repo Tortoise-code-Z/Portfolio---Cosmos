@@ -1,0 +1,23 @@
+/* Sugerencia de idioma (docs/03-diseno/componentes.md → «Aviso»): el enlace en ámbar y «No, gracias». */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.accept {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--target-min);
+  color: var(--color-star);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--border-width);
+  text-underline-offset: var(--underline-offset);
+}
+
+.accept:hover {
+  color: var(--color-ink);
+}
