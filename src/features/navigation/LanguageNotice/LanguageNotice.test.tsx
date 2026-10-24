@@ -57,6 +57,19 @@ describe('LanguageNotice', () => {
     );
   });
 
+  it('outside the journey, the link goes to the same page in Spanish (pathFor)', () => {
+    sceneStore.setState({ mTarget: 3, m: 3 });
+    render(
+      <MemoryRouter initialEntries={['/projects/chessmate']}>
+        <LanguageNotice pathFor={(locale) => `/${locale}/projects/chessmate`} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('link', { name: 'Ver en español' })).toHaveAttribute(
+      'href',
+      '/es/projects/chessmate',
+    );
+  });
+
   it.each([
     ['an English browser', '/', ['en-GB', 'es']],
     ['another language first', '/', ['fr-FR', 'es']],

@@ -1,0 +1,48 @@
+/* 404 «Lost in space» (docs/02-experiencia/estados-y-accesibilidad.md → «404»). */
+.page {
+  display: grid;
+  place-items: center;
+  min-block-size: 100svh;
+  padding: var(--space-8) var(--gutter);
+}
+
+/* Bloque de lectura con los corchetes de esquina ámbar del panel, a la izquierda arriba y abajo. */
+.frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-inline-size: var(--panel-w);
+  padding: var(--space-6);
+}
+
+.frame::before,
+.frame::after {
+  position: absolute;
+  inset-inline-start: 0;
+  inline-size: var(--corner-size);
+  block-size: var(--corner-size);
+  border-color: var(--color-star);
+  border-style: solid;
+  content: '';
+}
+
+.frame::before {
+  inset-block-start: 0;
+  border-width: var(--border-width) 0 0 var(--border-width);
+}
+
+.frame::after {
+  inset-block-end: 0;
+  border-width: 0 0 var(--border-width) var(--border-width);
+}
+
+.title {
+  overflow-wrap: anywhere;
+}
+
+.body {
+  max-inline-size: var(--measure);
+  font-size: var(--text-lead);
+  line-height: var(--leading-lead);
+}

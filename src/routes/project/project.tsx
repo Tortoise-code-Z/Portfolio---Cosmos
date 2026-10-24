@@ -1,16 +1,21 @@
 import type { ReactNode } from 'react';
-import { Link, useLocation, useParams } from 'react-router';
+import { useLocation, useParams } from 'react-router';
 
 import { profile } from '~/content/profile';
 import { projects } from '~/content/projects';
-import type { Project } from '~/content/types';
+import type { Locale, Project } from '~/content/types';
+import { NotFoundPage } from '~/features/errors/NotFoundPage/NotFoundPage';
+import { LanguageNotice } from '~/features/navigation/LanguageNotice/LanguageNotice';
+import { QuickMissionDialog } from '~/features/navigation/QuickMissionDialog/QuickMissionDialog';
+import { SkipLink } from '~/features/navigation/SkipLink/SkipLink';
+import { TopBar } from '~/features/navigation/TopBar/TopBar';
+import { PROJECT_TITLE_ID } from '~/features/project/ProjectHeader/ProjectHeader';
+import { ProjectPage } from '~/features/project/ProjectPage/ProjectPage';
 import { SITE_ORIGIN } from '~/lib/env/site/site';
 import { localeFromPathname } from '~/lib/i18n/locale/locale';
-import { homePath, isLowerCasePathname } from '~/lib/i18n/paths/paths';
-import { useLocale, useT } from '~/lib/i18n/useT/useT';
+import { isLowerCasePathname, projectPath } from '~/lib/i18n/paths/paths';
 import { notFoundMeta, projectMeta } from '~/lib/seo/meta/meta';
 
-import { NotFoundPage } from '../not-found/not-found';
 import type { Route } from './+types/project';
 
 /**
@@ -30,25 +35,29 @@ export function meta({ location, params }: Route.MetaArgs): Route.MetaDescriptor
     : projectMeta({ origin: SITE_ORIGIN, locale, profile, project });
 }
 
-// Página mínima: nombre, tagline, resumen y vuelta al caparazón. F2.7 la completa
-// sin tocar la meta. Los datos van en el JS de esta ruta (deuda en STATE.md: se mide en F2.4).
-export default function ProjectPage(): ReactNode {
-  const t = useT();
-  const locale = useLocale();
+/**
+ * La página de un proyecto (`features/project/ProjectPage`), o la 404 del idioma si el slug no existe o
+ * la ruta lleva mayúsculas. Lleva la interfaz fija del viaje salvo el raíl y el HUD (no hay capítulos):
+ * Skip → barra → contenido → sugerencia de idioma, y el modo misión rápida. `EN / ES` y la sugerencia
+ * llevan a esta misma página en el otro idioma (docs/02-experiencia/pagina-proyecto.md → «Layout»).
+ */
+export default function ProjectRoute(): ReactNode {
   const { pathname } = useLocation();
   const project = findProject(pathname, useParams().slug);
 
   // Slug desconocido o ruta con mayúsculas: la misma página que la 404, sin lanzar error.
   if (project === undefined) return <NotFoundPage />;
 
+  const { slug } = project;
+  const pathFor = (locale: Locale): string => projectPath(locale, slug);
+
   return (
-    <main>
-      <h1>{project.name}</h1>
-      <p>{project.tagline[locale]}</p>
-      <p>{project.summary[locale]}</p>
-      <p>
-        <Link to={`${homePath(locale)}#projects`}>{t('project.back')}</Link>
-      </p>
-    </main>
+    <>
+      <SkipLink targetId={PROJECT_TITLE_ID} />
+      <TopBar pathFor={pathFor} />
+      <ProjectPage project={project} />
+      <QuickMissionDialog />
+      <LanguageNotice pathFor={pathFor} />
+    </>
   );
 }

@@ -4,6 +4,7 @@ import { useLocation } from 'react-router';
 import { CHAPTER_MORPH_START } from '~/content/chapters';
 import { profile } from '~/content/profile';
 import { skillGroups } from '~/content/skills';
+import { NotFoundPage } from '~/features/errors/NotFoundPage/NotFoundPage';
 import { CosmicHud } from '~/features/hud/CosmicHud/CosmicHud';
 import { About } from '~/features/journey/About/About';
 import { CHAPTER_SELECTOR } from '~/features/journey/chapterDom/chapterDom';
@@ -23,7 +24,6 @@ import { useScrollTarget } from '~/lib/scroll/useScrollTarget/useScrollTarget';
 import { homeMeta, notFoundMeta } from '~/lib/seo/meta/meta';
 import { setScrollTarget } from '~/stores/sceneStore/sceneStore';
 
-import { NotFoundPage } from '../not-found/not-found';
 import type { Route } from './+types/journey';
 
 export function meta({ location }: Route.MetaArgs): Route.MetaDescriptors {

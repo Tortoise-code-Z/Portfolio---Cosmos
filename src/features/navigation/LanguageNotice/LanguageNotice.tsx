@@ -35,7 +35,12 @@ function nothingOnServer(): null {
  * el capítulo en el que estás) y «No, gracias». Aceptar o descartar se recuerda y no vuelve a salir.
  * Nunca cambia el idioma solo (ADR-006).
  */
-export function LanguageNotice(): ReactNode {
+interface LanguageNoticeProps {
+  /** La misma página en el idioma que se ofrece, fuera del viaje. Sin ella, el capítulo activo. */
+  readonly pathFor?: (locale: Locale) => string;
+}
+
+export function LanguageNotice({ pathFor }: LanguageNoticeProps): ReactNode {
   const locale = useLocale();
   const chapter = useStore(sceneStore, selectActiveChapter);
   const suggested = useSyncExternalStore<Locale | null>(
@@ -61,7 +66,7 @@ export function LanguageNotice(): ReactNode {
           <p>{translate(target, 'langNotice.text')}</p>
           <div className={styles.actions}>
             <Link
-              to={chapterHref(target, chapter)}
+              to={pathFor === undefined ? chapterHref(target, chapter) : pathFor(target)}
               hrefLang={target}
               className={styles.accept}
               onClick={answer}

@@ -54,12 +54,23 @@ export function QuickMissionDialog(): ReactNode {
     };
   }, []);
 
+  /** Si este diálogo ya ha pasado por su primer efecto (ver abajo). */
+  const mounted = useRef(false);
+
   // Antes de pintar: el modo aparece ya abierto y con el foco dentro, sin un frame intermedio.
   useLayoutEffect(() => {
     const dialog = dialogRef.current;
     if (dialog === null) return;
+    const firstRun = !mounted.current;
+    mounted.current = true;
     if (!open) {
       if (dialog.open) dialog.close();
+      return;
+    }
+    // Un enlace del modo lleva a otra página que también lo monta (un proyecto): el estado sigue
+    // abierto al pintarla, pero la dirección ya no pide el modo. Se cierra en vez de reabrirlo allí.
+    if (firstRun && window.location.hash !== QUICK_HASH) {
+      closeQuickMission();
       return;
     }
     if (!dialog.open) dialog.showModal();

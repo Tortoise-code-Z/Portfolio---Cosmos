@@ -1,0 +1,104 @@
+/*
+ * Página de proyecto (docs/02-experiencia/pagina-proyecto.md → «Layout»): un documento normal en una
+ * columna de lectura de --read-w centrada, con aire arriba para la barra fija.
+ */
+.page {
+  padding: calc(var(--topbar-h) + var(--space-7)) var(--gutter) var(--space-9);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-inline-size: var(--read-w);
+  margin-inline: auto;
+}
+
+/* Portada dentro de un marco con corchetes de esquina ámbar (arriba a la izquierda, abajo a la derecha). */
+.cover {
+  position: relative;
+  padding: var(--space-3);
+}
+
+.cover::before,
+.cover::after {
+  position: absolute;
+  inline-size: var(--corner-size);
+  block-size: var(--corner-size);
+  border-color: var(--color-star);
+  border-style: solid;
+  content: '';
+}
+
+.cover::before {
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  border-width: var(--border-width) 0 0 var(--border-width);
+}
+
+.cover::after {
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  border-width: 0 var(--border-width) var(--border-width) 0;
+}
+
+.coverImage {
+  inline-size: 100%;
+  block-size: auto;
+}
+
+/* Funcionalidades en rejilla: cada una con el borde izquierdo de las filas del viaje. */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--project-col-min), 1fr));
+  gap: var(--space-3) var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+
+.feature {
+  padding: var(--space-2) 0 var(--space-2) var(--space-4);
+  border-inline-start: var(--border-width) solid var(--color-faint);
+  color: var(--color-ink);
+}
+
+.subtitle {
+  margin-block-start: var(--space-3);
+  color: var(--color-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  font-weight: var(--weight-mono);
+  font-stretch: normal;
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-label);
+}
+
+/* Retos técnicos: lista con una marca ámbar decorativa. */
+.highlights {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.highlight {
+  display: flex;
+  gap: var(--space-3);
+  max-inline-size: var(--measure);
+}
+
+.highlight::before {
+  flex: none;
+  color: var(--color-star);
+  font-family: var(--font-mono);
+  content: '+' / '';
+}
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}

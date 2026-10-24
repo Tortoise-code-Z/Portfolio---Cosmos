@@ -3,7 +3,15 @@ import { describe, expect, it } from 'vitest';
 
 import { Icon, type IconName } from './Icon';
 
-const NAMES: readonly IconName[] = ['arrow-down', 'arrow-right', 'external', 'download'];
+const NAMES: readonly IconName[] = [
+  'arrow-down',
+  'arrow-left',
+  'arrow-right',
+  'external',
+  'download',
+  'info',
+  'warning',
+];
 
 describe('Icon', () => {
   it.each(NAMES)('%s is decorative, inline SVG with a path', (name) => {

@@ -9,9 +9,12 @@ import styles from './Icon.module.css';
  */
 const PATHS = {
   'arrow-down': 'M8 2.5v11M3.5 9 8 13.5 12.5 9',
+  'arrow-left': 'M13.5 8h-11M7 3.5 2.5 8 7 12.5',
   'arrow-right': 'M2.5 8h11M9 3.5 13.5 8 9 12.5',
   external: 'M9.5 2.5h4v4M13.5 2.5 7 9M11.5 9.5v4h-9v-9h4',
   download: 'M8 2.5v8M4.5 7 8 10.5 11.5 7M2.5 13.5h11',
+  info: 'M8 1.5a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13M8 7v4.5M8 4.5v.01',
+  warning: 'M8 1.75 14.5 13.5h-13ZM8 6v3.5M8 11.5v.01',
 } as const;
 
 export type IconName = keyof typeof PATHS;

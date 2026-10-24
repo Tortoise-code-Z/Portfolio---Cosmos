@@ -1,0 +1,31 @@
+/* Miniaturas de la galería (docs/02-experiencia/pagina-proyecto.md → «Estructura», punto 9). */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--project-col-min), 1fr));
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+/* Botón sin aspecto propio: la miniatura con un borde fino que pasa a ámbar al pasar el puntero. */
+.thumb {
+  display: block;
+  inline-size: 100%;
+  padding: 0;
+  border: var(--border-width) solid var(--color-faint);
+  background: none;
+  cursor: zoom-in;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.thumb:hover {
+  border-color: var(--color-star);
+}
+
+/* Todas las miniaturas con la misma proporción; la imagen se recorta al centro (la entera, en el visor). */
+.image {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: var(--gallery-thumb-ratio);
+  object-fit: cover;
+}

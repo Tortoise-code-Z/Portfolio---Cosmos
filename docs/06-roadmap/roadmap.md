@@ -39,10 +39,11 @@ se abre. Etiqueta `v0.0.1`.
 5. Mapeo de scroll (`mapM`) con tests; raíl, HUD y barra superior conectados.
 6. Modo misión rápida (incluido `/#quick` y su botón en la barra), copiar email, chip de disponibilidad en la barra,
    sugerencia de idioma.
-7. Páginas de proyecto completas (galería con visor accesible) y 404. La barra superior entra también en la página
-   de proyecto (en F2.5 solo vive en el viaje); con ella, su botón «Quick mission», así que `QuickMissionDialog`
-   se monta también allí (desde F2.6 solo vive en el viaje). Decidir si la sugerencia de idioma sale también ahí.
-8. Imágenes de proyectos migradas desde el repo antiguo y optimizadas.
+7. Páginas de proyecto completas (galería con visor accesible) y 404. La barra superior, la misión rápida y la
+   sugerencia de idioma entran también en la página de proyecto; al volver al viaje, el foco queda en la fila del
+   proyecto visitado. *(Hecho en F2.7: el visor está probado con imágenes de prueba; las galerías siguen vacías.)*
+8. Imágenes de proyectos migradas desde el repo antiguo y optimizadas: `cover` y `gallery` de cada proyecto (la
+   portada y la galería se pintan solas en cuanto tienen datos) y un e2e del visor con las imágenes reales.
 
 **Hecho cuando:** el sitio completo se puede usar y desplegar sin escena; Lighthouse Accessibility ≥ 95 y SEO ≥ 95;
 recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar ya.)*
@@ -76,7 +77,8 @@ Etiqueta `v0.3.0`.
 ## F5 · Transiciones a proyectos
 
 - Lienzo persistente entre rutas, vuelo de cámara a la placa, escena atenuada en la página de proyecto,
-  anterior/siguiente, vuelta con la posición restaurada, carga directa sin Big Bang.
+  anterior/siguiente, vuelta con la posición restaurada, carga directa sin Big Bang. La placa que se ilumina al
+  volver es la de `uiStore.visitedProject` (el mismo dato que ya deja el foco en su fila desde F2.7).
 
 **Hecho cuando:** se cumplen los criterios de `pagina-proyecto.md` en escritorio y móvil. Etiqueta `v0.4.0`.
 

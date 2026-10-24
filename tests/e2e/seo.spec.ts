@@ -183,6 +183,26 @@ test.describe('404 por idioma (sin redirecciones)', () => {
     });
   }
 
+  test('la 404 hidratada enlaza una sola hoja de estilos, la misma que el HTML servido', async ({
+    page,
+  }) => {
+    await page.goto('/projects/no-existe');
+    const served = await page.evaluate(() =>
+      [...document.querySelectorAll('link[rel="stylesheet"]')].map((link) =>
+        link.getAttribute('href'),
+      ),
+    );
+    await page.waitForLoadState('networkidle');
+    // La ruta que casa el cliente (proyecto) ya ha cargado su módulo y pinta la 404 de `features/errors`.
+    const hydrated = await page.evaluate(() =>
+      [...document.querySelectorAll('link[rel="stylesheet"]')].map((link) =>
+        link.getAttribute('href'),
+      ),
+    );
+    expect(served).toHaveLength(1);
+    expect(hydrated).toEqual(served);
+  });
+
   test('desde la 404, «Volver al inicio» lleva a la home del idioma', async ({ page }) => {
     const errors = collectConsoleErrors(page);
     await page.goto('/es/loquesea');

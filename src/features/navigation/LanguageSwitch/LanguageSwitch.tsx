@@ -25,7 +25,12 @@ const NAME_KEYS = {
  * el que estás aunque la URL no lleve su ancla (el activo según el scroll). El idioma actual va
  * subrayado en ámbar y con `aria-current="true"`. Cada enlace se nombra en su propio idioma.
  */
-export function LanguageSwitch(): ReactNode {
+interface LanguageSwitchProps {
+  /** La misma página en otro idioma, fuera del viaje (`/es/projects/chessmate`). Sin ella, el capítulo activo. */
+  readonly pathFor?: ((locale: Locale) => string) | undefined;
+}
+
+export function LanguageSwitch({ pathFor }: LanguageSwitchProps): ReactNode {
   const t = useT();
   const locale = useLocale();
   const chapter = useStore(sceneStore, selectActiveChapter);
@@ -40,7 +45,7 @@ export function LanguageSwitch(): ReactNode {
             </span>
           )}
           <Link
-            to={chapterHref(target, chapter)}
+            to={pathFor === undefined ? chapterHref(target, chapter) : pathFor(target)}
             className={styles.link}
             lang={target}
             hrefLang={target}

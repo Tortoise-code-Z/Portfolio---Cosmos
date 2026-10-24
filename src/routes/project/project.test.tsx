@@ -1,48 +1,53 @@
 import { render, screen } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import { projects } from '~/content/projects';
-import type { Project } from '~/content/types';
+import { useUiStore } from '~/stores/uiStore/uiStore';
 
-import ProjectPage from './project';
-
-function projectBySlug(slug: string): Project {
-  const project = projects.find((candidate) => candidate.slug === slug);
-  if (project === undefined) throw new Error(`project.test: no hay proyecto «${slug}»`);
-  return project;
-}
-
-const chessmate = projectBySlug('chessmate');
-const astrohub = projectBySlug('astrohub');
+import ProjectRoute from './project';
 
 const Stub = createRoutesStub([
   { path: '/', Component: () => <p>home</p> },
-  { path: '/projects/:slug', Component: ProjectPage },
-  { path: '/es/projects/:slug', Component: ProjectPage },
+  { path: '/projects/:slug', Component: ProjectRoute },
+  { path: '/es/projects/:slug', Component: ProjectRoute },
 ]);
 
-describe('ProjectPage (mínima hasta F2.7)', () => {
-  it('nombre, tagline y resumen del proyecto en inglés', async () => {
-    render(<Stub initialEntries={['/projects/chessmate']} />);
-    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(chessmate.name);
-    expect(screen.getByText(chessmate.tagline.en)).toBeInTheDocument();
-    expect(screen.getByText(chessmate.summary.en)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Back to the shell' })).toHaveAttribute(
-      'href',
-      '/#projects',
-    );
+afterEach(() => {
+  useUiStore.setState(useUiStore.getInitialState(), true);
+});
+
+describe('ProjectRoute', () => {
+  it.each([
+    ['/projects/chessmate', 'Chessmate', 'About the project'],
+    ['/es/projects/astrohub', 'AstroHub', 'Sobre el proyecto'],
+  ])('%s → la página del proyecto en su idioma', async (path, name, about) => {
+    render(<Stub initialEntries={[path]} />);
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(name);
+    expect(screen.getByRole('heading', { level: 2, name: about })).toBeInTheDocument();
   });
 
-  it('nombre, tagline y resumen en español, con la vuelta a /es', async () => {
-    render(<Stub initialEntries={['/es/projects/astrohub']} />);
-    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(astrohub.name);
-    expect(screen.getByText(astrohub.tagline.es)).toBeInTheDocument();
-    expect(screen.getByText(astrohub.summary.es)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Volver al caparazón' })).toHaveAttribute(
+  it('lleva la interfaz fija: Skip al nombre, la barra con «Quick mission» y EN / ES a esta misma página', async () => {
+    render(<Stub initialEntries={['/es/projects/chessmate']} />);
+    await screen.findByRole('heading', { level: 1 });
+    expect(screen.getByRole('link', { name: 'Saltar al contenido' })).toHaveAttribute(
       'href',
-      '/es#projects',
+      '#project-title',
     );
+    expect(screen.getByRole('link', { name: 'TORTOISE_CODE' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Modo misión rápida' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'English' })).toHaveAttribute(
+      'href',
+      '/projects/chessmate',
+    );
+    expect(document.querySelector('dialog')).not.toBeNull();
+    // Sin capítulos no hay raíl ni HUD.
+    expect(screen.queryByRole('navigation', { name: /chapters|capítulos/i })).toBeNull();
+  });
+
+  it('apunta el proyecto como visto (el viaje dejará el foco en su fila al volver)', async () => {
+    render(<Stub initialEntries={['/projects/cosmos']} />);
+    await screen.findByRole('heading', { level: 1 });
+    expect(useUiStore.getState().visitedProject).toBe('cosmos');
   });
 
   it.each([

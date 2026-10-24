@@ -130,7 +130,7 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--panel-w` | 540 px | Panel de capítulo |
 | `--panel-w-wide` | 600 px | Panel de contacto |
 | `--read-w` | 720 px | Columna de la página de proyecto |
-| `--content-max` | 1200 px | Ancho máximo de galería y portada |
+| `--content-max` | 1200 px | Ancho máximo del modo misión rápida |
 | `--panel-top` | 14vh | Separación superior del panel y su posición *sticky* (escritorio) |
 | `--topbar-h` | 64 px | Altura fija de la barra superior (sin contar la zona segura de arriba) |
 | `--scene-clear-mobile` | 70vh | Escena limpia antes del panel en móvil (< md) |
@@ -144,6 +144,8 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--rail-dot-size` · `--rail-dot-scale-active` | 7 px · 1,4 | Punto del raíl y su escala cuando es el activo |
 | `--chip-dot-size` · `--opacity-breathe-low` | 6 px · 0,35 | Punto del chip «Open to work» y la opacidad más baja de su respiración |
 | `--quick-col-min` | 280 px | Ancho mínimo de cada columna del modo misión rápida (`auto-fit`) |
+| `--project-col-min` | 220 px | Ancho mínimo de cada columna de las rejillas de la página de proyecto (funcionalidades, stack, galería, anterior/siguiente) |
+| `--gallery-thumb-ratio` | 16 / 10 | Proporción de las miniaturas de la galería (la imagen se recorta al centro; entera en el visor) |
 
 (Los breakpoints no son tokens: una variable CSS no puede usarse en una media query. Se escriben como número
 en las media queries y están anotados en la cabecera de `tokens.css`.)
@@ -151,7 +153,8 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 ## Forma, bordes y profundidad
 
 - **Radio 0** en todo, salvo puntos y anillos (50 %). Es parte del lenguaje de instrumento.
-- Bordes: `--border-width` (1 px) `--color-faint`; activo: `--border-width` `--color-star`.
+- Bordes: `--border-width` (1 px) `--color-faint`; activo: `--border-width` `--color-star`. Las notas de proyecto
+  llevan un borde izquierdo más grueso, `--note-border-width` (2 px).
 - Foco visible: contorno `--focus-width` (2 px) `--color-star` con separación `--focus-offset` (3 px), global en
   `:focus-visible`.
 - Al llevar el foco con Tab o saltar a un ancla, el navegador deja libre arriba lo que tapa la barra fija
@@ -190,13 +193,14 @@ su propio contenido con `z-index: -1` (el brillo «hot» de la fila de proyecto)
 ## Iconos
 
 - Conjunto mínimo de **SVG en línea** propios: flecha, enlace externo, copiar, cerrar, chevrones, GitHub,
-  LinkedIn, descarga. Trazo 1,5 px (`vector-effect: non-scaling-stroke`: no engorda a 20 px), tamaños 16 y 20 px,
+  LinkedIn, descarga, información y aviso. Hoy existen `arrow-down`, `arrow-left`, `arrow-right`, `external`,
+  `download`, `info` y `warning` (`ui/Icon`); los demás llegan cuando haga falta. Trazo 1,5 px (`vector-effect: non-scaling-stroke`: no engorda a 20 px), tamaños 16 y 20 px,
   `currentColor`. Bajan `--icon-baseline-shift` (−0,125em) para centrarse ópticamente con la x.
 - Van **en línea** con el texto: `global.css` no les da `display: block`; el componente de icono fija su propio
   `display` según dónde se use.
 - Una flecha dentro de un texto (por ejemplo «Go to Courses → All courses») se pinta con el **icono SVG de
   flecha**, no con el carácter «→»: el subconjunto latino de las fuentes no trae U+2192 y saldría con la fuente del
-  sistema.
+  sistema. Lo hace `ui/ArrowText`; el carácter queda oculto a la vista para el lector de pantalla.
 - Excepción aceptada: el «≈» de los eyebrows de About y Skills (U+2248) tampoco está en el subconjunto y sale con la
   mono del sistema. Es un solo glifo, en texto pequeño y atenuado; no compensa un icono ni ampliar el subconjunto
   (bytes del presupuesto de fuentes), y «~» cambiaría el sentido. Se mira en los tres motores en F6.
