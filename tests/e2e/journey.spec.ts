@@ -96,7 +96,10 @@ test.describe('the journey (home)', () => {
     await expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 });
     await page.keyboard.up('Space');
     const about = await landingY(page, 'about');
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(about);
+    // `scrollY` puede ser fraccionario y `offsetTop` es entero: 1 px de tolerancia, sin redondear.
+    await expect
+      .poll(async () => Math.abs((await page.evaluate(() => window.scrollY)) - about))
+      .toBeLessThanOrEqual(1);
     // El foco viaja con la vista: al título de About, sin anillo cortado ni otro salto de scroll.
     await expect(page.getByRole('heading', { level: 2, name: CHAPTERS.en[0][1] })).toBeFocused();
 
@@ -137,7 +140,7 @@ test.describe('the journey (home)', () => {
         }),
     );
     await page.mouse.up();
-    expect(atDetonation).toBe(await landingY(page, 'about'));
+    expect(Math.abs(atDetonation - (await landingY(page, 'about')))).toBeLessThanOrEqual(1);
   });
 
   for (const viewport of REFERENCE_VIEWPORTS) {
@@ -183,9 +186,7 @@ test.describe('the journey (home)', () => {
 
   test('1280×720: every focusable element, with its focus ring, comes into view with Tab', async ({
     page,
-    browserName,
   }) => {
-    test.skip(browserName === 'webkit', 'Safari only tabs to links with a system setting on');
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/', { waitUntil: 'networkidle' });
     // Se marca cada enlace y botón de main para saber cuáles visita el Tab (con lo que haya delante,

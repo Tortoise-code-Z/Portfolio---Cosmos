@@ -17,7 +17,12 @@ const REPO_DIR = fileURLToPath(new URL('..', import.meta.url));
 const CODE_DIRS = ['src', 'tests', '.husky', '.github'] as const;
 const THIS_FILE = 'src/code-references.test.ts';
 const CONFIG_FILE = /\.(?:ts|js)$/;
-const OFF_REPO_REFERENCE = /\bvivas? S\d|\b(?:EST|AUD)-F\d|_claude\//;
+/**
+ * Vivas («viva S5 #1»), encargos («AUD-F2-3-1»), claves de pregunta («F25-1-A») y opciones sueltas
+ * («la opción A»), y el buzón.
+ */
+const OFF_REPO_REFERENCE =
+  /\bvivas? S\d|\b(?:EST|AUD)-F\d|\b[A-Z]+\d+-\d+-[A-Z]\b|\bla opción [A-C]\b|_claude\//;
 
 function listFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -43,9 +48,11 @@ describe('el código no cita notas de fuera del repo', () => {
       { path: 'a.ts', text: '// (viva S5 #1)\n// (vivas S4 #16–#31)' },
       { path: 'b.ts', text: '// EST-F2-3-12\n// AUD-F2-3-1\n// _claude/cadena/TABLERO.md' },
       { path: 'c.ts', text: '// ADR-018 · arquitectura.md → «Rutas e idiomas» · F2.7 · STATE.md' },
+      { path: 'd.ts', text: '// F25-1-A\n// como dice la opción B' },
+      { path: 'e.ts', text: '// Tamaños: H1-2 · UTF-8 · ES-419 · F2.5-1' },
     ]);
-    expect(found).toHaveLength(5);
-    expect(found.some((line) => line.startsWith('c.ts'))).toBe(false);
+    expect(found).toHaveLength(7);
+    expect(found.some((line) => line.startsWith('c.ts') || line.startsWith('e.ts'))).toBe(false);
   });
 
   it('src/, tests/, los hooks, el CI y las configs de la raíz no las tienen', () => {

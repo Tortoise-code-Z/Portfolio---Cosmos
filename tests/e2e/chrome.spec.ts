@@ -49,7 +49,7 @@ test.describe('HUD', () => {
     page,
   }) => {
     await page.goto('/es#contact', { waitUntil: 'networkidle' });
-    await expect(hud(page)).toContainText(/t ≈ 13.800 millones de años/i);
+    await expect(hud(page)).toContainText(/t ≈ 13\.800 millones de años/i);
     await expect(hud(page)).toContainText(/escala · 12.742 km de diámetro/i);
   });
 
@@ -276,16 +276,21 @@ test.describe('chapter rail', () => {
     expect(dot).not.toBe('rgba(0, 0, 0, 0)');
   });
 
-  test('comes after the content in the tab order (top bar → chapter → rail)', async ({ page }) => {
+  test('comes after the content in the document order (top bar → content → rail)', async ({
+    page,
+  }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
     const order = await page.evaluate(() => {
+      const follows = (a: Element | null, b: Element | null): boolean =>
+        a !== null &&
+        b !== null &&
+        (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+      const header = document.querySelector('header');
       const main = document.querySelector('main');
       const nav = document.querySelector('nav[aria-label="Chapters"]');
-      return main !== null && nav !== null
-        ? main.compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING
-        : 0;
+      return { barThenContent: follows(header, main), contentThenRail: follows(main, nav) };
     });
-    expect(order).toBeTruthy();
+    expect(order).toEqual({ barThenContent: true, contentThenRail: true });
   });
 });
 
@@ -314,10 +319,17 @@ test.describe('top bar', () => {
   }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/', { waitUntil: 'networkidle' });
+    const entries = await page.evaluate(() => window.history.length);
     await bar(page).getByRole('link', { name: 'Projects' }).click();
     await expect.poll(() => distanceToLanding(page, 'projects')).toBeLessThanOrEqual(2);
     await expect(page.getByRole('heading', { name: 'What I carry on my shell' })).toBeFocused();
     await expect(page).toHaveURL(/\/#projects$/);
+
+    await bar(page).getByRole('link', { name: 'Contact' }).click();
+    await expect(page.getByRole('heading', { name: 'Touchdown' })).toBeFocused();
+    await expect(page).toHaveURL(/\/#contact$/);
+    // Saltos, no navegaciones: el historial no crece.
+    expect(await page.evaluate(() => window.history.length)).toBe(entries);
 
     await bar(page).getByRole('link', { name: 'TORTOISE_CODE' }).click();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
