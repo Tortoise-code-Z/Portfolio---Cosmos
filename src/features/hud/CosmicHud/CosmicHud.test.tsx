@@ -67,7 +67,7 @@ describe('CosmicHud', () => {
     const mutations: MutationRecord[] = [];
     const observer = new MutationObserver((records) => mutations.push(...records));
     observer.observe(hud, { subtree: true, childList: true, characterData: true });
-    // Dentro de la nebulosa (antes de su ventana) el texto no cambia.
+    // Un paso de 0,001 en `m` no cambia el texto: 200 Ma × 5^0,001 redondea a 200 con 2 cifras.
     act(() => {
       setScrollTarget(1.001);
       setScrollTarget(1.002);

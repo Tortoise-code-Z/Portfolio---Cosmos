@@ -51,12 +51,14 @@
 ## Navegación
 
 ### Barra superior (`TopBar`)
-- Fija, transparente con desenfoque de fondo (`--blur-chrome`), con el logo a la izquierda y las acciones a la
-  derecha. Margen lateral de página. Altura fija `--topbar-h` (64 px) más la zona segura de arriba.
-- Logo en mono 13 px (`--tracking-logo`); acciones en mono `--text-label` en mayúsculas. Todo con 44 px de alto.
+- Fija, con velo oscuro (`--color-veil-chrome`) y desenfoque de fondo (`--blur-chrome`): el texto que pasa por
+  debajo no le quita contraste. Logo a la izquierda y acciones a la derecha. Margen lateral de página. Altura fija
+  `--topbar-h` (64 px) más la zona segura de arriba.
+- Logo en mono 13 px (`--tracking-logo`); acciones en mono `--text-label` en mayúsculas. Todo con 44 × 44 px como
+  mínimo. Si falta sitio, solo el logo cede (se recorta con «…»); las acciones no encogen.
 - El selector de idioma `EN / ES` (`LanguageSwitch`) es un par de enlaces en un grupo con nombre («Language»),
   cada uno nombrado en su idioma («English», «Español», con `lang`); el activo, subrayado ámbar y
-  `aria-current="true"`.
+  `aria-current="true"`. Un clic normal en el activo no navega.
 
 ### Enlace de salto (`SkipLink`)
 - «Skip to content», mono `--text-label` en mayúsculas, ámbar sobre `--color-void` con borde ámbar. Fuera de la
@@ -68,11 +70,13 @@
 - Con movimiento reducido el punto no respira.
 
 ### Raíl (`ChapterRail`)
-- Columna de 5 botones alineados a la derecha: texto (sección en Geologica 500 a 13 px + escena en mono 10 px,
-  `--text-nano`) y punto de 7 px. Los botones miden lo que el más ancho: los puntos forman una columna.
-- Activo: punto ámbar relleno, escala 1,4 y halo; texto opaco. Inactivos: texto al 45 % (`--opacity-muted`).
+- Columna de 5 enlaces alineados a la derecha: texto (sección en Geologica 500 a 13 px + escena en mono 10 px,
+  `--text-nano`) y punto de 7 px. Los enlaces miden lo que el más ancho: los puntos forman una columna.
+- Activo: punto ámbar relleno, escala 1,4 y halo; texto opaco. Inactivos: texto al 70 % (`--opacity-muted`, que
+  cumple AA: 8,7:1 la sección y 4,7:1 la escena). Al pasar el puntero o con el foco del teclado, texto opaco.
+- En alto contraste (`forced-colors`) el punto activo se rellena con `Highlight`: no solo es más grande.
 - Nombre accesible = `aria-label` con el texto completo («About · Nebula»), también en escritorio.
-- Por debajo de `--bp-md`: solo puntos, cada botón de 44 × 44 px.
+- Por debajo de md (900 px): solo puntos, cada enlace de 44 × 44 px, a 8 px del borde (el anillo de foco cabe).
 - Solo se repinta cuando cambia el capítulo activo, no con cada píxel de scroll.
 
 ### HUD (`CosmicHud`)

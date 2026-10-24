@@ -1,6 +1,7 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router';
+import type { ReactNode } from 'react';
+import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TopBar } from './TopBar';
@@ -17,13 +18,41 @@ vi.mock('~/content/profile', async (importOriginal) => {
   };
 });
 
+/** Enseña la dirección del router: así se ve si un enlace navegó en vez de saltar. */
+function Location(): ReactNode {
+  const { pathname, hash } = useLocation();
+  return <output>{pathname + hash}</output>;
+}
+
 function renderBar(path = '/'): HTMLElement {
   render(
     <MemoryRouter initialEntries={[path]}>
       <TopBar />
+      <Location />
     </MemoryRouter>,
   );
   return screen.getByRole('banner');
+}
+
+const routerAt = (): string | null => screen.getByRole('status').textContent;
+
+/**
+ * Si algo canceló el clic, mirado al final de su recorrido (después de React). Después lo cancela
+ * para que jsdom no intente abrir otra pestaña.
+ */
+function recordPrevented(): { readonly prevented: boolean[]; stop: () => void } {
+  const prevented: boolean[] = [];
+  const record = (event: Event): void => {
+    prevented.push(event.defaultPrevented);
+    event.preventDefault();
+  };
+  window.addEventListener('click', record);
+  return {
+    prevented,
+    stop: () => {
+      window.removeEventListener('click', record);
+    },
+  };
 }
 
 function addChapter(index: number, id: string, title: string): ReturnType<typeof vi.fn> {
@@ -88,11 +117,19 @@ describe('TopBar', () => {
     const bar = renderBar();
     const scrollIntoView = addChapter(3, 'projects', 'What I carry on my shell');
     await userEvent.click(within(bar).getByRole('link', { name: 'Projects' }));
-    expect(scrollIntoView).toHaveBeenCalled();
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
     expect(document.activeElement).toBe(
       screen.getByRole('heading', { name: 'What I carry on my shell' }),
     );
     expect(window.location.hash).toBe('#projects');
+    // Un salto, no una navegación: el router sigue donde estaba (sin otra entrada en el historial).
+    expect(routerAt()).toBe('/');
+  });
+
+  it('outside the journey (no chapters), a link just navigates', async () => {
+    const bar = renderBar('/projects/chessmate');
+    await userEvent.click(within(bar).getByRole('link', { name: 'Projects' }));
+    expect(routerAt()).toBe('/#projects');
   });
 
   it('the logo goes back to the start: focus on the name and no anchor', async () => {
@@ -100,17 +137,36 @@ describe('TopBar', () => {
     const bar = renderBar();
     const scrollIntoView = addChapter(0, 'hero', 'Víctor Pérez');
     await userEvent.click(within(bar).getByRole('link', { name: 'TORTOISE_CODE' }));
-    expect(scrollIntoView).toHaveBeenCalled();
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Víctor Pérez' }));
     expect(window.location.hash).toBe('');
   });
 
   it('Ctrl+click is left to the browser (new tab), not hijacked', async () => {
     const bar = renderBar();
     const scrollIntoView = addChapter(4, 'contact', 'Touchdown');
+    const { prevented, stop } = recordPrevented();
     const user = userEvent.setup();
     await user.keyboard('{Control>}');
     await user.click(within(bar).getByRole('link', { name: 'Contact' }));
     await user.keyboard('{/Control}');
+    stop();
+    expect(prevented).toEqual([false]);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['Cmd', { metaKey: true }],
+    ['Shift', { shiftKey: true }],
+    ['Alt', { altKey: true }],
+    ['the middle button', { button: 1 }],
+  ])('a click with %s is left to the browser too', (_name, init) => {
+    const bar = renderBar();
+    const scrollIntoView = addChapter(4, 'contact', 'Touchdown');
+    const { prevented, stop } = recordPrevented();
+    fireEvent.click(within(bar).getByRole('link', { name: 'Contact' }), init);
+    stop();
+    expect(prevented).toEqual([false]);
     expect(scrollIntoView).not.toHaveBeenCalled();
   });
 });

@@ -16,6 +16,7 @@
   color: var(--color-star);
   font-family: var(--font-mono);
   font-size: var(--text-label);
+  line-height: var(--leading-label);
   letter-spacing: var(--tracking-label);
   text-decoration: none;
   text-transform: uppercase;

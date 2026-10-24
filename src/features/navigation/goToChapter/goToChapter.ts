@@ -5,7 +5,7 @@ import type { Locale } from '~/content/types';
 import { homePath } from '~/lib/i18n/paths/paths';
 import { jumpToChapter } from '~/lib/scroll/jumpToChapter/jumpToChapter';
 
-import { findChapter } from '../../journey/ChapterSection/ChapterSection';
+import { findChapter } from '../../journey/chapterDom/chapterDom';
 
 /** Ancla de un capítulo en la URL (`#projects`); el inicio no lleva. */
 export function chapterHash(index: ChapterIndex): string {
@@ -31,7 +31,7 @@ export function goToChapter(index: ChapterIndex): boolean {
 }
 
 /** Clic normal: botón principal y sin teclas que pidan otra pestaña o ventana. */
-function isPlainClick(event: MouseEvent): boolean {
+export function isPlainClick(event: MouseEvent): boolean {
   return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
 }
 

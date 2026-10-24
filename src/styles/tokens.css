@@ -19,6 +19,7 @@
   --color-aurora: #62e8cf;
   --color-veil: rgb(4 5 11 / 0.82);
   --color-veil-soft: rgb(4 5 11 / 0.62);
+  --color-veil-chrome: rgb(4 5 11 / 0.7);
   --gradient-panel: radial-gradient(
     130% 100% at 25% 50%,
     var(--color-veil) 0%,
@@ -134,7 +135,7 @@
   /* ── Raíl de capítulos ────────────────────────────────────────── */
   --rail-dot-size: 7px;
   --rail-dot-scale-active: 1.4;
-  --opacity-muted: 0.45;
+  --opacity-muted: 0.7;
 
   /* ── Forma y profundidad ──────────────────────────────────────── */
   --border-width: 1px;

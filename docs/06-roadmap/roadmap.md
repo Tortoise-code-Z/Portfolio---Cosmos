@@ -39,7 +39,8 @@ se abre. Etiqueta `v0.0.1`.
 5. Mapeo de scroll (`mapM`) con tests; raíl, HUD y barra superior conectados.
 6. Modo misión rápida (incluido `/#quick` y su botón en la barra), copiar email, chip de disponibilidad en la barra,
    sugerencia de idioma.
-7. Páginas de proyecto completas (galería con visor accesible) y 404.
+7. Páginas de proyecto completas (galería con visor accesible) y 404. La barra superior entra también en la página
+   de proyecto (en F2.5 solo vive en el viaje).
 8. Imágenes de proyectos migradas desde el repo antiguo y optimizadas.
 
 **Hecho cuando:** el sitio completo se puede usar y desplegar sin escena; Lighthouse Accessibility ≥ 95 y SEO ≥ 95;

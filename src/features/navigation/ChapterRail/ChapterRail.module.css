@@ -1,6 +1,6 @@
 /*
  * Raíl de capítulos (docs/03-diseno/componentes.md → «Raíl»): columna fija a la derecha, centrada en
- * vertical. Cada botón ocupa el área táctil mínima aunque el punto mida 7 px.
+ * vertical. Cada enlace ocupa el área táctil mínima aunque el punto mida 7 px.
  */
 .rail {
   position: fixed;
@@ -17,7 +17,7 @@
   list-style: none;
 }
 
-.button {
+.link {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -26,12 +26,9 @@
   inline-size: 100%;
   min-block-size: var(--target-min);
   min-inline-size: var(--target-min);
-  padding: 0;
-  border: 0;
-  background: none;
   color: var(--color-ink);
   text-align: end;
-  cursor: pointer;
+  text-decoration: none;
 }
 
 .text {
@@ -41,15 +38,16 @@
   transition: opacity var(--dur-fade-base) var(--ease-out);
 }
 
-.button:hover .text,
-.button[aria-current='step'] .text {
+.link:hover .text,
+.link:focus-visible .text,
+.link[aria-current='step'] .text {
   opacity: 1;
 }
 
 .section {
   font-size: var(--text-small);
   font-weight: var(--weight-medium);
-  line-height: var(--leading-nano);
+  line-height: var(--leading-small);
 }
 
 .scene {
@@ -74,20 +72,29 @@
     border-color var(--dur-base) var(--ease-out);
 }
 
-.button[aria-current='step'] .dot {
+.link[aria-current='step'] .dot {
   border-color: var(--color-star);
   background-color: var(--color-star);
   box-shadow: var(--glow-star);
   transform: scale(var(--rail-dot-scale-active));
 }
 
+/* Alto contraste (Windows): el sistema quita fondos y sombras; el activo se rellena con su color. */
+@media (forced-colors: active) {
+  .link[aria-current='step'] .dot {
+    border-color: Highlight;
+    background-color: Highlight;
+  }
+}
+
 /* Por debajo de md (900px): solo los puntos, más pegados al borde. */
 @media (width < 900px) {
   .rail {
-    inset-inline-end: max(var(--space-1), env(safe-area-inset-right));
+    /* 8 px: el anillo de foco sale 5 px del enlace y no puede cortarse con el borde. */
+    inset-inline-end: max(var(--space-2), env(safe-area-inset-right));
   }
 
-  .button {
+  .link {
     justify-content: center;
   }
 

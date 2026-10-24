@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { measureChapters, useChapterLayout } from './useChapterLayout';
 
@@ -27,11 +27,11 @@ function stubFonts(ready: Promise<unknown>): void {
   Object.defineProperty(document, 'fonts', { configurable: true, value: { ready } });
 }
 
-/** Un elemento cuyo inicio en el documento es `top` (la caja se mide respecto a la ventana). */
 function setScrollY(y: number): void {
   Object.defineProperty(window, 'scrollY', { configurable: true, value: y });
 }
 
+/** Un elemento cuyo inicio en el documento es `top` (la caja se mide respecto a la ventana). */
 function box(top: number, height: number): HTMLElement {
   const element = document.createElement('section');
   element.dataset.chapter = '';
@@ -44,6 +44,10 @@ function rootWith(...children: HTMLElement[]): HTMLElement {
   root.append(...children, document.createElement('aside'));
   return root;
 }
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -83,8 +87,9 @@ describe('useChapterLayout', () => {
       { top: 1500, height: 2100 },
     ]);
 
+    expect(disconnect).not.toHaveBeenCalled();
     unmount();
-    expect(disconnect).toHaveBeenCalled();
+    expect(disconnect).toHaveBeenCalledTimes(1);
   });
 
   it('measures again once the fonts have loaded', async () => {

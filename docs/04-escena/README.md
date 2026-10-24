@@ -65,4 +65,4 @@ src/scene/
   config/  tiers.ts · constants.ts · constellationLayout.ts · plateSlots.ts
 ```
 
-`sceneStore` no vive aquí: está en `src/stores/sceneStore.ts` (capa `stores`, ver `docs/05-tecnico/arquitectura.md`).
+`sceneStore` no vive aquí: está en `src/stores/sceneStore/sceneStore.ts` (capa `stores`, ver `docs/05-tecnico/arquitectura.md`).

@@ -95,9 +95,12 @@ export default defineConfig(
   {
     rules: {
       'no-console': ['error', { allow: ['error', 'warn'] }],
-      // Safari quita el rol de lista a un <ul> sin viñetas y VoiceOver deja de contar sus elementos:
+      // Safari quita el rol de lista a un <ul> o <ol> sin viñetas y VoiceOver deja de contar sus elementos:
       // las listas lo declaran (docs/02-experiencia/estados-y-accesibilidad.md → «Accesibilidad»).
-      'jsx-a11y-x/no-redundant-roles': ['error', { nav: ['navigation'], ul: ['list'] }],
+      'jsx-a11y-x/no-redundant-roles': [
+        'error',
+        { nav: ['navigation'], ol: ['list'], ul: ['list'] },
+      ],
     },
   },
 

@@ -37,7 +37,7 @@ describe('Journey', () => {
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Lost in space');
   });
 
-  it('el scroll fija el m de sceneStore, capítulo a capítulo', async () => {
+  it('el scroll fija el m de sceneStore, capítulo a capítulo y con la ventana de cada uno', async () => {
     // jsdom no maqueta: cada capítulo mide 1000 px y empieza donde acaba el anterior.
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
       this: HTMLElement,
@@ -51,5 +51,14 @@ describe('Journey', () => {
     Object.defineProperty(window, 'scrollY', { configurable: true, value: 3000 });
     fireEvent.scroll(window);
     expect(sceneStore.getState().mTarget).toBe(3);
+
+    // Mitad de About: antes de su ventana (CHAPTER_MORPH_START[1] = 0,52), la forma no se mueve…
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 1500 });
+    fireEvent.scroll(window);
+    expect(sceneStore.getState().mTarget).toBe(1);
+    // …y a medio camino entre 0,52 y 1 va por la mitad (smoothstep(0,52; 1; 0,76) = 0,5).
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 1760 });
+    fireEvent.scroll(window);
+    expect(sceneStore.getState().mTarget).toBeCloseTo(1.5);
   });
 });

@@ -14,7 +14,7 @@ scroll (px) ──► m objetivo ──► suavizado ──► m (por frame) ─
 
 Cada capítulo es una `<section>` con altura **mínima** para dar recorrido al scroll (valores del prototipo, a ajustar
 con pruebas reales; tokens `--chapter-h-*` de `docs/03-diseno/design-system.md`). Es mínima y no fija: si el texto no
-cabe, la sección crece y nunca lo recorta (P1); `mapM` mide la altura real.
+cabe, la sección crece y nunca lo recorta (P1); `useChapterLayout` mide la altura real y `mapM` la usa.
 
 | Capítulo | Altura escritorio | Altura móvil | Ventana de morph hacia el siguiente |
 |---|---|---|---|
@@ -63,7 +63,7 @@ arriba del todo, `m` sigue siendo 0 (la barra no adelanta la explosión). Códig
 | Elemento | Comportamiento |
 |---|---|
 | Raíl | Capítulo activo = `round(m)` |
-| HUD · reloj | `t = 0 s` hasta `m` 0,004; después, tiempo cósmico interpolado en escala logarítmica entre capítulos (0 → 1 → 2): del tiempo de Planck (10⁻⁴³ s) a 200 Ma y a 1000 Ma, en segundos hasta 1 año y con 2 cifras significativas; 1000 Ma hasta `m` 2,5; `∞` de 2,5 a 3,5 (la tortuga es el capítulo activo); 13.800 Ma desde 3,5 |
+| HUD · reloj | `t = 0 s` hasta `m` 0,004; después, tiempo cósmico interpolado en escala logarítmica entre capítulos (0 → 1 → 2): del tiempo de Planck (10⁻⁴³ s) a 200 Ma y a 1000 Ma. Se cuenta en segundos (potencias de 10) mientras el valor redondeado no llegue a 2 años (nunca «1 years»); después, años y millones con 2 cifras significativas, y la unidad se elige con el valor ya redondeado (999.999 años ya es «1 million»); 1000 Ma hasta `m` 2,5; `∞` de 2,5 a 3,5 (la tortuga es el capítulo activo); 13.800 Ma desde 3,5 |
 | HUD · escala | La del capítulo activo |
 | Hero · nombre | Ancho tipográfico de 62 a 150 (eje `wdth`) y espaciado al detonar; se va con el scroll |
 | Destello | Pico al principio de la explosión (`m` de 0 a 0,2) |

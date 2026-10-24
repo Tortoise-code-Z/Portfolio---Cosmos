@@ -1,7 +1,7 @@
 import { act, render, screen, within } from '@testing-library/react';
-import { Profiler } from 'react';
+import { Profiler, type ReactNode } from 'react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CHAPTER_INDICES } from '~/content/chapters';
@@ -18,10 +18,17 @@ const EN = [
   'Contact · Earth',
 ];
 
+/** Enseña la dirección del router: así se ve si el enlace navegó en vez de saltar. */
+function Location(): ReactNode {
+  const { pathname, hash } = useLocation();
+  return <output>{pathname + hash}</output>;
+}
+
 function renderRail(path = '/'): HTMLElement {
   render(
     <MemoryRouter initialEntries={[path]}>
       <ChapterRail />
+      <Location />
     </MemoryRouter>,
   );
   return screen.getByRole('navigation');
@@ -37,21 +44,31 @@ afterEach(() => {
 });
 
 describe('ChapterRail', () => {
-  it('is a navigation landmark with an ordered list of five buttons, one per chapter', () => {
+  it('is a navigation landmark with an ordered list of five links, one per chapter', () => {
     const rail = renderRail();
     expect(rail).toHaveAccessibleName('Chapters');
     const list = within(rail).getByRole('list');
     expect(list.tagName).toBe('OL');
+    expect(list).toHaveAttribute('role', 'list');
     expect(
       within(list)
-        .getAllByRole('button')
-        .map((button) => button.getAttribute('aria-label')),
+        .getAllByRole('link')
+        .map((link) => link.getAttribute('aria-label')),
     ).toEqual(EN);
+  });
+
+  it('each link points to its chapter, so it works without JavaScript and in a new tab', () => {
+    const rail = renderRail();
+    expect(
+      within(rail)
+        .getAllByRole('link')
+        .map((link) => link.getAttribute('href')),
+    ).toEqual(['/', '/#about', '/#skills', '/#projects', '/#contact']);
   });
 
   it('shows the section and the scene of each chapter', () => {
     const rail = renderRail();
-    const projects = within(rail).getByRole('button', { name: 'Projects · Cosmic turtle' });
+    const projects = within(rail).getByRole('link', { name: 'Projects · Cosmic turtle' });
     expect(projects).toHaveTextContent('ProjectsCosmic turtle');
   });
 
@@ -59,9 +76,9 @@ describe('ChapterRail', () => {
     const rail = renderRail();
     const current = (): string[] =>
       within(rail)
-        .getAllByRole('button')
-        .filter((button) => button.getAttribute('aria-current') === 'step')
-        .map((button) => button.getAttribute('aria-label') ?? '');
+        .getAllByRole('link')
+        .filter((link) => link.getAttribute('aria-current') === 'step')
+        .map((link) => link.getAttribute('aria-label') ?? '');
     expect(current()).toEqual(['Home · Singularity']);
     act(() => {
       setScrollTarget(2.6);
@@ -103,19 +120,45 @@ describe('ChapterRail', () => {
     skills.scrollIntoView = scrollIntoView;
     document.body.append(skills);
 
-    await userEvent.click(within(rail).getByRole('button', { name: 'Skills · Galaxy' }));
-    expect(scrollIntoView).toHaveBeenCalled();
+    await userEvent.click(within(rail).getByRole('link', { name: 'Skills · Galaxy' }));
+    // El salto es del raíl: el enlace no navega (el router sigue donde estaba, sin otra entrada).
+    expect(screen.getByRole('status').textContent).toBe('/');
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
     expect(document.activeElement).toBe(
       screen.getByRole('heading', { name: 'My galaxy of tools' }),
     );
     expect(window.location.hash).toBe('#skills');
   });
 
+  it('Ctrl+click leaves the link alone (a new tab), without jumping', async () => {
+    const rail = renderRail();
+    const skills = document.createElement('section');
+    skills.dataset.chapter = '2';
+    const scrollIntoView = vi.fn();
+    skills.scrollIntoView = scrollIntoView;
+    document.body.append(skills);
+    // Se mira al final del recorrido (tras React) si alguien canceló el clic; después se cancela
+    // para que jsdom no intente abrir nada.
+    const prevented: boolean[] = [];
+    const record = (event: Event): void => {
+      prevented.push(event.defaultPrevented);
+      event.preventDefault();
+    };
+    window.addEventListener('click', record);
+    const user = userEvent.setup();
+    await user.keyboard('{Control>}');
+    await user.click(within(rail).getByRole('link', { name: 'Skills · Galaxy' }));
+    await user.keyboard('{/Control}');
+    window.removeEventListener('click', record);
+    expect(prevented).toEqual([false]);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
   it('speaks Spanish in /es', () => {
     const rail = renderRail('/es');
     expect(rail).toHaveAccessibleName('Capítulos');
     expect(
-      within(rail).getByRole('button', { name: 'Proyectos · Tortuga cósmica' }),
+      within(rail).getByRole('link', { name: 'Proyectos · Tortuga cósmica' }),
     ).toBeInTheDocument();
   });
 });

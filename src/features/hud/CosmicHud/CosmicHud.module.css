@@ -25,6 +25,7 @@
 .clock {
   color: var(--color-ink);
   font-size: var(--text-small);
+  line-height: var(--leading-small);
 }
 
 .value {

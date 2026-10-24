@@ -28,12 +28,15 @@
 | Chip «Open to work» | Siempre visible en escritorio; enlaza a `#contact` (F2.6) |
 | Projects · Contact | Saltan a su capítulo como el raíl, con el foco en su título (ocultos en móvil: el raíl los sustituye) |
 | CV | Solo si existe el PDF del idioma activo |
-| EN / ES | Cambia de idioma conservando la posición |
+| EN / ES | Cambia de idioma conservando el capítulo activo; el idioma actual no navega |
 | Quick mission | Abre el modo misión rápida (F2.6) |
 
-Todos son enlaces de verdad (`/#projects`, `/es#contact`): sin JavaScript también llevan a su sitio. En el viaje,
-un clic normal hace el salto del raíl; con Ctrl/Cmd/Shift/Alt o con el botón central, el navegador hace lo suyo
-(abrir otra pestaña). La barra tiene altura fija (`--topbar-h`) y no tapa nunca lo que se enfoca.
+El logo, Projects, Contact, CV y EN / ES son enlaces de verdad (`/#projects`, `/es#contact`): sin JavaScript
+también llevan a su sitio. En el viaje, un clic normal hace el salto del raíl; con Ctrl/Cmd/Shift/Alt o con el
+botón central, el navegador hace lo suyo (abrir otra pestaña). Un clic normal en el idioma en el que ya estás no
+hace nada (ni mueve la página ni deja otra entrada en el historial). Quick mission es un botón (abre un diálogo).
+La barra tiene altura fija (`--topbar-h`) y no tapa nunca lo que se enfoca; si falta sitio (texto ampliado en
+móvil), solo cede el logo.
 
 ## Raíl de capítulos (fijo, a la derecha)
 
@@ -42,7 +45,10 @@ un clic normal hace el salto del raíl; con Ctrl/Cmd/Shift/Alt o con el botón c
 - El activo se marca en ámbar y con `aria-current="step"`.
 - Clic o Enter: viaja a ese capítulo (scroll suave; instantáneo con movimiento reducido), lleva el foco a su
   título (como la detonación) y deja su ancla en la URL.
-- Es un `<nav aria-label="Chapters">` con una lista ordenada de botones.
+- Es un `<nav aria-label="Chapters">` con una lista ordenada de **enlaces** (`/#about`…), como los de la barra:
+  sin JavaScript llevan al ancla y con Ctrl/Cmd/Shift/Alt o el botón central abren otra pestaña.
+- Por debajo de md (900 px) va pegado al borde derecho: el texto de los capítulos (también el del hero) le deja
+  su columna.
 
 ## HUD (abajo a la derecha en escritorio, abajo a la izquierda en tableta, oculto en móvil pequeño)
 

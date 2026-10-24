@@ -1,7 +1,7 @@
 import type { Locale } from '~/content/types';
 
 // Formateadores de `Intl` con la etiqueta del idioma tal cual (`en`, `es`). Se guardan
-// por idioma y opciones: crearlos es lo caro y el HUD (F2.5) formateará a menudo.
+// por idioma y opciones: crearlos es lo caro y el HUD formatea a menudo.
 const numberFormats = new Map<string, Intl.NumberFormat>();
 const listFormats = new Map<string, Intl.ListFormat>();
 
