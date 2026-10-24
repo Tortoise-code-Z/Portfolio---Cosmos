@@ -38,16 +38,24 @@ const SCROLL_TARGET = {
 } as const;
 
 /**
+ * La ruta del viaje: `/ES` (y cualquier prefijo con mayúsculas) es 404 aunque case en el cliente. Solo
+ * decide entre la 404 y el viaje, para que el viaje (y lo que mide su `<main>`) se monte y se desmonte
+ * con él: si no, al volver de la 404 al inicio los hooks del scroll ya habrían corrido sin `<main>`.
+ */
+export default function Journey(): ReactNode {
+  const { pathname } = useLocation();
+  if (!isLowerCasePathname(pathname)) return <NotFoundPage />;
+  return <JourneyPage />;
+}
+
+/**
  * El viaje: los cinco capítulos en orden (docs/02-experiencia/README.md), sin escena, con la interfaz
  * fija en el orden del Tab (Skip → barra → contenido → raíl; el HUD es decorativo). Su scroll fija el
  * `m` de `sceneStore`, que leen el raíl, el HUD y el idioma (y, desde F3, la escena).
  */
-export default function Journey(): ReactNode {
-  const { pathname } = useLocation();
+function JourneyPage(): ReactNode {
   const mainRef = useRef<HTMLElement>(null);
   useScrollTarget(mainRef, SCROLL_TARGET);
-
-  if (!isLowerCasePathname(pathname)) return <NotFoundPage />;
 
   return (
     <>

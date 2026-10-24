@@ -149,6 +149,23 @@ test.describe('chapter rail', () => {
     await expect(page).toHaveURL(/\/es#contact$/);
   });
 
+  test('still follows the scroll after the 404 of /ES and its «Back to the start» link', async ({
+    page,
+  }) => {
+    // `/ES` casa la ruta del viaje en el cliente y pinta la 404: al volver, el viaje debe medir su
+    // `<main>` de nuevo (si no, `m` se queda en 0 y el raíl en «Home»).
+    await page.goto('/ES', { waitUntil: 'networkidle' });
+    await page.getByRole('link', { name: 'Back to the start' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(rail(page).locator('[aria-current="step"]')).toHaveAccessibleName(
+      'Home · Singularity',
+    );
+    await scrollToChapter(page, 'skills');
+    await expect(rail(page).locator('[aria-current="step"]')).toHaveAccessibleName(
+      'Skills · Galaxy',
+    );
+  });
+
   test('desktop shows section and scene; 390 px keeps only the dots, 44 px each', async ({
     page,
   }) => {
