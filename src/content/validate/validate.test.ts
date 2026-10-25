@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import type { ResponsiveImage } from '../types';
+import type { CoverAsset, ImageAsset, ResponsiveImage } from '../types';
 
 import {
   findEmailProblems,
@@ -12,6 +12,7 @@ import {
   findImageFileProblems,
   findImageProblems,
   findPositiveIntegerProblems,
+  findProjectMediaProblems,
   findProjectOrderProblems,
   findTextProblems,
   findUiProblems,
@@ -204,6 +205,17 @@ describe('findImageProblems', () => {
       'x.sources.avif: anchos sin orden creciente o repetidos',
     ],
     [
+      'anchos repetidos',
+      {
+        ...IMAGE,
+        sources: {
+          ...IMAGE.sources,
+          webp: '/a-640.webp 640w, /a-640.webp 640w, /a-1920.webp 1920w',
+        },
+      },
+      'x.sources.webp: anchos sin orden creciente o repetidos',
+    ],
+    [
       'variante mayor que no mide el ancho',
       { ...IMAGE, sources: { ...IMAGE.sources, avif: '/a-640.avif 640w, /a-1280.avif 1280w' } },
       'x.sources.avif: la variante mayor (1280w) no mide el ancho de la imagen',
@@ -216,6 +228,66 @@ describe('findImageProblems', () => {
   ])('detecta: %s', (_case, image, problem) => {
     // Un fallo puede arrastrar otro (src vacío tampoco es la WebP mayor): basta con que salga el suyo.
     expect(findImageProblems({ x: image })).toContainEqual(expect.stringContaining(problem));
+  });
+});
+
+const HOME: ImageAsset = { ...IMAGE, alt: { en: 'Home', es: 'Inicio' } };
+const NEWS: ImageAsset = {
+  ...IMAGE,
+  src: '/b-1920.webp',
+  sources: {
+    avif: '/b-640.avif 640w, /b-1280.avif 1280w, /b-1920.avif 1920w',
+    webp: '/b-640.webp 640w, /b-1280.webp 1280w, /b-1920.webp 1920w',
+  },
+  alt: { en: 'News', es: 'Noticias' },
+};
+const COVER: CoverAsset = {
+  ...HOME,
+  alt: { en: 'Home page', es: 'Página de inicio' },
+  share: { src: '/a.jpeg', width: 1200, height: 569 },
+};
+
+describe('findProjectMediaProblems', () => {
+  it('acepta portada = 1.ª captura con su imagen de 1200 px, y un proyecto sin imágenes', () => {
+    expect(
+      findProjectMediaProblems(
+        [
+          { slug: 'a', cover: COVER, gallery: [HOME, NEWS] },
+          { slug: 'b', cover: null, gallery: [] },
+        ],
+        1200,
+      ),
+    ).toEqual([]);
+  });
+
+  it.each([
+    [
+      'galería sin portada',
+      { slug: 'a', cover: null, gallery: [HOME, NEWS] },
+      ['a.cover: falta (el proyecto tiene galería)'],
+    ],
+    [
+      'portada que no es la 1.ª captura',
+      { slug: 'a', cover: COVER, gallery: [NEWS, HOME] },
+      ['a.cover: no es la primera captura de la galería'],
+    ],
+    [
+      'portada sin galería',
+      { slug: 'a', cover: COVER, gallery: [] },
+      ['a.cover: no es la primera captura de la galería'],
+    ],
+    [
+      'imagen para compartir de otro ancho',
+      { slug: 'a', cover: { ...COVER, share: { ...COVER.share, width: 640 } }, gallery: [HOME] },
+      ['a.cover.share.width: mide 640, no 1200'],
+    ],
+    [
+      'captura repetida aunque cambie su texto',
+      { slug: 'a', cover: COVER, gallery: [HOME, NEWS, { ...NEWS, alt: HOME.alt }] },
+      ['a.gallery[2]: captura repetida («/b-1920.webp»)'],
+    ],
+  ])('detecta: %s', (_case, project, problems) => {
+    expect(findProjectMediaProblems([project], 1200)).toEqual(problems);
   });
 });
 

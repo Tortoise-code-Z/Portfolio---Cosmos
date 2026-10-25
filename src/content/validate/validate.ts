@@ -189,6 +189,38 @@ export function findImageProblems(images: Readonly<Record<string, ResponsiveImag
   });
 }
 
+/**
+ * Portada y galería de cada proyecto (regla 5), por `slug`: con galería, la portada es obligatoria y es su
+ * primera captura (misma `src`); su imagen para compartir mide `shareWidth`; y ninguna captura se repite en
+ * la galería (la `src` es la `key` de cada miniatura y de cada imagen del visor).
+ */
+export function findProjectMediaProblems(
+  projects: readonly Pick<Project, 'slug' | 'cover' | 'gallery'>[],
+  shareWidth: number,
+): string[] {
+  return projects.flatMap(({ slug, cover, gallery }) => {
+    const problems: string[] = [];
+    if (cover === null) {
+      if (gallery.length > 0) problems.push(`${slug}.cover: falta (el proyecto tiene galería)`);
+    } else {
+      if (cover.src !== gallery[0]?.src) {
+        problems.push(`${slug}.cover: no es la primera captura de la galería`);
+      }
+      if (cover.share.width !== shareWidth) {
+        problems.push(
+          `${slug}.cover.share.width: mide ${String(cover.share.width)}, no ${String(shareWidth)}`,
+        );
+      }
+    }
+    gallery.forEach((image, index) => {
+      if (gallery.findIndex((other) => other.src === image.src) !== index) {
+        problems.push(`${slug}.gallery[${String(index)}]: captura repetida («${image.src}»)`);
+      }
+    });
+    return problems;
+  });
+}
+
 /** Archivos sin variantes (la imagen para compartir): `src` no vacío y medidas enteras positivas. */
 export function findImageFileProblems(files: Readonly<Record<string, ImageFile>>): string[] {
   return Object.entries(files).flatMap(([path, file]) => sizeProblems(file, path));

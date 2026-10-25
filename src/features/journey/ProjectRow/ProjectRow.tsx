@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import type { Project } from '~/content/types';
+import type { ProjectEntry } from '~/content/types';
 import { localize } from '~/lib/i18n/localize/localize';
 import { projectPath } from '~/lib/i18n/paths/paths';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
@@ -11,7 +11,7 @@ import shared from '../shared.module.css';
 import styles from './ProjectRow.module.css';
 
 interface ProjectRowProps {
-  readonly project: Project;
+  readonly project: ProjectEntry;
 }
 
 /**

@@ -115,7 +115,9 @@ describe('ProjectPage', () => {
   it('las portadas reales: Chessmate y AstroHub con su captura de Inicio; Cosmos, sin portada', async () => {
     renderAt('/projects/chessmate', bySlug('chessmate'));
     const chessmate = await screen.findByRole('img', { name: 'Chessmate home page' });
-    expect(chessmate).toHaveAttribute('src', bySlug('chessmate').gallery[0]?.src);
+    const [home] = bySlug('chessmate').gallery;
+    expect(home).toBeDefined();
+    expect(chessmate).toHaveAttribute('src', home?.src);
     cleanup();
     renderAt('/es/projects/astrohub', bySlug('astrohub'));
     expect(

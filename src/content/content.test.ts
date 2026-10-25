@@ -1,16 +1,24 @@
 // Invariantes del contenido real (docs/01-contenido/modelo-de-datos.md → «Reglas que comprueban los
-// tests»). La regla 6 (cada skill tiene posición en la escena) llega en F4. Cada comprobación está
-// probada con casos rotos en `validate.test.ts`.
+// tests»). La regla 6 (cada skill tiene posición en la escena) llega en F4. Las funciones `find…` están
+// probadas con casos rotos en `validate.test.ts`; lo que se comprueba aquí en línea (capítulos, idiomas,
+// galerías de las fichas, qué proyectos tienen imágenes) es una lista escrita a mano a propósito.
 
 import { describe, expect, it } from 'vitest';
 
 import { CHAPTER_ANCHORS, CHAPTER_INDICES, CHAPTER_MORPH_START } from './chapters';
+import { SHARE_IMAGE_WIDTH } from './imageWidths';
 import { profile } from './profile';
 import { projects } from './projects';
 import { projectEntries } from './projects/entries';
 import { projectMedia } from './projects/media';
 import { skillGroups } from './skills';
-import { DEFAULT_LOCALE, LOCALES, type ImageFile, type ResponsiveImage } from './types';
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  type ImageFile,
+  type Localized,
+  type ResponsiveImage,
+} from './types';
 import { uiTexts } from './texts';
 import {
   findEmailProblems,
@@ -19,11 +27,65 @@ import {
   findImageFileProblems,
   findImageProblems,
   findPositiveIntegerProblems,
+  findProjectMediaProblems,
   findProjectOrderProblems,
   findTextProblems,
   findUiProblems,
   findUrlProblems,
 } from './validate/validate';
+
+/** Una captura de la galería como la escribe su ficha: archivo (sin extensión), alt EN y alt ES. */
+type ExpectedImage = readonly [file: string, en: string, es: string];
+
+/**
+ * Las imágenes de cada proyecto tal como las fija su ficha (docs/01-contenido/proyectos/<slug>.md →
+ * «Imágenes»): el alt de la portada y la galería en orden. Copiadas a mano a propósito: si `media.ts` cambia
+ * un texto, el orden o repite una captura, falla. Un proyecto con imágenes nuevo se añade aquí.
+ */
+const EXPECTED_MEDIA: Readonly<
+  Record<string, { readonly cover: Localized; readonly gallery: readonly ExpectedImage[] }>
+> = {
+  chessmate: {
+    cover: { en: 'Chessmate home page', es: 'Página de inicio de Chessmate' },
+    gallery: [
+      ['01-home', 'Home', 'Inicio'],
+      ['02-courses', 'Courses', 'Cursos'],
+      ['03-course-detail', 'Course detail', 'Detalle del curso'],
+      ['04-dashboard', 'Dashboard', 'Dashboard'],
+      ['05-classroom', 'Classroom', 'Classroom'],
+      [
+        '06-purchased-course-classroom',
+        'Classroom for a purchased course',
+        'Classroom de un curso comprado',
+      ],
+      ['07-login', 'Login', 'Inicio de sesión'],
+      ['08-sign-up', 'Sign-up', 'Registro'],
+      ['09-contact', 'Contact', 'Contacto'],
+    ],
+  },
+  astrohub: {
+    cover: { en: 'AstroHub home page', es: 'Página de inicio de AstroHub' },
+    gallery: [
+      ['01-home', 'Home', 'Inicio'],
+      ['02-news', 'News', 'Noticias'],
+      ['03-appointments', 'Appointments', 'Citas'],
+      ['04-login', 'Login', 'Inicio de sesión'],
+      ['05-sign-up', 'Sign-up', 'Registro'],
+      ['06-profile', 'Profile', 'Perfil'],
+      ['07-admin-users', 'Admin · users', 'Administración de usuarios'],
+      ['08-admin-news', 'Admin · news', 'Administración de noticias'],
+      ['09-admin-appointments', 'Admin · appointments', 'Administración de citas'],
+      ['10-admin-edit-user', 'Editing a user', 'Edición de usuarios'],
+      ['11-admin-edit-news', 'Editing a news item', 'Edición de noticias'],
+      ['12-admin-edit-appointment', 'Editing an appointment', 'Edición de citas'],
+    ],
+  },
+};
+
+/** Archivo de una captura, de la `src` que da el sustituto de Vitest (`/assets/01-home-1920.webp`). */
+function fileOf(src: string): string {
+  return /^\/assets\/(.+)-\d+\.webp$/.exec(src)?.[1] ?? src;
+}
 
 describe('contenido', () => {
   it('cinco capítulos en orden; ancla en todos menos el inicio, y todas distintas', () => {
@@ -148,18 +210,24 @@ describe('contenido', () => {
     expect(findImageFileProblems(shares)).toEqual([]);
   });
 
-  it('la portada es la primera captura de la galería y su imagen para compartir mide 1200 px', () => {
+  it('con galería hay portada, es su 1.ª captura, comparte a 1200 px y nada se repite (regla 5)', () => {
+    expect(findProjectMediaProblems(projects, SHARE_IMAGE_WIDTH)).toEqual([]);
+  });
+
+  it('portada y galería de cada proyecto como las fija su ficha: textos, archivos y orden', () => {
     for (const project of projects) {
-      if (project.cover === null) continue;
-      expect(project.cover.src).toBe(project.gallery[0]?.src);
-      expect(project.cover.share.width).toBe(1200);
+      const expected = EXPECTED_MEDIA[project.slug];
+      expect(project.cover?.alt ?? null, project.slug).toEqual(expected?.cover ?? null);
+      expect(
+        project.gallery.map(({ src, alt }) => [fileOf(src), alt.en, alt.es]),
+        project.slug,
+      ).toEqual(expected?.gallery ?? []);
     }
   });
 
-  it('las imágenes son de proyectos que existen y se unen a sus textos en el mismo orden', () => {
+  it('las imágenes son de proyectos que existen', () => {
     const slugs = projectEntries.map((entry) => entry.slug);
     expect(Object.keys(projectMedia).filter((slug) => !slugs.includes(slug))).toEqual([]);
-    expect(projects.map((project) => project.slug)).toEqual(slugs);
     expect(projects.filter((project) => project.cover !== null).map(({ slug }) => slug)).toEqual([
       'chessmate',
       'astrohub',

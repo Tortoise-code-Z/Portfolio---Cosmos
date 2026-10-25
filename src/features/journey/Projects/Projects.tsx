@@ -2,7 +2,7 @@ import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { NavigationType, useLocation, useNavigationType } from 'react-router';
 
 import { CHAPTER_ANCHORS } from '~/content/chapters';
-import { projects } from '~/content/projects';
+import { projectEntries } from '~/content/projects/entries';
 import { cx } from '~/lib/css/cx/cx';
 import { useT } from '~/lib/i18n/useT/useT';
 import { takeVisitedProject } from '~/stores/uiStore/uiStore';
@@ -49,7 +49,7 @@ function useFocusVisitedRow(list: RefObject<HTMLUListElement | null>): void {
  */
 export function Projects(): ReactNode {
   const t = useT();
-  const ordered = [...projects].sort((a, b) => a.order - b.order);
+  const ordered = [...projectEntries].sort((a, b) => a.order - b.order);
   const list = useRef<HTMLUListElement>(null);
   useFocusVisitedRow(list);
 
