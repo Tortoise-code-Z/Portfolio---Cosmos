@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { loadEnv } from 'vite';
 
+import { SHARE_IMAGE_WIDTH } from '../../src/content/imageWidths.ts';
 import { profile } from '../../src/content/profile.ts';
 import { projectEntries } from '../../src/content/projects/entries.ts';
 import { uiTexts } from '../../src/content/texts/index.ts';
@@ -137,6 +138,12 @@ test.describe('páginas indexables', () => {
 });
 
 test.describe('imagen para compartir de las fichas', () => {
+  test('la lista de proyectos con portada solo nombra proyectos que existen', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Solo lee el contenido: basta una vez');
+    const slugs = projectEntries.map(({ slug }) => slug);
+    expect([...WITH_COVER].filter((slug) => !slugs.includes(slug))).toEqual([]);
+  });
+
   for (const sitePage of PAGES) {
     if (sitePage.kind !== 'project') continue;
     for (const locale of ['en', 'es'] as const) {
@@ -186,7 +193,7 @@ test.describe('imagen para compartir de las fichas', () => {
           ...(await content('meta[property="og:image:width"]')),
           ...(await content('meta[property="og:image:height"]')),
         ]).toEqual(size);
-        expect(size[0]).toBe('1200');
+        expect(size[0]).toBe(String(SHARE_IMAGE_WIDTH));
       });
     }
   }

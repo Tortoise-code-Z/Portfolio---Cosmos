@@ -96,4 +96,4 @@ Vacío en el contenido (`[]`) hasta F6. Candidatos (se confirman con medidas rea
 `cover: null` y `gallery: []` en el contenido hasta tenerlas.
 
 Capturas de cada capítulo (EN) en escritorio y móvil, generadas al final de la fase de pulido.
-Cover provisional: la imagen para compartir del sitio (`assets.md`).
+Sin entrada en `media.ts` hasta F6; su `og:image` será la del sitio (`pagina-proyecto.md` → SEO).

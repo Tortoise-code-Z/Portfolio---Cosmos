@@ -9,6 +9,7 @@ import { setVisitedProject } from '~/stores/uiStore/uiStore';
 import { ArrowText } from '~/ui/ArrowText/ArrowText';
 import { Picture } from '~/ui/Picture/Picture';
 
+import { coverSizes } from '../imageSizes/imageSizes';
 import { neighbours } from '../neighbours/neighbours';
 import { ProjectGallery } from '../ProjectGallery/ProjectGallery';
 import { PROJECT_TITLE_ID, ProjectHeader } from '../ProjectHeader/ProjectHeader';
@@ -19,8 +20,8 @@ import { hasStack, ProjectStack } from '../ProjectStack/ProjectStack';
 import { ProjectTryIt } from '../ProjectTryIt/ProjectTryIt';
 import styles from './ProjectPage.module.css';
 
-/** Ancho de la portada (atributo `sizes`): la columna de lectura (720 px) o, por debajo, toda la ventana. */
-const COVER_SIZES = '(min-width: 760px) 720px, 100vw';
+/** Ancho de la portada (atributo `sizes`), de las medidas de la página (`imageSizes`). */
+const COVER_SIZES = coverSizes();
 
 interface ProjectPageProps {
   readonly project: Project;

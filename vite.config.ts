@@ -6,6 +6,7 @@ import { reactRouter } from '@react-router/dev/vite';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { imagetools, type OutputFormat } from 'vite-imagetools';
 
+import { PROJECT_IMAGE_WIDTHS, SHARE_IMAGE_WIDTH } from './src/content/imageWidths.ts';
 import { parseSiteUrl } from './src/lib/env/siteUrl/siteUrl.ts';
 
 /**
@@ -54,11 +55,13 @@ function previewDirectoryIndex(): Plugin {
  *   (la forma de `ResponsiveImage` en `content/types`): `src` y las medidas son las de la WebP mayor (el
  *   respaldo del `<img>`) y `sources`, el `srcset` de cada formato.
  * - `?share` → JPEG de 1200 px para `og:image` (no todas las redes leen WebP) como `{ src, width, height }`.
- * Su tipo está en `src/env.d.ts` y Vitest los sustituye por datos de las medidas reales (vitest.config.ts).
+ * Los anchos salen de `src/content/imageWidths.ts`, que comparten el sustituto de Vitest, las reglas del
+ * contenido y los e2e. Su tipo está en `src/env.d.ts` y Vitest los sustituye por datos de las medidas
+ * reales (vitest.config.ts).
  */
 const IMAGE_PRESETS: Readonly<Record<string, Record<string, string>>> = {
-  project: { w: '640;1280;1920', format: 'avif;webp', as: 'project' },
-  share: { w: '1200', format: 'jpeg', quality: '80', as: 'share' },
+  project: { w: PROJECT_IMAGE_WIDTHS.join(';'), format: 'avif;webp', as: 'project' },
+  share: { w: String(SHARE_IMAGE_WIDTH), format: 'jpeg', quality: '80', as: 'share' },
 };
 
 type ProcessedImage = Parameters<ReturnType<OutputFormat>>[0][number];

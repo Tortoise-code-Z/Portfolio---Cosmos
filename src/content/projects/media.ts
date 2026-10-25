@@ -68,19 +68,13 @@ export const projectMedia: Readonly<Partial<Record<string, ProjectMedia>>> = {
       { ...astrohubSignUp, alt: { en: 'Sign-up', es: 'Registro' } },
       { ...astrohubProfile, alt: { en: 'Profile', es: 'Perfil' } },
       { ...astrohubAdminUsers, alt: { en: 'Admin · users', es: 'Administración de usuarios' } },
-      {
-        ...astrohubAdminNews,
-        alt: { en: 'Admin · astrohubNews', es: 'Administración de noticias' },
-      },
+      { ...astrohubAdminNews, alt: { en: 'Admin · news', es: 'Administración de noticias' } },
       {
         ...astrohubAdminAppointments,
-        alt: { en: 'Admin · astrohubAppointments', es: 'Administración de citas' },
+        alt: { en: 'Admin · appointments', es: 'Administración de citas' },
       },
       { ...astrohubAdminEditUser, alt: { en: 'Editing a user', es: 'Edición de usuarios' } },
-      {
-        ...astrohubAdminEditNews,
-        alt: { en: 'Editing a astrohubNews item', es: 'Edición de noticias' },
-      },
+      { ...astrohubAdminEditNews, alt: { en: 'Editing a news item', es: 'Edición de noticias' } },
       {
         ...astrohubAdminEditAppointment,
         alt: { en: 'Editing an appointment', es: 'Edición de citas' },

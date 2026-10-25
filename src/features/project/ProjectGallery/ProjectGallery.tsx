@@ -6,13 +6,11 @@ import { Lightbox, type LightboxImage } from '~/ui/Lightbox/Lightbox';
 import { Picture } from '~/ui/Picture/Picture';
 import { VisuallyHidden } from '~/ui/VisuallyHidden/VisuallyHidden';
 
+import { thumbSizes } from '../imageSizes/imageSizes';
 import styles from './ProjectGallery.module.css';
 
-/**
- * Ancho de cada miniatura (atributo `sizes`): tres columnas en la columna de lectura (720 px) desde 760 px
- * de ventana, dos desde 500 px y una por debajo (rejilla de `--project-col-min`). Aproximado por arriba.
- */
-const THUMB_SIZES = '(min-width: 760px) 240px, (min-width: 500px) 50vw, 100vw';
+/** Ancho de cada miniatura (atributo `sizes`), de las medidas de la página (`imageSizes`). */
+const THUMB_SIZES = thumbSizes();
 
 interface ProjectGalleryProps {
   readonly images: readonly ImageAsset[];

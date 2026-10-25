@@ -5,6 +5,8 @@ import { gzipSync } from 'node:zlib';
 
 import { expect, test } from '@playwright/test';
 
+import { PROJECT_IMAGE_WIDTHS } from '../../src/content/imageWidths.ts';
+
 /**
  * Presupuestos que se pueden medir sobre el build antes de Lighthouse CI (F6).
  * Cifras en docs/05-tecnico/calidad.md («Presupuestos»).
@@ -110,8 +112,8 @@ test.describe('build budgets', () => {
         ),
       ),
     );
-    // Chessmate y AstroHub: 21 capturas × 6 variantes + 2 JPEG para compartir.
-    expect(images.size).toBe(128);
+    // Chessmate y AstroHub: 21 capturas × 2 formatos × 3 anchos + 2 JPEG para compartir (128).
+    expect(images.size).toBe(21 * 2 * PROJECT_IMAGE_WIDTHS.length + 2);
     const over = [...images]
       .map((image) => ({ image, bytes: statSync(join(CLIENT_DIR, image)).size }))
       .filter(({ bytes }) => bytes > IMAGE_BUDGET_BYTES);

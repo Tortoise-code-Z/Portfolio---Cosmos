@@ -97,7 +97,7 @@ content  ◄── lib ◄── stores ◄── ui ◄── features ◄─�
 
 | Capa | Puede importar | No puede importar |
 |---|---|---|
-| `content` | nada (solo sus tipos) | React, Three, cualquier otra capa |
+| `content` | nada salvo sus tipos y, en `projects/media.ts`, las capturas de `src/assets/` (ADR-023) | React, Three, cualquier otra capa |
 | `lib` | `content/types` (tipos y constantes de idioma) y `content/texts` (para `useT`) (ADR-017) | Los datos de `content` (perfil, proyectos, skills: le llegan por parámetro), `stores`, `ui`, `features`, `scene`, `routes`, Three |
 | `stores` | `lib`, `content` | `features`, `scene` |
 | `ui` | `lib` | `features`, `scene`, `content` (recibe datos por props) |
@@ -126,7 +126,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 
 - El idioma se deriva de la ruta (no del navegador); `useLocale()` lo lee del **prefijo** (lo único que sirve
   también en la ruta `*`).
-- Una sola lista de páginas, `sitePages(projects)` (`lib/seo/pages/pages.ts`): de ella salen el `prerender` y el
+- Una sola lista de páginas, `sitePages(projectEntries)` (`lib/seo/pages/pages.ts`): de ella salen el `prerender` y el
   sitemap; el `hreflang` usa las mismas funciones de ruta y `consistency.test.ts` comprueba que es el mismo
   conjunto. Se pre-renderizan 2 idiomas × (1 + nº de proyectos) páginas y la 404 de cada idioma (`/404` y
   `/es/404`, servidas por la ruta `*`).

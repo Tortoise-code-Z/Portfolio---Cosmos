@@ -360,13 +360,14 @@
 - Decisión:
   - Dos presets en `vite.config.ts`: `?project` da AVIF y WebP a 640, 1280 y 1920 px con la forma
     `ResponsiveImage` (`{ src, width, height, sources }`), y `?share` da un JPEG de 1200 px (`ImageFile`) para
-    `og:image`. Se pintan con `ui/Picture` (`<picture>` con el `sizes` de cada sitio). Vitest los sustituye por
-    la misma forma con las medidas reales del PNG.
+    `og:image`. Los anchos viven en `src/content/imageWidths.ts`, que leen las dos configs y los tests. Se
+    pintan con `ui/Picture` (`<picture>` con el `sizes` de cada sitio). Vitest los sustituye por la misma forma
+    con las medidas reales del PNG; la regla 5 se comprueba también sobre las páginas del build.
   - Los textos de cada proyecto (`ProjectEntry`) van aparte de sus imágenes (`ProjectMedia`, `projects/media.ts`).
-    `projectEntries` (sin imágenes) alimenta la config y los e2e; `projects` (los dos unidos) es lo que pinta el
-    sitio.
-  - La portada es la captura de Inicio, la misma que abre la galería.
-  - Víctor elige guardar los PNG originales en git tal cual (~13,4 MB), `og:image` ya en F2.8 y un presupuesto
+    `projectEntries` (sin imágenes) alimenta la config, los e2e, el viaje y la misión rápida; `projects` (los
+    dos unidos) es lo que pinta la ficha.
+  - La portada es la captura de Inicio, la misma que abre la galería. Un proyecto con galería tiene portada.
+  - Víctor elige guardar los PNG originales en git tal cual (~13,2 MB), `og:image` ya en F2.8 y un presupuesto
     de 200 KB por variante.
 - Alternativas descartadas: generar las variantes a mano con un script y guardarlas en `public/` (más archivos
   en git y medidas escritas a mano); un cargador de Node para los e2e (frágil, y distinto en Windows); dejar las
@@ -375,7 +376,13 @@
 - Consecuencias:
   - El primer build genera 128 variantes (~75 s). Después salen de la caché de imagetools, que el CI guarda
     (`actions/cache@v6`) y Vercel no.
-  - Un proyecto nuevo con imágenes añade sus imports y textos alternativos a `media.ts`. Su slug también va a
-    `WITH_COVER` de `seo.spec.ts` (que comprueba que la lista coincide con la página).
+  - En `npm run dev`, las imágenes se sirven en `/@imagetools/<hash>`, sin extensión: `assetUrl` acepta esa
+    forma además de la del build (sin ella, la ficha caía con «Application Error»). Los e2e prueban el build y
+    Vitest usa el sustituto, así que tras tocar la config de Vite o estos imports se abre la ficha en dev.
+  - Un proyecto nuevo con imágenes añade sus imports y textos alternativos a `media.ts` y actualiza las listas
+    y cuentas escritas a mano: `EXPECTED_MEDIA` y la lista de proyectos con portada de `content.test.ts`, el
+    número de capturas de `budgets.spec.ts` y de `project-images.spec.ts`, y `WITH_COVER` de `seo.spec.ts`
+    (que comprueba que la lista coincide con la página).
   - Cosmos sigue sin imágenes hasta F6.
-- Detalle: `docs/01-contenido/assets.md` y `modelo-de-datos.md`; `docs/05-tecnico/arquitectura.md`.
+- Detalle: `docs/01-contenido/assets.md` y `modelo-de-datos.md`; `docs/05-tecnico/arquitectura.md` («Capas y
+  reglas de dependencia» y «Rutas e idiomas»).

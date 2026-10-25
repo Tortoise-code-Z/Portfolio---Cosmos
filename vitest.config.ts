@@ -6,8 +6,7 @@ import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
-const PROJECT_WIDTHS = [640, 1280, 1920];
-const SHARE_WIDTH = 1200;
+import { PROJECT_IMAGE_WIDTHS, SHARE_IMAGE_WIDTH } from './src/content/imageWidths.ts';
 
 /** Ancho y alto de un PNG, de su cabecera (IHDR). Las capturas son PNG (docs/01-contenido/assets.md). */
 async function pngSize(file: string): Promise<{ width: number; height: number }> {
@@ -36,10 +35,12 @@ function projectImagesStub(): Plugin {
         return { width: w, height: Math.round((height * w) / width) };
       };
       if (preset === 'share') {
-        const size = scaled(SHARE_WIDTH);
+        const size = scaled(SHARE_IMAGE_WIDTH);
         return `export default ${JSON.stringify({ src: `/assets/${name}.jpeg`, ...size })};`;
       }
-      const widths = PROJECT_WIDTHS.filter((w) => w <= width);
+      // Como imagetools sin `allowUpscale`: un ancho mayor que el archivo se queda en el del archivo, sin
+      // repetir (con un PNG de 1500 px: 640, 1280 y 1500).
+      const widths = [...new Set(PROJECT_IMAGE_WIDTHS.map((w) => Math.min(w, width)))];
       const srcset = (format: string): string =>
         widths.map((w) => `/assets/${name}-${String(w)}.${format} ${String(w)}w`).join(', ');
       const largest = scaled(widths.at(-1) ?? width);

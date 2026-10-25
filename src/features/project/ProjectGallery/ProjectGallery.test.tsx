@@ -80,7 +80,7 @@ describe('ProjectGallery', () => {
     for (const source of sources) {
       expect(source).toHaveAttribute(
         'sizes',
-        '(min-width: 760px) 240px, (min-width: 500px) 50vw, 100vw',
+        '(min-width: 732px) 232px, (min-width: 484px) 50vw, 100vw',
       );
     }
   });

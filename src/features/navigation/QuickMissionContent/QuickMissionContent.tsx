@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 
 import { profile } from '~/content/profile';
-import { projects } from '~/content/projects';
+import { projectEntries } from '~/content/projects/entries';
 import { skillGroups } from '~/content/skills';
-import type { Project } from '~/content/types';
+import type { ProjectEntry } from '~/content/types';
 import { workModesText } from '~/lib/i18n/availability/availability';
 import { formatNumber } from '~/lib/i18n/format/format';
 import { localize } from '~/lib/i18n/localize/localize';
@@ -30,7 +30,7 @@ export function QuickMissionContent(): ReactNode {
   const locale = useLocale();
   const { availability, contact, location } = profile;
   const cv = profile.cv[locale];
-  const ordered = [...projects].sort((a, b) => a.order - b.order);
+  const ordered = [...projectEntries].sort((a, b) => a.order - b.order);
 
   return (
     <div className={styles.grid}>
@@ -132,7 +132,7 @@ export function QuickMissionContent(): ReactNode {
 }
 
 /** Un proyecto en una ficha corta: nombre y año, metadatos, resumen y enlaces. */
-function QuickProject({ project }: { readonly project: Project }): ReactNode {
+function QuickProject({ project }: { readonly project: ProjectEntry }): ReactNode {
   const t = useT();
   const locale = useLocale();
   const meta = [

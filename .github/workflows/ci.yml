@@ -45,10 +45,13 @@ jobs:
           cache: npm
       - run: npm ci
       # Variantes de las capturas (vite-imagetools): sin la caché, el build tarda alrededor de un minuto más.
+      # Si la clave cambia, se parte de la última caché: imagetools guarda cada variante por imagen y
+      # directivas, así que no sirve una vieja; solo se generan las que falten.
       - uses: actions/cache@v6
         with:
           path: node_modules/.cache/imagetools
-          key: imagetools-${{ hashFiles('src/assets/**', 'vite.config.ts', 'package-lock.json') }}
+          key: imagetools-${{ hashFiles('src/assets/**', 'src/content/imageWidths.ts', 'vite.config.ts', 'package-lock.json') }}
+          restore-keys: imagetools-
       - run: npm run build
       - uses: actions/upload-artifact@v7
         with:
