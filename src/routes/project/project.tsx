@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { useLocation, useParams } from 'react-router';
 
 import { profile } from '~/content/profile';
@@ -40,6 +40,9 @@ export function meta({ location, params }: Route.MetaArgs): Route.MetaDescriptor
  * la ruta lleva mayúsculas. Lleva la interfaz fija del viaje salvo el raíl y el HUD (no hay capítulos):
  * Skip → barra → contenido → sugerencia de idioma, y el modo misión rápida. `EN / ES` y la sugerencia
  * llevan a esta misma página en el otro idioma (docs/02-experiencia/pagina-proyecto.md → «Layout»).
+ *
+ * Ir de un proyecto a otro es la misma ruta con otro `:slug`: la clave rehace la página entera, así que
+ * nada de la ficha anterior pasa a la nueva (el modo misión rápida abierto, un «Copied», el visor).
  */
 export default function ProjectRoute(): ReactNode {
   const { pathname } = useLocation();
@@ -52,12 +55,12 @@ export default function ProjectRoute(): ReactNode {
   const pathFor = (locale: Locale): string => projectPath(locale, slug);
 
   return (
-    <>
+    <Fragment key={slug}>
       <SkipLink targetId={PROJECT_TITLE_ID} />
       <TopBar pathFor={pathFor} />
       <ProjectPage project={project} />
       <QuickMissionDialog />
       <LanguageNotice pathFor={pathFor} />
-    </>
+    </Fragment>
   );
 }

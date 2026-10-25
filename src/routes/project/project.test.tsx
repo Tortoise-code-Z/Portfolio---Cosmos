@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react';
-import { createRoutesStub } from 'react-router';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { createBrowserRouter, createRoutesStub, RouterProvider } from 'react-router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useUiStore } from '~/stores/uiStore/uiStore';
+import { openQuickMission, useUiStore } from '~/stores/uiStore/uiStore';
 
 import ProjectRoute from './project';
 
@@ -12,8 +13,21 @@ const Stub = createRoutesStub([
   { path: '/es/projects/:slug', Component: ProjectRoute },
 ]);
 
+/** jsdom no implementa `showModal` ni `close` del `<dialog>` (como en QuickMissionDialog.test.tsx). */
+beforeEach(() => {
+  HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+    this.setAttribute('open', '');
+  });
+  HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+    if (!this.hasAttribute('open')) return;
+    this.removeAttribute('open');
+    this.dispatchEvent(new Event('close'));
+  });
+});
+
 afterEach(() => {
   vi.restoreAllMocks();
+  window.history.replaceState(null, '', '/');
   window.localStorage.clear();
   useUiStore.setState(useUiStore.getInitialState(), true);
 });
@@ -49,14 +63,50 @@ describe('ProjectRoute', () => {
       '/projects/chessmate',
     );
     expect(document.querySelector('dialog')).not.toBeNull();
-    // Sin capítulos no hay raíl ni HUD.
+    // Sin capítulos no hay raíl ni HUD (el reloj cósmico, «t = 0 s»).
     expect(screen.queryByRole('navigation', { name: /chapters|capítulos/i })).toBeNull();
+    expect(document.body).not.toHaveTextContent(/t [=≈] /);
   });
 
   it('apunta el proyecto como visto (el viaje dejará el foco en su fila al volver)', async () => {
     render(<Stub initialEntries={['/projects/cosmos']} />);
     await screen.findByRole('heading', { level: 1 });
     expect(useUiStore.getState().visitedProject).toBe('cosmos');
+  });
+
+  it('de ficha en ficha, el visto es el último (el viaje dejará el foco en su fila)', async () => {
+    render(<Stub initialEntries={['/projects/chessmate']} />);
+    await screen.findByRole('heading', { level: 1, name: 'Chessmate' });
+    expect(useUiStore.getState().visitedProject).toBe('chessmate');
+    await userEvent.click(screen.getByRole('link', { name: /Next project\s+AstroHub/ }));
+    await screen.findByRole('heading', { level: 1, name: 'AstroHub' });
+    expect(useUiStore.getState().visitedProject).toBe('astrohub');
+  });
+
+  it('al cargar la página, el foco no se mueve; «Next project» lleva el foco al nombre del siguiente', async () => {
+    render(<Stub initialEntries={['/projects/chessmate']} />);
+    expect(await screen.findByRole('heading', { level: 1 })).not.toHaveFocus();
+    await userEvent.click(screen.getByRole('link', { name: /Next project\s+AstroHub/ }));
+    const title = await screen.findByRole('heading', { level: 1, name: 'AstroHub' });
+    expect(title).toHaveFocus();
+  });
+
+  it('un enlace del modo misión rápida a otro proyecto cierra el modo (la ficha se rehace)', async () => {
+    // Con la dirección real (no en memoria): el modo mira el ancla de `window.location`.
+    window.history.replaceState(null, '', '/projects/chessmate');
+    const router = createBrowserRouter([{ path: '/projects/:slug', Component: ProjectRoute }]);
+    render(<RouterProvider router={router} />);
+    await screen.findByRole('heading', { level: 1, name: 'Chessmate' });
+    act(() => {
+      openQuickMission();
+    });
+    const dialog = screen.getByRole('dialog', { name: /Víctor Pérez/ });
+    expect(dialog).toHaveAttribute('open');
+    await userEvent.click(within(dialog).getByRole('link', { name: /View project\s*AstroHub/ }));
+    await screen.findByRole('heading', { level: 1, name: 'AstroHub' });
+    expect(useUiStore.getState().quickMissionOpen).toBe(false);
+    expect(document.querySelector('dialog')).not.toHaveAttribute('open');
+    expect(window.location.pathname + window.location.hash).toBe('/projects/astrohub');
   });
 
   it.each([

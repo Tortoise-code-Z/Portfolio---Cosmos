@@ -34,13 +34,15 @@ sin romper la sensación de estar dentro del mismo universo.
 8. **Try it:** introducción, pasos numerados (las «→» del texto, con el icono), las cuentas de demo y el enlace
    «Read the full guide in the README». Cada cuenta (User, Admin…) muestra usuario y contraseña con un botón
    copiar por dato que dice cuál copia («Copy password (Admin)»); todas comparten columnas, para que los botones
-   queden alineados (por debajo de sm, el campo encima).
+   queden alineados (por debajo de sm, o con el texto grande si no caben, el campo encima). El título va en
+   singular o en plural según el número de cuentas («Demo account» / «Demo accounts»).
 9. **Gallery:** miniaturas (botones «Open image n of total» + texto alternativo, todas con la misma proporción);
    al abrir, visor a pantalla completa con flechas, teclado (← → con vuelta, Esc), contador «n / total» y foco
-   atrapado (modal nativo). La imagen activa se anuncia («3 of 9: texto alternativo»); al cerrar, el foco vuelve
-   a la miniatura de la imagen que se estaba viendo.
+   atrapado (modal nativo). La imagen activa se anuncia («3 of 9: texto alternativo»), también al abrir; al
+   cerrar, el foco vuelve a la miniatura de la imagen que se estaba viendo.
 10. **Pie del proyecto:** Previous / Next project (sin vuelta: el primero no tiene anterior y el último no tiene
-    siguiente) + enlaces a GitHub, LinkedIn y email.
+    siguiente; cada tarjeta en media columna como mucho, a su lado) + enlaces a GitHub, LinkedIn y email. Al
+    llegar a la ficha vecina, el foco va a su nombre.
 
 Las secciones sin datos (por ejemplo, `tryIt: null`) **no se pintan**. Cada sección es una región con nombre
 (su `h2`); los `h2` van con la escala de `h3`: el display grande es solo el nombre.

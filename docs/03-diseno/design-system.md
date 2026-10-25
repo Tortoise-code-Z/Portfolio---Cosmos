@@ -37,7 +37,7 @@ activo.
 | `--color-veil` | `rgb(4 5 11 / 0.82)` | Fondo de los paneles sobre la escena | — |
 | `--color-veil-soft` | `rgb(4 5 11 / 0.62)` | Paso intermedio del velo radial de los paneles (escritorio) y fondo de los botones `ButtonOutline` y `HoldButton` | — |
 | `--color-veil-chrome` | `rgb(4 5 11 / 0.7)` | Fondo de la barra superior y de los avisos, bajo el desenfoque: `--color-ink-soft` da 5,8:1 aunque pase `--color-ink` por debajo | — |
-| `--color-veil-dialog` | `rgb(4 5 11 / 0.96)` | Fondo del modo misión rápida (pantalla completa) | — |
+| `--color-veil-dialog` | `rgb(4 5 11 / 0.96)` | Fondo de los diálogos a pantalla completa: el modo misión rápida y el visor de galería | — |
 | `--gradient-row-hot` | degradado ámbar al 8 % → transparente | Fondo de una fila de proyecto «hot» | — |
 | `--gradient-panel` · `--gradient-panel-mobile` | velo radial · velo que entra desde arriba (`--space-8`) | Fondo del panel en escritorio · en móvil | — |
 | `--color-flash` | `#fff4dc` | Destello del Big Bang | — |
@@ -134,7 +134,7 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--panel-top` | 14vh | Separación superior del panel y su posición *sticky* (escritorio) |
 | `--topbar-h` | 64 px | Altura fija de la barra superior (sin contar la zona segura de arriba) |
 | `--scene-clear-mobile` | 70vh | Escena limpia antes del panel en móvil (< md) |
-| `--corner-size` | 14 px | Corchetes de esquina de los paneles |
+| `--corner-size` | 14 px | Corchetes de esquina de los paneles, la portada de un proyecto y la 404 |
 | `--chapter-h-0` … `--chapter-h-4` | 150 / 210 / 220 / 240 / 130 vh (< md: 150 / 230 / 240 / 260 / 130) | Altura **mínima** de recorrido de cada capítulo (`scroll-y-escena.md`) |
 | `--chapter-end-room` | 12vh | Aire bajo el último capítulo |
 | `--hero-room-bottom` | 12vh (< sm: 10vh) | Aire bajo el contenido del hero |

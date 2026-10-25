@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState, type ReactNode } from 'react';
 import { MemoryRouter } from 'react-router';
@@ -109,6 +109,13 @@ describe('Lightbox', () => {
     expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
   });
 
+  it('al abrir, la descripción del diálogo dice qué imagen es (y sigue a las flechas)', () => {
+    renderAt('/', 1);
+    expect(dialog()).toHaveAccessibleDescription('2 of 3: Course list');
+    fireEvent.keyDown(dialog(), { key: 'ArrowRight' });
+    expect(dialog()).toHaveAccessibleDescription('3 of 3: Dashboard on a phone');
+  });
+
   it('→ y ← cambian de imagen con vuelta y lo anuncian', () => {
     renderAt('/', 2);
     fireEvent.keyDown(dialog(), { key: 'ArrowRight' });
@@ -119,13 +126,20 @@ describe('Lightbox', () => {
     expect(status()).toBe('2 of 3: Course list');
   });
 
-  it('las flechas con un modificador no hacen nada (atajos del navegador)', () => {
+  it('← y → no hacen además lo suyo en la página (preventDefault)', () => {
     renderAt('/', 0);
-    fireEvent.keyDown(dialog(), { key: 'ArrowRight', altKey: true });
-    expect(status()).toBe('1 of 3: Home page');
-    fireEvent.keyDown(dialog(), { key: 'ArrowLeft', metaKey: true });
-    fireEvent.keyDown(dialog(), { key: 'ArrowRight', ctrlKey: true });
-    fireEvent.keyDown(dialog(), { key: 'ArrowRight', shiftKey: true });
+    expect(fireEvent.keyDown(dialog(), { key: 'ArrowRight' })).toBe(false);
+    expect(fireEvent.keyDown(dialog(), { key: 'ArrowLeft' })).toBe(false);
+  });
+
+  it.each([
+    ['ArrowRight', { altKey: true }],
+    ['ArrowLeft', { metaKey: true }],
+    ['ArrowRight', { ctrlKey: true }],
+    ['ArrowLeft', { shiftKey: true }],
+  ])('%s con %o no hace nada (atajo del navegador)', (key, modifier) => {
+    renderAt('/', 0);
+    expect(fireEvent.keyDown(dialog(), { key, ...modifier })).toBe(true);
     expect(status()).toBe('1 of 3: Home page');
   });
 
@@ -141,11 +155,21 @@ describe('Lightbox', () => {
     expect(status()).toBe('3 of 3: Dashboard on a phone');
   });
 
-  it('«Close» y Esc cierran (el evento close) y avisan al dueño', async () => {
+  it('«Close» cierra (el evento close) y avisa al dueño', async () => {
     const user = userEvent.setup();
     renderAt('/', 0);
     await user.click(screen.getByRole('button', { name: 'Close' }));
     expect(dialog()).not.toHaveAttribute('open');
+    expect(dialog()).toBeEmptyDOMElement();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('Esc (el navegador cierra el <dialog> y lanza close) también avisa al dueño', () => {
+    renderAt('/', 0);
+    // Lo que hace un navegador con Esc en un modal: cerrarlo él mismo, sin pasar por «Close».
+    act(() => {
+      dialog().close();
+    });
     expect(dialog()).toBeEmptyDOMElement();
     expect(onClose).toHaveBeenCalledTimes(1);
   });

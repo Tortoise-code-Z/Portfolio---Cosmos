@@ -32,6 +32,7 @@
 }
 
 .account {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -102,8 +103,23 @@
   overflow-wrap: anywhere;
 }
 
-/* Por debajo de sm (520 px): el campo encima y, debajo, valor y botón (dos columnas compartidas). */
+/*
+ * El campo encima y, debajo, valor y botón (dos columnas compartidas): por debajo de sm (520 px) y cuando
+ * las tres columnas no caben en el recuadro con el texto grande (el umbral en `em` crece con la letra:
+ * 20em cubre «Nombre de usuario» y «Copiado» al 200 %).
+ */
 @media (width < 520px) {
+  .grid {
+    grid-template-columns: max-content 1fr;
+  }
+
+  .field,
+  .row {
+    grid-column: 1 / -1;
+  }
+}
+
+@container (width < 20em) {
   .grid {
     grid-template-columns: max-content 1fr;
   }

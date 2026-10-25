@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { NavigationType, useNavigationType } from 'react-router';
 
 import { profile } from '~/content/profile';
 import { projects } from '~/content/projects';
@@ -9,7 +10,7 @@ import { ArrowText } from '~/ui/ArrowText/ArrowText';
 
 import { neighbours } from '../neighbours/neighbours';
 import { ProjectGallery } from '../ProjectGallery/ProjectGallery';
-import { ProjectHeader } from '../ProjectHeader/ProjectHeader';
+import { PROJECT_TITLE_ID, ProjectHeader } from '../ProjectHeader/ProjectHeader';
 import { ProjectNote } from '../ProjectNote/ProjectNote';
 import { ProjectPager } from '../ProjectPager/ProjectPager';
 import { ProjectSection } from '../ProjectSection/ProjectSection';
@@ -24,8 +25,9 @@ interface ProjectPageProps {
 /**
  * Página de proyecto (docs/02-experiencia/pagina-proyecto.md): un documento normal, sin capítulos, en
  * una columna de lectura. Las secciones van en el orden de la spec y la que no tiene datos no se pinta
- * (Cosmos no tiene proceso ni «Try it»; ninguna portada ni galería existe hasta F2.8). Es el `<main>` de la ruta.
- * Apunta el proyecto como visto: al volver al viaje, el foco queda en su fila.
+ * (Cosmos no tiene proceso ni «Try it»; las portadas y galerías de Chessmate y AstroHub llegan en F2.8 y
+ * la portada de Cosmos, en F6). Es el `<main>` de la ruta. Apunta el proyecto como visto: al volver al
+ * viaje, el foco queda en su fila.
  */
 export function ProjectPage({ project }: ProjectPageProps): ReactNode {
   const t = useT();
@@ -38,6 +40,15 @@ export function ProjectPage({ project }: ProjectPageProps): ReactNode {
   useEffect(() => {
     setVisitedProject(project.slug);
   }, [project.slug]);
+
+  // Llegar con un enlace («View project», anterior/siguiente) lleva el foco al nombre del proyecto,
+  // como cualquier salto del sitio: el lector anuncia la página nueva y el Tab sigue desde arriba. Al
+  // cargar la página o volver con Atrás/Adelante (POP), el foco no se toca.
+  const navigationType = useNavigationType();
+  useEffect(() => {
+    if (navigationType === NavigationType.Pop) return;
+    document.getElementById(PROJECT_TITLE_ID)?.focus({ preventScroll: true });
+  }, [navigationType]);
 
   return (
     <main className={styles.page}>

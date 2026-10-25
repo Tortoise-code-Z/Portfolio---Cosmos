@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { TryIt } from '~/content/types';
 
@@ -28,6 +28,19 @@ function renderAt(path: string, tryIt: TryIt = TRY_IT): HTMLElement {
   return container;
 }
 
+afterEach(() => {
+  window.getSelection()?.removeAllRanges();
+  Reflect.deleteProperty(navigator, 'clipboard');
+});
+
+/** Cada botón copiar y el dato que debe copiar (y seleccionar, sin portapapeles). */
+const COPIES = [
+  ['Copy username (User)', 'lisa12'],
+  ['Copy password (User)', '123456'],
+  ['Copy username (Admin)', 'root'],
+  ['Copy password (Admin)', '1234567'],
+] as const;
+
 describe('ProjectTryIt', () => {
   it('introducción, pasos en orden (la flecha con icono) y la guía del README', async () => {
     const container = renderAt('/projects/x');
@@ -45,7 +58,7 @@ describe('ProjectTryIt', () => {
 
   it('cada cuenta con su nombre, usuario y contraseña, y un copiar por dato que dice cuál', async () => {
     renderAt('/projects/x');
-    await screen.findByRole('heading', { level: 3, name: 'Demo account' });
+    await screen.findByRole('heading', { level: 3, name: 'Demo accounts' });
     expect(screen.getByText('Admin')).toBeInTheDocument();
     expect(screen.getByText('root')).toBeInTheDocument();
     expect(screen.getByText('1234567')).toBeInTheDocument();
@@ -59,6 +72,26 @@ describe('ProjectTryIt', () => {
     }
   });
 
+  it.each(COPIES)('«%s» copia %s', async (name, value) => {
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    renderAt('/projects/x');
+    fireEvent.click(await screen.findByRole('button', { name }));
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledTimes(1);
+    });
+    expect(writeText).toHaveBeenCalledWith(value);
+  });
+
+  it.each(COPIES)(
+    'sin portapapeles, «%s» selecciona %s para copiarlo a mano',
+    async (name, value) => {
+      renderAt('/projects/x');
+      fireEvent.click(await screen.findByRole('button', { name }));
+      expect(window.getSelection()?.toString()).toBe(value);
+    },
+  );
+
   it('los ids de lo que se copia son únicos y apuntan al valor', async () => {
     const container = renderAt('/projects/x');
     await screen.findByText('lisa12');
@@ -71,12 +104,20 @@ describe('ProjectTryIt', () => {
   it('en español', async () => {
     const container = renderAt('/es/projects/x');
     expect(
-      await screen.findByRole('heading', { name: 'Cuenta de demostración' }),
+      await screen.findByRole('heading', { name: 'Cuentas de demostración' }),
     ).toBeInTheDocument();
     expect(container.querySelector('ol')).toHaveTextContent('Ve a Cursos → Todos los cursos.');
     expect(
       screen.getByRole('button', { name: 'Copiar contraseña (Administrador)' }),
     ).toBeInTheDocument();
+  });
+
+  it.each([
+    ['/projects/x', 'Demo account'],
+    ['/es/projects/x', 'Cuenta de demostración'],
+  ])('%s con una sola cuenta: el título en singular', async (path, title) => {
+    renderAt(path, { ...TRY_IT, credentials: TRY_IT.credentials.slice(0, 1) });
+    expect((await screen.findByRole('heading', { level: 3 })).textContent).toBe(title);
   });
 
   it('sin cuentas de demo no pinta el bloque', async () => {

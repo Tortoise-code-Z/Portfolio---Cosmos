@@ -30,7 +30,8 @@
 ### Botón de contorno (`ButtonOutline`)
 - Mono `--text-label` en mayúsculas, borde 1 px `--color-faint`, fondo velo con desenfoque; al pasar, borde y
   texto ámbar. Siempre `type="button"` y con 44 × 44 px como mínimo.
-- Uso: «Quick mission», «Back to the journey», «Copy», «No, thanks».
+- Uso: «Quick mission», «Close quick mission», «Copy», «No, thanks» y, en el visor de la galería, «Close» y las
+  flechas (solo icono de 20 px, con el nombre en `aria-label`).
 - No encoge en una fila, pero nunca pasa del ancho de su contenedor: una etiqueta que no cabe en una línea
   («Selecciónalo y cópialo» a 390 px con el texto al 200 %) se parte en dos, centrada.
 - Si el texto visible es una forma corta («Quick»), el nombre accesible es el completo y la contiene (WCAG 2.5.3).
@@ -54,7 +55,8 @@
 ### Botón copiar (`CopyButton`)
 - Un `ButtonOutline`. Estados de texto: Copy → Copied (1,8 s) / Select and copy it (también 1,8 s).
 - Nombre accesible con lo que copia («Copy email»: el sujeto va oculto a la vista).
-- Si el portapapeles no existe (http) o lo rechaza, selecciona el texto (el email) para copiarlo a mano.
+- Si el portapapeles no existe (http) o lo rechaza, selecciona el texto que copia (el email, el usuario o la
+  contraseña) para copiarlo a mano.
 - El resultado se anuncia en una región `role="status"` aparte; el foco no se mueve. Cada intento pinta el mensaje
   en un nodo nuevo: copiar dos veces seguidas se anuncia dos veces. Etiquetas comunes `copy.*`
   (textos-sitio.md → «Botón copiar»). Lo usan Contacto y el modo misión rápida (el email) y el «Try it» de la ficha
@@ -143,7 +145,7 @@
 - `<dialog>` modal a pantalla completa, fondo `--color-veil-dialog` (`--color-void` al 96 %), con su propio scroll
   y entrada con un fundido (`--dur-fade-slow`). Contenido (`QuickMissionContent`) en rejilla `auto-fit` de columnas
   de mínimo `--quick-col-min` (280 px).
-- Cabecera: «Quick mission · everything on one page» en mono atenuado y «Back to the journey» (`ButtonOutline`).
+- Cabecera: «Quick mission · everything on one page» en mono atenuado y «Close quick mission» (`ButtonOutline`).
   Se queda fija arriba al hacer scroll (`position: sticky`, sobre `--color-void` opaco y con la zona segura libre).
   El nombre del diálogo es el título; el rótulo va en `aria-describedby` (el lector dice los dos al abrir).
   Ocupa también el hueco de la barra de scroll que reserva la página (`100vw`).
@@ -159,7 +161,9 @@
   contain`) · las flechas (`ButtonOutline` con icono de 20 px y nombre «Previous image» / «Next image»).
 - Al abrir, el foco va a «Close». ← → cambian de imagen desde cualquier sitio del visor, con vuelta; Esc y «Close»
   cierran y quien lo abrió devuelve el foco (la miniatura de la imagen que se veía). Con una sola imagen, sin
-  flechas. La imagen activa se anuncia en una región `status` («3 of 9: texto alternativo»).
+  flechas. La imagen activa se anuncia en una región `status` («3 of 9: texto alternativo»), que es también la
+  descripción del diálogo (`aria-describedby`): al abrir, el lector dice qué imagen es. Sus textos son
+  `lightbox.*` (no sabe de qué página es).
 - Fondo bloqueado mientras está abierto; el contenido solo se monta abierto.
 
 ### Galería (`ProjectGallery`)
@@ -187,20 +191,28 @@
 - «← Back to the shell» (`ActionLink`), nombre en display (`h1`, enfocable por código: destino de «Skip»),
   tagline en `--text-lead`, metadatos en mono atenuado separados por « · » (Featured en turquesa) y acciones.
 
+### Portada
+- Debajo de la cabecera, la imagen a todo el ancho de la columna (sus medidas reales: sin saltos al cargar) dentro
+  de un marco con corchetes de esquina ámbar (`--corner-size`, 1 px) en diagonal: arriba a la izquierda y abajo a
+  la derecha (los del panel de capítulo van los dos a la izquierda). Sin portada (`cover: null`), no se pinta.
+
 ### Secciones (`ProjectSection`)
 - Región con nombre: un `h2` con la escala de `h3` y el contenido debajo. Los títulos de grupo (stack, retos,
   cuenta de demo) van en mono atenuado. Las funcionalidades, en rejilla con el borde izquierdo de las filas; los
   retos, con una marca «+» ámbar decorativa; los pasos de Try it, numerados en mono ámbar («01»).
 
 ### Cuentas de demo (`ProjectTryIt`)
-- Recuadro con borde fino: título «Demo account» y, por cuenta, su nombre y una lista de definiciones (usuario,
-  contraseña) con el valor en mono y un `CopyButton` por dato. Todas las cuentas comparten tres columnas (campo,
-  valor, botón) con `subgrid`, para que los botones queden alineados sin perder la semántica de la lista; por
-  debajo de sm, el campo va encima.
+- Recuadro con borde fino: título «Demo account» («Demo accounts» si hay más de una) y, por cuenta, su nombre y
+  una lista de definiciones (usuario, contraseña) con el valor en mono y un `CopyButton` por dato. Todas las
+  cuentas comparten tres columnas (campo, valor, botón) con `subgrid`, para que los botones queden alineados sin
+  perder la semántica de la lista; por debajo de sm, o si el recuadro mide menos de 20em (texto grande), el campo
+  va encima.
 
 ### Pie (`ProjectPager`)
 - Anterior y siguiente como tarjetas con borde fino: dirección en mono con su flecha y el nombre en display
-  (ámbar al pasar); el siguiente, a la derecha. Debajo, GitHub, LinkedIn y el email (se parte si no cabe).
+  (ámbar al pasar), cada una en media columna como mucho: el anterior a la izquierda y el siguiente a la
+  derecha, también cuando solo hay uno (la primera y la última ficha); en móvil, uno debajo de otro. Debajo,
+  GitHub, LinkedIn y el email (se parte si no cabe). Llegar a otra ficha con ellos deja el foco en su nombre.
 
 ## Página 404 (`NotFoundPage`)
 - Centrada en la pantalla, dentro de los corchetes de esquina del panel: título (`h1`), frase en `--text-lead` y

@@ -55,12 +55,15 @@ sube a mitad de visita para no causar tirones). Valores en `docs/04-escena/`.
 
 - Con la pestaña oculta o el modo misión rápida abierto, la escena **no renderiza** (ahorro de batería). Desde
   F2.6, `uiStore` sabe si el modo está abierto (`quickMissionOpen`); la escena lo leerá en F3.
-- El modo es un `<dialog>` modal: el resto de la página queda inerte (ni Tab ni lector), el foco entra en «Back to
-  the journey» y vuelve al botón de la barra al cerrar, y el fondo no se desplaza.
+- El modo es un `<dialog>` modal: el resto de la página queda inerte (ni Tab ni lector), el foco entra en «Close
+  quick mission» y vuelve al botón de la barra al cerrar, y el fondo no se desplaza.
+- El visor de la galería de una página de proyecto es otro `<dialog>` modal: el foco entra en «Close», vuelve a la
+  miniatura de la imagen que se veía al cerrar (con «Close» o `Esc`) y el fondo no se desplaza. Al abrir, el
+  lector dice qué imagen es (la descripción del diálogo es su región `status`).
 
 ## 404 «Lost in space»
 
-- Título, frase y botón «Back to the start», centrados (sin barra ni raíl: solo hay un camino, volver). La escena
+- Título, frase y enlace «Back to the start», centrados (sin barra ni raíl: solo hay un camino, volver). La escena
   muestra la nebulosa atenuada y a la deriva (desde F3).
 - Responde con estado 404 real (configuración del hosting).
 
@@ -70,14 +73,19 @@ sube a mitad de visita para no causar tirones). Valores en `docs/04-escena/`.
 2. Navegación completa con teclado; foco visible; «Skip to content».
 3. Un `<h1>` por página; jerarquía de encabezados sin saltos.
 4. El lienzo es `aria-hidden`; nada interactivo existe solo en él.
-5. Regiones `aria-live` (`role="status"`) para mensajes: copiado del email, sugerencia de idioma y, desde F3,
-   aviso sin WebGL. Existen desde el principio (vacías) para que el lector anuncie lo que aparece.
+5. Regiones `aria-live` (`role="status"`) para mensajes: copiado del email y de las cuentas de demo, sugerencia de
+   idioma, la imagen del visor y, desde F3, aviso sin WebGL. Existen desde el principio (vacías) para que el lector
+   anuncie lo que aparece; la del visor nace con el visor abierto, así que además describe el diálogo
+   (`aria-describedby`) para que se oiga al abrir.
 6. Lighthouse Accessibility ≥ 95 y revisión manual con lector de pantalla (NVDA) en la fase de pulido.
 7. Las listas sin viñetas declaran `role="list"`: Safari quita el rol a un `<ul>` o `<ol>` con `list-style: none` y
    VoiceOver deja de anunciar «lista, 3 elementos». ESLint (`jsx-a11y-x/no-redundant-roles`) lo permite en `<ul>`
    y `<ol>` (el raíl), también dentro de `<nav>`.
-8. Saltos que mueven la vista (la detonación del hero, el raíl, Projects y Contact de la barra, el chip «Open to
-   work», el logo y «Skip to content») llevan también el foco al título del destino (`tabindex="-1"` y `focus({ preventScroll: true })`),
-   como un enlace de salto. Límite conocido: en modo
+8. En el viaje, los saltos que mueven la vista (la detonación del hero, el raíl, Projects y Contact de la barra, el
+   chip «Open to work», el logo y «Skip to content») llevan también el foco al título del destino
+   (`tabindex="-1"` y `focus({ preventScroll: true })`), como un enlace de salto. Desde una página de proyecto,
+   «Projects» y «Back to the shell» dejan el foco en la fila de ese proyecto, el logo, el chip y Contact no lo
+   mueven y «Skip to content» va al nombre del proyecto; llegar a una ficha con un enlace deja el foco en su nombre
+   (navegacion.md → «Teclado y foco»). Límite conocido: en modo
    exploración, NVDA y JAWS activan con un clic sintético, que el botón de mantener ignora (un clic corto no hace
    nada); esos usuarios avanzan por encabezados. Se revisa con NVDA en F6.

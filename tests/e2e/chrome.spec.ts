@@ -391,6 +391,8 @@ test.describe('top bar', () => {
   for (const [path, quick, short] of [
     ['/', 'Quick mission', 'Quick'],
     ['/es', 'Modo misión rápida', 'Rápida'],
+    ['/projects/chessmate', 'Quick mission', 'Quick'],
+    ['/es/projects/astrohub', 'Modo misión rápida', 'Rápida'],
   ] as const) {
     test(`390 px with text at 200 % (${path}): EN / ES and «${short}» stay on screen (only the logo gives way)`, async ({
       page,
@@ -414,6 +416,8 @@ test.describe('top bar', () => {
   for (const [path, quick] of [
     ['/', 'Quick mission'],
     ['/es', 'Modo misión rápida'],
+    ['/projects/chessmate', 'Quick mission'],
+    ['/es/projects/astrohub', 'Modo misión rápida'],
   ] as const) {
     test(`960 px with text at 200 % (${path}): every action stays on screen`, async ({ page }) => {
       await page.setViewportSize({ width: 960, height: 768 });

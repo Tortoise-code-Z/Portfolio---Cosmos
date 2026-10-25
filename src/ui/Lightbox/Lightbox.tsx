@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useId, useLayoutEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 
 import { useT } from '~/lib/i18n/useT/useT';
 
@@ -39,7 +39,8 @@ export function wrapIndex(index: number, length: number): number {
  * - Modal nativo: el resto de la página queda inerte (el foco no sale) y `Esc` lo cierra.
  * - Al abrir, el foco va a «Close»; ← y → cambian de imagen desde cualquier sitio del visor, con vuelta.
  * - La imagen activa se anuncia en una región `status` («3 of 9: texto alternativo»); el contador
- *   visible es solo para la vista.
+ *   visible es solo para la vista. Esa región es también la descripción del diálogo: al abrir, el
+ *   lector dice qué imagen es (una región que nace ya llena no se anuncia).
  * - El contenido solo se monta abierto: el HTML pre-renderizado no lleva las imágenes grandes.
  */
 export function Lightbox({
@@ -52,6 +53,7 @@ export function Lightbox({
   const t = useT();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const statusId = useId();
   const open = index !== null && images.length > 0;
   const current = open ? images[wrapIndex(index, images.length)] : undefined;
   const position = open ? wrapIndex(index, images.length) + 1 : 0;
@@ -87,7 +89,7 @@ export function Lightbox({
     }
   }
 
-  const counter = t('project.gallery.counter', { n: String(position), total: String(total) });
+  const counter = t('lightbox.counter', { n: String(position), total: String(total) });
 
   return (
     // El teclado del visor (← →) vive en el propio diálogo: funciona tenga el foco el botón que tenga.
@@ -96,6 +98,7 @@ export function Lightbox({
       ref={dialogRef}
       className={styles.dialog}
       aria-label={label}
+      aria-describedby={statusId}
       onClose={onClose}
       onKeyDown={onKeyDown}
     >
@@ -111,7 +114,7 @@ export function Lightbox({
                 dialogRef.current?.close();
               }}
             >
-              {t('project.gallery.close')}
+              {t('lightbox.close')}
             </ButtonOutline>
           </div>
           <figure className={styles.figure}>
@@ -124,11 +127,14 @@ export function Lightbox({
               className={styles.image}
             />
           </figure>
-          <VisuallyHidden role="status">{`${counter}: ${current.alt}`}</VisuallyHidden>
+          <VisuallyHidden
+            id={statusId}
+            role="status"
+          >{`${counter}: ${current.alt}`}</VisuallyHidden>
           {total > 1 ? (
             <div className={styles.nav}>
               <ButtonOutline
-                aria-label={t('project.gallery.prev')}
+                aria-label={t('lightbox.prev')}
                 onClick={() => {
                   go(-1);
                 }}
@@ -136,7 +142,7 @@ export function Lightbox({
                 <Icon name="arrow-left" size={20} />
               </ButtonOutline>
               <ButtonOutline
-                aria-label={t('project.gallery.next')}
+                aria-label={t('lightbox.next')}
                 onClick={() => {
                   go(1);
                 }}

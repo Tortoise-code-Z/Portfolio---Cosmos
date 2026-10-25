@@ -51,7 +51,7 @@
 }
 
 /*
- * Cabecera fija arriba al hacer scroll: «Back to the journey» siempre a mano (en iOS no hay Esc). Sube
+ * Cabecera fija arriba al hacer scroll: «Close quick mission» siempre a mano (en iOS no hay Esc). Sube
  * sobre el aire de arriba de `.inner` (margen negativo y el mismo relleno) para que, quieta, quede donde
  * siempre y, pegada, deje libre la zona segura. Fondo opaco (`--color-void`, el mismo tono que el velo
  * del diálogo): el velo, al 96 %, dejaría leer el texto que pasa por debajo.
