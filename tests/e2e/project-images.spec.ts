@@ -1,4 +1,13 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
 import { expect, test, type Locator, type Page } from '@playwright/test';
+
+import { PROJECT_IMAGE_WIDTHS, SHARE_IMAGE_WIDTH } from '../../src/content/imageWidths.ts';
+import { projectEntries } from '../../src/content/projects/entries.ts';
+import type { ImageFile, ResponsiveImage } from '../../src/content/types.ts';
+import { findImageFileProblems, findImageProblems } from '../../src/content/validate/validate.ts';
+import { sitePages } from '../../src/lib/seo/pages/pages.ts';
 
 /**
  * Imágenes de la página de proyecto (F2 · paso 8): portada y galería con las capturas reales
@@ -32,52 +41,166 @@ async function loadedSource(image: Locator): Promise<string> {
   return image.evaluate((element: HTMLImageElement) => new URL(element.currentSrc).pathname);
 }
 
-/** El `srcset` AVIF del `<picture>` de una imagen. */
-const avifSrcset = (image: Locator): Promise<string> =>
+/** El `srcset` de un formato (`avif`, `webp`) en el `<picture>` de una imagen. */
+const srcsetOf = (image: Locator, format: string): Promise<string> =>
   image.evaluate(
-    (element) =>
-      element
-        .closest('picture')
-        ?.querySelector('source[type="image/avif"]')
-        ?.getAttribute('srcset') ?? '',
+    (element, type) =>
+      element.closest('picture')?.querySelector(`source[type="${type}"]`)?.getAttribute('srcset') ??
+      '',
+    `image/${format}`,
   );
 
+/**
+ * La imagen llega en la variante de `width` px del formato que haya elegido el navegador: AVIF en Chromium
+ * y Firefox; el WebKit de Linux del CI puede no leer AVIF y caer en la WebP del mismo ancho.
+ */
+async function expectVariant(image: Locator, width: number): Promise<void> {
+  const chosen = await loadedSource(image);
+  const format = /\.(avif|webp)$/.exec(chosen)?.[1] ?? 'desconocido';
+  expect(chosen).toBe(variantOf(await srcsetOf(image, format), width));
+}
+
+/** Una URL de variante de captura (el JPEG para compartir solo lo llevan las fichas). */
+const IMAGE_URL = /\.(?:avif|webp)\b/;
+
+/** Cuántos archivos distintos ofrece una ficha: cada captura en 2 formatos × sus anchos, y el JPEG. */
+const offeredFiles = (screenshots: number): number =>
+  screenshots * 2 * PROJECT_IMAGE_WIDTHS.length + 1;
+
+/** Fichas con imágenes (las demás no tienen `<picture>`): todas sus páginas, en los dos idiomas. */
+const PROJECT_PAGES = sitePages(projectEntries).flatMap((sitePage) =>
+  sitePage.kind === 'project' ? Object.values(sitePage.paths) : [],
+);
+
+/**
+ * La caja de una imagen que aún no ha llegado es la misma cuando llega (hasta 1 px: la variante de 640 px
+ * redondea su alto y la proporción cambia en décimas). Si ya hubiera llegado, no probaría nada.
+ */
+async function expectSameBoxWhileLoading(image: Locator): Promise<void> {
+  await expect(image).toBeAttached();
+  expect(await image.evaluate((element: HTMLImageElement) => element.complete)).toBe(false);
+  const before = await image.boundingBox();
+  await loadedSource(image);
+  const after = await image.boundingBox();
+  expect(Math.abs((after?.y ?? 0) - (before?.y ?? 0))).toBeLessThanOrEqual(1);
+  expect(Math.abs((after?.height ?? 0) - (before?.height ?? 0))).toBeLessThanOrEqual(1);
+  expect(before?.height).toBeGreaterThan(100);
+}
+
 test.describe('project images', () => {
-  test('the cover arrives as AVIF, at the width of the reading column, with its box reserved', async ({
-    page,
-    browserName,
-  }) => {
-    // A 1440 px, la ventana entera pediría la de 1920: solo `sizes` (720 px) lleva a la de 1280.
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/projects/chessmate');
-    // El hueco existe antes de que llegue la imagen: medidas del archivo (1920 × 922) en el HTML.
-    await expect(cover(page)).toHaveAttribute('width', '1920');
-    await expect(cover(page)).toHaveAttribute('height', '922');
-    const chosen = await loadedSource(cover(page));
-    // 720 px de columna a densidad 1: la de 1280 px es la primera que llega. Chromium y Firefox leen
-    // AVIF; el WebKit de Linux del CI puede no hacerlo y caer en la WebP del mismo ancho.
-    const srcset = await avifSrcset(cover(page));
-    if (browserName === 'webkit') {
-      expect(chosen).toMatch(/\.(?:avif|webp)$/);
-    } else {
-      expect(chosen).toBe(variantOf(srcset, 1280));
-    }
-    const box = await cover(page).boundingBox();
-    expect(box?.width).toBeCloseTo(720 - 2 * 12, 0);
-    expect((box?.height ?? 0) / (box?.width ?? 1)).toBeCloseTo(922 / 1920, 2);
+  test.describe('the variant each image asks for (sizes, at density 1)', () => {
+    // Densidad 1 en los tres navegadores: el perfil «Desktop Safari» de Playwright trae 2 y pediría el doble.
+    test.use({ deviceScaleFactor: 1 });
+
+    test('the cover arrives at the width of the reading column, with its box reserved', async ({
+      page,
+    }) => {
+      // A 1440 px, la ventana entera pediría la de 1920: solo `sizes` (696 px) lleva a la de 1280.
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto('/projects/chessmate');
+      // El hueco existe antes de que llegue la imagen: medidas del archivo (1920 × 922) en el HTML.
+      await expect(cover(page)).toHaveAttribute('width', '1920');
+      await expect(cover(page)).toHaveAttribute('height', '922');
+      await expectVariant(cover(page), 1280);
+      const box = await cover(page).boundingBox();
+      expect(box?.width).toBeCloseTo(720 - 2 * 12, 0);
+      expect((box?.height ?? 0) / (box?.width ?? 1)).toBeCloseTo(922 / 1920, 2);
+    });
+
+    test('at 1440 px a thumbnail takes the 640 px variant and the viewer the 1920 px one', async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.goto('/projects/chessmate');
+      // La 2.ª, otro archivo que la portada (la 1.ª es el mismo y el navegador podría reutilizarla). Con
+      // `sizes` = 100vw pediría la de 1920; con el de la galería (232 px), la de 640.
+      const second = thumb(page, 2, 'Courses');
+      await second.scrollIntoViewIfNeeded();
+      await expectVariant(second.getByRole('img'), 640);
+      await second.click();
+      await expectVariant(viewer(page).getByRole('img', { name: 'Courses' }), 1920);
+    });
+
+    test('at 390 px the cover and the thumbnails take the 640 px variant', async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto('/projects/chessmate');
+      await expectVariant(cover(page), 640);
+      const first = thumb(page, 1, 'Home').getByRole('img');
+      await first.scrollIntoViewIfNeeded();
+      await expectVariant(first, 640);
+    });
   });
 
-  test('at 390 px the cover and the thumbnails take the 640 px variant', async ({
+  test('every picture of the built project pages follows rule 5, and so does the share image', async ({
     page,
-    browserName,
   }) => {
-    test.skip(browserName === 'webkit', 'AVIF in the Linux WebKit build is not guaranteed');
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/projects/chessmate');
-    expect(await loadedSource(cover(page))).toBe(variantOf(await avifSrcset(cover(page)), 640));
-    const first = thumb(page, 1, 'Home').getByRole('img');
-    await first.scrollIntoViewIfNeeded();
-    expect(await loadedSource(first)).toBe(variantOf(await avifSrcset(first), 640));
+    test.skip(test.info().project.name !== 'chromium', 'Reads the built pages: once is enough');
+    // La regla 5 sobre lo que se despliega, no sobre el sustituto de Vitest: lo que dan de verdad los
+    // presets de vite.config.ts (orden de las variantes, respaldo = WebP mayor, anchos, 1200 px).
+    for (const path of PROJECT_PAGES) {
+      await page.goto(path);
+      const { pictures, share } = await page.evaluate(() => ({
+        pictures: [...document.querySelectorAll('main picture')].map((picture) => {
+          const img = picture.querySelector('img');
+          const srcset = (type: string): string =>
+            picture.querySelector(`source[type="image/${type}"]`)?.getAttribute('srcset') ?? '';
+          return {
+            src: img?.getAttribute('src') ?? '',
+            width: Number(img?.getAttribute('width')),
+            height: Number(img?.getAttribute('height')),
+            sources: { avif: srcset('avif'), webp: srcset('webp') },
+          };
+        }),
+        share: (['', ':width', ':height'] as const).map(
+          (suffix) =>
+            document.querySelector(`meta[property="og:image${suffix}"]`)?.getAttribute('content') ??
+            null,
+        ),
+      }));
+      const images: Record<string, ResponsiveImage> = Object.fromEntries(
+        pictures.map((picture, index) => [`${path} · picture ${String(index)}`, picture]),
+      );
+      expect(findImageProblems(images)).toEqual([]);
+      // Las 21 capturas miden 1920 px: cada formato, en todos los anchos de los presets.
+      for (const picture of pictures) {
+        for (const srcset of Object.values(picture.sources)) {
+          expect(
+            srcset.split(', ').map((entry) => Number(entry.split(' ')[1]?.slice(0, -1))),
+          ).toEqual([...PROJECT_IMAGE_WIDTHS]);
+        }
+      }
+      const [shareUrl, shareWidth, shareHeight] = share;
+      if (pictures.length === 0) {
+        expect(shareUrl, path).toBeNull();
+        continue;
+      }
+      // La portada (la 1.ª imagen) es la 1.ª captura de la galería (la 2.ª).
+      expect(pictures[0]?.src, path).toBe(pictures[1]?.src);
+      const file: ImageFile = {
+        src: new URL(shareUrl ?? 'https://x.invalid').pathname,
+        width: Number(shareWidth),
+        height: Number(shareHeight),
+      };
+      expect(findImageFileProblems({ [`${path} · og:image`]: file })).toEqual([]);
+      expect(file.width, path).toBe(SHARE_IMAGE_WIDTH);
+    }
+  });
+
+  test('the home does not load the project images', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
+    // El viaje y la misión rápida usan los textos (`projectEntries`), no las imágenes (`media.ts`).
+    const client = fileURLToPath(new URL('../../build/client/', import.meta.url));
+    for (const page of ['index.html', 'es/index.html']) {
+      const html = readFileSync(`${client}${page}`, 'utf8');
+      const scripts = [
+        ...new Set(Array.from(html.matchAll(/\/assets\/[^"']+\.js/g), ([url]) => url)),
+      ];
+      expect(scripts.length).toBeGreaterThan(0);
+      const withImages = [page, ...scripts].filter((file) =>
+        IMAGE_URL.test(readFileSync(`${client}${file === page ? page : file.slice(1)}`, 'utf8')),
+      );
+      expect(withImages).toEqual([]);
+    }
   });
 
   test('every file the page offers (variants and the share image) is served as an image', async ({
@@ -101,8 +224,8 @@ test.describe('project images', () => {
         const share = document.querySelector('meta[property="og:image"]')?.getAttribute('content');
         return [...new Set([...fromSrcset, ...fromImg, new URL(share ?? '').pathname])];
       });
-      // Chessmate: 10 imágenes (portada = 1.ª de la galería) × 6 variantes + respaldo ya incluido + JPEG.
-      expect(urls.length).toBeGreaterThanOrEqual(path.includes('chessmate') ? 55 : 73);
+      // Chessmate, 9 capturas, y AstroHub, 12 (la portada es la 1.ª; el respaldo, una de las WebP).
+      expect(urls).toHaveLength(offeredFiles(path.includes('chessmate') ? 9 : 12));
       for (const url of urls) {
         const response = await page.request.get(url);
         expect(response.status(), url).toBe(200);
@@ -119,8 +242,7 @@ test.describe('project images', () => {
     await expect(viewer(page)).toBeVisible();
     await expect(viewer(page).getByRole('button', { name: 'Close' })).toBeFocused();
     await expect(announced(page)).toHaveText('2 of 9: Courses');
-    const shown = viewer(page).getByRole('img', { name: 'Courses' });
-    expect(await loadedSource(shown)).toMatch(/\.(?:avif|webp)$/);
+    await loadedSource(viewer(page).getByRole('img', { name: 'Courses' }));
 
     await page.keyboard.press('ArrowRight');
     await expect(announced(page)).toHaveText('3 of 9: Course detail');
@@ -150,14 +272,23 @@ test.describe('project images', () => {
     await galeria.getByRole('button', { name: 'Abrir imagen 2 de 12 Noticias' }).click();
     const shown = visor.getByRole('img', { name: 'Noticias' });
     await loadedSource(shown);
-    // `object-fit: contain`: lo que se pinta de la imagen cabe en la pantalla, sin cortarse.
+    // Entera (`contain`, sin recortar) y dentro de la pantalla: con `contain`, lo pintado es el ajuste
+    // de la imagen a su caja.
     const painted = await shown.evaluate((element: HTMLImageElement) => {
       const box = element.getBoundingClientRect();
       const scale = Math.min(box.width / element.naturalWidth, box.height / element.naturalHeight);
-      return { width: element.naturalWidth * scale, left: box.left, right: box.right };
+      return {
+        fit: getComputedStyle(element).objectFit,
+        width: element.naturalWidth * scale,
+        box: { top: box.top, right: box.right, bottom: box.bottom, left: box.left },
+        viewportHeight: window.innerHeight,
+      };
     });
-    expect(painted.left).toBeGreaterThanOrEqual(0);
-    expect(painted.right).toBeLessThanOrEqual(390);
+    expect(painted.fit).toBe('contain');
+    expect(painted.box.left).toBeGreaterThanOrEqual(0);
+    expect(painted.box.right).toBeLessThanOrEqual(390);
+    expect(painted.box.top).toBeGreaterThanOrEqual(0);
+    expect(painted.box.bottom).toBeLessThanOrEqual(painted.viewportHeight);
     expect(painted.width).toBeGreaterThan(300);
     for (const name of ['Cerrar', 'Imagen anterior', 'Imagen siguiente']) {
       const box = await visor.getByRole('button', { name }).boundingBox();
@@ -190,18 +321,16 @@ test.describe('project images', () => {
     });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/projects/chessmate', { waitUntil: 'commit' });
-    // Medido con la portada aún sin llegar (si ya hubiera llegado, el test no probaría nada).
-    await expect(cover(page)).toBeAttached();
-    expect(await cover(page).evaluate((element: HTMLImageElement) => element.complete)).toBe(false);
-    const before = await cover(page).boundingBox();
-    await loadedSource(cover(page));
-    // Misma caja (hasta 1 px: la variante de 640 px redondea su alto y la proporción cambia en décimas).
-    const after = await cover(page).boundingBox();
-    expect(Math.abs((after?.y ?? 0) - (before?.y ?? 0))).toBeLessThanOrEqual(1);
-    expect(Math.abs((after?.height ?? 0) - (before?.height ?? 0))).toBeLessThanOrEqual(1);
-    expect(before?.height).toBeGreaterThan(100);
-    await gallery(page).scrollIntoViewIfNeeded();
-    await loadedSource(thumb(page, 1, 'Home').getByRole('img'));
+    // Con la hoja de estilos ya aplicada (`commit` no la espera): sin ella, la caja sería la del archivo.
+    await expect
+      .poll(async () => (await cover(page).boundingBox())?.width ?? Infinity)
+      .toBeLessThanOrEqual(390);
+    await expectSameBoxWhileLoading(cover(page));
+    // Una miniatura que llega tarde de verdad: la 2.ª es otro archivo que la portada (la 1.ª es el mismo y
+    // ya habría llegado con ella).
+    const second = thumb(page, 2, 'Courses').getByRole('img');
+    await second.scrollIntoViewIfNeeded();
+    await expectSameBoxWhileLoading(second);
     const cls = await page.evaluate(() => (window as unknown as { __cls: number }).__cls);
     expect(cls).toBeLessThan(0.1);
   });
