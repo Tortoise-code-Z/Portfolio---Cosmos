@@ -159,7 +159,8 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 - Forma única de las URL absolutas (`absoluteUrl`): origen + ruta, sin barra final salvo la home EN
   (`https://…/`, `https://…/es`, `https://…/projects/chessmate`), sin `?` ni `#`. Un test comprueba que
   canónicas, `hreflang`, `og:url` y sitemap son el mismo conjunto. Los archivos del build (`og:image`) van con
-  `assetUrl`: ruta con `/`, nombre con el hash (mayúsculas, `_` y `-`) y extensión, sin `?`, `#` ni `..`.
+  `assetUrl`: ruta con `/`, nombre con el hash (mayúsculas, `_` y `-`) y extensión, sin `?`, `#` ni `..`; en
+  `npm run dev`, también `/@imagetools/<hash>` (vite-imagetools sirve las imágenes desde memoria, sin extensión).
 - 404: `noindex`, sin canónica, `hreflang` ni JSON-LD, fuera del sitemap. Tampoco lleva `description`,
   `og:description` ni `og:url`: no se indexa y no tiene dirección propia (decidido, no es un olvido).
 - `sitemap.xml` (solo `<loc>`) y `robots.txt` (`Allow: /` + `Sitemap:` absoluto) generados en el build.

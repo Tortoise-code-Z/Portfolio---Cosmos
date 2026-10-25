@@ -15,9 +15,15 @@ export function absoluteUrl(origin: string, path: string): string {
 /** Archivo del build (`/assets/01-home-CaIUKrxu.jpeg`): el hash lleva mayúsculas, `_` y `-`; sin `?`, `#` ni `..`. */
 const ASSET_SHAPE = /^\/(?:[\w-]+\/)*[\w-]+(?:\.[\w-]+)*\.[a-z0-9]+$/;
 
+/**
+ * La misma imagen en `npm run dev`: `vite-imagetools` la sirve desde memoria en `/@imagetools/<hash>`, sin
+ * extensión. Solo existe en desarrollo (el build escribe archivos en `/assets/`).
+ */
+const DEV_IMAGE_SHAPE = /^\/@imagetools\/[0-9a-f]+$/;
+
 /** URL absoluta de un archivo del build (la imagen para compartir). Otra forma es un error de programa. */
 export function assetUrl(origin: string, path: string): string {
-  if (!ASSET_SHAPE.test(path)) {
+  if (!ASSET_SHAPE.test(path) && !DEV_IMAGE_SHAPE.test(path)) {
     throw new Error(`assetUrl: ruta de archivo no válida «${path}»`);
   }
   return new URL(path, origin).href;

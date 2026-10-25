@@ -38,6 +38,11 @@ describe('assetUrl', () => {
     ['/assets/home-a-.webp', 'https://cosmos.test/assets/home-a-.webp'],
     ['/og/og-en.png', 'https://cosmos.test/og/og-en.png'],
     ['/favicon.svg', 'https://cosmos.test/favicon.svg'],
+    // `npm run dev`: vite-imagetools sirve las variantes desde memoria, sin extensión.
+    [
+      '/@imagetools/8d23ea593d502cd8a2ebabdb93f2fe5eb965aa87',
+      'https://cosmos.test/@imagetools/8d23ea593d502cd8a2ebabdb93f2fe5eb965aa87',
+    ],
   ])('%s → %s', (path, expected) => {
     expect(assetUrl(ORIGIN, path)).toBe(expected);
   });
@@ -55,6 +60,10 @@ describe('assetUrl', () => {
     ['/assets/a b.jpeg'],
     ['/assets/a.JPEG'],
     ['https://cosmos.test/a.jpeg'],
+    ['/@imagetools/'],
+    ['/@imagetools/8d23ea59?x=1'],
+    ['/@imagetools/../a'],
+    ['/@other/8d23ea59'],
   ])('rechaza «%s»', (path) => {
     expect(() => assetUrl(ORIGIN, path)).toThrow('ruta de archivo no válida');
   });
