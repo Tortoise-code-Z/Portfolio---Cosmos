@@ -1,19 +1,23 @@
 // Invariantes del contenido real (docs/01-contenido/modelo-de-datos.md → «Reglas que comprueban los
-// tests»). Las reglas 5 (la imagen existe) y 6 (cada skill tiene posición en la escena) llegan en
-// F2.8 y F4. Cada comprobación está probada con casos rotos en `validate.test.ts`.
+// tests»). La regla 6 (cada skill tiene posición en la escena) llega en F4. Cada comprobación está
+// probada con casos rotos en `validate.test.ts`.
 
 import { describe, expect, it } from 'vitest';
 
 import { CHAPTER_ANCHORS, CHAPTER_INDICES, CHAPTER_MORPH_START } from './chapters';
 import { profile } from './profile';
 import { projects } from './projects';
+import { projectEntries } from './projects/entries';
+import { projectMedia } from './projects/media';
 import { skillGroups } from './skills';
-import { DEFAULT_LOCALE, LOCALES } from './types';
+import { DEFAULT_LOCALE, LOCALES, type ImageFile, type ResponsiveImage } from './types';
 import { uiTexts } from './texts';
 import {
   findEmailProblems,
   findEmptyListProblems,
   findIdProblems,
+  findImageFileProblems,
+  findImageProblems,
   findPositiveIntegerProblems,
   findProjectOrderProblems,
   findTextProblems,
@@ -124,6 +128,47 @@ describe('contenido', () => {
     }
 
     expect(findEmptyListProblems(lists)).toEqual([]);
+  });
+
+  it('imágenes: medidas y variantes de cada portada, galería e imagen para compartir (regla 5)', () => {
+    const images: Record<string, ResponsiveImage> = {};
+    const shares: Record<string, ImageFile> = {};
+    for (const project of projects) {
+      if (project.cover !== null) {
+        images[`${project.slug}.cover`] = project.cover;
+        shares[`${project.slug}.cover.share`] = project.cover.share;
+      }
+      project.gallery.forEach((image, index) => {
+        images[`${project.slug}.gallery[${String(index)}]`] = image;
+      });
+    }
+    // Chessmate (portada + 9) y AstroHub (portada + 12): que el recorrido no pase en vacío.
+    expect(Object.keys(images)).toHaveLength(23);
+    expect(findImageProblems(images)).toEqual([]);
+    expect(findImageFileProblems(shares)).toEqual([]);
+  });
+
+  it('la portada es la primera captura de la galería y su imagen para compartir mide 1200 px', () => {
+    for (const project of projects) {
+      if (project.cover === null) continue;
+      expect(project.cover.src).toBe(project.gallery[0]?.src);
+      expect(project.cover.share.width).toBe(1200);
+    }
+  });
+
+  it('las imágenes son de proyectos que existen y se unen a sus textos en el mismo orden', () => {
+    const slugs = projectEntries.map((entry) => entry.slug);
+    expect(Object.keys(projectMedia).filter((slug) => !slugs.includes(slug))).toEqual([]);
+    expect(projects.map((project) => project.slug)).toEqual(slugs);
+    expect(projects.filter((project) => project.cover !== null).map(({ slug }) => slug)).toEqual([
+      'chessmate',
+      'astrohub',
+    ]);
+    // Sin entrada en media.ts (Cosmos, hasta F6): sin portada ni galería, sin romper nada.
+    expect(projects.find(({ slug }) => slug === 'cosmos')).toMatchObject({
+      cover: null,
+      gallery: [],
+    });
   });
 
   it('textos de interfaz: mismas claves y mismos huecos {x} en EN y ES (regla 7)', () => {

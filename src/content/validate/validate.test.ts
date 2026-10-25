@@ -3,10 +3,14 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type { ResponsiveImage } from '../types';
+
 import {
   findEmailProblems,
   findEmptyListProblems,
   findIdProblems,
+  findImageFileProblems,
+  findImageProblems,
   findPositiveIntegerProblems,
   findProjectOrderProblems,
   findTextProblems,
@@ -150,6 +154,83 @@ describe('findPositiveIntegerProblems', () => {
   it.each([[0], [-3], [1.5], [Number.NaN]])('rechaza %s', (value) => {
     expect(findPositiveIntegerProblems({ 'education.x.hours': value })).toEqual([
       `education.x.hours: ${String(value)} no es un entero positivo`,
+    ]);
+  });
+});
+
+const IMAGE: ResponsiveImage = {
+  src: '/a-1920.webp',
+  width: 1920,
+  height: 911,
+  sources: {
+    avif: '/a-640.avif 640w, /a-1280.avif 1280w, /a-1920.avif 1920w',
+    webp: '/a-640.webp 640w, /a-1280.webp 1280w, /a-1920.webp 1920w',
+  },
+};
+
+describe('findImageProblems', () => {
+  it('acepta una imagen con sus variantes en orden y src = WebP mayor', () => {
+    expect(findImageProblems({ 'chessmate.cover': IMAGE })).toEqual([]);
+  });
+
+  it.each([
+    ['src vacío', { ...IMAGE, src: '' }, 'x.src: vacío'],
+    ['ancho 0', { ...IMAGE, width: 0 }, 'x.width: no es un entero positivo'],
+    ['alto decimal', { ...IMAGE, height: 911.5 }, 'x.height: no es un entero positivo'],
+    [
+      'srcset vacío',
+      { ...IMAGE, sources: { ...IMAGE.sources, avif: '' } },
+      'x.sources.avif: srcset mal formado',
+    ],
+    [
+      'entrada sin ancho',
+      { ...IMAGE, sources: { ...IMAGE.sources, avif: '/a-640.avif, /a-1920.avif 1920w' } },
+      'x.sources.avif: srcset mal formado',
+    ],
+    [
+      'densidad en vez de ancho',
+      { ...IMAGE, sources: { ...IMAGE.sources, webp: '/a-1920.webp 2x' } },
+      'x.sources.webp: srcset mal formado',
+    ],
+    [
+      'anchos desordenados',
+      {
+        ...IMAGE,
+        sources: {
+          ...IMAGE.sources,
+          avif: '/a-1280.avif 1280w, /a-640.avif 640w, /a-1920.avif 1920w',
+        },
+      },
+      'x.sources.avif: anchos sin orden creciente o repetidos',
+    ],
+    [
+      'variante mayor que no mide el ancho',
+      { ...IMAGE, sources: { ...IMAGE.sources, avif: '/a-640.avif 640w, /a-1280.avif 1280w' } },
+      'x.sources.avif: la variante mayor (1280w) no mide el ancho de la imagen',
+    ],
+    [
+      'src que no es la WebP mayor',
+      { ...IMAGE, src: '/a-640.webp' },
+      'x.src: no es la variante WebP mayor',
+    ],
+  ])('detecta: %s', (_case, image, problem) => {
+    // Un fallo puede arrastrar otro (src vacío tampoco es la WebP mayor): basta con que salga el suyo.
+    expect(findImageProblems({ x: image })).toContainEqual(expect.stringContaining(problem));
+  });
+});
+
+describe('findImageFileProblems', () => {
+  it('acepta un archivo con src y medidas', () => {
+    expect(findImageFileProblems({ share: { src: '/a.jpeg', width: 1200, height: 576 } })).toEqual(
+      [],
+    );
+  });
+
+  it('detecta src vacío y medidas no válidas, con su ruta', () => {
+    expect(findImageFileProblems({ share: { src: '', width: -1, height: 0 } })).toEqual([
+      'share.src: vacío',
+      'share.width: no es un entero positivo',
+      'share.height: no es un entero positivo',
     ]);
   });
 });

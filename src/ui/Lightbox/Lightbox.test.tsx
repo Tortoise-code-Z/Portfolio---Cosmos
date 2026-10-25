@@ -122,6 +122,16 @@ describe('Lightbox', () => {
     const image = screen.getByRole('img', { name: 'Course list' });
     expect(image).toHaveAttribute('src', '/b.webp');
     expect(image).toHaveAttribute('width', '1600');
+    // Sus variantes, para todo el ancho de la pantalla: el navegador pide la mayor que necesita.
+    expect(
+      [...dialog().querySelectorAll('picture > source')].map((source) => [
+        source.getAttribute('srcset'),
+        source.getAttribute('sizes'),
+      ]),
+    ).toEqual([
+      ['/b.avif 1600w', '100vw'],
+      ['/b.webp 1600w', '100vw'],
+    ]);
     expect(dialog()).toHaveTextContent('2 / 3');
     expect(status()).toBe('2 of 3: Course list');
     expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();

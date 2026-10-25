@@ -69,6 +69,22 @@ describe('ProjectGallery', () => {
     expect(thumbs[0]?.querySelector('img')).toHaveAttribute('loading', 'lazy');
   });
 
+  it('cada miniatura ofrece sus variantes con el ancho de su columna (sizes)', async () => {
+    renderAt('/projects/x');
+    const [first] = await screen.findAllByRole('button', { name: /^Open image/ });
+    const sources = [...(first?.querySelectorAll('picture > source') ?? [])];
+    expect(sources.map((source) => source.getAttribute('srcset'))).toEqual([
+      '/g/1.avif 1600w',
+      '/g/1.webp 1600w',
+    ]);
+    for (const source of sources) {
+      expect(source).toHaveAttribute(
+        'sizes',
+        '(min-width: 760px) 240px, (min-width: 500px) 50vw, 100vw',
+      );
+    }
+  });
+
   it('abre el visor en la imagen pulsada y, al cerrar, devuelve el foco a la que se veía', async () => {
     const user = userEvent.setup();
     renderAt('/projects/x');

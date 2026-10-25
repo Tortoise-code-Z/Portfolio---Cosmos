@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
@@ -103,6 +103,29 @@ describe('ProjectPage', () => {
     expect(image).toHaveAttribute('src', cover.src);
     expect(image).toHaveAttribute('width', '1600');
     expect(image).toHaveAttribute('height', '900');
+    // Lo mayor de la primera vista: se pide pronto, sin `lazy`, y con el ancho de la columna.
+    expect(image).toHaveAttribute('fetchpriority', 'high');
+    expect(image).toHaveAttribute('loading', 'eager');
+    expect(image.closest('picture')?.querySelector('source')).toHaveAttribute(
+      'sizes',
+      '(min-width: 760px) 720px, 100vw',
+    );
+  });
+
+  it('las portadas reales: Chessmate y AstroHub con su captura de Inicio; Cosmos, sin portada', async () => {
+    renderAt('/projects/chessmate', bySlug('chessmate'));
+    const chessmate = await screen.findByRole('img', { name: 'Chessmate home page' });
+    expect(chessmate).toHaveAttribute('src', bySlug('chessmate').gallery[0]?.src);
+    cleanup();
+    renderAt('/es/projects/astrohub', bySlug('astrohub'));
+    expect(
+      await screen.findByRole('img', { name: 'Página de inicio de AstroHub' }),
+    ).toHaveAttribute('fetchpriority', 'high');
+    cleanup();
+    const container = renderAt('/projects/cosmos', bySlug('cosmos'));
+    await screen.findByRole('heading', { level: 1, name: 'Cosmos' });
+    expect(container.querySelector('figure')).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Gallery' })).toBeNull();
   });
 
   it('con galería: su sección va detrás de «Try it», antes del pie', async () => {

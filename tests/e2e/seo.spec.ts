@@ -136,6 +136,62 @@ test.describe('páginas indexables', () => {
   }
 });
 
+test.describe('imagen para compartir de las fichas', () => {
+  for (const sitePage of PAGES) {
+    if (sitePage.kind !== 'project') continue;
+    for (const locale of ['en', 'es'] as const) {
+      const path = sitePage.paths[locale];
+      const hasCover = WITH_COVER.has(sitePage.slug);
+
+      test(`${path}: ${hasCover ? 'og:image = su portada en JPEG de 1200 px' : 'sin portada ni og:image'}`, async ({
+        page,
+      }) => {
+        await page.goto(path, { waitUntil: 'networkidle' });
+        const content = (selector: string): Promise<string[]> =>
+          page
+            .locator(selector)
+            .evaluateAll((elements) =>
+              elements.map((element) => element.getAttribute('content') ?? ''),
+            );
+        // La lista escrita a mano coincide con la página: portada (la imagen con prioridad) solo en esas.
+        const coverImage = page.getByRole('main').locator('img[fetchpriority="high"]');
+        await expect(coverImage).toHaveCount(hasCover ? 1 : 0);
+        const card = await content('meta[name="twitter:card"]');
+        const image = await content('meta[property="og:image"]');
+        if (!hasCover) {
+          expect(image).toEqual([]);
+          expect(card).toEqual(['summary']);
+          return;
+        }
+
+        expect(card).toEqual(['summary_large_image']);
+        expect(image).toHaveLength(1);
+        const url = new URL(image[0] ?? '');
+        expect(url.origin).toBe(new URL(ORIGIN).origin);
+        expect(url.pathname).toMatch(/^\/assets\/[\w-]+\.jpeg$/);
+        expect(await content('meta[property="og:image:alt"]')).toEqual([
+          (await coverImage.getAttribute('alt')) ?? '',
+        ]);
+        // El archivo existe en el sitio y mide lo que dicen sus etiquetas.
+        const response = await page.request.get(url.pathname);
+        expect(response.status()).toBe(200);
+        expect(response.headers()['content-type']).toBe('image/jpeg');
+        const size = await page.evaluate(async (src) => {
+          const probe = new Image();
+          probe.src = src;
+          await probe.decode();
+          return [String(probe.naturalWidth), String(probe.naturalHeight)];
+        }, url.pathname);
+        expect([
+          ...(await content('meta[property="og:image:width"]')),
+          ...(await content('meta[property="og:image:height"]')),
+        ]).toEqual(size);
+        expect(size[0]).toBe('1200');
+      });
+    }
+  }
+});
+
 test.describe('sitemap y robots', () => {
   test('sitemap.xml: exactamente las URL indexables, iguales a las canónicas', async ({
     request,

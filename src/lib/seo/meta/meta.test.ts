@@ -1,8 +1,8 @@
 import type { MetaDescriptor } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
-import { fakeProfile, fakeProject, fakeSkillGroups, ORIGIN } from '../fixtures';
-import { homeMeta, notFoundMeta, projectMeta } from './meta';
+import { fakeCover, fakeProfile, fakeProject, fakeSkillGroups, ORIGIN } from '../fixtures';
+import { coverShareImage, homeMeta, notFoundMeta, projectMeta } from './meta';
 
 /** Valor de una etiqueta `meta` por `property` o `name`. */
 function metaContent(descriptors: readonly MetaDescriptor[], key: string): string | undefined {
@@ -114,6 +114,49 @@ describe('projectMeta', () => {
 
   it('lleva la ficha SoftwareSourceCode', () => {
     expect(jsonLdOf(es)).toMatchObject({ '@type': 'SoftwareSourceCode', name: 'Beta' });
+  });
+
+  it('sin portada: sin og:image y tarjeta `summary`', () => {
+    expect(metaContent(es, 'og:image')).toBeUndefined();
+    expect(metaContent(es, 'og:image:alt')).toBeUndefined();
+    expect(metaContent(es, 'twitter:card')).toBe('summary');
+  });
+
+  it('con portada: su JPEG para compartir con URL absoluta, medidas y alt del idioma', () => {
+    const withCover = { ...project, cover: fakeCover };
+    const en = projectMeta({
+      origin: ORIGIN,
+      locale: 'en',
+      profile: fakeProfile,
+      project: withCover,
+    });
+    const esCover = projectMeta({
+      origin: ORIGIN,
+      locale: 'es',
+      profile: fakeProfile,
+      project: withCover,
+    });
+    expect(metaContent(en, 'og:image')).toBe('https://cosmos.test/assets/home-Ef-3.jpeg');
+    expect(metaContent(en, 'og:image:width')).toBe('1200');
+    expect(metaContent(en, 'og:image:height')).toBe('600');
+    expect(metaContent(en, 'og:image:alt')).toBe('Beta home page');
+    expect(metaContent(esCover, 'og:image:alt')).toBe('Página de inicio de Beta');
+    expect(metaContent(en, 'twitter:card')).toBe('summary_large_image');
+    // Una sola imagen: ni la portada WebP ni sus variantes.
+    expect(
+      en.filter((descriptor) => 'property' in descriptor && descriptor.property === 'og:image'),
+    ).toHaveLength(1);
+  });
+});
+
+describe('coverShareImage', () => {
+  it('usa `share` (no la portada WebP) y el alt de la portada', () => {
+    expect(coverShareImage(ORIGIN, 'es', fakeCover)).toEqual({
+      url: 'https://cosmos.test/assets/home-Ef-3.jpeg',
+      width: 1200,
+      height: 600,
+      alt: 'Página de inicio de Beta',
+    });
   });
 });
 

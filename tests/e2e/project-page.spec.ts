@@ -2,8 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 /**
  * Página de proyecto (F2 · paso 7): docs/02-experiencia/pagina-proyecto.md y navegacion.md → «Volver
- * desde una página de proyecto». La galería sigue vacía hasta F2.8: el visor lo prueban sus tests
- * unitarios.
+ * desde una página de proyecto». Las imágenes (portada, galería y visor) están en project-images.spec.ts.
  */
 
 const bar = (page: Page): ReturnType<Page['getByRole']> => page.getByRole('banner');
