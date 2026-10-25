@@ -158,7 +158,8 @@
 ### Imagen (`Picture`)
 - `<picture>` con AVIF y WebP en varios anchos (`srcset`) y el `sizes` de quien la pinta: el navegador elige el
   primer formato que entiende y el ancho justo. El `<img>` lleva `width`/`height` del archivo (sin saltos de
-  layout), `decoding="async"`, y `loading` y `fetchpriority` cuando se piden. El `<picture>` no genera caja
+  layout), `decoding="async"`, `loading` (`eager` por defecto, `lazy` en la galería) y `fetchpriority` (`auto`
+  por defecto, `high` en la portada). El `<picture>` no genera caja
   (`display: contents`): las clases van al `<img>`. La usan la portada, las miniaturas y el visor.
 
 ### Visor de galería (`Lightbox`)
@@ -177,7 +178,9 @@
 - Rejilla `auto-fill` de miniaturas (columnas de `--project-col-min`), todas con `--gallery-thumb-ratio` y la
   imagen recortada al centro. Cada miniatura es un botón con borde fino (ámbar al pasar) y cursor de lupa; su
   nombre dice qué abre («Open image 2 of 5» + texto alternativo). Carga diferida (`loading="lazy"`) y `sizes` de su
-  columna (~240 px en la columna de lectura; la mitad o todo el ancho en pantallas estrechas).
+  columna: 232 px con tres columnas (desde 732 px de ventana), la mitad de la ventana con dos (desde 484 px) y
+  todo el ancho con una. Los cortes salen de los tokens (`features/project/imageSizes`, que su test compara con
+  `tokens.css`).
 
 ### Aviso (`Notice`)
 - Barra flotante abajo y centrada, tan ancha como su texto (sin pasar del margen lateral ni de `--read-w`), mono
@@ -200,7 +203,8 @@
   tagline en `--text-lead`, metadatos en mono atenuado separados por « · » (Featured en turquesa) y acciones.
 
 ### Portada
-- Debajo de la cabecera, la imagen a todo el ancho de la columna (`Picture` con `sizes` de 720 px, prioridad alta y
+- Debajo de la cabecera, la imagen a todo el ancho de la columna (`Picture` con `sizes` de 696 px —la columna menos
+  su marco— desde 768 px de ventana, prioridad alta y
   sin `lazy`: es lo mayor de la primera vista; sus medidas reales: sin saltos al cargar) dentro
   de un marco con corchetes de esquina ámbar (`--corner-size`, 1 px) en diagonal: arriba a la izquierda y abajo a
   la derecha (los del panel de capítulo van los dos a la izquierda). Sin portada (`cover: null`), no se pinta.

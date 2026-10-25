@@ -20,7 +20,8 @@ const LAYER_RULES = [
       ...THREE,
       ...['lib', 'stores', 'ui', 'features', 'scene', 'routes'].flatMap(layer),
     ],
-    message: 'content no importa nada: solo datos y sus tipos.',
+    message:
+      'content no importa nada: solo datos y sus tipos (y, en projects/media.ts, las capturas de src/assets/, ADR-023).',
   },
   {
     files: ['src/lib/**'],

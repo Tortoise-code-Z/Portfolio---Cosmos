@@ -122,7 +122,7 @@ Detalle en `docs/05-tecnico/calidad.md` y `docs/05-tecnico/git-y-despliegue.md`.
 
 ## 11. Definición de «hecho»
 
-1. `npm run check` en verde y build correcto.
+1. `npm run check` en verde y build correcto (y `npm run dev` si toca la config de Vite: `calidad.md`).
 2. Tests del comportamiento añadido, con casos límite (pirámide y cobertura en `docs/05-tecnico/calidad.md`).
 3. Accesibilidad revisada (teclado, foco, lector) si toca interfaz.
 4. Auditoría con mirada fresca (`code-audit` o la Mesa), idealmente en contexto separado, antes de cerrar la fase.

@@ -16,15 +16,17 @@ src/content/
     cosmos.ts
     entries.ts        ← `projectEntries`: los proyectos sin imágenes, en orden de lectura
     media.ts          ← `projectMedia`: portada y galería de cada proyecto, por slug (imports de imagen)
-    index.ts          ← `projects`: los dos unidos, lo que pinta el sitio
+    index.ts          ← `projects`: los dos unidos, lo que pinta la ficha
     labels.ts         ← etiquetas que comparten varias fichas (RESPONSIVE_DESIGN, DEMO_USER_LABEL)
   texts/
     en.ts             ← textos-sitio.md (EN); sus claves definen `UiKey`
     es.ts             ← textos-sitio.md (ES), tipado como `UiTexts`
     index.ts          ← `uiTexts`: los dos idiomas
-  validate.ts         ← comprobaciones puras de las reglas de abajo (solo las usan los tests)
+  imageWidths.ts      ← anchos de las capturas (variantes y JPEG para compartir): presets, Vitest y tests
+  validate/
+    validate.ts       ← comprobaciones puras de las reglas de abajo (solo las usan los tests)
+    validate.test.ts  ← cada comprobación, con casos rotos a propósito
   content.test.ts     ← las reglas sobre el contenido real
-  validate.test.ts    ← cada comprobación, con casos rotos a propósito
 ```
 
 - La carpeta de textos se llama `texts/` y no `ui/`: `content/ui` chocaría con la capa `ui` en las reglas de
@@ -198,8 +200,12 @@ export interface DemoCredential {
 4. URLs válidas (`https://`) en `links` y `contact`; email con formato válido.
 5. Toda imagen (portada, galería e imagen para compartir) tiene `src` y `width`/`height` enteros positivos; sus
    dos `srcset` (AVIF y WebP) van de menor a mayor ancho, su variante mayor mide `width` y `src` es la WebP mayor.
-   La portada es la primera captura de la galería y su JPEG para compartir mide 1200 px. Que el archivo exista lo
+   Un proyecto con galería tiene portada, que es su primera captura, y su JPEG para compartir mide 1200 px;
+   ninguna captura se repite en una galería. Portada y galería coinciden con la tabla «Imágenes» de su ficha
+   (archivo, textos alternativos y orden; lista escrita a mano en `content.test.ts`). Que el archivo exista lo
    garantiza el import (el build y Vitest fallan si falta). Las claves de `projectMedia` son slugs de proyectos.
+   Vitest comprueba la regla sobre su sustituto de los presets; `project-images.spec.ts`, sobre cada `<picture>`
+   y el `og:image` de las fichas del build.
 6. Cada `Skill.id` es único entre todos los grupos (desde F2.2) y existe en el mapa de posiciones de la escena
    (`docs/04-escena/`, **desde F4**).
 7. Los textos `en` y `es` tienen exactamente las mismas claves (el compilador y un test) y, en cada clave, los

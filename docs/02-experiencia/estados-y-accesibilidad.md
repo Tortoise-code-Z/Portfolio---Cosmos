@@ -3,7 +3,8 @@
 ## Secuencia de carga
 
 1. **HTML pre-renderizado + CSS**: todo el texto visible y el hero completo (el punto y su halo, con CSS).
-   Es lo que mide el LCP.
+   Es lo que mide el LCP. En las fichas, el LCP es la portada (`Picture` con prioridad alta, sin `lazy`;
+   `pagina-proyecto.md` punto 2).
 2. **JavaScript de la interfaz**: navegación, idioma, modo misión rápida, copiar email. Sin la escena.
 3. **Escena en diferido**: el código 3D se descarga aparte (import dinámico) cuando el navegador está libre.
 4. **Generación de partículas** en un Web Worker (no bloquea el hilo principal).
