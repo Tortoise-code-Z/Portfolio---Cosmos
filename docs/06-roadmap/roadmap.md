@@ -44,6 +44,8 @@ se abre. Etiqueta `v0.0.1`.
    proyecto visitado. *(Hecho en F2.7: el visor está probado con imágenes de prueba; las galerías siguen vacías.)*
 8. Imágenes de proyectos migradas desde el repo antiguo y optimizadas: `cover` y `gallery` de cada proyecto (la
    portada y la galería se pintan solas en cuanto tienen datos) y un e2e del visor con las imágenes reales.
+   *(Hecho en F2.8: 21 capturas de Chessmate y AstroHub en AVIF/WebP con `vite-imagetools`, portada = captura de
+   Inicio, `og:image` de las fichas y e2e del visor; ADR-023. Cosmos, sin imágenes hasta F6.)*
 
 **Hecho cuando:** el sitio completo se puede usar y desplegar sin escena; Lighthouse Accessibility ≥ 95 y SEO ≥ 95;
 recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar ya.)*

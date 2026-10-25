@@ -348,3 +348,34 @@
 - Consecuencias: un contrato nuevo entre features se añade a ese módulo (o a uno igual) y a la frase de
   `arquitectura.md`. ESLint no lo vigila todavía: se revisa en las auditorías.
 - Detalle: `docs/05-tecnico/arquitectura.md` → «Capas y reglas de dependencia» (párrafo «Entre features»).
+
+## ADR-023 · Imágenes de proyectos: presets de `vite-imagetools` y contenido sin imágenes aparte
+- Estado: Aceptada
+- Fecha: 2026-10-25
+- Contexto: F2.8 trae las 21 capturas de Chessmate y AstroHub (PNG de 1920 px, de 50 KB a 2,4 MB). Hay que
+  servirlas ligeras y sin saltos de layout, y la ficha necesita una imagen para compartir. Pero la config de
+  React Router (`prerender`, sitemap) y los e2e cargan `src/content/` sin Vite y no entienden un import de imagen.
+  Las portadas del repo antiguo no valen: una es una foto de stock sin licencia clara y la otra, un recorte de
+  otra página.
+- Decisión:
+  - Dos presets en `vite.config.ts`: `?project` da AVIF y WebP a 640, 1280 y 1920 px con la forma
+    `ResponsiveImage` (`{ src, width, height, sources }`), y `?share` da un JPEG de 1200 px (`ImageFile`) para
+    `og:image`. Se pintan con `ui/Picture` (`<picture>` con el `sizes` de cada sitio). Vitest los sustituye por
+    la misma forma con las medidas reales del PNG.
+  - Los textos de cada proyecto (`ProjectEntry`) van aparte de sus imágenes (`ProjectMedia`, `projects/media.ts`).
+    `projectEntries` (sin imágenes) alimenta la config y los e2e; `projects` (los dos unidos) es lo que pinta el
+    sitio.
+  - La portada es la captura de Inicio, la misma que abre la galería.
+  - Víctor elige guardar los PNG originales en git tal cual (~13,4 MB), `og:image` ya en F2.8 y un presupuesto
+    de 200 KB por variante.
+- Alternativas descartadas: generar las variantes a mano con un script y guardarlas en `public/` (más archivos
+  en git y medidas escritas a mano); un cargador de Node para los e2e (frágil, y distinto en Windows); dejar las
+  imágenes dentro de cada `projects/<slug>.ts` (los e2e y la config no podrían importar el contenido); usar las
+  portadas antiguas.
+- Consecuencias:
+  - El primer build genera 128 variantes (~75 s). Después salen de la caché de imagetools, que el CI guarda
+    (`actions/cache@v6`) y Vercel no.
+  - Un proyecto nuevo con imágenes añade sus imports y textos alternativos a `media.ts`. Su slug también va a
+    `WITH_COVER` de `seo.spec.ts` (que comprueba que la lista coincide con la página).
+  - Cosmos sigue sin imágenes hasta F6.
+- Detalle: `docs/01-contenido/assets.md` y `modelo-de-datos.md`; `docs/05-tecnico/arquitectura.md`.

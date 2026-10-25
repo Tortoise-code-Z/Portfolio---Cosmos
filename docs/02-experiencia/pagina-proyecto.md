@@ -23,7 +23,9 @@ sin romper la sensación de estar dentro del mismo universo.
 
 1. **Cabecera:** «Back to the shell», nombre del proyecto (display grande, `h1`), tagline, metadatos en mono
    (Featured en turquesa · año · rol · contexto) y acciones Live demo (si hay) / Code.
-2. **Portada:** imagen `cover` a ancho completo dentro de un marco con corchetes.
+2. **Portada:** imagen `cover` a ancho completo dentro de un marco con corchetes. Es la captura de Inicio del
+   proyecto (la primera de la galería) y lo mayor de la primera vista: se pide con prioridad alta y sin `lazy`, en
+   AVIF o WebP del ancho de la columna (`docs/01-contenido/assets.md`). Sin portada (Cosmos, hasta F6), no se pinta.
 3. **About the project:** párrafos `about`.
 4. **Key features:** rejilla de `features`.
 5. **Tech stack:** cuatro grupos (core, libraries, design, tooling), cada uno con su título (`h3`) y etiquetas.
@@ -36,7 +38,8 @@ sin romper la sensación de estar dentro del mismo universo.
    copiar por dato que dice cuál copia («Copy password (Admin)»); todas comparten columnas, para que los botones
    queden alineados (por debajo de sm, o con el texto grande si no caben, el campo encima). El título va en
    singular o en plural según el número de cuentas («Demo account» / «Demo accounts»).
-9. **Gallery:** miniaturas (botones «Open image n of total» + texto alternativo, todas con la misma proporción);
+9. **Gallery:** miniaturas (botones «Open image n of total» + texto alternativo, todas con la misma proporción,
+   `--gallery-thumb-ratio`, y cargadas en diferido);
    al abrir, visor a pantalla completa con flechas, teclado (← → con vuelta, Esc), contador «n / total» y foco
    atrapado (modal nativo). La imagen activa se anuncia («3 of 9: texto alternativo»), también al abrir; al
    cerrar, el foco vuelve a la miniatura de la imagen que se estaba viendo.
@@ -59,8 +62,10 @@ Las secciones sin datos (por ejemplo, `tryIt: null`) **no se pintan**. Cada secc
 
 ## SEO
 
-- `<title>` y descripción propias (`meta.project.title`, `summary` tal cual), imagen Open Graph = `cover` cuando
-  exista (si es `null`, la imagen del sitio de su idioma; hasta entonces, sin `og:image`).
+- `<title>` y descripción propias (`meta.project.title`, `summary` tal cual). Imagen Open Graph = la portada en
+  JPEG de 1200 px (`cover.share`), con `og:image:width`, `og:image:height`, `og:image:alt` (el de la portada) y
+  `twitter:card` `summary_large_image`. Sin portada: la imagen del sitio de su idioma cuando exista (F6); hasta
+  entonces, sin `og:image` y con `twitter:card` `summary`.
 - HTML pre-renderizado con todo el contenido (decisión técnica en `docs/05-tecnico/`).
 - Datos estructurados `SoftwareSourceCode` (un `CreativeWork`) con nombre, descripción, año, URL canónica, URL del
   código (`codeRepository`), idioma y autor embebido.
@@ -70,6 +75,7 @@ Las secciones sin datos (por ejemplo, `tryIt: null`) **no se pintan**. Cada secc
 
 1. Cada proyecto tiene su URL en los dos idiomas y funciona al cargarla directamente.
 2. Toda la página es legible y navegable sin escena.
-3. La galería se usa por completo con teclado y anuncia la imagen activa.
+3. La galería se usa por completo con teclado y anuncia la imagen activa (e2e `project-images.spec.ts` con las
+   capturas reales). Las imágenes no mueven la página al llegar (CLS < 0,1).
 4. Volver a la home deja el scroll en el capítulo de proyectos con el foco en la fila del proyecto visitado
    (`navegacion.md` → «Volver desde una página de proyecto»); desde F5, además, con la placa iluminada.

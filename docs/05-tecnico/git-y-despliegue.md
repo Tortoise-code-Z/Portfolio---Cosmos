@@ -51,6 +51,9 @@ install (npm ci)
             └─ lhci (presupuestos)
 ```
 
+- El job `Build` guarda la caché de `vite-imagetools` (`node_modules/.cache/imagetools`, `actions/cache@v6`) con
+  una clave de las capturas, `vite.config.ts` y el lockfile: sin ella, generar las variantes de las imágenes cuesta
+  alrededor de un minuto más (ADR-023). Vercel no la tiene: cada despliegue las genera.
 - Los informes de Playwright y Lighthouse se suben como artefactos cuando algo falla.
 - Cada job lleva `timeout-minutes: 15`: un cuelgue (como la descarga de navegadores de Playwright) falla en
   15 min en lugar de esperar las 6 h por defecto de GitHub.

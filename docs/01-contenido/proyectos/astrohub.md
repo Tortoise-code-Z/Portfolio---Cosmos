@@ -114,20 +114,23 @@
 
 ## Imágenes
 
-Origen: repo del portfolio actual, `src/assets/images/`. Destino: `src/assets/projects/astrohub/`.
+Origen: repo del portfolio antiguo, `src/assets/images/screenshots/astrohub/`. Destino:
+`src/assets/projects/astrohub/` (F2.8), en el orden de la galería. Datos en `src/content/projects/media.ts`.
 
-| Archivo | Alt EN | Alt ES |
+**Portada:** la captura de Inicio (`01-home.png`), con su propio texto alternativo: «AstroHub home page» /
+«Página de inicio de AstroHub». La portada del repo antiguo no se usa (`docs/01-contenido/assets.md`).
+
+| Archivo (original) | Alt EN | Alt ES |
 |---|---|---|
-| cover · `Astrohub-Proyect.webp` (1920×911) | AstroHub home page | Página de inicio de AstroHub |
-| `screenshot-inicio.png` (1920×916) | Home | Inicio |
-| `screenshot-noticias.png` (1920×913) | News | Noticias |
-| `screenshot-citas.png` (1920×911) | Appointments | Citas |
-| `screenshot--login.png` (1920×914) | Login | Inicio de sesión |
-| `screenshot-registro.png` (1920×911) | Sign-up | Registro |
-| `screenshot-perfil.png` (1920×913) | Profile | Perfil |
-| `screenshot-admin-usuarios.png` (1920×916) | Admin · users | Administración de usuarios |
-| `screenshot-admin-noticias.png` (1920×914) | Admin · news | Administración de noticias |
-| `screenshot-admin-citas.png` (1920×911) | Admin · appointments | Administración de citas |
-| `screenshot-admin-editar-usuarios.png` (1920×911) | Editing a user | Edición de usuarios |
-| `screenshot-admin-editar-noticias.png` (1920×913) | Editing a news item | Edición de noticias |
-| `screenshot-admin-editar-cita.png` (1920×913) | Editing an appointment | Edición de citas |
+| `01-home.png` (`screenshot-inicio.png`, 1920×916) | Home | Inicio |
+| `02-news.png` (`screenshot-noticias.png`, 1920×913) | News | Noticias |
+| `03-appointments.png` (`screenshot-citas.png`, 1920×911) | Appointments | Citas |
+| `04-login.png` (`screenshot--login.png`, 1920×914) | Login | Inicio de sesión |
+| `05-sign-up.png` (`screenshot-registro.png`, 1920×911) | Sign-up | Registro |
+| `06-profile.png` (`screenshot-perfil.png`, 1920×913) | Profile | Perfil |
+| `07-admin-users.png` (`screenshot-admin-usuarios.png`, 1920×916) | Admin · users | Administración de usuarios |
+| `08-admin-news.png` (`screenshot-admin-noticias.png`, 1920×914) | Admin · news | Administración de noticias |
+| `09-admin-appointments.png` (`screenshot-admin-citas.png`, 1920×911) | Admin · appointments | Administración de citas |
+| `10-admin-edit-user.png` (`screenshot-admin-editar-usuarios.png`, 1920×911) | Editing a user | Edición de usuarios |
+| `11-admin-edit-news.png` (`screenshot-admin-editar-noticias.png`, 1920×913) | Editing a news item | Edición de noticias |
+| `12-admin-edit-appointment.png` (`screenshot-admin-editar-cita.png`, 1920×913) | Editing an appointment | Edición de citas |

@@ -2,13 +2,22 @@
 
 ## Capturas de proyectos
 
-- **Origen:** repo del portfolio actual (`https://github.com/Tortoise-code-Z/portfolio`), carpeta
-  `src/assets/images/` y `src/assets/images/screenshots/`. Listado y textos alternativos en cada ficha de
-  `proyectos/`.
-- **Destino:** `src/assets/projects/<slug>/`.
-- **Tratamiento:** convertir a **AVIF + WebP** con varios anchos (por ejemplo 640, 1280 y 1920 px) para
-  `srcset`; conservar `width`/`height` para que no haya saltos de layout (CLS). La herramienta se decide en
-  `docs/05-tecnico/`.
+- **Origen:** repo del portfolio antiguo (`https://github.com/Tortoise-code-Z/portfolio`), carpeta
+  `src/assets/images/screenshots/<proyecto>/`. Listado y textos alternativos en cada ficha de `proyectos/`
+  (sección «Imágenes»). ✔ F2.8
+- **Destino:** `src/assets/projects/<slug>/NN-<nombre>.png` (PNG originales de 1920 px de ancho, tal cual), con
+  `NN` = orden de la galería en la ficha. Los datos (texto alternativo EN/ES) van en `src/content/projects/media.ts`.
+- **Portada:** la captura de Inicio de cada proyecto, la misma que abre su galería (sin archivo duplicado). Las
+  portadas del repo antiguo no se usan: `Chessmate.webp` es una foto de stock de un tablero (sin licencia clara)
+  y `Astrohub-Proyect.webp`, un recorte de Noticias.
+- **Tratamiento** (`vite-imagetools` en el build, presets de `vite.config.ts`):
+  - `?project` → **AVIF + WebP** a **640, 1280 y 1920 px** para el `srcset` de un `<picture>` (`ui/Picture`);
+    `width`/`height` del archivo en el `<img>`, para que no haya saltos de layout (CLS). El navegador elige
+    formato y ancho con el `sizes` de cada sitio: portada 720 px (la columna), miniaturas ~240 px, visor 100vw.
+  - `?share` → **JPEG de 1200 px** (calidad 80) para `og:image` de la ficha: no todas las redes leen WebP.
+  - Presupuesto: cada variante servida ≤ 200 KB (`budgets.spec.ts`; la mayor, 148 KB en F2.8).
+  - La primera generación tarda ~75 s; después sale de la caché (`node_modules/.cache/imagetools`), que el CI
+    guarda entre ejecuciones.
 - Las ilustraciones tipo caricatura del sitio actual (`*-Caricatura*.webp`) **no se usan** en la v1: la estética
   nueva es la escena de partículas. Se pueden recuperar más adelante si encajan.
 
