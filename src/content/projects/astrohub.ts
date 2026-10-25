@@ -1,9 +1,9 @@
 // Fuente: docs/01-contenido/proyectos/astrohub.md.
 
-import type { Project } from '../types';
+import type { ProjectEntry } from '../types';
 import { DEMO_USER_LABEL, RESPONSIVE_DESIGN } from './labels';
 
-export const astrohub: Project = {
+export const astrohub: ProjectEntry = {
   slug: 'astrohub',
   order: 2,
   featured: false,
@@ -121,8 +121,6 @@ export const astrohub: Project = {
       { label: { en: 'Admin', es: 'Administrador' }, user: 'root', password: '1234567' },
     ],
   },
-  cover: null,
-  gallery: [],
   links: {
     code: 'https://github.com/Tortoise-code-Z/Astrohub',
     demo: null,

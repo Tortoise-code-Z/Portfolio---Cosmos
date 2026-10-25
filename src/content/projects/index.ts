@@ -1,7 +1,11 @@
-import type { Project } from '../types';
-import { astrohub } from './astrohub';
-import { chessmate } from './chessmate';
-import { cosmos } from './cosmos';
+import type { Project, ProjectMedia } from '../types';
+import { projectEntries } from './entries';
+import { projectMedia } from './media';
 
-/** Todos los proyectos, en orden de lectura (`order`). Las rutas y el `prerender` salen de aquí. */
-export const projects: readonly Project[] = [chessmate, astrohub, cosmos];
+const NO_MEDIA: ProjectMedia = { cover: null, gallery: [] };
+
+/** Todos los proyectos con sus imágenes, en orden de lectura (`order`): lo que pinta el sitio. */
+export const projects: readonly Project[] = projectEntries.map((entry) => ({
+  ...entry,
+  ...(projectMedia[entry.slug] ?? NO_MEDIA),
+}));

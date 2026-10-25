@@ -57,6 +57,7 @@ test.describe('project page', () => {
       'Development process',
       'Notes',
       'Try it',
+      'Gallery',
     ]);
   });
 

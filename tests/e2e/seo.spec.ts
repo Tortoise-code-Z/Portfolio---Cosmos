@@ -2,9 +2,9 @@ import { expect, test, type Page } from '@playwright/test';
 import { loadEnv } from 'vite';
 
 import { profile } from '../../src/content/profile.ts';
-import { projects } from '../../src/content/projects/index.ts';
+import { projectEntries } from '../../src/content/projects/entries.ts';
 import { uiTexts } from '../../src/content/texts/index.ts';
-import type { Locale, Project } from '../../src/content/types.ts';
+import type { Locale, ProjectEntry } from '../../src/content/types.ts';
 import { parseSiteUrl } from '../../src/lib/env/siteUrl/siteUrl.ts';
 import { indexablePaths, sitePages } from '../../src/lib/seo/pages/pages.ts';
 import { absoluteUrl } from '../../src/lib/seo/urls/urls.ts';
@@ -16,12 +16,18 @@ import { absoluteUrl } from '../../src/lib/seo/urls/urls.ts';
  */
 // `loadEnv` lee el `.env` y también las variables del proceso (el CI las define ahí).
 const ORIGIN = parseSiteUrl(loadEnv('production', process.cwd(), 'VITE_').VITE_SITE_URL);
-const PAGES = sitePages(projects);
+const PAGES = sitePages(projectEntries);
+
+/**
+ * Proyectos con portada y, por tanto, con `og:image` (content/projects/media.ts). Escrito a mano: los e2e
+ * cargan el contenido sin Vite y no pueden importar las imágenes.
+ */
+const WITH_COVER: ReadonlySet<string> = new Set(['chessmate', 'astrohub']);
 const INDEXABLE = indexablePaths(PAGES).map((path) => absoluteUrl(ORIGIN, path));
 const OG_LOCALE: Readonly<Record<Locale, string>> = { en: 'en_US', es: 'es_ES' };
 
-function projectBySlug(slug: string): Project {
-  const project = projects.find((candidate) => candidate.slug === slug);
+function projectBySlug(slug: string): ProjectEntry {
+  const project = projectEntries.find((candidate) => candidate.slug === slug);
   if (project === undefined) throw new Error(`seo.spec: no hay proyecto «${slug}»`);
   return project;
 }
@@ -107,7 +113,9 @@ test.describe('páginas indexables', () => {
         ]);
         expect(meta.ogLocale).toEqual([OG_LOCALE[locale]]);
         expect(meta.ogType).toEqual([sitePage.kind === 'home' ? 'website' : 'article']);
-        expect(meta.ogImage).toEqual([]);
+        expect(meta.ogImage).toHaveLength(
+          sitePage.kind === 'project' && WITH_COVER.has(sitePage.slug) ? 1 : 0,
+        );
         expect(meta.robots).toEqual([]);
 
         expect(meta.jsonLd).toHaveLength(1);

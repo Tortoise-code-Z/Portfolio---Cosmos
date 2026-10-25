@@ -4,13 +4,20 @@
 
 import type { MetaDescriptor } from 'react-router';
 
-import { LOCALES, type Locale, type Profile, type Project, type SkillGroup } from '~/content/types';
+import {
+  LOCALES,
+  type CoverAsset,
+  type Locale,
+  type Profile,
+  type Project,
+  type SkillGroup,
+} from '~/content/types';
 import { homePath, projectPath } from '~/lib/i18n/paths/paths';
 import { translate } from '~/lib/i18n/translate/translate';
 
 import { personJsonLd, projectJsonLd } from '../jsonLd/jsonLd';
 import { byLocale } from '../pages/pages';
-import { absoluteUrl } from '../urls/urls';
+import { absoluteUrl, assetUrl } from '../urls/urls';
 
 /** Open Graph exige región (`en_US`, no `en`). */
 export const OG_LOCALE: Readonly<Record<Locale, string>> = { en: 'en_US', es: 'es_ES' };
@@ -20,12 +27,31 @@ interface PageText {
   readonly description?: string;
 }
 
+/** Imagen para compartir de una página: URL absoluta, medidas y texto alternativo en su idioma. */
+interface ShareImage {
+  readonly url: string;
+  readonly width: number;
+  readonly height: number;
+  readonly alt: string;
+}
+
+/** La imagen para compartir de una ficha: el JPEG de su portada (`cover.share`) con el `alt` de la portada. */
+export function coverShareImage(origin: string, locale: Locale, cover: CoverAsset): ShareImage {
+  return {
+    url: assetUrl(origin, cover.share.src),
+    width: cover.share.width,
+    height: cover.share.height,
+    alt: cover.alt[locale],
+  };
+}
+
 /** Título, descripción y la parte de Open Graph y Twitter común a todas las páginas. */
 function baseMeta(
   locale: Locale,
   siteName: string,
   text: PageText,
   ogType: string,
+  image: ShareImage | null = null,
 ): MetaDescriptor[] {
   const descriptors: MetaDescriptor[] = [
     { title: text.title },
@@ -37,9 +63,17 @@ function baseMeta(
       property: 'og:locale:alternate',
       content: OG_LOCALE[other],
     })),
-    // `summary` mientras no haya imagen para compartir; con ella, `summary_large_image`.
-    { name: 'twitter:card', content: 'summary' },
+    // `summary` sin imagen para compartir; con ella, `summary_large_image` (Twitter/X lee la de Open Graph).
+    { name: 'twitter:card', content: image === null ? 'summary' : 'summary_large_image' },
   ];
+  if (image !== null) {
+    descriptors.push(
+      { property: 'og:image', content: image.url },
+      { property: 'og:image:width', content: String(image.width) },
+      { property: 'og:image:height', content: String(image.height) },
+      { property: 'og:image:alt', content: image.alt },
+    );
+  }
   if (text.description !== undefined) {
     descriptors.push(
       { name: 'description', content: text.description },
@@ -97,7 +131,7 @@ export function homeMeta({
   ];
 }
 
-/** Descripción = `summary` tal cual. */
+/** Descripción = `summary` tal cual; imagen para compartir = la portada, si la hay (sin ella, ninguna). */
 export function projectMeta({
   origin,
   locale,
@@ -109,7 +143,13 @@ export function projectMeta({
     description: project.summary[locale],
   };
   return [
-    ...baseMeta(locale, profile.name, text, 'article'),
+    ...baseMeta(
+      locale,
+      profile.name,
+      text,
+      'article',
+      project.cover === null ? null : coverShareImage(origin, locale, project.cover),
+    ),
     ...linkMeta(
       origin,
       locale,

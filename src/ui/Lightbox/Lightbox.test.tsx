@@ -30,9 +30,27 @@ afterEach(() => {
 });
 
 const IMAGES: readonly LightboxImage[] = [
-  { src: '/a.webp', width: 1600, height: 900, alt: 'Home page' },
-  { src: '/b.webp', width: 1600, height: 900, alt: 'Course list' },
-  { src: '/c.webp', width: 900, height: 1600, alt: 'Dashboard on a phone' },
+  {
+    src: '/a.webp',
+    width: 1600,
+    height: 900,
+    sources: { avif: '/a.avif 1600w', webp: '/a.webp 1600w' },
+    alt: 'Home page',
+  },
+  {
+    src: '/b.webp',
+    width: 1600,
+    height: 900,
+    sources: { avif: '/b.avif 1600w', webp: '/b.webp 1600w' },
+    alt: 'Course list',
+  },
+  {
+    src: '/c.webp',
+    width: 900,
+    height: 1600,
+    sources: { avif: '/c.avif 900w', webp: '/c.webp 900w' },
+    alt: 'Dashboard on a phone',
+  },
 ];
 
 const onClose = vi.fn();

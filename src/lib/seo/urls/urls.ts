@@ -11,3 +11,14 @@ export function absoluteUrl(origin: string, path: string): string {
   }
   return new URL(path, origin).href;
 }
+
+/** Archivo del build (`/assets/01-home-CaIUKrxu.jpeg`): el hash lleva mayúsculas, `_` y `-`; sin `?`, `#` ni `..`. */
+const ASSET_SHAPE = /^\/(?:[\w-]+\/)*[\w-]+(?:\.[\w-]+)*\.[a-z0-9]+$/;
+
+/** URL absoluta de un archivo del build (la imagen para compartir). Otra forma es un error de programa. */
+export function assetUrl(origin: string, path: string): string {
+  if (!ASSET_SHAPE.test(path)) {
+    throw new Error(`assetUrl: ruta de archivo no válida «${path}»`);
+  }
+  return new URL(path, origin).href;
+}

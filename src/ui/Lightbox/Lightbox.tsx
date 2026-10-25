@@ -4,14 +4,12 @@ import { useT } from '~/lib/i18n/useT/useT';
 
 import { ButtonOutline } from '../ButtonOutline/ButtonOutline';
 import { Icon } from '../Icon/Icon';
+import { Picture, type PictureImage } from '../Picture/Picture';
 import { VisuallyHidden } from '../VisuallyHidden/VisuallyHidden';
 import styles from './Lightbox.module.css';
 
-/** Una imagen del visor, ya en el idioma de la página. */
-export interface LightboxImage {
-  readonly src: string;
-  readonly width: number;
-  readonly height: number;
+/** Una imagen del visor, con su texto alternativo ya en el idioma de la página. */
+export interface LightboxImage extends PictureImage {
   readonly alt: string;
 }
 
@@ -118,12 +116,12 @@ export function Lightbox({
             </ButtonOutline>
           </div>
           <figure className={styles.figure}>
-            <img
+            {/* A pantalla completa: con `sizes` de todo el ancho, el navegador pide la variante mayor que necesita. */}
+            <Picture
               key={current.src}
-              src={current.src}
-              width={current.width}
-              height={current.height}
+              image={current}
               alt={current.alt}
+              sizes="100vw"
               className={styles.image}
             />
           </figure>

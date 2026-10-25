@@ -3,9 +3,16 @@ import { useRef, useState, type ReactNode } from 'react';
 import type { ImageAsset } from '~/content/types';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
 import { Lightbox, type LightboxImage } from '~/ui/Lightbox/Lightbox';
+import { Picture } from '~/ui/Picture/Picture';
 import { VisuallyHidden } from '~/ui/VisuallyHidden/VisuallyHidden';
 
 import styles from './ProjectGallery.module.css';
+
+/**
+ * Ancho de cada miniatura (atributo `sizes`): tres columnas en la columna de lectura (720 px) desde 760 px
+ * de ventana, dos desde 500 px y una por debajo (rejilla de `--project-col-min`). Aproximado por arriba.
+ */
+const THUMB_SIZES = '(min-width: 760px) 240px, (min-width: 500px) 50vw, 100vw';
 
 interface ProjectGalleryProps {
   readonly images: readonly ImageAsset[];
@@ -28,6 +35,7 @@ export function ProjectGallery({ images }: ProjectGalleryProps): ReactNode {
     src: image.src,
     width: image.width,
     height: image.height,
+    sources: image.sources,
     alt: image.alt[locale],
   }));
 
@@ -57,13 +65,11 @@ export function ProjectGallery({ images }: ProjectGalleryProps): ReactNode {
               <VisuallyHidden>
                 {t('project.gallery.open', { n: String(index + 1), total: String(total) })}
               </VisuallyHidden>{' '}
-              <img
-                src={image.src}
-                width={image.width}
-                height={image.height}
+              <Picture
+                image={image}
                 alt={image.alt}
+                sizes={THUMB_SIZES}
                 loading="lazy"
-                decoding="async"
                 className={styles.image}
               />
             </button>

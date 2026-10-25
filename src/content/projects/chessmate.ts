@@ -1,9 +1,9 @@
 // Fuente: docs/01-contenido/proyectos/chessmate.md.
 
-import type { Project } from '../types';
+import type { ProjectEntry } from '../types';
 import { DEMO_USER_LABEL, RESPONSIVE_DESIGN } from './labels';
 
-export const chessmate: Project = {
+export const chessmate: ProjectEntry = {
   slug: 'chessmate',
   order: 1,
   featured: true,
@@ -109,8 +109,6 @@ export const chessmate: Project = {
     // Cuenta de demo pública del proyecto de ejemplo (modelo-de-datos.md → «Credenciales de demo»).
     credentials: [{ label: DEMO_USER_LABEL, user: 'admin', password: '1234' }],
   },
-  cover: null,
-  gallery: [],
   links: {
     code: 'https://github.com/Tortoise-code-Z/Chessmate-react',
     demo: 'https://tortoise-code-z.github.io/Chessmate-react/',

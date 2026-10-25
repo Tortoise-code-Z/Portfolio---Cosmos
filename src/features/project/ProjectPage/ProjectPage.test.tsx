@@ -35,6 +35,7 @@ describe('ProjectPage', () => {
       'Development process',
       'Notes',
       'Try it',
+      'Gallery',
     ]);
     expect(
       screen.getByRole('heading', { level: 3, name: 'Technical highlights' }),
@@ -90,7 +91,12 @@ describe('ProjectPage', () => {
       src: '/images/chessmate/cover.webp',
       width: 1600,
       height: 900,
+      sources: {
+        avif: '/images/chessmate/cover.avif 1600w',
+        webp: '/images/chessmate/cover.webp 1600w',
+      },
       alt: { en: 'Chessmate home page', es: 'Inicio de Chessmate' },
+      share: { src: '/images/chessmate/cover.jpeg', width: 1200, height: 675 },
     };
     renderAt('/es/projects/chessmate', { ...chessmate, cover });
     const image = await screen.findByRole('img', { name: 'Inicio de Chessmate' });
@@ -102,7 +108,13 @@ describe('ProjectPage', () => {
   it('con galería: su sección va detrás de «Try it», antes del pie', async () => {
     const chessmate = bySlug('chessmate');
     const gallery = [
-      { src: '/g/1.webp', width: 1600, height: 900, alt: { en: 'Home page', es: 'Inicio' } },
+      {
+        src: '/g/1.webp',
+        width: 1600,
+        height: 900,
+        sources: { avif: '/g/1.avif 1600w', webp: '/g/1.webp 1600w' },
+        alt: { en: 'Home page', es: 'Inicio' },
+      },
     ];
     renderAt('/projects/chessmate', { ...chessmate, gallery });
     await screen.findByRole('main');

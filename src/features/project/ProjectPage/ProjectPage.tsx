@@ -7,6 +7,7 @@ import type { Project } from '~/content/types';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
 import { setVisitedProject } from '~/stores/uiStore/uiStore';
 import { ArrowText } from '~/ui/ArrowText/ArrowText';
+import { Picture } from '~/ui/Picture/Picture';
 
 import { neighbours } from '../neighbours/neighbours';
 import { ProjectGallery } from '../ProjectGallery/ProjectGallery';
@@ -18,6 +19,9 @@ import { hasStack, ProjectStack } from '../ProjectStack/ProjectStack';
 import { ProjectTryIt } from '../ProjectTryIt/ProjectTryIt';
 import styles from './ProjectPage.module.css';
 
+/** Ancho de la portada (atributo `sizes`): la columna de lectura (720 px) o, por debajo, toda la ventana. */
+const COVER_SIZES = '(min-width: 760px) 720px, 100vw';
+
 interface ProjectPageProps {
   readonly project: Project;
 }
@@ -25,9 +29,8 @@ interface ProjectPageProps {
 /**
  * Página de proyecto (docs/02-experiencia/pagina-proyecto.md): un documento normal, sin capítulos, en
  * una columna de lectura. Las secciones van en el orden de la spec y la que no tiene datos no se pinta
- * (Cosmos no tiene proceso ni «Try it»; las portadas y galerías de Chessmate y AstroHub llegan en F2.8 y
- * la portada de Cosmos, en F6). Es el `<main>` de la ruta. Apunta el proyecto como visto: al volver al
- * viaje, el foco queda en su fila.
+ * (Cosmos no tiene proceso, «Try it», portada ni galería: sus imágenes llegan en F6). Es el `<main>` de
+ * la ruta. Apunta el proyecto como visto: al volver al viaje, el foco queda en su fila.
  */
 export function ProjectPage({ project }: ProjectPageProps): ReactNode {
   const t = useT();
@@ -57,11 +60,12 @@ export function ProjectPage({ project }: ProjectPageProps): ReactNode {
 
         {cover === null ? null : (
           <figure className={styles.cover}>
-            <img
-              src={cover.src}
-              width={cover.width}
-              height={cover.height}
+            {/* Lo mayor de la primera vista (el LCP de la ficha): se pide antes que el resto y sin `lazy`. */}
+            <Picture
+              image={cover}
               alt={cover.alt[locale]}
+              sizes={COVER_SIZES}
+              fetchPriority="high"
               className={styles.coverImage}
             />
           </figure>

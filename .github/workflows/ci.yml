@@ -44,6 +44,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # Variantes de las capturas (vite-imagetools): sin la caché, el build tarda alrededor de un minuto más.
+      - uses: actions/cache@v6
+        with:
+          path: node_modules/.cache/imagetools
+          key: imagetools-${{ hashFiles('src/assets/**', 'vite.config.ts', 'package-lock.json') }}
       - run: npm run build
       - uses: actions/upload-artifact@v7
         with:
