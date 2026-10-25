@@ -60,6 +60,8 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
 5. Puente `sceneStore` ↔ scroll (el scroll ya escribe `mTarget` desde F2.5, ADR-021: la escena pasa a suavizar `m`);
    pausa con pestaña oculta y en misión rápida (`quickMissionOpen` de `uiStore`, desde F2.6).
 6. Primeras capturas de regresión visual (Docker) y medición de fps.
+7. Ficha de **Cosmos** con la escena: el resumen final, «Scroll-driven particle morphing…», «Works without WebGL…»
+   y Three.js / React Three Fiber / GLSL en el stack (`docs/01-contenido/proyectos/cosmos.md`, ⏳).
 
 **Hecho cuando:** el viaje se ve de punta a punta con las 5 formas, 60 fps en escritorio y sin errores con WebGL
 desactivado. Etiqueta `v0.2.0`.
@@ -72,6 +74,9 @@ desactivado. Etiqueta `v0.2.0`.
    test de no solapamiento.
 4. **Tortuga:** placas por huecos, pins, ciclo automático, resaltado sincronizado con las filas.
 5. **Tierra:** día/noche, amanecer, luces de ciudad, atmósfera y Sol.
+
+Con la galaxia y la tortuga hechas (pasos 3 y 4), la ficha de **Cosmos** suma «Interactive constellations and
+project plates» (`docs/01-contenido/proyectos/cosmos.md`, ⏳).
 
 **Hecho cuando:** cada capítulo cumple sus criterios de aceptación de `docs/02-experiencia/capitulos/`.
 Etiqueta `v0.3.0`.
