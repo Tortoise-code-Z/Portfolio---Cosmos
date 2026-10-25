@@ -13,6 +13,13 @@ const STACK: Project['stack'] = {
   tooling: ['Vite'],
 };
 
+const FULL: Project['stack'] = {
+  core: ['React'],
+  libraries: ['Zustand'],
+  design: [{ en: 'CSS Modules', es: 'CSS Modules' }],
+  tooling: ['Vite'],
+};
+
 const EMPTY: Project['stack'] = { core: [], libraries: [], design: [], tooling: [] };
 
 function renderAt(path: string, stack: Project['stack']): void {
@@ -36,6 +43,23 @@ describe('ProjectStack', () => {
         .getAllByRole('listitem')
         .map((li) => li.textContent),
     ).toEqual(['React', 'TypeScript']);
+  });
+
+  it('con los cuatro grupos: core, librerías, diseño y herramientas, en ese orden', async () => {
+    renderAt('/projects/x', FULL);
+    const titles = await screen.findAllByRole('heading', { level: 3 });
+    expect(titles.map((title) => title.textContent)).toEqual([
+      'Languages & frameworks',
+      'Libraries & utilities',
+      'Design & styling',
+      'Tooling',
+    ]);
+    expect(screen.getAllByRole('list').map((list) => list.textContent)).toEqual([
+      'React',
+      'Zustand',
+      'CSS Modules',
+      'Vite',
+    ]);
   });
 
   it('las etiquetas traducibles salen en el idioma de la página', async () => {

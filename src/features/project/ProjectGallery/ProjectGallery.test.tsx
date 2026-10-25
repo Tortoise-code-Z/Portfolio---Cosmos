@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createRoutesStub } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -62,6 +62,20 @@ describe('ProjectGallery', () => {
 
     await user.click(screen.getByRole('button', { name: 'Close' }));
     expect(screen.getByRole('button', { name: 'Open image 3 of 3 Dashboard' })).toHaveFocus();
+  });
+
+  it('con Esc (el navegador cierra el visor) también vuelve el foco a la miniatura que se veía', async () => {
+    const user = userEvent.setup();
+    renderAt('/projects/x');
+    await user.click(await screen.findByRole('button', { name: 'Open image 2 of 3 Courses' }));
+    await user.keyboard('{ArrowRight}');
+    act(() => {
+      document.querySelector('dialog')?.close();
+    });
+    expect(screen.getByRole('button', { name: 'Open image 3 of 3 Dashboard' })).toHaveFocus();
+    // Cerrado de verdad: la miniatura vuelve a abrir el visor.
+    await user.click(screen.getByRole('button', { name: 'Open image 1 of 3 Home page' }));
+    expect(screen.getByRole('status')).toHaveTextContent('1 of 3: Home page');
   });
 
   it('en español', async () => {

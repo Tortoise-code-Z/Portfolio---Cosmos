@@ -63,14 +63,24 @@ describe('ProjectRoute', () => {
       '/projects/chessmate',
     );
     expect(document.querySelector('dialog')).not.toBeNull();
-    // Sin capítulos no hay raíl ni HUD.
+    // Sin capítulos no hay raíl ni HUD (el reloj cósmico, «t = 0 s»).
     expect(screen.queryByRole('navigation', { name: /chapters|capítulos/i })).toBeNull();
+    expect(document.body).not.toHaveTextContent(/t [=≈] /);
   });
 
   it('apunta el proyecto como visto (el viaje dejará el foco en su fila al volver)', async () => {
     render(<Stub initialEntries={['/projects/cosmos']} />);
     await screen.findByRole('heading', { level: 1 });
     expect(useUiStore.getState().visitedProject).toBe('cosmos');
+  });
+
+  it('de ficha en ficha, el visto es el último (el viaje dejará el foco en su fila)', async () => {
+    render(<Stub initialEntries={['/projects/chessmate']} />);
+    await screen.findByRole('heading', { level: 1, name: 'Chessmate' });
+    expect(useUiStore.getState().visitedProject).toBe('chessmate');
+    await userEvent.click(screen.getByRole('link', { name: /Next project\s+AstroHub/ }));
+    await screen.findByRole('heading', { level: 1, name: 'AstroHub' });
+    expect(useUiStore.getState().visitedProject).toBe('astrohub');
   });
 
   it('al cargar la página, el foco no se mueve; «Next project» lleva el foco al nombre del siguiente', async () => {

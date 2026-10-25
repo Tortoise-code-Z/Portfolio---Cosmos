@@ -106,11 +106,15 @@ describe('Projects', () => {
     const viewLink = (name: string): HTMLElement =>
       within(rowOf(name)).getByRole('link', { name: `View project ${name}` });
 
-    it('«Back to the shell» (/#projects): the focus lands on that row', async () => {
+    it('«Back to the shell» (/#projects): the focus lands on that row and scrolls it into view', async () => {
       const router = renderJourney();
       setVisitedProject('astrohub');
+      const focus = vi.spyOn(HTMLElement.prototype, 'focus');
       await act(() => router.navigate('/#projects'));
       expect(viewLink('AstroHub')).toHaveFocus();
+      // El enlace no restaura scroll: el foco tiene que traer la fila a la vista.
+      expect(focus).toHaveBeenCalledWith({ preventScroll: false });
+      focus.mockRestore();
     });
 
     it('the browser Back button: the same row, without moving the restored scroll', async () => {

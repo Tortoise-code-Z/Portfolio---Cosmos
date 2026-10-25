@@ -186,13 +186,12 @@ test.describe('404 por idioma (sin redirecciones)', () => {
   test('la 404 hidratada enlaza una sola hoja de estilos, la misma que el HTML servido', async ({
     page,
   }) => {
-    await page.goto('/projects/no-existe');
-    const served = await page.evaluate(() =>
-      [...document.querySelectorAll('link[rel="stylesheet"]')].map((link) =>
-        link.getAttribute('href'),
-      ),
+    // El HTML tal cual lo manda el servidor, sin pasar por el navegador (ni por la hidratación).
+    const html = await (await page.request.get('/projects/no-existe')).text();
+    const served = [...html.matchAll(/<link\b[^>]*\brel="stylesheet"[^>]*>/g)].map(
+      ([tag]) => /\bhref="([^"]+)"/.exec(tag)?.[1] ?? null,
     );
-    await page.waitForLoadState('networkidle');
+    await page.goto('/projects/no-existe', { waitUntil: 'networkidle' });
     // La ruta que casa el cliente (proyecto) ya ha cargado su módulo y pinta la 404 de `features/errors`.
     const hydrated = await page.evaluate(() =>
       [...document.querySelectorAll('link[rel="stylesheet"]')].map((link) =>

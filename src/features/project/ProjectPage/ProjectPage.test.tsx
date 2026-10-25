@@ -75,6 +75,7 @@ describe('ProjectPage', () => {
       notes: [],
       tryIt: null,
       cover: null,
+      gallery: [],
     };
     const container = renderAt('/projects/chessmate', empty);
     await screen.findByRole('heading', { level: 1, name: 'Chessmate' });

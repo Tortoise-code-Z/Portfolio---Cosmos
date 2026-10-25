@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { TryIt } from '~/content/types';
 
@@ -27,6 +27,19 @@ function renderAt(path: string, tryIt: TryIt = TRY_IT): HTMLElement {
   const { container } = render(<Stub initialEntries={[path]} />);
   return container;
 }
+
+afterEach(() => {
+  window.getSelection()?.removeAllRanges();
+  Reflect.deleteProperty(navigator, 'clipboard');
+});
+
+/** Cada botón copiar y el dato que debe copiar (y seleccionar, sin portapapeles). */
+const COPIES = [
+  ['Copy username (User)', 'lisa12'],
+  ['Copy password (User)', '123456'],
+  ['Copy username (Admin)', 'root'],
+  ['Copy password (Admin)', '1234567'],
+] as const;
 
 describe('ProjectTryIt', () => {
   it('introducción, pasos en orden (la flecha con icono) y la guía del README', async () => {
@@ -58,6 +71,26 @@ describe('ProjectTryIt', () => {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();
     }
   });
+
+  it.each(COPIES)('«%s» copia %s', async (name, value) => {
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    renderAt('/projects/x');
+    fireEvent.click(await screen.findByRole('button', { name }));
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledTimes(1);
+    });
+    expect(writeText).toHaveBeenCalledWith(value);
+  });
+
+  it.each(COPIES)(
+    'sin portapapeles, «%s» selecciona %s para copiarlo a mano',
+    async (name, value) => {
+      renderAt('/projects/x');
+      fireEvent.click(await screen.findByRole('button', { name }));
+      expect(window.getSelection()?.toString()).toBe(value);
+    },
+  );
 
   it('los ids de lo que se copia son únicos y apuntan al valor', async () => {
     const container = renderAt('/projects/x');

@@ -14,10 +14,27 @@ const barHeight = (page: Page): Promise<number> =>
     Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart),
   );
 
-/** El capítulo `#id` empieza justo bajo la barra (o la página ya no da más de sí). */
+/**
+ * El capítulo `#id` empieza justo bajo la barra o, si la página ya no da más de sí (Contacto, al final),
+ * la página está abajo del todo y el capítulo se ve. Si la página no se moviera, no pasa.
+ */
 async function landedUnderBar(page: Page, id: string): Promise<boolean> {
   const box = await page.locator(`#${id}`).boundingBox();
-  return box !== null && box.y >= (await barHeight(page)) - 2;
+  if (box === null) return false;
+  if (Math.abs(box.y - (await barHeight(page))) <= 2) return true;
+  return page.evaluate(
+    (top) =>
+      window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1 &&
+      top < window.innerHeight,
+    box.y,
+  );
+}
+
+/** Área táctil mínima (44 × 44 px). */
+async function atLeast44(locator: ReturnType<Page['getByRole']>): Promise<void> {
+  const box = await locator.boundingBox();
+  expect(box?.width).toBeGreaterThanOrEqual(44);
+  expect(box?.height).toBeGreaterThanOrEqual(44);
 }
 
 function collectErrors(page: Page): string[] {
@@ -67,7 +84,22 @@ test.describe('project page', () => {
     await page.goto('/#projects', { waitUntil: 'networkidle' });
     const view = page.getByRole('link', { name: 'View project Cosmos' });
     await view.scrollIntoViewIfNeeded();
-    const before = await page.evaluate(() => window.scrollY);
+    // Fuera del punto del ancla: un Atrás que volviera a aterrizar en #projects no pasaría.
+    await page.evaluate(() => {
+      window.scrollBy(0, 120);
+    });
+    const scrollY = (): Promise<number> => page.evaluate(() => window.scrollY);
+    let settled = -1;
+    await expect
+      .poll(async () => {
+        const now = await scrollY();
+        const still = now === settled;
+        settled = now;
+        return still;
+      })
+      .toBe(true);
+    const before = await scrollY();
+    await expect(view).toBeInViewport();
     await view.click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Cosmos');
 
@@ -84,6 +116,30 @@ test.describe('project page', () => {
     await bar(page).getByRole('link', { name: 'Contact' }).click();
     await expect(page).toHaveURL(/\/#contact$/);
     await expect.poll(() => landedUnderBar(page, 'contact')).toBe(true);
+  });
+
+  test('390 px: «Back to the shell» from the last project scrolls its row into view', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/projects/cosmos', { waitUntil: 'networkidle' });
+    await page.getByRole('link', { name: 'Back to the shell' }).click();
+    await expect(page).toHaveURL(/\/#projects$/);
+    const view = page.getByRole('link', { name: 'View project Cosmos' });
+    await expect(view).toBeFocused();
+    await expect(view).toBeInViewport({ ratio: 1 });
+  });
+
+  test('390 px: the controls of the page are 44 px at least', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/projects/astrohub', { waitUntil: 'networkidle' });
+    await atLeast44(page.getByRole('link', { name: 'Back to the shell' }));
+    await atLeast44(page.getByRole('link', { name: /Previous project/ }));
+    await atLeast44(page.getByRole('link', { name: /Next project/ }));
+    const copies = page.getByRole('region', { name: 'Try it' }).getByRole('button');
+    expect(await copies.count()).toBe(4);
+    for (const button of await copies.all()) await atLeast44(button);
   });
 
   test('Projects in the bar also brings the focus to the row of the project just seen', async ({
@@ -207,14 +263,26 @@ test.describe('project page', () => {
   }
 
   for (const width of [320, 390]) {
-    test(`${String(width)} px with text at 200 %: no sideways scroll`, async ({ page }) => {
+    test(`${String(width)} px with text at 200 %: no sideways scroll, and the bar fits`, async ({
+      page,
+    }) => {
       await page.setViewportSize({ width, height: 800 });
-      for (const path of ['/projects/chessmate', '/es/projects/astrohub', '/projects/cosmos']) {
+      for (const [path, quick] of [
+        ['/projects/chessmate', 'Quick mission'],
+        ['/es/projects/astrohub', 'Modo misión rápida'],
+        ['/projects/cosmos', 'Quick mission'],
+        ['/projects/no-existe', null],
+        ['/es/loquesea', null],
+      ] as const) {
         await page.goto(path, { waitUntil: 'networkidle' });
         await page.addStyleTag({ content: 'html { font-size: 200%; }' });
         expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
           width,
         );
+        // `scrollWidth` no cuenta lo que se sale de la barra fija: se mira aparte.
+        if (quick !== null) {
+          await expect(bar(page).getByRole('button', { name: quick })).toBeInViewport({ ratio: 1 });
+        }
       }
     });
   }
