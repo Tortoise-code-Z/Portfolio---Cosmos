@@ -30,7 +30,8 @@
 ### Botón de contorno (`ButtonOutline`)
 - Mono `--text-label` en mayúsculas, borde 1 px `--color-faint`, fondo velo con desenfoque; al pasar, borde y
   texto ámbar. Siempre `type="button"` y con 44 × 44 px como mínimo.
-- Uso: «Quick mission», «Close quick mission», «Copy», «No, thanks».
+- Uso: «Quick mission», «Close quick mission», «Copy», «No, thanks» y, en el visor de la galería, «Close» y las
+  flechas (solo icono de 20 px, con el nombre en `aria-label`).
 - No encoge en una fila, pero nunca pasa del ancho de su contenedor: una etiqueta que no cabe en una línea
   («Selecciónalo y cópialo» a 390 px con el texto al 200 %) se parte en dos, centrada.
 - Si el texto visible es una forma corta («Quick»), el nombre accesible es el completo y la contiene (WCAG 2.5.3).
@@ -54,7 +55,8 @@
 ### Botón copiar (`CopyButton`)
 - Un `ButtonOutline`. Estados de texto: Copy → Copied (1,8 s) / Select and copy it (también 1,8 s).
 - Nombre accesible con lo que copia («Copy email»: el sujeto va oculto a la vista).
-- Si el portapapeles no existe (http) o lo rechaza, selecciona el texto (el email) para copiarlo a mano.
+- Si el portapapeles no existe (http) o lo rechaza, selecciona el texto que copia (el email, el usuario o la
+  contraseña) para copiarlo a mano.
 - El resultado se anuncia en una región `role="status"` aparte; el foco no se mueve. Cada intento pinta el mensaje
   en un nodo nuevo: copiar dos veces seguidas se anuncia dos veces. Etiquetas comunes `copy.*`
   (textos-sitio.md → «Botón copiar»). Lo usan Contacto y el modo misión rápida (el email) y el «Try it» de la ficha
@@ -188,6 +190,11 @@
 ### Cabecera (`ProjectHeader`)
 - «← Back to the shell» (`ActionLink`), nombre en display (`h1`, enfocable por código: destino de «Skip»),
   tagline en `--text-lead`, metadatos en mono atenuado separados por « · » (Featured en turquesa) y acciones.
+
+### Portada
+- Debajo de la cabecera, la imagen a todo el ancho de la columna (sus medidas reales: sin saltos al cargar) dentro
+  de un marco con corchetes de esquina ámbar (`--corner-size`, 1 px) en diagonal: arriba a la izquierda y abajo a
+  la derecha (los del panel de capítulo van los dos a la izquierda). Sin portada (`cover: null`), no se pinta.
 
 ### Secciones (`ProjectSection`)
 - Región con nombre: un `h2` con la escala de `h3` y el contenido debajo. Los títulos de grupo (stack, retos,

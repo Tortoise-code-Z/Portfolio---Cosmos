@@ -43,7 +43,8 @@ Regla de oro (principio P1 del brief): **si se elimina la capa 1, el sitio sigue
 
 - **Recruiter con prisa:** llega al hero → pulsa «Projects» en la barra o «Quick mission» → lee proyectos y
   contacto. Objetivo: ≤ 10 s y ≤ 2 interacciones.
-- **Tech lead:** hace el viaje entero → abre una página de proyecto → va al repo desde el pie.
+- **Tech lead:** hace el viaje entero → abre una página de proyecto → va al código desde la cabecera («Code») o a
+  tu GitHub desde el pie.
 - **Curioso:** mantiene pulsado para detonar, juega con el cursor, comparte el enlace.
 
 ## Criterios globales de aceptación

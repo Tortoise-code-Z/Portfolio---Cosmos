@@ -45,9 +45,12 @@ hace nada (ni mueve la página ni deja otra entrada en el historial). Quick miss
 La barra tiene altura fija (`--topbar-h`) y no tapa nunca lo que se enfoca; si falta sitio (texto ampliado en
 móvil), solo cede el logo.
 
-En la **página de proyecto** la barra es la misma: el logo, el chip, Projects y Contact navegan al viaje (no hay
-capítulos que saltar) y caen bajo la barra; EN / ES lleva a ese mismo proyecto en el otro idioma; Quick mission
-abre el modo allí también (`/projects/x#quick`).
+En la **página de proyecto** la barra es la misma (sin raíl): el logo, el chip y Contact navegan al viaje (no hay
+capítulos que saltar) y caen bajo la barra, sin mover el foco; Projects deja además el foco en la fila del
+proyecto que se acaba de ver (ver «Volver desde una página de proyecto»); EN / ES lleva a ese mismo proyecto en
+el otro idioma; Quick mission abre el modo allí también (`/projects/x#quick`). Por debajo de md, Projects y
+Contact no salen (en el viaje los sustituye el raíl, que la ficha no tiene): en móvil hacen sus veces «Back to the
+shell», arriba, y los enlaces del pie (GitHub, LinkedIn y el email).
 
 ## Raíl de capítulos (fijo, a la derecha)
 
@@ -93,6 +96,10 @@ abre el modo allí también (`/projects/x#quick`).
   proyecto, salta al nombre del proyecto.
 - Todos los títulos de capítulo (el `h1` incluido) llevan `tabindex="-1"`: los saltos les dan el foco sin
   meterlos en el orden de tabulación.
+- Llegar a una página de proyecto con un enlace («View project», anterior/siguiente, EN / ES) deja el foco en el
+  nombre del proyecto, como un salto: el lector anuncia la página nueva y el Tab sigue desde arriba. Al cargarla
+  o al llegar con Atrás/Adelante, el foco no se toca. Cambiar de proyecto rehace la página entera: no pasa nada
+  de la anterior (el modo misión rápida abierto, un «Copied», el visor).
 - Orden de tabulación: barra superior → contenido del capítulo → raíl → sugerencia de idioma (si sale). Con el modo
   misión rápida abierto, solo su contenido.
 - Foco siempre visible (anillo ámbar). Nada interactivo vive solo en el lienzo: todo tiene su equivalente en
@@ -101,11 +108,14 @@ abre el modo allí también (`/projects/x#quick`).
 
 ## Volver desde una página de proyecto
 
-- «Back to the shell» y el botón Atrás del navegador vuelven al capítulo de la tortuga (`/#projects`) con la
-  placa del proyecto que visitaste iluminada (desde F5).
+- «Back to the shell» y «Projects» de la barra van al capítulo de la tortuga (`/#projects`); el botón Atrás del
+  navegador, a la entrada anterior (el viaje donde estabas, otra ficha o `/#quick`). Al volver al viaje, la placa
+  del proyecto que visitaste se ilumina (desde F5).
 - Sin escena (desde F2.7): el foco queda en «View project» de la fila de ese proyecto, que se resalta como al
-  pasar el puntero. Con Atrás, la posición de scroll del viaje la restaura el navegador y el foco no la mueve;
-  con «Back to the shell» o «Projects» de la barra (`/#projects`), el foco lleva la fila a la vista. Si desde la
-  ficha se va a otro sitio del viaje (el logo, «Contact»), el foco no se toca.
+  pasar el puntero. Con Atrás, la posición de scroll del viaje la restaura React Router (`<ScrollRestoration />`)
+  y el foco no la mueve; con «Back to the shell» o «Projects» de la barra (`/#projects`), el foco lleva la fila a
+  la vista. Si desde la ficha se va a otro sitio del viaje (el logo, «Contact»), el foco no se toca.
+- Si a la ficha se llegó desde el modo misión rápida, Atrás vuelve a `/#quick`: el modo se reabre y el foco es
+  suyo (en «Close quick mission»), no de la fila.
 - Lo sostiene `uiStore.visitedProject`: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una
   sola vez al montarse.
