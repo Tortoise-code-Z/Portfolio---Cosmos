@@ -3,7 +3,14 @@
 // vacía = todo bien. `content.test.ts` las pasa sobre el contenido real; `validate.test.ts`
 // demuestra con casos rotos que cada una detecta lo que dice. No se usan en tiempo de ejecución.
 
-import { DEFAULT_LOCALE, LOCALES, type Locale, type Project } from '../types';
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  type ImageFile,
+  type Locale,
+  type Project,
+  type ResponsiveImage,
+} from '../types';
 
 /** Ids y slugs: minúsculas, dígitos y guiones sueltos entre palabras ('react-ts'). */
 export const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -130,6 +137,61 @@ export function findEmptyListProblems(
   return Object.entries(lists).flatMap(([path, list]) =>
     list.length > 0 ? [] : [`${path}: lista vacía`],
   );
+}
+
+/** Una entrada de `srcset`: URL sin espacios y ancho entero positivo (`/a-640.avif 640w`). */
+const SRCSET_ENTRY = /^(\S+) ([1-9]\d*)w$/;
+
+function sizeProblems(image: ImageFile, path: string): string[] {
+  return [
+    image.src === '' ? `${path}.src: vacío` : null,
+    Number.isInteger(image.width) && image.width > 0
+      ? null
+      : `${path}.width: no es un entero positivo`,
+    Number.isInteger(image.height) && image.height > 0
+      ? null
+      : `${path}.height: no es un entero positivo`,
+  ].filter((problem) => problem !== null);
+}
+
+function srcsetProblems(srcset: string, image: ResponsiveImage, path: string): string[] {
+  const entries = srcset.split(', ').map((entry) => SRCSET_ENTRY.exec(entry));
+  if (srcset === '' || entries.some((entry) => entry === null)) {
+    return [`${path}: srcset mal formado («${srcset}»)`];
+  }
+  const widths = entries.map((entry) => Number(entry?.[2]));
+  const problems: string[] = [];
+  if (widths.some((width, index) => index > 0 && width <= (widths[index - 1] ?? 0))) {
+    problems.push(`${path}: anchos sin orden creciente o repetidos`);
+  }
+  if (widths.at(-1) !== image.width) {
+    problems.push(
+      `${path}: la variante mayor (${String(widths.at(-1))}w) no mide el ancho de la imagen`,
+    );
+  }
+  return problems;
+}
+
+/**
+ * Imágenes del contenido (regla 5), por ruta: `src` no vacío, medidas enteras positivas (reservan el hueco)
+ * y un `srcset` por formato, de menor a mayor, cuya variante mayor mide `width`; `src` es la WebP mayor.
+ * Que el archivo exista lo garantiza el import (el build, y el sustituto de Vitest, fallan si falta).
+ */
+export function findImageProblems(images: Readonly<Record<string, ResponsiveImage>>): string[] {
+  return Object.entries(images).flatMap(([path, image]) => {
+    const webpLargest = image.sources.webp.split(', ').at(-1)?.split(' ')[0];
+    return [
+      ...sizeProblems(image, path),
+      ...srcsetProblems(image.sources.avif, image, `${path}.sources.avif`),
+      ...srcsetProblems(image.sources.webp, image, `${path}.sources.webp`),
+      ...(webpLargest === image.src ? [] : [`${path}.src: no es la variante WebP mayor`]),
+    ];
+  });
+}
+
+/** Archivos sin variantes (la imagen para compartir): `src` no vacío y medidas enteras positivas. */
+export function findImageFileProblems(files: Readonly<Record<string, ImageFile>>): string[] {
+  return Object.entries(files).flatMap(([path, file]) => sizeProblems(file, path));
 }
 
 export function findEmailProblems(email: string, path: string): string[] {

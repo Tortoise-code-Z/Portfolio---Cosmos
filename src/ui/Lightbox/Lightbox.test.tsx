@@ -30,9 +30,27 @@ afterEach(() => {
 });
 
 const IMAGES: readonly LightboxImage[] = [
-  { src: '/a.webp', width: 1600, height: 900, alt: 'Home page' },
-  { src: '/b.webp', width: 1600, height: 900, alt: 'Course list' },
-  { src: '/c.webp', width: 900, height: 1600, alt: 'Dashboard on a phone' },
+  {
+    src: '/a.webp',
+    width: 1600,
+    height: 900,
+    sources: { avif: '/a.avif 1600w', webp: '/a.webp 1600w' },
+    alt: 'Home page',
+  },
+  {
+    src: '/b.webp',
+    width: 1600,
+    height: 900,
+    sources: { avif: '/b.avif 1600w', webp: '/b.webp 1600w' },
+    alt: 'Course list',
+  },
+  {
+    src: '/c.webp',
+    width: 900,
+    height: 1600,
+    sources: { avif: '/c.avif 900w', webp: '/c.webp 900w' },
+    alt: 'Dashboard on a phone',
+  },
 ];
 
 const onClose = vi.fn();
@@ -104,6 +122,16 @@ describe('Lightbox', () => {
     const image = screen.getByRole('img', { name: 'Course list' });
     expect(image).toHaveAttribute('src', '/b.webp');
     expect(image).toHaveAttribute('width', '1600');
+    // Sus variantes, para todo el ancho de la pantalla: el navegador pide la mayor que necesita.
+    expect(
+      [...dialog().querySelectorAll('picture > source')].map((source) => [
+        source.getAttribute('srcset'),
+        source.getAttribute('sizes'),
+      ]),
+    ).toEqual([
+      ['/b.avif 1600w', '100vw'],
+      ['/b.webp 1600w', '100vw'],
+    ]);
     expect(dialog()).toHaveTextContent('2 / 3');
     expect(status()).toBe('2 of 3: Course list');
     expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();

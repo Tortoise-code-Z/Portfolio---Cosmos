@@ -30,6 +30,12 @@ const EXPECTED_FONT_FILES = 4;
 const FRAMEWORK_JS_BUDGET_BYTES = 112_000;
 const PAGE_OWN_JS_BUDGET_BYTES = 35_000;
 const FRAMEWORK_CHUNK = /\/assets\/(?:entry\.client|framework)-[^/]+\.js$/;
+/**
+ * Cada variante de imagen que ofrecen las páginas (AVIF, WebP y el JPEG para compartir), sin comprimir más:
+ * ≤ 200 KB. Medido en F2.8: la mayor, 148 KB (WebP de 1920 px de las noticias de AstroHub).
+ */
+const IMAGE_BUDGET_BYTES = 200_000;
+const IMAGE_FILE = /\/assets\/[^"' ,]+\.(?:avif|webp|jpe?g|png)/g;
 /** Hoja única (ADR-019), gzip: por encima, revisar si conviene volver a partirla. */
 const CSS_BUDGET_BYTES = 50_000;
 
@@ -91,6 +97,25 @@ test.describe('build budgets', () => {
         CSS_BUDGET_BYTES,
       );
     }
+  });
+
+  test('every image variant the pages offer stays within the image budget', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
+    // Las que piden las páginas (srcset, src y og:image), no lo que haya en assets/ de otro build.
+    const images = new Set(
+      PAGES.flatMap((page) =>
+        Array.from(
+          readFileSync(join(CLIENT_DIR, page), 'utf8').matchAll(IMAGE_FILE),
+          (match) => match[0],
+        ),
+      ),
+    );
+    // Chessmate y AstroHub: 21 capturas × 6 variantes + 2 JPEG para compartir.
+    expect(images.size).toBe(128);
+    const over = [...images]
+      .map((image) => ({ image, bytes: statSync(join(CLIENT_DIR, image)).size }))
+      .filter(({ bytes }) => bytes > IMAGE_BUDGET_BYTES);
+    expect(over).toEqual([]);
   });
 
   test('the budgets see every page type (home, project and 404, in both languages)', () => {

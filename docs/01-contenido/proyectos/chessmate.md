@@ -119,17 +119,20 @@
 
 ## Imágenes
 
-Origen: repo del portfolio actual, `src/assets/images/`. Destino: `src/assets/projects/chessmate/`.
+Origen: repo del portfolio antiguo, `src/assets/images/screenshots/chessmate/`. Destino:
+`src/assets/projects/chessmate/` (F2.8), en el orden de la galería. Datos en `src/content/projects/media.ts`.
 
-| Archivo | Alt EN | Alt ES |
+**Portada:** la captura de Inicio (`01-home.png`), con su propio texto alternativo: «Chessmate home page» /
+«Página de inicio de Chessmate». La portada del repo antiguo no se usa (`docs/01-contenido/assets.md`).
+
+| Archivo (original) | Alt EN | Alt ES |
 |---|---|---|
-| cover · `Chessmate.webp` (1920×922) | Chessmate home page | Página de inicio de Chessmate |
-| `screenshot-index.png` (1920×922) | Home | Inicio |
-| `screenshot-courses.png` (1920×916) | Courses | Cursos |
-| `screenshot-course-detail.png` (1920×914) | Course detail | Detalle del curso |
-| `screenshot-dashboard.png` (1920×906) | Dashboard | Dashboard |
-| `screenshot-classroom.png` (1920×911) | Classroom | Classroom |
-| `screenshot-course-obtained-classroom.png` (1920×909) | Classroom for a purchased course | Classroom de un curso comprado |
-| `screenshot-login.png` (1920×911) | Login | Inicio de sesión |
-| `screenshot-register.png` (1920×909) | Sign-up | Registro |
-| `screenshot-contact.png` (1920×911) | Contact | Contacto |
+| `01-home.png` (`screenshot-index.png`, 1920×922) | Home | Inicio |
+| `02-courses.png` (`screenshot-courses.png`, 1920×916) | Courses | Cursos |
+| `03-course-detail.png` (`screenshot-course-detail.png`, 1920×914) | Course detail | Detalle del curso |
+| `04-dashboard.png` (`screenshot-dashboard.png`, 1920×906) | Dashboard | Dashboard |
+| `05-classroom.png` (`screenshot-classroom.png`, 1920×911) | Classroom | Classroom |
+| `06-purchased-course-classroom.png` (`screenshot-course-obtained-classroom.png`, 1920×909) | Classroom for a purchased course | Classroom de un curso comprado |
+| `07-login.png` (`screenshot-login.png`, 1920×911) | Login | Inicio de sesión |
+| `08-sign-up.png` (`screenshot-register.png`, 1920×909) | Sign-up | Registro |
+| `09-contact.png` (`screenshot-contact.png`, 1920×911) | Contact | Contacto |

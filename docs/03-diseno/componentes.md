@@ -155,10 +155,17 @@
   `openToWork`) y Contact (email con su `CopyButton`, GitHub, LinkedIn, CV).
 - Marcado propio y compacto: lee `src/content/` como los capítulos, pero no reutiliza sus componentes (ADR-022).
 
+### Imagen (`Picture`)
+- `<picture>` con AVIF y WebP en varios anchos (`srcset`) y el `sizes` de quien la pinta: el navegador elige el
+  primer formato que entiende y el ancho justo. El `<img>` lleva `width`/`height` del archivo (sin saltos de
+  layout), `decoding="async"`, y `loading` y `fetchpriority` cuando se piden. El `<picture>` no genera caja
+  (`display: contents`): las clases van al `<img>`. La usan la portada, las miniaturas y el visor.
+
 ### Visor de galería (`Lightbox`)
 - `<dialog>` modal a pantalla completa sobre `--color-veil-dialog`, con fundido de entrada. Tres filas: contador
   mono «3 / 9» (solo para la vista) y «Close» (`ButtonOutline`) · la imagen, que cabe entera (`object-fit:
-  contain`) · las flechas (`ButtonOutline` con icono de 20 px y nombre «Previous image» / «Next image»).
+  contain`; `Picture` con `sizes` = 100vw) · las flechas (`ButtonOutline` con icono de 20 px y nombre «Previous
+  image» / «Next image»).
 - Al abrir, el foco va a «Close». ← → cambian de imagen desde cualquier sitio del visor, con vuelta; Esc y «Close»
   cierran y quien lo abrió devuelve el foco (la miniatura de la imagen que se veía). Con una sola imagen, sin
   flechas. La imagen activa se anuncia en una región `status` («3 of 9: texto alternativo»), que es también la
@@ -169,7 +176,8 @@
 ### Galería (`ProjectGallery`)
 - Rejilla `auto-fill` de miniaturas (columnas de `--project-col-min`), todas con `--gallery-thumb-ratio` y la
   imagen recortada al centro. Cada miniatura es un botón con borde fino (ámbar al pasar) y cursor de lupa; su
-  nombre dice qué abre («Open image 2 of 5» + texto alternativo). Carga diferida (`loading="lazy"`).
+  nombre dice qué abre («Open image 2 of 5» + texto alternativo). Carga diferida (`loading="lazy"`) y `sizes` de su
+  columna (~240 px en la columna de lectura; la mitad o todo el ancho en pantallas estrechas).
 
 ### Aviso (`Notice`)
 - Barra flotante abajo y centrada, tan ancha como su texto (sin pasar del margen lateral ni de `--read-w`), mono
@@ -192,7 +200,8 @@
   tagline en `--text-lead`, metadatos en mono atenuado separados por « · » (Featured en turquesa) y acciones.
 
 ### Portada
-- Debajo de la cabecera, la imagen a todo el ancho de la columna (sus medidas reales: sin saltos al cargar) dentro
+- Debajo de la cabecera, la imagen a todo el ancho de la columna (`Picture` con `sizes` de 720 px, prioridad alta y
+  sin `lazy`: es lo mayor de la primera vista; sus medidas reales: sin saltos al cargar) dentro
   de un marco con corchetes de esquina ámbar (`--corner-size`, 1 px) en diagonal: arriba a la izquierda y abajo a
   la derecha (los del panel de capítulo van los dos a la izquierda). Sin portada (`cover: null`), no se pinta.
 

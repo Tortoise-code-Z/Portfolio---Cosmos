@@ -2,9 +2,9 @@ import { expect, test, type Page } from '@playwright/test';
 import { loadEnv } from 'vite';
 
 import { profile } from '../../src/content/profile.ts';
-import { projects } from '../../src/content/projects/index.ts';
+import { projectEntries } from '../../src/content/projects/entries.ts';
 import { uiTexts } from '../../src/content/texts/index.ts';
-import type { Locale, Project } from '../../src/content/types.ts';
+import type { Locale, ProjectEntry } from '../../src/content/types.ts';
 import { parseSiteUrl } from '../../src/lib/env/siteUrl/siteUrl.ts';
 import { indexablePaths, sitePages } from '../../src/lib/seo/pages/pages.ts';
 import { absoluteUrl } from '../../src/lib/seo/urls/urls.ts';
@@ -16,12 +16,18 @@ import { absoluteUrl } from '../../src/lib/seo/urls/urls.ts';
  */
 // `loadEnv` lee el `.env` y también las variables del proceso (el CI las define ahí).
 const ORIGIN = parseSiteUrl(loadEnv('production', process.cwd(), 'VITE_').VITE_SITE_URL);
-const PAGES = sitePages(projects);
+const PAGES = sitePages(projectEntries);
+
+/**
+ * Proyectos con portada y, por tanto, con `og:image` (content/projects/media.ts). Escrito a mano: los e2e
+ * cargan el contenido sin Vite y no pueden importar las imágenes.
+ */
+const WITH_COVER: ReadonlySet<string> = new Set(['chessmate', 'astrohub']);
 const INDEXABLE = indexablePaths(PAGES).map((path) => absoluteUrl(ORIGIN, path));
 const OG_LOCALE: Readonly<Record<Locale, string>> = { en: 'en_US', es: 'es_ES' };
 
-function projectBySlug(slug: string): Project {
-  const project = projects.find((candidate) => candidate.slug === slug);
+function projectBySlug(slug: string): ProjectEntry {
+  const project = projectEntries.find((candidate) => candidate.slug === slug);
   if (project === undefined) throw new Error(`seo.spec: no hay proyecto «${slug}»`);
   return project;
 }
@@ -107,7 +113,9 @@ test.describe('páginas indexables', () => {
         ]);
         expect(meta.ogLocale).toEqual([OG_LOCALE[locale]]);
         expect(meta.ogType).toEqual([sitePage.kind === 'home' ? 'website' : 'article']);
-        expect(meta.ogImage).toEqual([]);
+        expect(meta.ogImage).toHaveLength(
+          sitePage.kind === 'project' && WITH_COVER.has(sitePage.slug) ? 1 : 0,
+        );
         expect(meta.robots).toEqual([]);
 
         expect(meta.jsonLd).toHaveLength(1);
@@ -123,6 +131,62 @@ test.describe('páginas indexables', () => {
               },
         );
         expect(errors).toEqual([]);
+      });
+    }
+  }
+});
+
+test.describe('imagen para compartir de las fichas', () => {
+  for (const sitePage of PAGES) {
+    if (sitePage.kind !== 'project') continue;
+    for (const locale of ['en', 'es'] as const) {
+      const path = sitePage.paths[locale];
+      const hasCover = WITH_COVER.has(sitePage.slug);
+
+      test(`${path}: ${hasCover ? 'og:image = su portada en JPEG de 1200 px' : 'sin portada ni og:image'}`, async ({
+        page,
+      }) => {
+        await page.goto(path, { waitUntil: 'networkidle' });
+        const content = (selector: string): Promise<string[]> =>
+          page
+            .locator(selector)
+            .evaluateAll((elements) =>
+              elements.map((element) => element.getAttribute('content') ?? ''),
+            );
+        // La lista escrita a mano coincide con la página: portada (la imagen con prioridad) solo en esas.
+        const coverImage = page.getByRole('main').locator('img[fetchpriority="high"]');
+        await expect(coverImage).toHaveCount(hasCover ? 1 : 0);
+        const card = await content('meta[name="twitter:card"]');
+        const image = await content('meta[property="og:image"]');
+        if (!hasCover) {
+          expect(image).toEqual([]);
+          expect(card).toEqual(['summary']);
+          return;
+        }
+
+        expect(card).toEqual(['summary_large_image']);
+        expect(image).toHaveLength(1);
+        const url = new URL(image[0] ?? '');
+        expect(url.origin).toBe(new URL(ORIGIN).origin);
+        expect(url.pathname).toMatch(/^\/assets\/[\w-]+\.jpeg$/);
+        expect(await content('meta[property="og:image:alt"]')).toEqual([
+          (await coverImage.getAttribute('alt')) ?? '',
+        ]);
+        // El archivo existe en el sitio y mide lo que dicen sus etiquetas.
+        const response = await page.request.get(url.pathname);
+        expect(response.status()).toBe(200);
+        expect(response.headers()['content-type']).toBe('image/jpeg');
+        const size = await page.evaluate(async (src) => {
+          const probe = new Image();
+          probe.src = src;
+          await probe.decode();
+          return [String(probe.naturalWidth), String(probe.naturalHeight)];
+        }, url.pathname);
+        expect([
+          ...(await content('meta[property="og:image:width"]')),
+          ...(await content('meta[property="og:image:height"]')),
+        ]).toEqual(size);
+        expect(size[0]).toBe('1200');
       });
     }
   }

@@ -25,12 +25,33 @@ export type UiTemplate<K extends UiKey> = (typeof en)[K];
 /** Textos de interfaz de un idioma: exactamente las claves de EN. */
 export type UiTexts = Readonly<Record<UiKey, string>>;
 
-/** Imagen con medidas para reservar su hueco (sin saltos de layout). La forma final llega en F2.8. */
-export interface ImageAsset {
+/** Un archivo de imagen con sus medidas (para reservar su hueco sin saltos de layout). */
+export interface ImageFile {
   readonly src: string;
   readonly width: number;
   readonly height: number;
+}
+
+/**
+ * Una captura ya procesada por `vite-imagetools` (import con `?project`, vite.config.ts): `src` y las
+ * medidas son las de la variante mayor en WebP (el respaldo del `<img>`) y `sources`, el `srcset` de
+ * cada formato (AVIF y WebP a 640, 1280 y 1920 px).
+ */
+export interface ResponsiveImage extends ImageFile {
+  readonly sources: {
+    readonly avif: string;
+    readonly webp: string;
+  };
+}
+
+/** Imagen del contenido: la captura procesada y su texto alternativo en los dos idiomas. */
+export interface ImageAsset extends ResponsiveImage {
   readonly alt: Localized;
+}
+
+/** Portada: además, la imagen para compartir (`og:image`), un JPEG de 1200 px (import con `?share`). */
+export interface CoverAsset extends ImageAsset {
+  readonly share: ImageFile;
 }
 
 export type WorkMode = 'remote' | 'hybrid' | 'onsite';
@@ -135,8 +156,11 @@ export interface Project {
   readonly highlights: readonly Localized[];
   readonly notes: readonly ProjectNote[];
   readonly tryIt: TryIt | null;
-  /** `null` = sin portada todavía: la interfaz no la pinta (Chessmate y AstroHub hasta F2.8; Cosmos hasta F6). */
-  readonly cover: ImageAsset | null;
+  /**
+   * `null` = sin portada todavía: la interfaz no la pinta y la ficha no lleva `og:image` (Cosmos, hasta
+   * F6). La de Chessmate y AstroHub es su captura de Inicio, la misma que abre la galería.
+   */
+  readonly cover: CoverAsset | null;
   readonly gallery: readonly ImageAsset[];
   readonly links: {
     readonly code: string;
@@ -144,3 +168,9 @@ export interface Project {
     readonly readme: string;
   };
 }
+
+/** Un proyecto sin sus imágenes: sus textos y datos (`projects/<slug>.ts`). */
+export type ProjectEntry = Omit<Project, 'cover' | 'gallery'>;
+
+/** Las imágenes de un proyecto (`projects/media.ts`): portada y galería. */
+export type ProjectMedia = Pick<Project, 'cover' | 'gallery'>;

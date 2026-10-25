@@ -1,0 +1,4 @@
+/* Sin caja propia: el `<img>` se coloca como si fuera hijo directo de quien pinta la imagen. */
+.picture {
+  display: contents;
+}

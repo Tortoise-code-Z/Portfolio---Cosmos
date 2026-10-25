@@ -23,7 +23,8 @@ cosmos-portfolio/
 │  │  ├─ project/project.tsx    ← /projects/:slug
 │  │  └─ not-found/not-found.tsx
 │  ├─ content/                  ← datos tipados (docs/01-contenido); `chapters.ts` (orden, anclas y ventanas
-│  │                              de morph de los capítulos) y `site.ts` (repo del sitio) incluidos
+│  │                              de morph de los capítulos) y `site.ts` (repo del sitio) incluidos; en
+│  │                              `projects/`, los textos (`entries.ts`) aparte de las imágenes (`media.ts`)
 │  ├─ features/                 ← piezas de interfaz con lógica propia
 │  │  ├─ journey/               ← Hero, ChapterSection, ChapterPanel, Eyebrow, About, Skills, Projects,
 │  │  │                           ProjectRow, Contact, `chapterDom` (el contrato con el DOM que lee la
@@ -40,7 +41,7 @@ cosmos-portfolio/
 │  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido
 │  ├─ ui/                       ← componentes genéricos sin dominio: ButtonOutline, HoldButton, ActionLink,
 │  │                              CopyButton, Notice, Icon, VisuallyHidden, ArrowText (las «→» del texto
-│  │                              con el icono) y Lightbox (visor de imágenes)
+│  │                              con el icono), Picture (`<picture>` AVIF/WebP) y Lightbox (visor de imágenes)
 │  ├─ lib/                      ← funciones puras y hooks transversales
 │  │  ├─ env/                   ← variables de entorno validadas: siteUrl (parseSiteUrl), site (SITE_ORIGIN)
 │  │  ├─ i18n/                  ← tipos, useLocale, useT, formateadores Intl, rutas localizadas,
@@ -59,7 +60,8 @@ cosmos-portfolio/
 │  │  └─ math/                  ← clamp, smoothstep, lerp (después, easing)
 │  ├─ stores/                   ← uiStore (React) · sceneStore (mutable, sin re-render)
 │  ├─ styles/                   ← tokens.css, global.css, fonts.css
-│  └─ assets/projects/<slug>/   ← capturas originales (vite-imagetools genera las variantes)
+│  └─ assets/projects/<slug>/   ← capturas originales `NN-<nombre>.png` (vite-imagetools genera las variantes
+│                                  con los presets `?project` y `?share` de vite.config.ts; ADR-023)
 ├─ public/                      ← favicon.svg, apple-touch-icon.png, og/, cv/ (robots.txt y sitemap.xml
 │                                  se generan en el build)
 ├─ tests/
@@ -145,16 +147,20 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
   en el navegador.
 - `react-router.config.ts` **no** resuelve el alias `~/`: lo que importa (contenido, `lib/seo/{pages,urls,sitemap}/`,
   `lib/i18n/paths/`, `lib/env/siteUrl/`) usa imports relativos. Si alguien lo cambia, el build falla al cargar la
-  config. Su `buildEnd` escribe `sitemap.xml`, `robots.txt` y `404.html` (copia de la 404 EN) en `build/client`.
+  config. Tampoco entiende los imports de imagen: de los proyectos importa `projectEntries` (sin imágenes, ADR-023),
+  igual que los e2e. Su `buildEnd` escribe `sitemap.xml`, `robots.txt` y `404.html` (copia de la 404 EN) en `build/client`.
 - Segmento `projects` igual en ambos idiomas (decisión: URLs estables y sin mapa de traducción de rutas).
 - `meta` de cada ruta (`lib/seo/meta/meta.ts`): título, descripción (en proyectos, el `summary`), canónica propia de
   cada idioma, `hreflang` en/es/x-default (= EN), Open Graph (`og:locale` `en_US`/`es_ES` con su alternativa,
-  `og:type` `website` o `article`, sin `og:image` hasta que haya imágenes: entonces `cover` o, si es `null`, la
-  del sitio de su idioma), `twitter:card` y JSON-LD (`Person` en la home, sin email; `SoftwareSourceCode` en cada
+  `og:type` `website` o `article`; en las fichas con portada, `og:image` = su JPEG de 1200 px con medidas y `alt`,
+  y `twitter:card` `summary_large_image`; sin ella, sin `og:image` hasta que exista la imagen del sitio, F6, y
+  `summary`), JSON-LD (`Person` en la home, sin email; `SoftwareSourceCode` en cada
   proyecto, con el autor embebido). URL base desde `VITE_SITE_URL`.
 - Forma única de las URL absolutas (`absoluteUrl`): origen + ruta, sin barra final salvo la home EN
   (`https://…/`, `https://…/es`, `https://…/projects/chessmate`), sin `?` ni `#`. Un test comprueba que
-  canónicas, `hreflang`, `og:url` y sitemap son el mismo conjunto.
+  canónicas, `hreflang`, `og:url` y sitemap son el mismo conjunto. Los archivos del build (`og:image`) van con
+  `assetUrl`: ruta con `/`, nombre con el hash (mayúsculas, `_` y `-`) y extensión, sin `?`, `#` ni `..`; en
+  `npm run dev`, también `/@imagetools/<hash>` (vite-imagetools sirve las imágenes desde memoria, sin extensión).
 - 404: `noindex`, sin canónica, `hreflang` ni JSON-LD, fuera del sitemap. Tampoco lleva `description`,
   `og:description` ni `og:url`: no se indexa y no tiene dirección propia (decidido, no es un olvido).
 - `sitemap.xml` (solo `<loc>`) y `robots.txt` (`Allow: /` + `Sitemap:` absoluto) generados en el build.

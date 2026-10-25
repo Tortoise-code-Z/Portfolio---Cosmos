@@ -145,7 +145,7 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--chip-dot-size` · `--opacity-breathe-low` | 6 px · 0,35 | Punto del chip «Open to work» y la opacidad más baja de su respiración |
 | `--quick-col-min` | 280 px | Ancho mínimo de cada columna del modo misión rápida (`auto-fit`) |
 | `--project-col-min` | 220 px | Ancho mínimo de cada columna de las rejillas de la página de proyecto (funcionalidades, stack, galería, anterior/siguiente) |
-| `--gallery-thumb-ratio` | 16 / 10 | Proporción de las miniaturas de la galería (la imagen se recorta al centro; entera en el visor) |
+| `--gallery-thumb-ratio` | 2 / 1 | Proporción de las miniaturas de la galería, la de las capturas (~2,1:1): se recorta al centro casi nada; entera en el visor |
 
 (Los breakpoints no son tokens: una variable CSS no puede usarse en una media query. Se escriben como número
 en las media queries y están anotados en la cabecera de `tokens.css`.)

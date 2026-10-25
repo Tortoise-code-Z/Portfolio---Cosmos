@@ -5,15 +5,16 @@ import type { Config } from '@react-router/dev/config';
 import { loadEnv } from 'vite';
 
 // Rutas relativas a propósito: al cargar esta config no existe el alias `~/`
-// (docs/05-tecnico/arquitectura.md → «Rutas e idiomas»).
-import { projects } from './src/content/projects/index.ts';
+// (docs/05-tecnico/arquitectura.md → «Rutas e idiomas»). Los proyectos, sin imágenes (`projectEntries`):
+// sus imports (`?project`) solo los entiende el build.
+import { projectEntries } from './src/content/projects/entries.ts';
 import { parseSiteUrl } from './src/lib/env/siteUrl/siteUrl.ts';
 import { indexablePaths, prerenderPaths, sitePages } from './src/lib/seo/pages/pages.ts';
 import { robotsTxt, sitemapXml } from './src/lib/seo/sitemap/sitemap.ts';
 import { absoluteUrl } from './src/lib/seo/urls/urls.ts';
 
 /** La lista única de páginas: de ella salen el prerender y el sitemap (el hreflang usa las mismas rutas). */
-const pages = sitePages(projects);
+const pages = sitePages(projectEntries);
 
 /**
  * Sitio estático pre-renderizado (ADR-001): HTML completo por ruta e idioma en el build, sin

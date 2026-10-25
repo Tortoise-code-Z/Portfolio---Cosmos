@@ -1,10 +1,10 @@
 // Fuente: docs/01-contenido/proyectos/cosmos.md. Stack desde docs/05-tecnico/stack.md;
 // process y highlights quedan vacíos hasta F6 (solo se publica lo que está hecho).
 
-import type { Project } from '../types';
+import type { ProjectEntry } from '../types';
 import { RESPONSIVE_DESIGN } from './labels';
 
-export const cosmos: Project = {
+export const cosmos: ProjectEntry = {
   slug: 'cosmos',
   order: 3,
   featured: false,
@@ -81,8 +81,6 @@ export const cosmos: Project = {
     },
   ],
   tryIt: null,
-  cover: null,
-  gallery: [],
   links: {
     code: 'https://github.com/Tortoise-code-Z/Portfolio---Cosmos',
     demo: 'https://cosmos-portfolio-two.vercel.app',

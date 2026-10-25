@@ -19,11 +19,29 @@ beforeEach(() => {
   });
 });
 
-/** Imágenes de prueba: la galería real llega en F2.8. */
+/** Imágenes de prueba (la galería de verdad la prueban los e2e). */
 const GALLERY: readonly ImageAsset[] = [
-  { src: '/g/1.webp', width: 1600, height: 900, alt: { en: 'Home page', es: 'Página de inicio' } },
-  { src: '/g/2.webp', width: 1600, height: 900, alt: { en: 'Courses', es: 'Cursos' } },
-  { src: '/g/3.webp', width: 1600, height: 900, alt: { en: 'Dashboard', es: 'Panel' } },
+  {
+    src: '/g/1.webp',
+    width: 1600,
+    height: 900,
+    sources: { avif: '/g/1.avif 1600w', webp: '/g/1.webp 1600w' },
+    alt: { en: 'Home page', es: 'Página de inicio' },
+  },
+  {
+    src: '/g/2.webp',
+    width: 1600,
+    height: 900,
+    sources: { avif: '/g/2.avif 1600w', webp: '/g/2.webp 1600w' },
+    alt: { en: 'Courses', es: 'Cursos' },
+  },
+  {
+    src: '/g/3.webp',
+    width: 1600,
+    height: 900,
+    sources: { avif: '/g/3.avif 1600w', webp: '/g/3.webp 1600w' },
+    alt: { en: 'Dashboard', es: 'Panel' },
+  },
 ];
 
 function renderAt(path: string): void {
@@ -49,6 +67,22 @@ describe('ProjectGallery', () => {
       'dialog',
     );
     expect(thumbs[0]?.querySelector('img')).toHaveAttribute('loading', 'lazy');
+  });
+
+  it('cada miniatura ofrece sus variantes con el ancho de su columna (sizes)', async () => {
+    renderAt('/projects/x');
+    const [first] = await screen.findAllByRole('button', { name: /^Open image/ });
+    const sources = [...(first?.querySelectorAll('picture > source') ?? [])];
+    expect(sources.map((source) => source.getAttribute('srcset'))).toEqual([
+      '/g/1.avif 1600w',
+      '/g/1.webp 1600w',
+    ]);
+    for (const source of sources) {
+      expect(source).toHaveAttribute(
+        'sizes',
+        '(min-width: 760px) 240px, (min-width: 500px) 50vw, 100vw',
+      );
+    }
   });
 
   it('abre el visor en la imagen pulsada y, al cerrar, devuelve el foco a la que se veía', async () => {
