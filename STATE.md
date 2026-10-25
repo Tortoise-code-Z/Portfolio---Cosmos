@@ -3,50 +3,69 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** F2 · paso 7 en `main` y **AUD-F2-7 corregida** (PR #31, `89d9ab0`) · la cadena no tiene
-encargos abiertos · siguiente: **F2 · paso 8** (imágenes de proyectos y e2e del visor).
+**Dónde estamos:** F2 · paso 8 en `main` (PR #33, `02abc5b`) · la Mesa audita **AUD-F2-8** (lanzada, sin entrega)
+· siguiente: decidir AUD-F2-8 y, después, cerrar F2 (`v0.1.0`).
 
-_Última actualización: 2026-10-25 (**CIERRE DE SESIÓN · 14**) · AUD-F2-7 corregida entera en 3 commits (PR #31,
-squash): los 23 hallazgos (del 20 y el 23, lo que no había hecho ya `2746f2a`) y P1-C, P2-C, P3-A, P4-B, P5-C; sin
-ADR nuevo. 750 unitarios y 150 e2e en Chromium; CI en verde en los tres navegadores (merge con `main` protegida)._
+_Última actualización: 2026-10-25 (**CIERRE DE SESIÓN · 15**) · F2.8 hecho: capturas de Chessmate y AstroHub como
+portada y galería (AVIF/WebP con `vite-imagetools`), `og:image` de las fichas y e2e del visor con las imágenes
+reales; ADR-023. 800 unitarios y 163 e2e en Chromium; CI en verde en los tres navegadores (PR #33, squash de 4
+commits)._
 
-**Hecho esta sesión** (vivas S14 en `_claude/cadena/hecho/2026-10-25/decisiones-vivas-S14.md`):
-1. **Lógica e interfaz** (`e8c20ee`): `ProjectRoute` envuelve la ficha en `<Fragment key={slug}>` (cambiar de
-   proyecto la rehace: ni modo abierto, ni «Copied», ni visor heredados); llegar a una ficha por PUSH/REPLACE
-   (anterior/siguiente, «View project», EN / ES, «Ver en español») lleva el foco al `h1`, y POP no lo toca; el visor
-   se describe con su región `status` (`aria-describedby`); `QuickMissionDialog` mira el estado vivo del store
-   (StrictMode ya no lo reabre en la ficha); cuentas de demo con `@container (width < 20em)` además del corte sm;
-   aire de arriba de la ficha con `env(safe-area-inset-top)`; claves `lightbox.*`; «Close quick mission» /
-   «Cerrar la misión rápida»; `project.credentials.many`; anterior/siguiente en media columna como mucho.
-2. **Tests** (`e149cab`): qué copia cada botón de las cuentas de demo (y qué selecciona sin portapapeles), Esc del
-   visor y de la galería, `preventDefault` y modificadores de ← →, Contact que falla si la página no se mueve,
-   Cosmos a 390 px, 404 y barra en el e2e del 200 %, HTML servido de verdad en `seo.spec.ts`, «proyecto vacío» sin
-   galería, visto de ficha en ficha, icono de la nota, orden del stack, sin HUD, barra al 200 % en fichas, Atrás
-   con la posición asentada y 44 px de la ficha. Cada test nuevo, comprobado rompiendo el código.
-3. **Docs** (`89d9ab0` incluye el tercer commit): navegacion (barra de la ficha y en móvil, foco al llegar, Atrás de
-   verdad y desde el modo, `ScrollRestoration`), estados-y-accesibilidad, componentes (Portada nueva),
-   design-system, arquitectura («proyecto activo» de F4.4 de vuelta), README de experiencia, pagina-proyecto y
-   calidad.
+**Hecho esta sesión** (vivas S15 en `_claude/cadena/hecho/2026-10-25/decisiones-vivas-S15.md`):
+1. **Código** (`26be79d`):
+   - Imágenes: 21 PNG del repo antiguo en `src/assets/projects/<slug>/NN-<nombre>.png`. Presets de
+     `vite.config.ts`: `?project` (AVIF + WebP · 640/1280/1920, `ResponsiveImage`) y `?share` (JPEG de 1200 px).
+     Tipos en `env.d.ts` y sustituto en `vitest.config.ts`.
+   - Interfaz: `ui/Picture` (`<picture>` con `sizes`), que usan la portada (prioridad alta), las miniaturas (lazy)
+     y el visor. `--gallery-thumb-ratio` pasa a 2/1.
+   - Contenido: textos aparte de las imágenes (`ProjectEntry` / `ProjectMedia`, `projects/{entries,media,index}.ts`).
+   - SEO: `og:image` + `summary_large_image` en las fichas con portada (`coverShareImage`, `assetUrl`).
+   - CI: caché de imagetools (`actions/cache@v6`).
+2. **Tests** (`c7463b6`):
+   - Unitarios: regla 5 del contenido (`findImageProblems`, `findImageFileProblems`; portada = 1.ª de la galería),
+     `Picture`, `assetUrl`, meta con y sin portada.
+   - E2E nuevo `project-images.spec.ts`: portada AVIF del ancho de la columna con su hueco, 640 px a 390 px, todo
+     lo ofrecido se sirve, visor con las capturas (← →, Esc, «Close», foco de vuelta), 44 px a 390 px y CLS con
+     imágenes lentas.
+   - `seo.spec.ts` (`og:image` real, `WITH_COVER`) y `budgets.spec.ts` (≤ 200 KB por variante; la mayor, 148 KB).
+3. **Docs** (`cbb77df`): ADR-023; assets, modelo-de-datos, fichas («Imágenes»), pagina-proyecto, componentes,
+   design-system, arquitectura, calidad, git-y-despliegue, stack y roadmap.
+4. **Arreglo** (`d43facc`): en `npm run dev` las imágenes se sirven en `/@imagetools/<hash>`, sin extensión, y
+   `assetUrl` tumbaba las fichas (lo vio Víctor antes del merge). Ahora acepta esa forma, con tests.
 
 **Incidencias y lecciones:**
-- Método de siempre en el contenedor (Node 24 de `node-linux-x64` con el npm de Node 22, enlaces
-  `chromium*-1248 → -1243`, `.env`), clon de GitHub; cada commit pasado como `_claude/cadena/tmp/arbol-s14-cN.tar.gz`
-  con su lista `s14-cN.blobs`, `cat > destino` y `git hash-object`. El contenedor hace commits locales (nunca push)
-  para comparar `HEAD^{tree}`: coincidió en los tres. El aviso de push del contenedor se ignora.
-- **Medir antes de creerse el número de una auditoría:** el desborde de las cuentas de demo era de 520 a ~528 px,
-  no de 520 a 600 (`ButtonOutline` ya parte su texto desde AUD-F2-6); el e2e se puso a 520 px, donde fallaba.
-- Un unitario que depende de `window.location` (el modo mira el ancla) necesita `createBrowserRouter`: con
-  `createRoutesStub` la dirección no cambia y el test falla o pasa por un motivo falso.
-- `toHaveTextContent('Demo account')` también casa con «Demo accounts»: comparar el texto exacto.
+- **Las portadas del repo antiguo no valían:** `Chessmate.webp` es una foto de stock de un tablero (sin licencia
+  clara) y `Astrohub-Proyect.webp`, un recorte de Noticias; las medidas de las fichas tampoco cuadraban. Portada =
+  captura de Inicio (IMG-4-A). Las capturas se bajaron desde el equipo de Víctor (el contenedor no tiene acceso a
+  la API de GitHub de ese repo; `raw.githubusercontent.com` sí).
+- **Un import de imagen solo lo entiende Vite:** Playwright (`seo.spec.ts`) y `react-router.config.ts` cargan el
+  contenido sin Vite. De ahí la separación textos / imágenes (ADR-023).
+- **Abrir también `npm run dev`** tras tocar la config de Vite o imports especiales: los e2e prueban el build y
+  Vitest usa el sustituto, así que nada vio el fallo de `assetUrl` en desarrollo.
+- **Tests que no probaban lo que decían** (salió rompiendo el código):
+  - CLS con imágenes lentas: medido tras `goto`, que espera al `load` (las imágenes ya habían llegado). Ahora va
+    con `waitUntil: 'commit'` y comprueba `complete === false` antes de medir.
+  - `sizes`: solo se nota a un ancho donde la ventana pediría otra variante (1440 px, no 1280).
+  - La caja de la portada cambia ~0,2 px al llegar la variante (alto redondeado): tolerancia de 1 px.
+- Método de siempre en el contenedor (Node 24 de `node-linux-x64@24.22.0`, enlaces `chromium*-1248 → -1243`,
+  `.env`, clon de GitHub y md5 de la carpeta antes de empezar). Cada commit, como
+  `_claude/cadena/tmp/arbol-s15-cN.tar.gz` + `s15-cN.blobs`, con `cat > destino` y `git hash-object`; `HEAD^{tree}`
+  igual en los cuatro y en `main`.
+- `pkill -f` volvió a matar la shell del contenedor: parar servidores por puerto (`fuser -k 5173/tcp`). El aviso
+  de push del contenedor se ignora.
 
 **Deuda anotada:**
+- **Imágenes (F2.8):** Vercel no guarda la caché de `vite-imagetools`, así que cada despliegue genera las 128
+  variantes (~1 min más; ADR-023). La LCP de las fichas es ahora la portada: medirla con Lighthouse al cerrar F2 y
+  en F6. El `og:image` de las fichas mide ~1200×576 (proporción de la captura, no 1,91:1): ver cómo lo recortan
+  las redes cuando se hagan las imágenes del sitio (F6). Las capturas traen de origen la barra de scroll del
+  navegador a la derecha: recortarla en F6 si molesta. En el contenedor solo corre Chromium: Firefox y WebKit de
+  `project-images.spec.ts` se ven en el CI (en WebKit de Linux se admite WebP si no lee AVIF).
 - **Antes de etiquetar `v0.1.0` o enseñar una preview (P5):** la ficha de Cosmos (`src/content/projects/cosmos.ts`)
   lista funcionalidades y stack de F3–F5 (partículas, constelaciones, Three.js / R3F / GLSL): recortarlos a lo
   hecho o esperar a tenerlos (`docs/01-contenido/proyectos/cosmos.md`: «no se publica nada que no esté hecho»).
 - **Windows/Edge:** comprobar a mano que abrir y cerrar «Quick mission» no hace saltar la página de lado
   (`scrollbar-gutter`), si no se hizo.
-- **F2.8:** e2e del visor con las imágenes reales, con los 44 px de «Close» y las flechas; portadas y galerías (se
-  pintan solas al tener datos).
 - **F6 · iPhone real:** el aire de arriba de la ficha con la zona segura (headless no la tiene).
 - **F5:** la placa iluminada al volver lee `uiStore.visitedProject` (el mismo dato del foco en la fila).
 - En el visor y en la misión rápida (modal nativo), el Tab puede pasar por la interfaz del navegador antes de volver
@@ -83,17 +102,24 @@ ADR nuevo. 750 unitarios y 150 e2e en Chromium; CI en verde en los tres navegado
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **F2 · paso 8** (esquema → VB): portada y galería de Chessmate y AstroHub con las capturas de Víctor (formato,
-   tamaños y `vite-imagetools`, textos alternativos EN/ES), y el e2e del visor con ellas (abrir, ← →, Esc y
-   «Close» con el foco de vuelta, 44 px de sus controles). Sin capturas, el esquema puede prepararse igual.
-3. Al cerrar F2.8, auditoría AUD-F2-8 a la Mesa.
+2. **AUD-F2-8** (lanzada; base `98d1284` · hasta `02abc5b`; cita las vivas S15 hasta #13, ya en
+   `hecho/2026-10-25/decisiones-vivas-S15.md`). Cuando llegue la entrega a `_claude/cadena/aud-f2-8/auditoria.md`,
+   Víctor elige qué se corrige y se corrige en su rama.
+3. **Cierre de F2** (esquema → VB):
+   - Antes, recortar la ficha de Cosmos a lo hecho (deuda de arriba).
+   - Lighthouse Accessibility ≥ 95 y SEO ≥ 95, y recorridos e2e del recruiter.
+   - Etiqueta `v0.1.0`.
 
-**Dudas abiertas:** D2 · dominio propio (F7) · D5 · analítica (F7) · Tareas de Víctor: **capturas de los proyectos
-(F2.8)**, script de consola en el README de Chessmate (lo cita el «Try it»), CV en PDF EN/ES.
-**Limpieza manual del usuario:** ramas locales ya fusionadas: `git branch -D feat/scroll-nav-hud
-docs/session-close-2026-10-23-4 docs/session-close-2026-10-23-5 fix/aud-f2-5 docs/session-close-2026-10-24
-feat/quick-mission docs/session-close-2026-10-24-2 feat/project-page docs/session-close-2026-10-24-3 fix/aud-f2-6
-docs/session-close-2026-10-24-4 fix/aud-f2-7` (y `docs/session-close-2026-10-25` cuando se fusione). En el buzón se
-pueden borrar `_claude/cadena/tmp/arbol*.tar.gz`, `_claude/cadena/tmp/*.blobs`, `_claude/cadena/tmp/cierre-s13.tar.gz`
-y `_claude/cadena/tmp/STATE-cierre-s12.md` y, dentro de `_claude/cadena/hecho/`, los `arbol.tar.gz` y `cambio.diff`
-(nunca la carpeta `_claude/cadena/`). · **Bloqueos:** ninguno.
+**Dudas abiertas:** D2 · dominio propio (F7) · D5 · analítica (F7). Tareas de Víctor: script de consola en el
+README de Chessmate (lo cita el «Try it»), CV en PDF EN/ES.
+**Limpieza manual del usuario:**
+- Ramas locales ya fusionadas: `git branch -D feat/scroll-nav-hud docs/session-close-2026-10-23-4
+  docs/session-close-2026-10-23-5 fix/aud-f2-5 docs/session-close-2026-10-24 feat/quick-mission
+  docs/session-close-2026-10-24-2 feat/project-page docs/session-close-2026-10-24-3 fix/aud-f2-6
+  docs/session-close-2026-10-24-4 fix/aud-f2-7 docs/session-close-2026-10-25 feat/project-images`, y
+  `docs/session-close-2026-10-25-2` cuando se fusione.
+- En el buzón se pueden borrar `_claude/cadena/tmp/arbol*.tar.gz`, `_claude/cadena/tmp/*.blobs`,
+  `_claude/cadena/tmp/cierre-s13.tar.gz` y `_claude/cadena/tmp/STATE-cierre-s12.md` y, dentro de
+  `_claude/cadena/hecho/`, los `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`).
+
+**Bloqueos:** ninguno.

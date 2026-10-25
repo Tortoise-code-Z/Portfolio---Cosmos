@@ -157,7 +157,9 @@ Método general en las skills `taller` y `mesa`; aquí, solo lo propio del proye
 - **Git:** lo ejecuta Víctor. Claude solo lee, con `--no-optional-locks` y sin `git status`.
 - **Comprobaciones antes de cada commit:** `npm run check` y build; `npm run e2e` si toca interfaz o estilos
   (el CI lo repite en los tres navegadores). El hook de pre-commit genera antes los tipos de las rutas
-  (`react-router typegen`): sin ellos, ESLint rechaza las rutas nuevas.
+  (`react-router typegen`): sin ellos, ESLint rechaza las rutas nuevas. Si el cambio toca la config de Vite o
+  imports especiales (`?project`, `?share`…), abrir también las páginas afectadas con `npm run dev`, sin errores
+  en consola: los e2e prueban el build y Vitest sustituye esos imports (F2.8).
 - **Zonas calientes:** por fase, en el tablero. F2: `src/styles/tokens.css`, `src/root.tsx`, `src/content/**`,
   `src/lib/i18n/**`, `src/lib/seo/**`, `src/routes.ts`, `src/routes/**`.
 - **Ámbitos de auditoría** (un auditor por ámbito que toque el cambio): estilos e interfaz (fidelidad a
