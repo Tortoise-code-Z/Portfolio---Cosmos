@@ -1,9 +1,11 @@
 /*
  * Página de proyecto (docs/02-experiencia/pagina-proyecto.md → «Layout»): un documento normal en una
- * columna de lectura de --read-w centrada, con aire arriba para la barra fija.
+ * columna de lectura de --read-w centrada, con aire arriba para la barra fija (que suma la zona segura de
+ * arriba, como el `scroll-padding` de global.css).
  */
 .page {
-  padding: calc(var(--topbar-h) + var(--space-7)) var(--gutter) var(--space-9);
+  padding: calc(var(--topbar-h) + env(safe-area-inset-top) + var(--space-7)) var(--gutter)
+    var(--space-9);
 }
 
 .column {

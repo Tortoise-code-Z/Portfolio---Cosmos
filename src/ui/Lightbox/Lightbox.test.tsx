@@ -109,6 +109,13 @@ describe('Lightbox', () => {
     expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
   });
 
+  it('al abrir, la descripción del diálogo dice qué imagen es (y sigue a las flechas)', () => {
+    renderAt('/', 1);
+    expect(dialog()).toHaveAccessibleDescription('2 of 3: Course list');
+    fireEvent.keyDown(dialog(), { key: 'ArrowRight' });
+    expect(dialog()).toHaveAccessibleDescription('3 of 3: Dashboard on a phone');
+  });
+
   it('→ y ← cambian de imagen con vuelta y lo anuncian', () => {
     renderAt('/', 2);
     fireEvent.keyDown(dialog(), { key: 'ArrowRight' });

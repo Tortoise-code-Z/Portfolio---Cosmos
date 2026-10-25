@@ -32,7 +32,7 @@ async function settledScrollTop(page: Page): Promise<number> {
 }
 
 test.describe('quick mission', () => {
-  test('the bar button opens it full screen, with the focus on «Back to the journey» and #quick in place', async ({
+  test('the bar button opens it full screen, with the focus on «Close quick mission» and #quick in place', async ({
     page,
   }) => {
     await page.goto('/#projects', { waitUntil: 'networkidle' });
@@ -41,7 +41,7 @@ test.describe('quick mission', () => {
 
     const dialog = quickDialog(page);
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole('button', { name: 'Back to the journey' })).toBeFocused();
+    await expect(dialog.getByRole('button', { name: 'Close quick mission' })).toBeFocused();
     await expect(page).toHaveURL(/\/#quick$/);
     expect(await historyLength(page)).toBe(before);
     const box = await dialog.boundingBox();
@@ -83,10 +83,10 @@ test.describe('quick mission', () => {
     expect(await scrollTop(page)).toBe(top);
   });
 
-  test('«Back to the journey» closes it as well', async ({ page }) => {
+  test('«Close quick mission» closes it as well', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await opener(page).click();
-    await quickDialog(page).getByRole('button', { name: 'Back to the journey' }).click();
+    await quickDialog(page).getByRole('button', { name: 'Close quick mission' }).click();
     await expect(quickDialog(page)).toBeHidden();
     await expect(page).toHaveURL(/\/$/);
     await expect(opener(page)).toBeFocused();
@@ -98,7 +98,7 @@ test.describe('quick mission', () => {
     await page.goto('/es#quick', { waitUntil: 'networkidle' });
     const dialog = page.getByRole('dialog', { name: 'Víctor Pérez · Desarrollador Frontend' });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole('button', { name: 'Volver al viaje' })).toBeFocused();
+    await expect(dialog.getByRole('button', { name: 'Cerrar la misión rápida' })).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(page).toHaveURL(/\/es$/);
     await expect(opener(page, 'Modo misión rápida')).toBeFocused();
@@ -131,7 +131,7 @@ test.describe('quick mission', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await opener(page).click();
     const dialog = quickDialog(page);
-    await expect(dialog.getByRole('button', { name: 'Back to the journey' })).toBeFocused();
+    await expect(dialog.getByRole('button', { name: 'Close quick mission' })).toBeFocused();
     expect(await dialog.evaluate((element) => element.matches(':modal'))).toBe(true);
     // Fuera = cualquier elemento que no esté en el diálogo (el `body` vale: el navegador puede
     // pasar por su propia interfaz antes de volver).
@@ -148,7 +148,7 @@ test.describe('quick mission', () => {
     expect(await focusInside()).toBe(true);
 
     // Hacia delante, más pasos que enfocables tiene: cruza el borde del final.
-    await dialog.getByRole('button', { name: 'Back to the journey' }).focus();
+    await dialog.getByRole('button', { name: 'Close quick mission' }).focus();
     const focusables = await dialog.evaluate(
       (element) => element.querySelectorAll('a[href], button').length,
     );
@@ -179,13 +179,13 @@ test.describe('quick mission', () => {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 
-  test('390 px: «Back to the journey» stays at the top while the content scrolls', async ({
+  test('390 px: «Close quick mission» stays at the top while the content scrolls', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/#quick', { waitUntil: 'networkidle' });
     const dialog = quickDialog(page);
-    const back = dialog.getByRole('button', { name: 'Back to the journey' });
+    const back = dialog.getByRole('button', { name: 'Close quick mission' });
     const before = await back.boundingBox();
     await dialog.evaluate((element) => {
       element.scrollTop = element.scrollHeight;
@@ -270,7 +270,7 @@ test.describe('touch targets of F2 · step 6 (at least 44 × 44 px)', () => {
     expect(box?.height).toBeGreaterThanOrEqual(44);
   };
 
-  test('390 px: «Quick», both copy buttons, «Back to the journey» and the language suggestion', async ({
+  test('390 px: «Quick», both copy buttons, «Close quick mission» and the language suggestion', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -285,7 +285,7 @@ test.describe('touch targets of F2 · step 6 (at least 44 × 44 px)', () => {
 
     await opener(page).click();
     const dialog = quickDialog(page);
-    await atLeast44(dialog.getByRole('button', { name: 'Back to the journey' }));
+    await atLeast44(dialog.getByRole('button', { name: 'Close quick mission' }));
     await atLeast44(dialog.getByRole('button', { name: 'Copy email' }));
   });
 

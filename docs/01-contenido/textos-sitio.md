@@ -143,7 +143,7 @@ del texto.
 | Clave | EN | ES |
 |---|---|---|
 | `quick.title` | Quick mission · everything on one page | Modo misión rápida · todo en una página |
-| `quick.back` | Back to the journey | Volver al viaje |
+| `quick.back` | Close quick mission | Cerrar la misión rápida |
 | `quick.about` | About | Sobre mí |
 | `quick.projects` | Projects | Proyectos |
 | `quick.skills` | Skills | Habilidades |
@@ -169,13 +169,10 @@ del texto.
 | `project.tryIt` | Try it | Pruébalo |
 | `project.readme` | Read the full guide in the README | Lee la guía completa en el README |
 | `project.credentials` | Demo account | Cuenta de demostración |
+| `project.credentials.many` | Demo accounts | Cuentas de demostración |
 | `project.next` | Next project | Siguiente proyecto |
 | `project.prev` | Previous project | Proyecto anterior |
 | `project.gallery.open` | Open image {n} of {total} | Abrir imagen {n} de {total} |
-| `project.gallery.close` | Close | Cerrar |
-| `project.gallery.prev` | Previous image | Imagen anterior |
-| `project.gallery.next` | Next image | Imagen siguiente |
-| `project.gallery.counter` | {n} of {total} | {n} de {total} |
 | `project.notes` | Notes | Notas |
 | `project.note.info` | Note: | Nota: |
 | `project.note.warning` | Warning: | Atención: |
@@ -189,7 +186,7 @@ del texto.
 - `project.note.*` va oculto a la vista delante de cada nota: el tipo no se dice solo con color ni con el icono.
 - `project.copy.*` completa el nombre accesible del botón copiar («Copy password (Admin)»); `{account}` es el
   nombre de la cuenta de demo (`TryIt.credentials[].label`).
-- El contador visible del visor es «3 / 9»; `project.gallery.counter` es lo que se anuncia («3 of 9: …»).
+- `project.credentials` titula las cuentas de demo cuando hay una y `project.credentials.many` cuando hay varias.
 
 ## Botón copiar (común)
 
@@ -201,6 +198,21 @@ copia lo dice cada uso (`contact.copy.subject`, `project.copy.*`).
 | `copy.idle` | Copy | Copiar |
 | `copy.copied` | Copied | Copiado |
 | `copy.failed` | Select and copy it | Selecciónalo y cópialo |
+
+## Visor de galería (común)
+
+Las etiquetas de `ui/Lightbox`, que no sabe de qué página es (abrir cada imagen es de la galería:
+`project.gallery.open`).
+
+| Clave | EN | ES |
+|---|---|---|
+| `lightbox.close` | Close | Cerrar |
+| `lightbox.prev` | Previous image | Imagen anterior |
+| `lightbox.next` | Next image | Imagen siguiente |
+| `lightbox.counter` | {n} of {total} | {n} de {total} |
+
+- El contador visible del visor es «3 / 9»; `lightbox.counter` es lo que se anuncia («3 of 9: …») y la
+  descripción del diálogo.
 
 ## Estados especiales
 

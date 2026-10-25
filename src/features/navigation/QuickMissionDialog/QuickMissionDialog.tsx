@@ -31,9 +31,9 @@ function hashOf(url: string): string {
 /**
  * Modo misión rápida (docs/02-experiencia/navegacion.md → «Modo misión rápida»; componentes.md): un
  * `<dialog>` modal a pantalla completa con todo el contenido en una página. El botón de la barra o
- * `/#quick` lo abren; «Back to the journey» y `Esc` lo cierran.
+ * `/#quick` lo abren; «Close quick mission» y `Esc` lo cierran.
  *
- * - Al abrir, el foco va a «Back to the journey» y la URL pasa a `#quick` sin entrada nueva en el
+ * - Al abrir, el foco va a «Close quick mission» y la URL pasa a `#quick` sin entrada nueva en el
  *   historial (se puede copiar y enviar); al cerrar, vuelve el ancla que había y el foco al botón de la
  *   barra, también si se entró por `/#quick`. Si se abrió escribiendo `#quick` en la dirección (entrada
  *   nueva), vuelve el ancla de antes; y si el ancla deja de ser `#quick` (Atrás), se cierra.
@@ -82,7 +82,9 @@ export function QuickMissionDialog(): ReactNode {
     if (dialog === null) return;
     const firstRun = !mounted.current;
     mounted.current = true;
-    if (!open) {
+    // `open` es el del render; el estado vivo manda. En desarrollo, StrictMode repite el efecto recién
+    // montado con el mismo `open`, cuando la primera pasada ya lo ha cerrado (abajo): no se reabre.
+    if (!open || !useUiStore.getState().quickMissionOpen) {
       if (dialog.open) dialog.close();
       return;
     }
@@ -100,7 +102,7 @@ export function QuickMissionDialog(): ReactNode {
     replaceHash(QUICK_HASH);
   }, [open]);
 
-  /** Cierre por `Esc` o por «Back to the journey»: el diálogo ya está cerrado al llegar aquí. */
+  /** Cierre por `Esc` o por «Close quick mission»: el diálogo ya está cerrado al llegar aquí. */
   function onClose(): void {
     closeQuickMission();
     // Si la dirección ya no es `#quick` (se fue a otra página), no se toca.

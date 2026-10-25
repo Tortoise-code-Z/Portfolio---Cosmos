@@ -39,7 +39,9 @@ export function ProjectTryIt({ tryIt, readme }: ProjectTryItProps): ReactNode {
       </ol>
       {tryIt.credentials.length === 0 ? null : (
         <div className={styles.account}>
-          <h3 className={styles.accountTitle}>{t('project.credentials')}</h3>
+          <h3 className={styles.accountTitle}>
+            {t(tryIt.credentials.length === 1 ? 'project.credentials' : 'project.credentials.many')}
+          </h3>
           <div className={styles.grid}>
             {tryIt.credentials.map((credential, index) => {
               const account = credential.label[locale];

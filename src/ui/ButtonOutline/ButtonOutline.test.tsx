@@ -8,8 +8,8 @@ import { ButtonOutline } from './ButtonOutline';
 describe('ButtonOutline', () => {
   it('is a plain button (never submits) named by its text, and clicks call onClick', async () => {
     const onClick = vi.fn();
-    render(<ButtonOutline onClick={onClick}>Back to the journey</ButtonOutline>);
-    const button = screen.getByRole('button', { name: 'Back to the journey' });
+    render(<ButtonOutline onClick={onClick}>Close quick mission</ButtonOutline>);
+    const button = screen.getByRole('button', { name: 'Close quick mission' });
     expect(button).toHaveAttribute('type', 'button');
     await userEvent.click(button);
     expect(onClick).toHaveBeenCalledTimes(1);

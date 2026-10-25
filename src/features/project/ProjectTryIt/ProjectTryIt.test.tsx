@@ -45,7 +45,7 @@ describe('ProjectTryIt', () => {
 
   it('cada cuenta con su nombre, usuario y contraseña, y un copiar por dato que dice cuál', async () => {
     renderAt('/projects/x');
-    await screen.findByRole('heading', { level: 3, name: 'Demo account' });
+    await screen.findByRole('heading', { level: 3, name: 'Demo accounts' });
     expect(screen.getByText('Admin')).toBeInTheDocument();
     expect(screen.getByText('root')).toBeInTheDocument();
     expect(screen.getByText('1234567')).toBeInTheDocument();
@@ -71,12 +71,20 @@ describe('ProjectTryIt', () => {
   it('en español', async () => {
     const container = renderAt('/es/projects/x');
     expect(
-      await screen.findByRole('heading', { name: 'Cuenta de demostración' }),
+      await screen.findByRole('heading', { name: 'Cuentas de demostración' }),
     ).toBeInTheDocument();
     expect(container.querySelector('ol')).toHaveTextContent('Ve a Cursos → Todos los cursos.');
     expect(
       screen.getByRole('button', { name: 'Copiar contraseña (Administrador)' }),
     ).toBeInTheDocument();
+  });
+
+  it.each([
+    ['/projects/x', 'Demo account'],
+    ['/es/projects/x', 'Cuenta de demostración'],
+  ])('%s con una sola cuenta: el título en singular', async (path, title) => {
+    renderAt(path, { ...TRY_IT, credentials: TRY_IT.credentials.slice(0, 1) });
+    expect((await screen.findByRole('heading', { level: 3 })).textContent).toBe(title);
   });
 
   it('sin cuentas de demo no pinta el bloque', async () => {

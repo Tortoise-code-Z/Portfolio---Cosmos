@@ -7,10 +7,16 @@
   border-block-start: var(--border-width) solid var(--color-faint);
 }
 
-/* Anterior a la izquierda y siguiente a la derecha; en móvil, uno debajo de otro. */
+/*
+ * Anterior a la izquierda y siguiente a la derecha, cada uno en media columna como mucho (también cuando
+ * solo hay uno, en la primera y la última ficha); en móvil, uno debajo de otro.
+ */
 .pager {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(var(--project-col-min), 1fr));
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(max(var(--project-col-min), (100% - var(--space-4)) / 2), 1fr)
+  );
   gap: var(--space-4);
   padding: 0;
   list-style: none;

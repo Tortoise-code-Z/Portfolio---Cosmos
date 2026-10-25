@@ -134,6 +134,78 @@ test.describe('project page', () => {
     await expect(page).toHaveURL(/\/projects\/chessmate$/);
   });
 
+  test('a quick mission link to another project closes the mode on the new page', async ({
+    page,
+  }) => {
+    await page.goto('/projects/chessmate', { waitUntil: 'networkidle' });
+    await bar(page).getByRole('button', { name: 'Quick mission' }).click();
+    const dialog = page.getByRole('dialog', { name: /Víctor Pérez/ });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('link', { name: /View project\s*AstroHub/ }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('AstroHub');
+    await expect(dialog).toBeHidden();
+    await expect(page).toHaveURL(/\/projects\/astrohub$/);
+  });
+
+  test('«Next project» with the keyboard brings the focus to the next project name', async ({
+    page,
+  }) => {
+    await page.goto('/projects/chessmate', { waitUntil: 'networkidle' });
+    await page.getByRole('link', { name: /Next project\s*AstroHub/ }).focus();
+    await page.keyboard.press('Enter');
+    const title = page.getByRole('heading', { level: 1 });
+    await expect(title).toHaveText('AstroHub');
+    await expect(title).toBeFocused();
+    await expect(title).toBeInViewport();
+  });
+
+  test('first and last project: their only neighbour card takes half the row, on its side', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    for (const [path, name, side] of [
+      ['/projects/chessmate', /Next project/, 'end'],
+      ['/projects/cosmos', /Previous project/, 'start'],
+    ] as const) {
+      await page.goto(path, { waitUntil: 'networkidle' });
+      const pager = page.getByRole('navigation', { name: 'More projects' }).getByRole('list');
+      const listBox = await pager.boundingBox();
+      const cardBox = await pager.getByRole('link', { name }).boundingBox();
+      if (listBox === null || cardBox === null) throw new Error('No pager');
+      expect(cardBox.width).toBeLessThanOrEqual(listBox.width / 2);
+      const gap =
+        side === 'end'
+          ? listBox.x + listBox.width - (cardBox.x + cardBox.width)
+          : cardBox.x - listBox.x;
+      expect(Math.abs(gap)).toBeLessThanOrEqual(1);
+    }
+  });
+
+  for (const width of [520, 600]) {
+    test(`${String(width)} px with text at 200 %: the demo accounts fit in their box (Spanish)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 800 });
+      for (const path of ['/es/projects/astrohub', '/es/projects/chessmate']) {
+        await page.goto(path, { waitUntil: 'networkidle' });
+        await page.addStyleTag({ content: 'html { font-size: 200%; }' });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+          width,
+        );
+        const overflowing = await page
+          .getByRole('region', { name: 'Pruébalo' })
+          .evaluate((region) => {
+            const box = region.querySelector('h3')?.parentElement?.getBoundingClientRect();
+            if (box === undefined) return -1;
+            return [...region.querySelectorAll('button, code')].filter(
+              (element) => element.getBoundingClientRect().right > box.right + 0.5,
+            ).length;
+          });
+        expect(overflowing).toBe(0);
+      }
+    });
+  }
+
   for (const width of [320, 390]) {
     test(`${String(width)} px with text at 200 %: no sideways scroll`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });

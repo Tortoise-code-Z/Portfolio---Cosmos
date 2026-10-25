@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { StrictMode } from 'react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -38,15 +39,17 @@ afterEach(() => {
   close.mockClear();
 });
 
-function renderDialog(path = '/'): { unmount: () => void } {
-  return render(
+function renderDialog(path = '/', { strict = false } = {}): { unmount: () => void } {
+  const tree = (
     <MemoryRouter initialEntries={[path]}>
       <button type="button" id={QUICK_OPENER_ID}>
         Quick mission
       </button>
       <QuickMissionDialog />
-    </MemoryRouter>,
+    </MemoryRouter>
   );
+  // StrictMode (como `npm run dev`): repite los efectos de lo recién montado.
+  return render(strict ? <StrictMode>{tree}</StrictMode> : tree);
 }
 
 /** El `<dialog>` cerrado no está en el árbol accesible: se busca por su etiqueta. */
@@ -66,7 +69,7 @@ describe('QuickMissionDialog', () => {
     expect(dialogElement()).toBeEmptyDOMElement();
   });
 
-  it('opens as a modal named by its title, with the focus on «Back to the journey»', () => {
+  it('opens as a modal named by its title, with the focus on «Close quick mission»', () => {
     renderDialog();
     act(() => {
       openQuickMission();
@@ -75,7 +78,7 @@ describe('QuickMissionDialog', () => {
     const dialog = screen.getByRole('dialog', { name: 'Víctor Pérez · Frontend Developer' });
     // El rótulo no alarga el nombre: el lector lo añade como descripción al abrir.
     expect(dialog).toHaveAccessibleDescription('Quick mission · everything on one page');
-    expect(screen.getByRole('button', { name: 'Back to the journey' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Close quick mission' })).toHaveFocus();
   });
 
   it('writes #quick in place (shareable, no history entry) and gives back the old anchor on close', async () => {
@@ -88,7 +91,7 @@ describe('QuickMissionDialog', () => {
     expect(address()).toBe('/#quick');
     expect(window.history.length).toBe(length);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Back to the journey' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Close quick mission' }));
     expect(close).toHaveBeenCalledTimes(1);
     expect(isOpen()).toBe(false);
     expect(address()).toBe('/#about');
@@ -114,7 +117,7 @@ describe('QuickMissionDialog', () => {
     expect(
       screen.getByRole('dialog', { name: 'Víctor Pérez · Desarrollador Frontend' }),
     ).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Volver al viaje' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Cerrar la misión rápida' })).toHaveFocus();
 
     act(() => {
       dialogElement().close();
@@ -200,6 +203,24 @@ describe('QuickMissionDialog', () => {
     expect(showModal).not.toHaveBeenCalled();
     expect(isOpen()).toBe(false);
     expect(address()).toBe('/projects/chessmate');
+  });
+
+  it('in StrictMode (development), a page that mounts it still open without #quick does not reopen it', () => {
+    window.history.replaceState(null, '', '/projects/chessmate');
+    openQuickMission();
+    renderDialog('/projects/chessmate', { strict: true });
+    expect(showModal).not.toHaveBeenCalled();
+    expect(dialogElement()).not.toHaveAttribute('open');
+    expect(isOpen()).toBe(false);
+    expect(address()).toBe('/projects/chessmate');
+  });
+
+  it('in StrictMode (development), /#quick on load still opens it', () => {
+    window.history.replaceState(null, '', '/#quick');
+    renderDialog('/#quick', { strict: true });
+    expect(dialogElement()).toHaveAttribute('open');
+    expect(isOpen()).toBe(true);
+    expect(address()).toBe('/#quick');
   });
 
   it('mounted with #quick in the address and the state open, it opens', () => {

@@ -72,7 +72,7 @@ abre el modo allí también (`/projects/x#quick`).
   una página limpia: sobre mí, proyectos (con enlace a su página, demo y código), habilidades, formación,
   disponibilidad y contacto (con su botón de copiar el email). El contenido solo se monta al abrir: el HTML
   pre-renderizado no repite el texto del viaje.
-- Foco al botón «Back to the journey» al abrir; `Esc` y ese botón cierran y devuelven el foco al botón de apertura
+- Foco al botón «Close quick mission» al abrir; `Esc` y ese botón cierran y devuelven el foco al botón de apertura
   (también si se entró por `/#quick`). Mientras está abierto, el resto de la página es inerte (modal).
 - Bloquea el scroll del fondo mientras está abierto (la página conserva su posición); desde F3, la escena se pausa
   (no renderiza) para ahorrar batería.
