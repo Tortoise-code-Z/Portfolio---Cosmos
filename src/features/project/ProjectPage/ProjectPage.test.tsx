@@ -108,7 +108,7 @@ describe('ProjectPage', () => {
     expect(image).toHaveAttribute('loading', 'eager');
     expect(image.closest('picture')?.querySelector('source')).toHaveAttribute(
       'sizes',
-      '(min-width: 760px) 720px, 100vw',
+      '(min-width: 768px) 696px, 100vw',
     );
   });
 
