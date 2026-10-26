@@ -11,10 +11,11 @@ interface SceneErrorBoundaryState {
 }
 
 /**
- * Aísla la escena (DEVELOPMENT_RULES.md §5, docs/05-tecnico/arquitectura.md → «Errores»): un fallo 3D
- * (el chunk que no llega, el contexto que no se crea, un error al pintar) nunca tumba la página. Lo
- * registra con contexto, deja de pintar sus hijos y avisa para pasar a sin WebGL. No reintenta: la visita
- * sigue sin escena.
+ * Aísla la escena (DEVELOPMENT_RULES.md §5, docs/05-tecnico/arquitectura.md → «Gestión de errores»): un
+ * fallo 3D al montar o al renderizar con React (el chunk que no llega, el contexto que no se crea, un hijo
+ * del lienzo que lanza) nunca tumba la página. Lo registra con contexto, deja de pintar sus hijos y avisa
+ * para pasar a sin WebGL. No reintenta: la visita sigue sin escena. Lo que lanza dentro del bucle de frames
+ * (`useFrame`, `gl.render`) no llega aquí (docs/04-escena/rendimiento.md → «Robustez»).
  */
 export class SceneErrorBoundary extends Component<
   SceneErrorBoundaryProps,

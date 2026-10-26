@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
-import { hasWebGL2 } from '~/lib/device/webgl2/webgl2';
+import { detectWebGL2 } from '~/lib/device/webgl2/webgl2';
 import { selectSceneLevel, setLanguageNoticeOpen, useUiStore } from '~/stores/uiStore/uiStore';
 
 import { IDLE_TIMEOUT_MS, NO_GL_CLASS, SceneMount } from './SceneMount';
@@ -35,7 +35,7 @@ vi.mock('~/scene/SceneRoot/SceneRoot', () => ({
   },
 }));
 
-vi.mock('~/lib/device/webgl2/webgl2', () => ({ hasWebGL2: vi.fn(() => true) }));
+vi.mock('~/lib/device/webgl2/webgl2', () => ({ detectWebGL2: vi.fn(() => 'hardware') }));
 
 const NOTICE_TEXT = "Your browser can't show the 3D universe, but everything else is here.";
 
@@ -70,7 +70,7 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
-  vi.mocked(hasWebGL2).mockReturnValue(true);
+  vi.mocked(detectWebGL2).mockReturnValue('hardware');
   useUiStore.setState(useUiStore.getInitialState(), true);
   document.documentElement.classList.remove(NO_GL_CLASS);
   scene.behaviour = 'render';
@@ -83,7 +83,7 @@ describe('SceneMount', () => {
     expect(screen.queryByTestId('scene')).not.toBeInTheDocument();
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
     expect(sceneLevel()).toBeNull();
-    expect(hasWebGL2).not.toHaveBeenCalled();
+    expect(detectWebGL2).not.toHaveBeenCalled();
   });
 
   it('with WebGL2, mounts the scene at the level the browser signals pick', async () => {
@@ -93,6 +93,15 @@ describe('SceneMount', () => {
     expect(sceneLevel()).toBe('high');
     expect(document.documentElement).not.toHaveClass(NO_GL_CLASS);
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('WebGL2 painted by the CPU (software rendering) starts at the low level', async () => {
+    vi.mocked(detectWebGL2).mockReturnValue('software');
+    renderMount();
+    await idle();
+    expect(await screen.findByTestId('scene')).toHaveTextContent('low');
+    expect(sceneLevel()).toBe('low');
+    expect(document.documentElement).not.toHaveClass(NO_GL_CLASS);
   });
 
   it('a narrow window starts at the low level', async () => {
@@ -115,7 +124,7 @@ describe('SceneMount', () => {
   });
 
   it('without WebGL2: no scene, the no-gl class and the notice, in the page language', async () => {
-    vi.mocked(hasWebGL2).mockReturnValue(false);
+    vi.mocked(detectWebGL2).mockReturnValue('none');
     renderMount('/es');
     await idle();
     expect(screen.queryByTestId('scene')).not.toBeInTheDocument();
@@ -128,20 +137,24 @@ describe('SceneMount', () => {
   });
 
   it('the notice shows once per visit: «Got it» hides it for good', async () => {
-    vi.mocked(hasWebGL2).mockReturnValue(false);
+    vi.mocked(detectWebGL2).mockReturnValue('none');
     renderMount();
     await userEvent.click(await screen.findByRole('button', { name: 'Got it' }));
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
-    // Otra señal de «sin WebGL» (la escena fallaría otra vez) no lo hace volver.
+    // Que el aviso vuelva a tener turno (la sugerencia de idioma sale y se contesta) no lo hace volver:
+    // descartarlo manda sobre el turno.
     act(() => {
-      useUiStore.setState({ sceneLevel: 'off' });
+      setLanguageNoticeOpen(true);
+    });
+    act(() => {
+      setLanguageNoticeOpen(false);
     });
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
     expect(document.documentElement).toHaveClass(NO_GL_CLASS);
   });
 
   it('waits for the language suggestion to be answered: they never cover each other', async () => {
-    vi.mocked(hasWebGL2).mockReturnValue(false);
+    vi.mocked(detectWebGL2).mockReturnValue('none');
     setLanguageNoticeOpen(true);
     renderMount();
     await idle();
@@ -187,7 +200,7 @@ describe('SceneMount', () => {
     );
     unmount();
     await idle();
-    expect(hasWebGL2).not.toHaveBeenCalled();
+    expect(detectWebGL2).not.toHaveBeenCalled();
     expect(sceneLevel()).toBeNull();
   });
 });

@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useLayoutEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useStore } from 'zustand';
 
@@ -67,8 +67,10 @@ export function LanguageNotice({ pathFor }: LanguageNoticeProps): ReactNode {
   const target = answered ? null : suggested;
   const open = target !== null;
 
-  // El aviso sin WebGL espera a que esta sugerencia se conteste (uiStore → `languageNoticeOpen`).
-  useEffect(() => {
+  // El aviso sin WebGL espera a que esta sugerencia se conteste (uiStore → `languageNoticeOpen`). Antes de
+  // pintar (`useLayoutEffect`): al llegar por navegación (de la 404 a la home) esta caja sale en el mismo
+  // commit, y con un efecto pasivo el otro aviso aún se vería un frame debajo.
+  useLayoutEffect(() => {
     setLanguageNoticeOpen(open);
     return () => {
       setLanguageNoticeOpen(false);

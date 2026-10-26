@@ -56,6 +56,7 @@ export function Layout({ children }: { readonly children: ReactNode }): ReactNod
       </head>
       <body>
         {children}
+        <SceneMount />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -64,24 +65,22 @@ export function Layout({ children }: { readonly children: ReactNode }): ReactNod
 }
 
 /**
- * Las rutas y, fuera de ellas, la escena: se monta una sola vez y no se recrea al navegar
+ * Las rutas. La escena va en `Layout`, detrás de ellas: se monta una sola vez y no se recrea al navegar
+ * ni al pasar por `HydrateFallback` o el `ErrorBoundary`, que `Layout` también envuelve; así el HTML de
+ * cualquier página (también el `404.html`) lleva siempre su región de aviso, y solo una
  * (docs/05-tecnico/arquitectura.md → «Carga de la escena»).
  */
 export default function App(): ReactNode {
-  return (
-    <>
-      <Outlet />
-      <SceneMount />
-    </>
-  );
+  return <Outlet />;
 }
 
 /**
  * Lo que se pinta mientras el cliente descarga el módulo de una ruta que el HTML servido no traía:
  * pasa cuando ese HTML no es el de la ruta que casa el cliente. Casi siempre es el `404.html` con un
  * slug desconocido (`/projects/no-existe`) o una ruta con mayúsculas (`/projects/Chessmate`, `/ES`;
- * React Router 8.4 no pasa `caseSensitive` a las rutas del cliente). Pinta la misma 404, así que
- * coincide con ese HTML; sin esto React dejaba su `<main>` y añadía otro (dos `<h1>`). No es el único
+ * React Router 8.4 no pasa `caseSensitive` a las rutas del cliente). Pinta la misma 404 y `Layout` le
+ * añade la escena, como al pre-renderizar, así que coincide con ese HTML; sin esto React dejaba su
+ * `<main>` y añadía otro (dos `<h1>`). No es el único
  * caso: `/index.html` sirve la home y el cliente casa la ruta `*` (en F7, `cleanUrls` en Vercel).
  */
 export function HydrateFallback(): ReactNode {

@@ -47,6 +47,11 @@ const SCENE_JS_BUDGET_BYTES = 250_000;
 /** El import dinámico de `SceneMount` que trae la escena (en el chunk de `root`). */
 const SCENE_ROOT_IMPORT = /import\(`\.\/(SceneRoot-[^`]+\.js)`\)/;
 const STATIC_IMPORT = /(?:from|import)\s*"\.\/([^"]+\.js)"/g;
+/** Un import dinámico en el JS del build (Vite lo escribe con comillas invertidas o dobles). */
+const DYNAMIC_IMPORT = /import\([`"]\.\/([^`"]+\.js)[`"]\)/g;
+const SCENE_ROOT_CHUNK = /\/assets\/SceneRoot-[^/]+\.js$/;
+/** El grupo `scene` de vite.config.ts: las dependencias que no pide ninguna entrada (ADR-020). */
+const SCENE_GROUP_CHUNK = /\/assets\/scene-[^/]+\.js$/;
 /** Hoja única (ADR-019), gzip: por encima, revisar si conviene volver a partirla. */
 const CSS_BUDGET_BYTES = 50_000;
 
@@ -106,6 +111,27 @@ function sceneChunks(): string[] {
     for (const [, name] of code.matchAll(STATIC_IMPORT)) pending.push(`/assets/${name ?? ''}`);
   }
   return [...chunks];
+}
+
+/** Lo que importa un chunk: estático y dinámico, como `/assets/x.js`. */
+function chunkImports(chunk: string): { static: string[]; dynamic: string[] } {
+  const code = readFileSync(join(CLIENT_DIR, chunk), 'utf8');
+  const names = (pattern: RegExp): string[] =>
+    Array.from(code.matchAll(pattern), ([, name]) => `/assets/${name ?? ''}`);
+  return { static: names(STATIC_IMPORT), dynamic: names(DYNAMIC_IMPORT) };
+}
+
+/** Todos los chunks que puede llegar a cargar alguna página (desde su HTML, por imports de los dos tipos). */
+function reachableChunks(): Set<string> {
+  const chunks = new Set<string>();
+  const pending = PAGES.flatMap((page) => [...pageScripts(page)]);
+  for (let chunk = pending.pop(); chunk !== undefined; chunk = pending.pop()) {
+    if (chunks.has(chunk)) continue;
+    chunks.add(chunk);
+    const imports = chunkImports(chunk);
+    pending.push(...imports.static, ...imports.dynamic);
+  }
+  return chunks;
 }
 
 test.describe('build budgets', () => {
@@ -173,6 +199,24 @@ test.describe('build budgets', () => {
       0,
     );
     expect(bytes).toBeLessThanOrEqual(SCENE_JS_BUDGET_BYTES);
+  });
+
+  test('only SceneRoot pulls in the scene group: no other deferred import lands in it', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
+    // El grupo `scene` recoge toda dependencia diferida (ADR-020): si otra feature cargara así una
+    // librería, esa librería y Three.js irían en el mismo chunk, y la feature lo descargaría sin WebGL2.
+    const chunks = [...reachableChunks()];
+    const sceneRoot = chunks.filter((chunk) => SCENE_ROOT_CHUNK.test(chunk));
+    expect(sceneRoot).toHaveLength(1);
+    expect(chunkImports(sceneRoot[0] ?? '').static).toContainEqual(
+      expect.stringMatching(SCENE_GROUP_CHUNK),
+    );
+    const others = chunks.filter((chunk) => !SCENE_ROOT_CHUNK.test(chunk));
+    const offenders = others.filter((chunk) => {
+      const imports = chunkImports(chunk);
+      return [...imports.static, ...imports.dynamic].some((name) => SCENE_GROUP_CHUNK.test(name));
+    });
+    expect(offenders).toEqual([]);
   });
 
   test('the budgets see every page type (home, project and 404, in both languages)', () => {

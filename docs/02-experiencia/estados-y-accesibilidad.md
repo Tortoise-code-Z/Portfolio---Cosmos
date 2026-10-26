@@ -45,8 +45,9 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 
 ## Niveles de rendimiento
 
-La escena elige un nivel al arrancar y puede **bajarlo** si los fps reales caen de forma sostenida (nunca lo
-sube a mitad de visita para no causar tirones). Valores en `docs/04-escena/`.
+Al arrancar se elige un nivel (lo elige `SceneMount`, antes de descargar la escena) y la escena puede
+**bajarlo** si los fps reales caen de forma sostenida (nunca lo sube a mitad de visita para no causar tirones).
+Valores en `docs/04-escena/`.
 
 | Nivel | Cuándo | Efecto |
 |---|---|---|

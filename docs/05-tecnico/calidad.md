@@ -14,7 +14,9 @@
 
 - `@eslint/js` recomendado + `typescript-eslint` `strictTypeChecked` y `stylisticTypeChecked`.
 - `react-hooks` (recomendado), `jsx-a11y-x` (strict; fork mantenido de `jsx-a11y`, ADR-014).
-- `no-restricted-imports` por carpeta (reglas de capas de `arquitectura.md`).
+- `no-restricted-imports` por carpeta (reglas de capas de `arquitectura.md`) y `no-restricted-syntax` para los
+  `import()`: la escena y Three.js solo en diferido desde `features/scene-mount/SceneMount`, y ningún `import()`
+  con una ruta que no sea una cadena fija (`arquitectura.md` → «Carga de la escena»).
 - `no-console` permitido solo `error` y `warn`.
 - `eslint-config-prettier` al final. Prettier: `printWidth 100`, comillas simples, `trailingComma all`,
   `endOfLine lf`.

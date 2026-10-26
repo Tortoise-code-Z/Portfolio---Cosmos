@@ -57,8 +57,9 @@ cosmos-portfolio/
 │  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
 │  │  │                           sitemap y robots (reciben origen y datos por parámetro, ADR-017)
 │  │  ├─ device/                ← señales del dispositivo: reducedMotion (prefersReducedMotion, jumpBehavior),
-│  │  │                           sceneLevel (niveles de la escena, su tabla y la elección inicial, pura) y
-│  │  │                           webgl2 (hasWebGL2); después usePointerType
+│  │  │                           sceneLevel (niveles de la escena, su tabla, la elección inicial, pura, y
+│  │  │                           readBrowserSignals, que lee las señales en cliente) y webgl2 (detectWebGL2:
+│  │  │                           con GPU, por software o sin WebGL2); después usePointerType
 │  │  ├─ hold/                  ← carga de «mantén pulsado»: charge (puro) y useHoldCharge (rAF + variable CSS)
 │  │  ├─ css/                   ← cx (unir clases) y useHeightVar (altura de un elemento como variable CSS)
 │  │  └─ math/                  ← clamp, smoothstep, lerp (después, easing)
@@ -107,9 +108,10 @@ content  ◄── lib ◄── stores ◄── ui ◄── features ◄─�
 | `ui` | `lib` | `features`, `scene`, `content` (recibe datos por props) |
 | `features` | `ui`, `lib`, `stores`, `content` | `three`, `@react-three/*`, `scene` (salvo el punto de montaje diferido) |
 | `scene` | `lib`, `stores`, `content` (solo ids y orden) | `features`, `ui` |
-| `routes` | todo lo anterior | — |
+| `routes` (y `root.tsx`) | todo lo anterior menos la escena | `scene`, `three`, `@react-three/*` (la escena solo llega por `SceneMount`) |
 
-Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import prohibido rompe el lint.
+Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import prohibido rompe el lint. Los
+`import()` los vigila `no-restricted-syntax` (ver «Carga de la escena»).
 
 **Entre features.** Una feature no importa componentes de otra. Si dos comparten un contrato (constantes o
 funciones sin React), vive en un módulo aparte de la feature que lo define y la otra importa solo ese módulo,
@@ -194,23 +196,32 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 
 ## Carga de la escena
 
-- `root.tsx` renderiza **una sola vez** `<SceneMount />` (`features/scene-mount`, fuera de `<Outlet />`).
-  Las rutas **no** montan la escena: así el lienzo no se recrea al navegar. En el pre-render y al hidratar
-  no pinta nada (solo la región vacía del aviso). Después, cuando el navegador está libre
-  (`requestIdleCallback` con 2 s de plazo; en Safari, la vuelta siguiente del bucle de eventos):
-  - sin WebGL2 (`hasWebGL2`) → modo sin WebGL, **sin descargar** Three.js;
-  - con WebGL2 → elige el nivel (`chooseInitialLevel`, `uiStore.sceneLevel`) y hace
-    `lazy(() => import('~/scene/SceneRoot/SceneRoot'))`, dentro de `SceneErrorBoundary`.
-- `SceneErrorBoundary` recoge cualquier error de la escena (el chunk que no llega, el contexto que no se crea,
-  un fallo al pintar), lo registra y pasa a sin WebGL. `SceneRoot` avisa con `onFail` de lo que no lanza: un
-  shader que no compila (`gl.debug.onShaderError`) o un contexto perdido que no vuelve (`contextLoss`: un
-  intento, 3 s). Sin WebGL: clase `no-gl` en `<html>`, el lienzo se desmonta y un aviso, una vez por visita.
+- `root.tsx` renderiza **una sola vez** `<SceneMount />` (`features/scene-mount`), en `Layout`, detrás de
+  `{children}`. Las rutas **no** montan la escena: así el lienzo no se recrea al navegar, ni al pasar por
+  `HydrateFallback` o el `ErrorBoundary` raíz (`Layout` los envuelve también), y el HTML de cualquier página,
+  la 404 incluida, lleva una sola región de aviso. En el pre-render y al hidratar no pinta nada (solo la
+  región vacía del aviso). Después, cuando el navegador está libre (`requestIdleCallback` con 2 s de plazo;
+  en Safari, la vuelta siguiente del bucle de eventos):
+  - sin WebGL2 (`detectWebGL2` → `none`) → modo sin WebGL, **sin descargar** Three.js;
+  - con WebGL2 → elige el nivel (`chooseInitialLevel`, `uiStore.sceneLevel`; Bajo si solo pinta por software)
+    y hace `lazy(() => import('~/scene/SceneRoot/SceneRoot'))`, dentro de `SceneErrorBoundary`.
+- `SceneErrorBoundary` recoge los errores de la escena al montar y al renderizar con React (el chunk que no
+  llega, el contexto que no se crea, un hijo del lienzo que lanza), los registra y pasa a sin WebGL. Lo que
+  lanza dentro del bucle de frames (`useFrame`, `gl.render`) no le llega: corre en el `requestAnimationFrame`
+  de R3F (regla en `docs/04-escena/rendimiento.md` → «Robustez»). `SceneRoot` avisa con `onFail` de lo que no
+  lanza: un shader que no compila (`gl.debug.onShaderError`, que registra el programa y cada shader) o un
+  contexto perdido que no vuelve (`contextLoss`: un intento, 3 s con la página a la vista; al volver, pide un
+  frame). Sin WebGL: clase `no-gl` en `<html>`, el lienzo se desmonta y un aviso, una vez por visita.
+  `SceneRoot` marca su envoltorio con `data-ready` cuando existe el renderer: lo esperan los e2e.
 - `SceneRoot` monta el `<Canvas>` fijo detrás del contenido (`--z-scene`), `aria-hidden`, sin puntero (R3F
   pone `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. En F3.1 está
   vacío y pinta bajo demanda (`frameloop="demand"`); el worker de las formas llega en F3.2.
 - Three.js, React Three Fiber y lo que arrastran van en el chunk `scene` (grupo de `vite.config.ts`), que
-  ningún HTML pide (ADR-020). Solo `SceneMount` importa la escena, y solo en diferido: las capas lo vigilan con
-  `no-restricted-imports` y los `import()` de `scene/` o de Three fuera de ahí, con `no-restricted-syntax`.
+  ningún HTML pide (ADR-020). El grupo es el resto de dependencias diferidas: un `import()` nuevo de otra
+  librería necesita su propio grupo (lo vigila `budgets.spec.ts`). Solo `SceneMount` importa la escena, y solo
+  en diferido: las capas lo vigilan con `no-restricted-imports` (también en `routes/` y `root.tsx`), y
+  `no-restricted-syntax` prohíbe fuera de ahí los `import()` de `scene/` o de Three y cualquier `import()`
+  cuya ruta no sea una cadena fija (una plantilla o una variable no se pueden comprobar).
 - El lienzo vive en `root.tsx` (persistente entre rutas); `routes/journey/journey.tsx` y `routes/project/project.tsx` le
   comunican su estado (viaje, proyecto activo, atenuación) vía `sceneStore`.
 
@@ -233,7 +244,8 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   `<Link>`). Lo prueba `src/root.test.tsx`; que la 404 hidratada no añada hojas de estilo, `seo.spec.ts`.
 - Toda ruta exporta su `meta`: si no, heredaría la de reserva de `root.tsx` (la de la 404, con `noindex`).
   `src/root.test.tsx` lo comprueba para cada ruta de `routes.ts`.
-- `ErrorBoundary` propio de la escena (aislado: un fallo 3D nunca tumba la página).
+- `ErrorBoundary` propio de la escena (aislado: un fallo 3D al montar o al renderizar con React nunca tumba la
+  página; los del bucle de frames, `docs/04-escena/rendimiento.md` → «Robustez»).
 - `CopyButton` y similares: siempre con alternativa (seleccionar texto) y mensaje.
 - Nada de `catch` vacíos: todo error capturado se registra con contexto y sin datos personales (en desarrollo y
   producción) o se muestra al usuario si le afecta. `console.error` para los fallos; `console.warn` para las

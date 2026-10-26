@@ -30,8 +30,8 @@
 ### Botón de contorno (`ButtonOutline`)
 - Mono `--text-label` en mayúsculas, borde 1 px `--color-faint`, fondo velo con desenfoque; al pasar, borde y
   texto ámbar. Siempre `type="button"` y con 44 × 44 px como mínimo.
-- Uso: «Quick mission», «Close quick mission», «Copy», «No, thanks» y, en el visor de la galería, «Close» y las
-  flechas (solo icono de 20 px, con el nombre en `aria-label`).
+- Uso: «Quick mission», «Close quick mission», «Copy», «No, thanks», «Got it» (aviso sin WebGL) y, en el visor
+  de la galería, «Close» y las flechas (solo icono de 20 px, con el nombre en `aria-label`).
 - No encoge en una fila, pero nunca pasa del ancho de su contenedor: una etiqueta que no cabe en una línea
   («Selecciónalo y cópialo» a 390 px con el texto al 200 %) se parte en dos, centrada.
 - Si el texto visible es una forma corta («Quick»), el nombre accesible es el completo y la contiene (WCAG 2.5.3).
