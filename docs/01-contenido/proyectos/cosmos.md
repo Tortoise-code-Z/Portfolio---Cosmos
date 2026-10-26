@@ -99,6 +99,12 @@ Vacío en el contenido (`[]`) hasta F6. Candidatos (se confirman con medidas rea
 
 ## Notes
 
+Hoy (sin README):
+
+- `info` · EN: The source code is public on GitHub. · ES: El código es público en GitHub.
+
+⏳ Final (con el README del repo, F6):
+
 - `info` · EN: The source code is public; the README explains the architecture. · ES: El código es público; el
   README explica la arquitectura.
 

@@ -5,10 +5,12 @@ import { SHARE_IMAGE_WIDTH } from '../../src/content/imageWidths.ts';
 import { profile } from '../../src/content/profile.ts';
 import { projectEntries } from '../../src/content/projects/entries.ts';
 import { uiTexts } from '../../src/content/texts/index.ts';
-import type { Locale, ProjectEntry } from '../../src/content/types.ts';
+import type { Locale } from '../../src/content/types.ts';
 import { parseSiteUrl } from '../../src/lib/env/siteUrl/siteUrl.ts';
 import { indexablePaths, sitePages } from '../../src/lib/seo/pages/pages.ts';
 import { absoluteUrl } from '../../src/lib/seo/urls/urls.ts';
+
+import { collectErrors, projectBySlug } from './support/helpers.ts';
 
 /**
  * SEO sobre el HTML real del build: cada página indexable con su canónica, hreflang,
@@ -26,12 +28,6 @@ const PAGES = sitePages(projectEntries);
 const WITH_COVER: ReadonlySet<string> = new Set(['chessmate', 'astrohub']);
 const INDEXABLE = indexablePaths(PAGES).map((path) => absoluteUrl(ORIGIN, path));
 const OG_LOCALE: Readonly<Record<Locale, string>> = { en: 'en_US', es: 'es_ES' };
-
-function projectBySlug(slug: string): ProjectEntry {
-  const project = projectEntries.find((candidate) => candidate.slug === slug);
-  if (project === undefined) throw new Error(`seo.spec: no hay proyecto «${slug}»`);
-  return project;
-}
 
 /** Título, descripción y nombre del JSON-LD que tiene que llevar cada página, sacados del contenido. */
 function expectedText(
@@ -52,15 +48,6 @@ function expectedText(
     description: project.summary[locale],
     name: project.name,
   };
-}
-
-function collectConsoleErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
-  page.on('pageerror', (error) => errors.push(error.message));
-  return errors;
 }
 
 async function head(page: Page) {
@@ -94,7 +81,7 @@ test.describe('páginas indexables', () => {
       const path = sitePage.paths[locale];
 
       test(`${path}: canónica, hreflang, Open Graph y JSON-LD`, async ({ page }) => {
-        const errors = collectConsoleErrors(page);
+        const errors = collectErrors(page);
         await page.goto(path);
         // Tras hidratar: un error o una etiqueta duplicada al hidratar también tiene que salir aquí.
         await page.waitForLoadState('networkidle');
@@ -235,7 +222,7 @@ test.describe('404 por idioma (sin redirecciones)', () => {
     ['/es/PROJECTS/chessmate', 'es', 'Perdido en el espacio'],
   ] as const) {
     test(`${path} → 404 ${locale}, noindex, sin canónica`, async ({ page }) => {
-      const errors = collectConsoleErrors(page);
+      const errors = collectErrors(page);
       await page.goto(path);
       // Tras hidratar y cargar el módulo de la ruta que casa el cliente: un solo <h1>.
       await page.waitForLoadState('networkidle');
@@ -274,7 +261,7 @@ test.describe('404 por idioma (sin redirecciones)', () => {
   });
 
   test('desde la 404, «Volver al inicio» lleva a la home del idioma', async ({ page }) => {
-    const errors = collectConsoleErrors(page);
+    const errors = collectErrors(page);
     await page.goto('/es/loquesea');
     await page.getByRole('link', { name: 'Volver al inicio' }).click();
     await expect(page).toHaveURL('/es');
@@ -296,7 +283,7 @@ test.describe('página de proyecto', () => {
   });
 
   test('la vuelta al caparazón navega a la home sin errores', async ({ page }) => {
-    const errors = collectConsoleErrors(page);
+    const errors = collectErrors(page);
     await page.goto('/projects/astrohub');
     await page.getByRole('link', { name: 'Back to the shell' }).click();
     await expect(page).toHaveURL('/#projects');
