@@ -386,3 +386,34 @@
   - Cosmos sigue sin imágenes hasta F6.
 - Detalle: `docs/01-contenido/assets.md` y `modelo-de-datos.md`; `docs/05-tecnico/arquitectura.md` («Capas y
   reglas de dependencia» y «Rutas e idiomas»).
+
+## ADR-024 · E2E del CI en la imagen de Playwright, un job por navegador
+- Estado: Aceptada
+- Fecha: 2026-10-26
+- Contexto: el job de e2e del CI instalaba en cada ejecución Chromium, Firefox y WebKit con sus dependencias del
+  sistema (`npx playwright install --with-deps`) y pasaba después los tres navegadores seguidos en una sola
+  máquina, con dos reintentos. Iba lento y a menudo se quedaba colgado hasta el `timeout-minutes`, y había que
+  cancelarlo y relanzarlo. Con la escena 3D (F3), Firefox y WebKit sin GPU irán aún más lentos.
+- Decisión:
+  - Los e2e corren dentro de la imagen oficial de Playwright (la de ADR-010, `mcr.microsoft.com/playwright`, a la
+    misma versión que `@playwright/test`), que ya trae los navegadores: no se descarga nada.
+  - Un job por navegador (`chromium`, `firefox`, `webkit`), en paralelo y sin cortar los demás si uno falla.
+  - Un job que los resume con el nombre de siempre, `E2E (Chromium · Firefox · WebKit)`: es el check obligatorio
+    de la protección de `main`, que así no cambia.
+  - En el CI, un reintento y un límite para toda la ejecución (`globalTimeout`) por debajo del del job, para que
+    el informe llegue a subirse.
+  - Los tres navegadores siguen en cada PR. En local, `npm run e2e:chromium` se lanza a mano al tocar interfaz;
+    los hooks de Git no cambian.
+- Alternativas descartadas:
+  - Pasar los e2e de los tres navegadores a un hook de Git en local: en Windows, Defender bloquea Firefox y
+    WebKit y el WebKit de Windows no es el de Linux; cada push tardaría minutos y un hook se salta con
+    `--no-verify`, así que `main` perdería la garantía.
+  - Solo Chromium en los PR y Firefox y WebKit al fusionar en `main`: un fallo de Safari se vería después de
+    fusionar.
+  - Guardar los navegadores con `actions/cache`: las dependencias del sistema se seguían instalando con `apt`.
+- Consecuencias:
+  - Subir `@playwright/test` obliga a subir la imagen en `ci.yml` (ya lo pedía ADR-010 para `visual`).
+  - Cada job descarga la imagen (unos 2 GB) en lugar de instalar los navegadores.
+  - Si se renombra el job que resume, hay que actualizar la protección de `main`; los jobs por navegador se
+    pueden renombrar sin tocarla.
+- Detalle: `docs/05-tecnico/git-y-despliegue.md` («CI») y `docs/05-tecnico/stack.md` («Conflictos»).

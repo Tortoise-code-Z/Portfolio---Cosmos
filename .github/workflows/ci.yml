@@ -59,11 +59,22 @@ jobs:
           path: build/
           retention-days: 7
 
+  # Un job por navegador, en paralelo, dentro de la imagen oficial de Playwright (ADR-010): los navegadores y sus
+  # dependencias del sistema ya vienen instalados, sin la descarga que colgaba el CI. La imagen va siempre a la
+  # misma versión que `@playwright/test` (docs/05-tecnico/stack.md).
   e2e:
-    name: E2E (Chromium · Firefox · WebKit)
+    name: E2E · ${{ matrix.project }}
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      # El usuario del runner: así el checkout y la caché de npm no quedan como root.
+      options: --user 1001
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -75,13 +86,24 @@ jobs:
         with:
           name: build
           path: build/
-      - run: npx playwright install --with-deps chromium firefox webkit
-      - run: npm run e2e
+      - run: npm run e2e -- --project=${{ matrix.project }}
       - if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: playwright-report/
           retention-days: 7
+
+  # El check obligatorio de la protección de `main` (git-y-despliegue.md): resume los tres navegadores con el
+  # nombre de siempre, así la regla no cambia aunque los e2e vayan en paralelo.
+  e2e-result:
+    name: E2E (Chromium · Firefox · WebKit)
+    needs: e2e
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Comprobar los tres navegadores
+        run: test "${{ needs.e2e.result }}" = "success"
 
   # Regresión visual (Docker) y Lighthouse CI se añaden en F3 y F6 (docs/06-roadmap/roadmap.md).
