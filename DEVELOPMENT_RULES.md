@@ -155,7 +155,7 @@ Método general en las skills `taller` y `mesa`; aquí, solo lo propio del proye
   git con `.git/info/exclude` en el equipo de Víctor (no se añade a `.gitignore`).
 - **Zona horaria:** `Europe/Dublin`.
 - **Git:** lo ejecuta Víctor. Claude solo lee, con `--no-optional-locks` y sin `git status`.
-- **Comprobaciones antes de cada commit:** `npm run check` y build; `npm run e2e` si toca interfaz o estilos
+- **Comprobaciones antes de cada commit:** `npm run check` y build; `npm run e2e:chromium` si toca interfaz o estilos
   (el CI lo repite en los tres navegadores). El hook de pre-commit genera antes los tipos de las rutas
   (`react-router typegen`): sin ellos, ESLint rechaza las rutas nuevas. Si el cambio toca la config de Vite o
   imports especiales (`?project`, `?share`…), abrir también las páginas afectadas con `npm run dev`, sin errores
