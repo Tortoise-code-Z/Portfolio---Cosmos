@@ -70,7 +70,14 @@ Reglas:
 | Datos | `--font-mono` | IBM Plex Mono 400/500 | Eyebrows, HUD, escena del raíl, etiquetas, metadatos, botones de acción |
 
 Fallbacks: `"Arial Narrow", "Helvetica Neue", sans-serif` · `system-ui, -apple-system, "Segoe UI", sans-serif` ·
-`ui-monospace, "SFMono-Regular", Menlo, monospace`.
+`ui-monospace, "SFMono-Regular", Menlo, "Courier New", "Liberation Mono", "DejaVu Sans Mono", monospace`.
+
+Las reservas de la mono miden por letra lo mismo que Plex Mono (0,6 em): SF Mono y Menlo en Apple, Courier New
+en Windows, Liberation Mono o DejaVu Sans Mono en Linux. La genérica `monospace` va al final porque puede ser más
+estrecha (Consolas en Windows): con ella, los metadatos de la ficha caben en una línea hasta que llega Plex Mono
+(no se precarga), entonces saltan a la siguiente y todo lo de debajo baja unos 15 px (CLS ≈ 0,1 a 390 px). Lo
+vigila `project-images.spec.ts` («slow images…»). Courier New se ve peor que Consolas, pero solo hasta que llega
+Plex Mono.
 
 Las fuentes se autoalojan con `@font-face` propios en `src/styles/fonts.css` (familias `Anybody`, `Geologica` e
 `IBM Plex Mono`, solo subconjunto latino) y `root.tsx` precarga Anybody y Geologica. Archivos y pesos →
