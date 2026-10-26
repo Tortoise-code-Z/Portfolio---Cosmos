@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { collectErrors } from './support/helpers.ts';
+
 /**
  * Página de proyecto (F2 · paso 7): docs/02-experiencia/pagina-proyecto.md y navegacion.md → «Volver
  * desde una página de proyecto». Las imágenes (portada, galería y visor) están en project-images.spec.ts.
@@ -34,15 +36,6 @@ async function atLeast44(locator: ReturnType<Page['getByRole']>): Promise<void> 
   const box = await locator.boundingBox();
   expect(box?.width).toBeGreaterThanOrEqual(44);
   expect(box?.height).toBeGreaterThanOrEqual(44);
-}
-
-function collectErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
-  return errors;
 }
 
 test.describe('project page', () => {

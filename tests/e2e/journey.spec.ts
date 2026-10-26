@@ -1,19 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { collectErrors } from './support/helpers.ts';
+
 /**
  * El viaje sin escena (F2 · paso 4): capítulos, anclas, detonación, encuadre y lectura sin JS.
  * Detalle en docs/02-experiencia/ (README y capitulos/) y docs/03-diseno/componentes.md.
  */
-
-/** Recoge los errores de consola para exigir «0 errores» (métrica del brief). */
-function collectConsoleErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
-  page.on('pageerror', (error) => errors.push(error.message));
-  return errors;
-}
 
 const CHAPTERS = {
   en: [
@@ -59,7 +51,7 @@ test.describe('the journey (home)', () => {
     ['/es', 'es'],
   ] as const) {
     test(`${path}: one h1, the four chapters in order and no console errors`, async ({ page }) => {
-      const errors = collectConsoleErrors(page);
+      const errors = collectErrors(page);
       await page.goto(path, { waitUntil: 'networkidle' });
       await expect(page.locator('html')).toHaveAttribute('lang', locale);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText('Víctor Pérez');
