@@ -139,6 +139,11 @@
   la escena.
 - Alternativas descartadas: `Math.random` (tests y capturas inestables).
 - Consecuencias: el universo es idéntico en cada visita; test «misma semilla → mismo resultado byte a byte».
+- Nota (2026-10-26, F3.2): cada parte de la escena (`nebula`, `galaxy`, `turtle`, `earth`, `rand`) usa su
+  **subsemilla** (`subSeed(SCENE_SEED, nombre)`), así que retocar una forma no mueve las demás. «Byte a byte» se
+  promete **en el mismo motor de JavaScript** (Node/V8 en Vitest, Chromium en las capturas), no entre motores:
+  `Math.sin` y `Math.pow` pueden diferir en el último bit. Una huella fija por matriz en los tests obliga a que
+  un cambio de aspecto sea a propósito. ESLint prohíbe `Math.random` en `src/scene/**`.
 - Detalle: `docs/04-escena/formas.md`, `docs/04-escena/README.md`.
 
 ## ADR-012 · Repo público con licencia MIT para el código
@@ -444,3 +449,31 @@
   producción y deben ir con `noindex` (se comprueba en F7, junto a las 404 reales y `cleanUrls`). El enlace de
   la demo de Cosmos pasa al dominio nuevo.
 - Detalle: `docs/05-tecnico/git-y-despliegue.md` («Despliegue»).
+
+## ADR-026 · Formas de la escena en un worker por encargo, con un reintento en el hilo principal
+- Estado: Aceptada
+- Fecha: 2026-10-26
+- Contexto: F3.2 genera las cuatro formas (hasta 60.000 partículas, ~0,4 s en una CPU modesta) y no puede
+  congelar la página. `rendimiento.md` pedía un worker y un reintento en el hilo principal, sin decir qué es
+  fallar, cuánto se espera ni qué pasa si el reintento falla. El chunk de la escena va por 241,6 de 250 KB.
+- Decisión:
+  - **Un worker por encargo** (`scene/worker/loadShapes`): se crea, responde y se cierra; también al vencer el
+    plazo (3 s desde que se crea, incluida su descarga) o al desmontar. Las matrices vuelven transferidas.
+    `loadShapes` no reintenta: devuelve las formas o el motivo, y quien llama decide.
+  - **Validación a los dos lados**, a mano: el worker rechaza una petición mala; el hilo principal comprueba las
+    5 matrices y sus longitudes.
+  - **Reintento único** al arrancar: si el worker falla, se generan en el hilo principal con el `count` de Bajo y
+    la escena entera baja a Bajo (`uiStore.lowerSceneLevel`, que solo baja). Si también falla, Apagado.
+  - **El contrato va aparte de los generadores** (`scene/shapes/shapeContract`): el hilo principal valida sin
+    cargarlos. Los generadores solo viajan en el worker y, para el reintento, en su propio chunk por `import()`.
+  - **Presupuestos propios:** worker ≤ 10 KB y reintento ≤ 10 KB gzip, aparte de los 250 KB de la escena; el test
+    clasifica cada `import()` y `new URL(…)` que sale de la escena y falla con uno sin clasificar.
+  - `scene/{shapes,math,config,worker}` es código puro: ESLint le prohíbe Three, React, Zustand y `stores`.
+- Alternativas descartadas: un worker para toda la visita con identificadores de mensaje (más estado que vigilar
+  para como mucho 3 encargos por visita); importar los generadores de forma estática para el reintento (gastaría
+  el margen de la escena en código que casi nunca se usa); confiar en los tipos a través de `postMessage`.
+- Consecuencias: si el protocolo o el cliente importan los generadores, el `import()` del reintento deja de
+  servir (Rolldown avisa con `INEFFECTIVE_DYNAMIC_IMPORT`). F3.6 reutiliza `loadShapes` y `lowerSceneLevel`,
+  pero regenerar a media visita no debe reintentar ni apagar la escena (deuda anotada en `STATE.md`).
+- Detalle: `docs/04-escena/rendimiento.md` («Worker de las formas»), `docs/04-escena/formas.md` («Contrato y
+  tests»), `docs/05-tecnico/calidad.md` («Presupuestos»).

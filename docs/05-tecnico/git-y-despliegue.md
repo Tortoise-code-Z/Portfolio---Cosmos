@@ -91,6 +91,9 @@ install (npm ci)
   (`.env.example`, `ci.yml`, enlaces del contenido), (3) la redirección 308 del dominio viejo, (4) comprobar en
   producción la canónica, `sitemap.xml` y `robots.txt`. Si se fusiona antes de cambiar la variable, producción
   sale con las canónicas al dominio viejo.
+- Vercel aplica un cambio de variable **solo a los despliegues nuevos**: si se guarda cuando el build del merge
+  ya ha empezado (pasó con `tortoisecode.dev`), hay que hacer **Redeploy** del último despliegue de producción,
+  sin la caché del build, y volver a comprobar.
 
 ## Seguridad
 
