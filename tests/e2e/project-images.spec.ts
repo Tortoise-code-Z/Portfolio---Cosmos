@@ -308,14 +308,44 @@ test.describe('project images', () => {
       await route.continue();
     });
     await page.addInitScript(() => {
-      const store = window as unknown as { __cls: number };
+      interface ShiftSource {
+        node: Node | null;
+        previousRect: DOMRectReadOnly;
+        currentRect: DOMRectReadOnly;
+      }
+      const store = window as unknown as { __cls: number; __shifts: string[] };
       store.__cls = 0;
+      store.__shifts = [];
+      // Qué se movió y cuánto («<p.lead> «Texto…» y 120→184, h 40→40, …»), para el mensaje si falla.
+      const describe = ({ node, previousRect: from, currentRect: to }: ShiftSource): string => {
+        const element = node instanceof Element ? node : (node?.parentElement ?? null);
+        const classes = element?.getAttribute('class') ?? null;
+        const name =
+          element === null
+            ? String(node?.nodeName)
+            : `<${element.tagName.toLowerCase()}${classes === null ? '' : `.${classes}`}> «${element.textContent.trim().slice(0, 40)}»`;
+        const move = (label: string, before: number, after: number): string =>
+          `${label} ${String(Math.round(before))}→${String(Math.round(after))}`;
+        return [
+          name,
+          move('y', from.y, to.y),
+          move('h', from.height, to.height),
+          move('x', from.x, to.x),
+          move('w', from.width, to.width),
+        ].join(', ');
+      };
       new PerformanceObserver((list) => {
         for (const entry of list.getEntries() as (PerformanceEntry & {
           value: number;
           hadRecentInput: boolean;
+          sources: readonly ShiftSource[];
         })[]) {
-          if (!entry.hadRecentInput) store.__cls += entry.value;
+          if (!entry.hadRecentInput) {
+            store.__cls += entry.value;
+            store.__shifts.push(
+              `${entry.value.toFixed(4)} a los ${String(Math.round(entry.startTime))} ms: ${entry.sources.map(describe).join(' | ')}`,
+            );
+          }
         }
       }).observe({ type: 'layout-shift', buffered: true });
     });
@@ -331,7 +361,11 @@ test.describe('project images', () => {
     const second = thumb(page, 2, 'Courses').getByRole('img');
     await second.scrollIntoViewIfNeeded();
     await expectSameBoxWhileLoading(second);
-    const cls = await page.evaluate(() => (window as unknown as { __cls: number }).__cls);
-    expect(cls).toBeLessThan(0.1);
+    const { cls, shifts } = await page.evaluate(() => {
+      const store = window as unknown as { __cls: number; __shifts: string[] };
+      return { cls: store.__cls, shifts: store.__shifts };
+    });
+    // Si falla, el mensaje dice qué elemento se movió, cuándo y cuánto (cada salto en una línea).
+    expect(cls, `Desplazamientos:\n${shifts.join('\n')}`).toBeLessThan(0.1);
   });
 });
