@@ -10,8 +10,10 @@
 4. **Generación de partículas** en un Web Worker (no bloquea el hilo principal). Si el worker falla, se
    generan una vez en el hilo principal con el nivel Bajo (ese reintento sí lo bloquea, una vez); si eso también
    falla, sin WebGL (`docs/04-escena/rendimiento.md` → «Worker de las formas»).
-5. **Entrada del lienzo**: fundido de ~400 ms (`--dur-fade-slow`; 150 ms con movimiento reducido). En el hero, el punto de partículas coincide con el halo CSS, así que
-   el relevo no se nota.
+5. **Entrada del lienzo**: fundido de ~400 ms (`--dur-fade-slow`; 150 ms con movimiento reducido). En el hero, la
+   singularidad de partículas cae en el sitio del punto CSS: cuando la escena pinta su primer frame (clase
+   `scene-on` en `<html>`), el punto CSS se funde y el halo CSS se queda, por encima del lienzo, como en el
+   prototipo. Sin escena, o si falla, no hay `scene-on` y el punto vuelve.
 6. Si el usuario ya había hecho scroll, la escena arranca en el `m` actual, sin repetir la explosión.
 
 No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.

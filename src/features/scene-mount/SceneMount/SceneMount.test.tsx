@@ -6,13 +6,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
 import { detectWebGL2 } from '~/lib/device/webgl2/webgl2';
-import { selectSceneLevel, setLanguageNoticeOpen, useUiStore } from '~/stores/uiStore/uiStore';
+import {
+  selectSceneLevel,
+  setLanguageNoticeOpen,
+  turnSceneOff,
+  useUiStore,
+} from '~/stores/uiStore/uiStore';
 
-import { IDLE_TIMEOUT_MS, NO_GL_CLASS, SceneMount } from './SceneMount';
+import { IDLE_TIMEOUT_MS, NO_GL_CLASS, SCENE_ON_CLASS, SceneMount } from './SceneMount';
 
 /** Lo que hará la escena falsa al montarse, y los niveles con los que se montó. */
 interface FakeScene {
-  behaviour: 'render' | 'throw' | 'fail';
+  behaviour: 'render' | 'throw' | 'fail' | 'paint';
   levels: string[];
 }
 const scene = vi.hoisted((): FakeScene => ({ behaviour: 'render', levels: [] }));
@@ -22,15 +27,18 @@ vi.mock('~/scene/SceneRoot/SceneRoot', () => ({
   default: function FakeSceneRoot({
     level,
     onFail,
+    onPainted,
   }: {
     readonly level: RenderLevel;
     readonly onFail: (reason: string) => void;
+    readonly onPainted: () => void;
   }): ReactNode {
     if (scene.behaviour === 'throw') throw new Error('WebGL context could not be created');
     useEffect(() => {
       scene.levels.push(level);
       if (scene.behaviour === 'fail') onFail('shader-error');
-    }, [level, onFail]);
+      if (scene.behaviour === 'paint') onPainted();
+    }, [level, onFail, onPainted]);
     return <div data-testid="scene">{level}</div>;
   },
 }));
@@ -72,7 +80,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.mocked(detectWebGL2).mockReturnValue('hardware');
   useUiStore.setState(useUiStore.getInitialState(), true);
-  document.documentElement.classList.remove(NO_GL_CLASS);
+  document.documentElement.classList.remove(NO_GL_CLASS, SCENE_ON_CLASS);
   scene.behaviour = 'render';
   scene.levels = [];
 });
@@ -93,6 +101,26 @@ describe('SceneMount', () => {
     expect(sceneLevel()).toBe('high');
     expect(document.documentElement).not.toHaveClass(NO_GL_CLASS);
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('marks the page while the scene paints particles (the hero dot hands over), and not after a failure', async () => {
+    scene.behaviour = 'paint';
+    renderMount();
+    await idle();
+    await screen.findByTestId('scene');
+    expect(document.documentElement).toHaveClass(SCENE_ON_CLASS);
+    act(() => {
+      turnSceneOff();
+    });
+    expect(document.documentElement).not.toHaveClass(SCENE_ON_CLASS);
+    expect(document.documentElement).toHaveClass(NO_GL_CLASS);
+  });
+
+  it('a mounted scene that has not painted yet leaves the hero dot alone', async () => {
+    renderMount();
+    await idle();
+    await screen.findByTestId('scene');
+    expect(document.documentElement).not.toHaveClass(SCENE_ON_CLASS);
   });
 
   it('WebGL2 painted by the CPU (software rendering) starts at the low level', async () => {

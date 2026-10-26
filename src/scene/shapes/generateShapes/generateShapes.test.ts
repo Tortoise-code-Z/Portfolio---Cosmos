@@ -7,8 +7,8 @@ import {
   POSITION_KEYS,
   type ShapeRequest,
   type ShapeSet,
+  TURTLE_TAG,
 } from '../shapeContract/shapeContract';
-import { TURTLE_TAG } from '../turtle/turtle';
 import { generateShapes } from './generateShapes';
 
 const ALL_PLATES = PLATE_SLOTS.map(({ label }) => label);

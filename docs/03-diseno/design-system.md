@@ -188,7 +188,7 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 | Token | Valor | Capa |
 |---|---|---|
 | `--z-scene` | 0 | Lienzo WebGL (y, sin WebGL, el fondo `--gradient-space`) |
-| `--z-glow` | 1 | Halo CSS de la singularidad (dentro de `main`: por debajo del texto del hero) |
+| `--z-glow` | 1 | Halo CSS de la singularidad (dentro de `main`: por debajo del texto del hero y por encima del lienzo, también con escena) |
 | `--z-flash` | 3 | Destello |
 | `--z-labels` | 4 | Etiquetas y pins proyectados |
 | `--z-content` | 5 | El `main` de cada página (capítulos, fichas, 404): todo el contenido por encima del lienzo |

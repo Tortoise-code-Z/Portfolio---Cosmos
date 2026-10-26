@@ -33,6 +33,15 @@
   block-size: var(--singularity-core-size);
   background-color: var(--color-singularity);
   box-shadow: var(--glow-singularity);
+  transition: opacity var(--dur-fade-slow) var(--ease-out);
+}
+
+/*
+ * Con la escena pintando, la singularidad de partículas releva al punto en el mismo sitio; el halo se queda
+ * (como en el prototipo, por encima del lienzo).
+ */
+:global(.scene-on) .core {
+  opacity: 0;
 }
 
 @keyframes breathe {

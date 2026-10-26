@@ -53,7 +53,8 @@ Presentar quién eres en 3 segundos y dar el primer momento «wow». Tesis visua
 - Con movimiento reducido: sin temblor, sin destello y sin vibración; el botón funciona igual pero el
   desplazamiento al capítulo 1 es instantáneo. La explosión se sigue viendo al hacer scroll (la controla el
   usuario).
-- Sin WebGL: el punto y el halo se dibujan con CSS, así que el hero se ve completo igual.
+- Sin WebGL: el punto y el halo se dibujan con CSS, así que el hero se ve completo igual. Con escena, el punto
+  es el de partículas y el halo sigue siendo el CSS (`estados-y-accesibilidad.md` → «Secuencia de carga»).
 
 ## Aceptación
 

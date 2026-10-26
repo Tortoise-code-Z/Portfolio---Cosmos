@@ -1,14 +1,12 @@
 import { fbm } from '../noise/noise';
 import type { Rng } from '../prng/prng';
+import { EARTH_TAG } from '../shapeContract/shapeContract';
 import { randomDirection, type Vec3 } from '../sampling/sampling';
 
 /**
  * Forma 4 · Tierra (docs/04-escena/formas.md): superficie con continentes y océanos, nubes y atmósfera (`pEar`),
  * con la etiqueta de cada capa en `aR.z`. Las capas van por índice; los números son los del prototipo.
  */
-
-/** Etiquetas de `aR.z`. */
-export const EARTH_TAG = { ocean: 0, land: 1, clouds: 2, atmosphere: 3 } as const;
 
 /** Hasta qué fracción del índice llega cada capa (el resto, la atmósfera). */
 export const EARTH_LAYERS = { surface: 0.74, clouds: 0.88 } as const;

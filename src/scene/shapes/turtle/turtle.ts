@@ -2,6 +2,7 @@ import { PLATE_SLOTS, type PlateSlot } from '../../config/plateSlots/plateSlots'
 import { HEX_SIZE, SHELL } from '../../config/sceneConfig';
 import { discOutsideCell, hexCell, type HexCell } from '../hexGrid/hexGrid';
 import type { Rng } from '../prng/prng';
+import { TURTLE_FLIPPERS, TURTLE_TAG } from '../shapeContract/shapeContract';
 import { boundedGauss, randomDirection, TAU, type Vec3 } from '../sampling/sampling';
 
 /**
@@ -9,21 +10,6 @@ import { boundedGauss, randomDirection, TAU, type Vec3 } from '../sampling/sampl
  * aletas, cola y estela (`pTur`), con la etiqueta de cada parte en `aR.y`. Cabeza hacia +X. Las partes van por
  * índice (fracciones fijas); los números son los del prototipo.
  */
-
-/** Etiquetas de `aR.y` (las de las placas, 20..26, están en `config/plateSlots`). */
-export const TURTLE_TAG = {
-  shell: 0,
-  /** Borde de celda o borde inferior del caparazón: la rejilla se lee por aquí. */
-  shellEdge: 1,
-  forest: 5,
-  head: 6,
-  /** Aletas: 7 y 8 delanteras, 9 y 10 traseras (`flipper + índice`). */
-  flipper: 7,
-  tail: 11,
-  eyes: 12,
-  wake: 13,
-  plastron: 14,
-} as const;
 
 /** Hasta qué fracción del índice llega cada parte (el resto, la estela). */
 export const TURTLE_PARTS = {
@@ -70,7 +56,7 @@ export const TURTLE = {
   },
   eyes: { x: 3.52, y: 0.55, z: 0.28, spread: 0.03 },
   flippers: {
-    count: 4,
+    count: TURTLE_FLIPPERS,
     front: { reachMin: 1.7, reach: 1.1, x: 1.5, width: 0.42, sweepX: 0.45, dropY: 0.08 },
     back: { reachMin: 1.6, reach: 0.6, x: -1.7, width: 0.35, sweepX: 0.5, dropY: 0.06 },
     /** El ancho de la aleta se estrecha hacia la punta (`1 − (e + 1) · taper`). */

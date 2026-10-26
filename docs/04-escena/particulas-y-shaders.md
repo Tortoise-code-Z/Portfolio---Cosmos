@@ -1,5 +1,9 @@
 # Partículas y shaders
 
+> Código: `src/scene/Particles.tsx` y `BackgroundStars.tsx` (montan), `scene/particleGeometry` (atributos),
+> `scene/sceneMaterials` (uniforms y materiales), `scene/shaders/` (los `.glsl`, importados con `?raw`, y
+> `glslHeader`). Los frames los pide `SceneRoot` con su propio bucle (`rendimiento.md` → «Robustez», ADR-027).
+
 ## Atributos (por partícula)
 
 | Atributo | Tipo | Contenido |
@@ -26,6 +30,26 @@ la dirección de `position` escalada a casi cero.
 | `uAspect` | float | relación de aspecto |
 | `uMouse` | vec2 | puntero en coordenadas NDC (fuera de pantalla = sin efecto) |
 | `uMotion` | float | 1 normal · 0 movimiento reducido (anula oscilaciones autónomas) |
+| `uExtras` | float | 1 · 0 en Bajo: esconde la estela de la tortuga (alfa 0) y apaga las luces de ciudad |
+
+`uCharge`, `uPlate` y `uGrav` (con `uMouse` fuera de la pantalla) se quedan a 0 hasta que los conecte F4
+(detonación, placas, gravedad). Todos los uniforms se ponen al día en el `useFrame` desde un `SceneFrame`
+compartido que rellena el bucle antes de cada frame: ningún objeto nuevo por frame.
+
+## Etiquetas y colores
+
+Ninguna etiqueta ni color se escribe a mano en el GLSL. `scene/shaders/glslHeader` genera una cabecera que se
+antepone a cada shader de vértices:
+- `#define TURTLE_<PARTE>` y `EARTH_<CAPA>` desde `TURTLE_TAG` y `EARTH_TAG` (`shapes/shapeContract`, el mismo
+  contrato que escribe el generador), `TURTLE_FLIPPERS` y el rango de placas `PLATE_FIRST`..`PLATE_LAST` (20..26,
+  `config/plateSlots`).
+- `const vec3 COLOR_<NOMBRE>` desde `config/scenePalette`, que tiene todos los colores principales del design
+  system (lo comprueba su test leyendo la tabla) y los matices del prototipo que la tabla no lista.
+
+Su test comprueba que todo nombre `TURTLE_*`, `EARTH_*`, `PLATE_*` o `COLOR_*` que usan los shaders existe y que
+ninguna comparación de etiquetas lleva un número escrito a mano. Las placas se comparan con `uPlate` **dentro**
+de su rama (`PLATE_FIRST`..`PLATE_LAST`): `uPlate = 0` («ninguna») no casa nunca con la base del caparazón
+(etiqueta 0).
 
 ## Shader de vértices (estructura)
 
@@ -64,8 +88,12 @@ En espacio de pantalla, tras proyectar: distancia al puntero corregida por el as
 
 ### Colores
 
-Constantes `const vec3` en el shader, tomadas de la paleta de escena del design system. Variación por partícula
-con `aR.x` (brillo 0,7–1,3) y `aR.w` (tono y tamaño).
+Constantes `const vec3` de la cabecera (ver «Etiquetas y colores»), tomadas de la paleta de escena del design
+system. Variación por partícula con `aR.x` (brillo 0,7–1,3) y `aR.w` (tono y tamaño).
+
+**Sin gestión de color ni mapeo de tonos** (ADR-027): el lienzo es opaco, se limpia con `--color-void` y va con
+`linear` y `flat`; los shaders no incluyen los trozos de Three que convierten el color. La luz se suma tal cual,
+como en el prototipo (de ahí los factores > 1 del núcleo y del destello).
 
 ### Iluminación de la Tierra
 
@@ -85,11 +113,15 @@ Disco suave: descarta fuera del radio 0,5 y alfa `pow(1 − 2d, 1.8) · vA`.
 
 ## Estrellas de fondo
 
-Objeto aparte (2.500–5.000 puntos en una esfera de radio 70–130), titileo por shader y visibilidad
-`smoothstep(0.02, 0.4, m)`: antes del Big Bang no hay estrellas.
+Objeto aparte (las del nivel: 5.000, 3.500 o 2.000 en una cáscara de radio 70–130,
+`shapes/stars`, con la subsemilla `stars`: el mismo cielo en cada visita), titileo por shader (congelado con
+movimiento reducido) y visibilidad `smoothstep(0.02, 0.4, m)` (`uVisible`): antes del Big Bang no hay estrellas.
 
 ## Mejoras respecto al prototipo
 
-- Los shaders pasan a archivos `.glsl` con constantes con nombre (sin números mágicos sueltos).
+- Los shaders pasan a archivos `.glsl`. Las etiquetas y los colores llegan desde TypeScript (ver «Etiquetas y
+  colores») y el morph, el tamaño y la gravedad tienen constantes con nombre; los coeficientes propios de cada
+  forma (velocidades de giro, amplitudes de aletas y estela) van junto a su fórmula, en la función de la forma
+  (cada `const` más en el GLSL es peso en el chunk de la escena, que va justo).
 - `uMotion` para el movimiento reducido (el prototipo solo quitaba la gravedad).
 - WebGL2 (Three.js actual ya no soporta WebGL1); sin límite práctico de atributos.
