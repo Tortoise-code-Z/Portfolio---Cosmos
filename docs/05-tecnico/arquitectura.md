@@ -241,7 +241,7 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 
 | Variable | Ejemplo | Uso |
 |---|---|---|
-| `VITE_SITE_URL` | `https://cosmos-portfolio-two.vercel.app` | URLs absolutas de canónica, hreflang, OG y sitemap |
+| `VITE_SITE_URL` | `https://tortoisecode.dev` | URLs absolutas de canónica, hreflang, OG y sitemap |
 
 - `.env.example` en el repo; `.env` fuera de git. No hay secretos en la v1.
 - Validación al arrancar el build, el servidor de desarrollo y el preview (`vite.config.ts`): si `VITE_SITE_URL`

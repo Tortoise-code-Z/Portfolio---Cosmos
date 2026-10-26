@@ -111,7 +111,8 @@ Etiqueta `v0.3.0`.
 
 ## F7 · Lanzamiento
 
-- Dominio (D2) y `VITE_SITE_URL` de producción; cabeceras de seguridad; 404 real verificado.
+- ✔ Dominio (D2): `tortoisecode.dev` (ADR-025, adelantado a F3). Pendiente: cabeceras de seguridad; 404 real
+  verificado.
 - Analítica (D5), si se decide.
 - Enlace al nuevo portfolio en GitHub, LinkedIn y CV; retirar o redirigir el sitio antiguo.
 
@@ -125,7 +126,7 @@ Etiqueta `v0.3.0`.
 | ✔ Decidir si las estrellas de IA son prácticas o herramientas concretas (las dos: F2 · paso 2) | F2 (contenido) · F4.3 |
 | Comprobar que el README de Chessmate incluye el script de consola | F2 (página de Chessmate) |
 | CV en PDF, EN y ES | F2 o más tarde (el enlace aparece al existir) |
-| Dominio propio (D2) y analítica (D5) | F7 |
+| ✔ Dominio propio (D2: `tortoisecode.dev`, comprado en F3) · analítica (D5) | F7 |
 
 ## Backlog después de la v1
 

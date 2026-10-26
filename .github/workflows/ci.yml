@@ -14,7 +14,7 @@ concurrency:
 
 env:
   # URL pública para el build (canónica, OG). En Vercel se define por entorno.
-  VITE_SITE_URL: https://cosmos-portfolio-two.vercel.app
+  VITE_SITE_URL: https://tortoisecode.dev
 
 jobs:
   quality:

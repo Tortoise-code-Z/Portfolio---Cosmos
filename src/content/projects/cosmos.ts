@@ -76,7 +76,7 @@ export const cosmos: ProjectEntry = {
   tryIt: null,
   links: {
     code: 'https://github.com/Tortoise-code-Z/Portfolio---Cosmos',
-    demo: 'https://cosmos-portfolio-two.vercel.app',
+    demo: 'https://tortoisecode.dev',
     readme: 'https://github.com/Tortoise-code-Z/Portfolio---Cosmos#readme',
   },
 };

@@ -110,10 +110,10 @@ El detalle de cada capítulo vive en `docs/02-experiencia/`.
 
 **Resueltas**
 - D1 · Nombre: proyecto `cosmos-portfolio`; repo `Portfolio---Cosmos` (se mantiene el nombre con el que se creó).
+- D2 · Dominio propio: `tortoisecode.dev` (ADR-025).
 - D3 · CV en PDF: sí; hay que prepararlo (tarea fuera del código).
 - D4 · Detalle de proyectos: rutas propias por proyecto.
 - D6 · Disponibilidad: se muestran «open to work», ubicación y modalidad (valores en `docs/01-contenido/`).
 
 **Abiertas**
-- **D2 · Dominio propio** o subdominio de Vercel.
 - **D5 · Analítica**: ninguna, o una respetuosa con la privacidad y sin cookies (por ejemplo, Vercel Web Analytics).
