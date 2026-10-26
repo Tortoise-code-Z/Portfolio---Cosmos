@@ -47,7 +47,7 @@ ritmo `dt · 8`.
 
 ## Placas de proyecto (capítulo 3)
 
-### Huecos del caparazón (`config/plateSlots.ts`)
+### Huecos del caparazón (`config/plateSlots/`)
 
 Celdas de la rejilla hexagonal (coordenadas axiales `q, r`, tamaño 0,95) ordenadas por prioridad. Todas caen en
 la parte superior del caparazón.

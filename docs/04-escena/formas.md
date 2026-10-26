@@ -1,7 +1,8 @@
 # Formas (generadores)
 
 > Funciones puras `generateX(count, rng, out…)` que escriben en matrices ya creadas (y etiquetas en `aR` cuando
-> aplica), ejecutadas en un Web Worker (`docs/04-escena/rendimiento.md` → «Worker de las formas»). Cada forma
+> aplica); la tortuga recibe además las placas antes de las salidas y lanza un `Error` claro si no puede plantar
+> el bosque. Se ejecutan en un Web Worker (`docs/04-escena/rendimiento.md` → «Worker de las formas»). Cada forma
 > recibe su propio `rng` (la subsemilla de su nombre). Mismo `count` para todas las formas: cada partícula
 > tiene un sitio en cada una. Unidades: «unidades de escena», todas las formas centradas en el origen.
 > Código: `src/scene/shapes/` (una carpeta por pieza) y `src/scene/config/` (lo compartido).
@@ -38,7 +39,8 @@ mínimo (`1e-4`) la que caería ahí.
 - 7 % (las primeras por índice): **protoestrella** (40 % en una bola de radio ≤ 0,45 concentrada en el centro,
   `rng² · 0,45`; 60 % en un disco de acreción de radio 0,6–1,9 y espesor `boundedGauss · 0,06`).
 - 93 %: **nube** por muestreo con rechazo en la caja (±7,5 · ±4,4 · ±5,2), dentro del elipsoide
-  `x²/56 + y²/19,4 + z²/27 ≤ 1`: se acepta un punto si
+  `x²/56 + y²/19,4 + z²/27 ≤ 1` (en Y la caja recorta el elipsoide unas centésimas, √19,4 ≈ 4,405, como el
+  prototipo): se acepta un punto si
   `fbm(p · 0,42 + (1,3, 0, −0,7)) · 0,95 + (1 − d) · 0,5 > 0,3 + rng · 0,28` (el desplazamiento aparta el
   pico de densidad del centro). Máx. 80 intentos; si se agotan, el último candidato que cayó **dentro** del
   elipsoide (si no cayó ninguno, probabilidad ~1e-26, junto al centro).
@@ -69,7 +71,8 @@ grosor del 3 % hacia dentro. Las partes van **por índice** (fracciones fijas, e
 **Placas:** las etiquetas 20..26 (separadas del resto para no chocar con las partes del cuerpo) corresponden a
 los huecos de `config/plateSlots` (ver `constelaciones-y-placas.md`). Una celda es placa solo si hay un proyecto
 asignado a ese hueco; un hueco sin proyecto es una celda normal (puede tener árboles). Cambiar los proyectos
-mueve los árboles y el caparazón (su flujo de azar), nada más.
+vuelve a sortear la tortuga entera (todas sus partes y su etiqueta `aR.y`: sale de un solo flujo de azar y las
+placas cambian cuántos números gasta el caparazón); las demás formas y `aR.x/z/w` no se mueven.
 
 ## Forma 4 · Tierra (`pEar` + etiqueta en `aR.z`)
 
@@ -107,9 +110,11 @@ Tests (Vitest, sin WebGL):
 3. Fracciones por grupo de etiquetas (caparazón = {0, 1, 20..26}) dentro de ±1 % de la tabla, con 20.000 y
    60.000 partículas.
 4. Misma petición → mismos bytes; placas en otro orden → mismos bytes. **Huella fija** (hash de los bytes) por
-   matriz con 30 partículas: retocar una forma cambia solo su huella, y el cambio se hace a propósito (se
+   matriz con 1.000 partículas (las partes de la tortuga van por índice: con menos, los ojos y la cola no tienen
+   ninguna y la huella no las vería; el test comprueba que están): retocar una forma cambia solo su huella, y el cambio se hace a propósito (se
    actualiza en el mismo commit).
 5. Ninguna partícula de árbol cae en una celda de placa, con ninguna placa, solo `[20]` y las 7.
-6. Tiempo de generación de 60.000 partículas: aviso por encima de 150 ms, falla por encima de 1 s (en entorno
-   `node`). Medido en F3.2: ~0,4 s en el contenedor de Claude, casi todo la nube de la nebulosa.
+6. Tiempo de generación de 60.000 partículas, la mejor de tres vueltas (el CI lo pasa con cobertura y otros tests
+   en paralelo: ese ruido solo suma): aviso por encima de 150 ms, falla por encima de 1 s (en entorno `node`).
+   Medido en F3.2: ~0,4 s en el contenedor de Claude, casi todo la nube de la nebulosa.
 7. Una petición inválida → `RangeError` (los casos, en `shapeContract.test.ts`).

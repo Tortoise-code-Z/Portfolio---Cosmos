@@ -10,7 +10,32 @@ import tseslint from 'typescript-eslint';
 // Cada capa se bloquea por alias (~/capa) y por ruta relativa (**/capa/**).
 const layer = (name) => [`~/${name}`, `~/${name}/**`, `**/${name}/**`];
 const THREE = ['three', 'three/**', '@react-three/*'];
-const REACT = ['react', 'react-dom', 'react-dom/**', 'react-router', 'zustand', 'zustand/**'];
+const REACT = [
+  'react',
+  'react/**',
+  'react-dom',
+  'react-dom/**',
+  'react-router',
+  'zustand',
+  'zustand/**',
+];
+
+/** El código puro de la escena (arquitectura.md → «Capas»). */
+const PURE_SCENE = 'src/scene/{shapes,math,config,worker}/**';
+const PURE_SCENE_FORBIDDEN = [
+  ...THREE,
+  ...REACT,
+  ...['ui', 'features', 'routes', 'stores'].flatMap(layer),
+];
+const PURE_SCENE_MESSAGE =
+  'scene/{shapes,math,config,worker} es código puro (va en el worker): sin Three, React, Zustand ni stores.';
+
+/** `Math.random` también escrito como `globalThis.Math.random` (o `window.…`, `self.…`). */
+const NO_GLOBAL_MATH_RANDOM = {
+  selector:
+    "MemberExpression[property.name='random'][object.type='MemberExpression'][object.property.name='Math']",
+  message: 'La escena usa el azar con semilla (scene/shapes/prng, ADR-011), no Math.random.',
+};
 
 const LAYER_RULES = [
   {
@@ -75,10 +100,24 @@ const LAYER_RULES = [
   {
     // El código puro de la escena: lo que corre en el worker de las formas (≤ 10 KB) o se prueba sin WebGL.
     // Sin Three, React, Zustand ni stores: un import así reventaría el worker sin que nadie lo notara.
-    files: ['src/scene/{shapes,math,config,worker}/**'],
-    forbidden: [...THREE, ...REACT, ...['ui', 'features', 'routes', 'stores'].flatMap(layer)],
-    message:
-      'scene/{shapes,math,config,worker} es código puro (va en el worker): sin Three, React, Zustand ni stores.',
+    files: [PURE_SCENE],
+    forbidden: PURE_SCENE_FORBIDDEN,
+    message: PURE_SCENE_MESSAGE,
+  },
+  {
+    // Y de content, solo los tipos: los datos (los proyectos) llegan por parámetro; importarlos metería todo
+    // el contenido en el worker. Los tests sí pueden usar el contenido real (no van en el worker).
+    files: [PURE_SCENE],
+    ignores: ['**/*.test.ts'],
+    forbidden: PURE_SCENE_FORBIDDEN,
+    message: PURE_SCENE_MESSAGE,
+    extra: [
+      {
+        group: ['~/content/**', '!~/content/types', '**/content/**', '!**/content/types'],
+        message:
+          'scene/{shapes,math,config,worker} solo importa de content sus tipos (content/types): los datos, por parámetro.',
+      },
+    ],
   },
 ];
 
@@ -121,8 +160,9 @@ export default defineConfig(
     },
   },
 
-  ...LAYER_RULES.map(({ files, forbidden, message, extra = [] }) => ({
+  ...LAYER_RULES.map(({ files, ignores, forbidden, message, extra = [] }) => ({
     files,
+    ...(ignores === undefined ? {} : { ignores }),
     rules: {
       'no-restricted-imports': ['error', { patterns: [{ group: forbidden, message }, ...extra] }],
     },
@@ -163,6 +203,24 @@ export default defineConfig(
           property: 'random',
           message:
             'La escena usa el azar con semilla (scene/shapes/prng, ADR-011), no Math.random.',
+        },
+      ],
+      'no-restricted-syntax': ['error', NO_GLOBAL_MATH_RANDOM],
+    },
+  },
+
+  // El código puro no tiene ningún `import()`: uno diferido se saltaría `no-restricted-imports` (Three,
+  // stores…) y metería otro chunk en el worker. La escena (React) sí: el reintento de las formas.
+  {
+    files: [PURE_SCENE],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        NO_GLOBAL_MATH_RANDOM,
+        {
+          selector: 'ImportExpression',
+          message:
+            'scene/{shapes,math,config,worker} es código puro (va en el worker): sin import() diferidos.',
         },
       ],
     },

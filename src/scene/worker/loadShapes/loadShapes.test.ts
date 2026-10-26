@@ -13,12 +13,16 @@ class FakeWorker {
   onerror: ((event: ErrorEvent) => void) | null = null;
   onmessageerror: (() => void) | null = null;
   readonly sent: unknown[] = [];
-  terminated = false;
+  /** Cuántas veces se cerró: una respuesta tardía no debe volver a cerrarlo (ni resolver otra vez). */
+  terminateCalls = 0;
+  get terminated(): boolean {
+    return this.terminateCalls > 0;
+  }
   postMessage(message: unknown): void {
     this.sent.push(message);
   }
   terminate(): void {
-    this.terminated = true;
+    this.terminateCalls++;
   }
   /** Responde como el worker de verdad (o con lo que se le dé). */
   reply(data: unknown = handleShapesRequest(this.sent[0]).message): void {
@@ -53,9 +57,12 @@ describe('loadShapes', () => {
     expect(worker.terminated).toBe(false);
     vi.advanceTimersByTime(1);
     await expect(pending).resolves.toMatchObject({ ok: false, reason: 'timeout' });
-    expect(worker.terminated).toBe(true);
-    worker.reply();
-    await expect(pending).resolves.toMatchObject({ ok: false, reason: 'timeout' });
+    expect(worker.terminateCalls).toBe(1);
+    // La respuesta tardía no pasa por `finish` otra vez: ni lanza ni vuelve a cerrar el worker.
+    expect(() => {
+      worker.reply();
+    }).not.toThrow();
+    expect(worker.terminateCalls).toBe(1);
   });
 
   it('a worker that cannot be created (no Worker in this browser) is «unavailable»', async () => {
@@ -127,9 +134,12 @@ describe('loadShapes', () => {
     const pending = loadShapes(request, { createWorker, signal: controller.signal });
     controller.abort();
     await expect(pending).resolves.toMatchObject({ ok: false, reason: 'aborted' });
-    expect(worker.terminated).toBe(true);
+    expect(worker.terminateCalls).toBe(1);
     expect(vi.getTimerCount()).toBe(0);
-    worker.reply();
+    expect(() => {
+      worker.reply();
+    }).not.toThrow();
+    expect(worker.terminateCalls).toBe(1);
   });
 
   it('cancelled before starting: no worker at all', async () => {

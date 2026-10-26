@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { LEVEL_SETTINGS } from '~/lib/device/sceneLevel/sceneLevel';
+import { LEVEL_SETTINGS, type RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
 import { selectSceneLevel, setSceneLevel, useUiStore } from '~/stores/uiStore/uiStore';
 
 import { SCENE_SEED } from '../config/sceneConfig';
@@ -105,6 +105,20 @@ describe('obtainShapes', () => {
     });
   });
 
+  it('cancelled while the generator downloads and its chunk fails: «aborted», nothing logged', async () => {
+    workerAnswers(() => workerFails);
+    const controller = new AbortController();
+    const result = obtainShapes(60_000, {
+      signal: controller.signal,
+      loadGenerator: () => {
+        controller.abort();
+        return Promise.reject(new TypeError('Failed to fetch dynamically imported module'));
+      },
+    });
+    await expect(result).resolves.toBe('aborted');
+    expect(error).not.toHaveBeenCalled();
+  });
+
   it('the retry fails too (its chunk does not arrive): logged, and «failed»', async () => {
     workerAnswers(() => workerFails);
     const failure = new TypeError('Failed to fetch dynamically imported module');
@@ -194,7 +208,7 @@ describe('useSceneShapes', () => {
     expect(level()).toBe('high');
   });
 
-  it('a late answer of a cancelled request is ignored even if it says ok', async () => {
+  it('a late failure after unmounting (a worker that ignores the cancel) generates nothing and keeps the level', async () => {
     let answer: (result: LoadShapesResult) => void = () => undefined;
     vi.mocked(loadShapes).mockImplementation(
       () =>
@@ -202,12 +216,63 @@ describe('useSceneShapes', () => {
           answer = resolve;
         }),
     );
-    const { result, unmount } = renderHook(() => useSceneShapes('high', vi.fn()));
+    vi.mocked(generateShapes).mockClear();
+    const onFail = vi.fn();
+    const { result, unmount } = renderHook(() => useSceneShapes('high', onFail));
     unmount();
-    answer({ ok: true, shapes: small(60_000) });
+    answer(workerFails);
+    // Lo que tarda en llegar el chunk del reintento (aquí, el módulo simulado).
     await act(async () => {
-      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
+    expect(generateShapes).not.toHaveBeenCalled();
+    expect(level()).toBe('high');
+    expect(onFail).not.toHaveBeenCalled();
     expect(result.current).toBeNull();
+  });
+
+  it('the level asks for another count: a second request with that count, and the new shapes', async () => {
+    workerAnswers((count) => ({ ok: true, shapes: { ...small(count), count } }));
+    const { result, rerender } = renderHook(({ current }) => useSceneShapes(current, vi.fn()), {
+      initialProps: { current: 'high' as RenderLevel },
+    });
+    await waitFor(() => {
+      expect(result.current?.shapes.count).toBe(LEVEL_SETTINGS.high.particles);
+    });
+    rerender({ current: 'medium' });
+    await waitFor(() => {
+      expect(result.current?.shapes.count).toBe(LEVEL_SETTINGS.medium.particles);
+    });
+    expect(vi.mocked(loadShapes).mock.calls.map(([request]) => request.count)).toEqual([
+      LEVEL_SETTINGS.high.particles,
+      LEVEL_SETTINGS.medium.particles,
+    ]);
+    expect(result.current?.source).toBe('worker');
+  });
+
+  it('the level changes with the request half way: the first one is cancelled, the second one wins', async () => {
+    const answers: ((result: LoadShapesResult) => void)[] = [];
+    vi.mocked(loadShapes).mockImplementation(
+      (_request, options) =>
+        new Promise((resolve) => {
+          answers.push(resolve);
+          options?.signal?.addEventListener('abort', () => {
+            resolve({ ok: false, reason: 'aborted', detail: 'cancelled' });
+          });
+        }),
+    );
+    const { result, rerender } = renderHook(({ current }) => useSceneShapes(current, vi.fn()), {
+      initialProps: { current: 'high' as RenderLevel },
+    });
+    const first = vi.mocked(loadShapes).mock.calls[0]?.[1]?.signal;
+    rerender({ current: 'medium' });
+    expect(first?.aborted).toBe(true);
+    expect(vi.mocked(loadShapes).mock.calls[1]?.[0].count).toBe(LEVEL_SETTINGS.medium.particles);
+    const medium = LEVEL_SETTINGS.medium.particles;
+    answers[1]?.({ ok: true, shapes: { ...small(medium), count: medium } });
+    await waitFor(() => {
+      expect(result.current?.shapes.count).toBe(medium);
+    });
+    expect(warn).not.toHaveBeenCalled();
   });
 });

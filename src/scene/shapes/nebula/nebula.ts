@@ -21,7 +21,10 @@ export const NEBULA = {
     diskThickness: 0.06,
   },
   cloud: {
-    /** Semiejes de la caja donde se prueba (y del elipsoide, redondeados por arriba). */
+    /**
+     * Semiejes de la caja donde se prueba: los del elipsoide redondeados por arriba en X y Z; en Y la caja lo
+     * recorta unas centésimas (√19,4 ≈ 4,405 > 4,4), como el prototipo.
+     */
     box: [7.5, 4.4, 5.2],
     /** Semiejes al cuadrado del elipsoide: dentro si `x²/a + y²/b + z²/c ≤ 1`. */
     ellipsoidSq: [56, 19.4, 27],

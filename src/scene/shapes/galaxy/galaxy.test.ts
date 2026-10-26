@@ -47,16 +47,19 @@ describe('generateGalaxy', () => {
     expect(flat / thick).toBeGreaterThan(10);
   });
 
-  it('~15 % in the bulge (within its radius) and three arms by index', () => {
+  it("15 % in the bulge (about half of it within the arms' inner radius) and three arms by index", () => {
     let inBulge = 0;
     for (let i = 0; i < count; i++) {
       if (Math.hypot(out[i * 3] ?? 0, out[i * 3 + 1] ?? 0, out[i * 3 + 2] ?? 0) < arms.minRadius) {
         inBulge++;
       }
     }
-    // Dentro del radio mínimo de los brazos solo cae bulbo (y algún desvío): una cota inferior.
-    expect(inBulge / count).toBeGreaterThan(0.03);
-    expect(inBulge / count).toBeLessThan(GALAXY.bulgeShare);
+    // Dentro del radio mínimo de los brazos solo cae bulbo (y algún desvío): con su reparto (`rng^1,8`) y su
+    // achatado, ~54 % del bulbo, es decir ~8 % del total (medido: 7,7–8,1 % con varias semillas). La franja
+    // 7–9 % solo admite un bulbo de entre ~13 % y ~17 %.
+    expect(inBulge / count).toBeGreaterThan(0.07);
+    expect(inBulge / count).toBeLessThan(0.09);
+    expect(GALAXY.bulgeShare).toBe(0.15);
     // Cada brazo arranca en su ángulo: las partículas de brazo cerca del centro se agrupan en tres.
     const angles = [0, 1, 2].map((arm) => {
       let sx = 0;
