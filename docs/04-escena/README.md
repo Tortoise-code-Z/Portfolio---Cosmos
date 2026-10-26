@@ -51,7 +51,9 @@ puntero ──► │                                │                        
 
 ```
 src/scene/
-  SceneRoot.tsx            ← <Canvas>, carga diferida, detección de WebGL y nivel
+  SceneRoot/               ← el <Canvas> (nivel recibido de SceneMount, DPR, onFail) · contextLoss/
+                             (la carga diferida y la elección del nivel: features/scene-mount/SceneMount;
+                             la tabla de niveles, la elección y la detección de WebGL2: lib/device/)
   Particles.tsx            ← geometría + ShaderMaterial + useFrame
   BackgroundStars.tsx
   Constellations.tsx
@@ -62,7 +64,7 @@ src/scene/
   worker/shapes.worker.ts
   shapes/  singularity.ts · nebula.ts · galaxy.ts · turtle.ts · earth.ts · hex.ts · noise.ts · prng.ts
   math/    camera.ts · projection.ts · easing.ts
-  config/  tiers.ts · constants.ts · constellationLayout.ts · plateSlots.ts
+  config/  constants.ts · constellationLayout.ts · plateSlots.ts   (niveles: lib/device/sceneLevel)
 ```
 
 `sceneStore` no vive aquí: está en `src/stores/sceneStore/sceneStore.ts` (capa `stores`, ver `docs/05-tecnico/arquitectura.md`).

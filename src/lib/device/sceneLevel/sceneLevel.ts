@@ -1,7 +1,8 @@
 /**
  * Niveles de rendimiento de la escena (docs/04-escena/rendimiento.md → «Niveles»). Viven en `lib` porque
  * los usan la interfaz (`uiStore` guarda el nivel elegido) y la escena (cuántas partículas genera, el DPR
- * del lienzo). Sin Three ni DOM: solo datos y la elección inicial, que es una función pura.
+ * del lienzo). Sin Three: la tabla, la elección inicial (pura) y `readBrowserSignals`, que lee las señales
+ * en el cliente.
  */
 
 /** `off` es el modo sin WebGL: no hay lienzo. */
@@ -39,6 +40,11 @@ export interface BrowserSignals {
   readonly coarsePointer: boolean;
   /** Ancho de la ventana en px CSS. */
   readonly viewportWidth: number;
+  /**
+   * WebGL2 solo sin `failIfMajorPerformanceCaveat`: pinta con la CPU, sin tarjeta gráfica usable
+   * (`detectWebGL2` → `software`, en `lib/device/webgl2`).
+   */
+  readonly softwareRendering: boolean;
 }
 
 /** Con esta memoria o menos (GB), Bajo. */
@@ -49,13 +55,17 @@ export const NARROW_VIEWPORT_PX = 760;
 export const FEW_CORES = 4;
 
 /**
- * Nivel con el que arranca la visita. En orden: ahorro de datos o poca memoria → Bajo; táctil o
- * estrecho → Bajo; pocos núcleos → Medio; si no, Alto. Una señal que el navegador no da no baja el nivel.
- * La degradación en caliente (fps sostenidos bajos) llega con las partículas (F3.6).
+ * Nivel con el que arranca la visita. En orden: pintado por software, ahorro de datos o poca memoria →
+ * Bajo; táctil o estrecho → Bajo; pocos núcleos → Medio; si no, Alto. Una señal que el navegador no da no
+ * baja el nivel. La degradación en caliente (fps sostenidos bajos) llega con las partículas (F3.6).
  */
 export function chooseInitialLevel(signals: BrowserSignals): RenderLevel {
   const { saveData, deviceMemory, hardwareConcurrency, coarsePointer, viewportWidth } = signals;
-  if (saveData === true || (deviceMemory !== undefined && deviceMemory <= LOW_MEMORY_GB)) {
+  if (
+    signals.softwareRendering ||
+    saveData === true ||
+    (deviceMemory !== undefined && deviceMemory <= LOW_MEMORY_GB)
+  ) {
     return 'low';
   }
   if (coarsePointer || viewportWidth < NARROW_VIEWPORT_PX) return 'low';
@@ -75,8 +85,13 @@ function positiveNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : undefined;
 }
 
-/** Lee las señales del navegador en el momento de elegir (solo en cliente). */
-export function readBrowserSignals(): BrowserSignals {
+/**
+ * Lee las señales del navegador en el momento de elegir (solo en cliente). Si pinta por software lo dice
+ * quien detectó WebGL2 (`detectWebGL2`): se pregunta una sola vez, antes de elegir.
+ */
+export function readBrowserSignals({
+  softwareRendering,
+}: Pick<BrowserSignals, 'softwareRendering'>): BrowserSignals {
   const extras = navigator as Navigator & NavigatorExtras;
   const saveData = extras.connection?.saveData;
   return {
@@ -86,5 +101,6 @@ export function readBrowserSignals(): BrowserSignals {
     coarsePointer:
       typeof window.matchMedia === 'function' && window.matchMedia(COARSE_POINTER_QUERY).matches,
     viewportWidth: window.innerWidth,
+    softwareRendering,
   };
 }

@@ -17,11 +17,16 @@ const DESKTOP: BrowserSignals = {
   hardwareConcurrency: 8,
   coarsePointer: false,
   viewportWidth: 1440,
+  softwareRendering: false,
 };
 
 describe('chooseInitialLevel', () => {
   it('picks high on a capable desktop', () => {
     expect(chooseInitialLevel(DESKTOP)).toBe('high');
+  });
+
+  it('picks low when painted by the CPU (WebGL2 only with a major performance caveat)', () => {
+    expect(chooseInitialLevel({ ...DESKTOP, softwareRendering: true })).toBe('low');
   });
 
   it('picks low with save-data on, whatever the rest', () => {
@@ -98,12 +103,13 @@ describe('readBrowserSignals', () => {
       deviceMemory: { configurable: true, value: 4 },
     });
     try {
-      expect(readBrowserSignals()).toEqual({
+      expect(readBrowserSignals({ softwareRendering: false })).toEqual({
         saveData: true,
         deviceMemory: 4,
         hardwareConcurrency: 6,
         coarsePointer: true,
         viewportWidth: 390,
+        softwareRendering: false,
       });
     } finally {
       Reflect.deleteProperty(navigator, 'connection');
@@ -116,7 +122,7 @@ describe('readBrowserSignals', () => {
     vi.spyOn(navigator, 'hardwareConcurrency', 'get').mockReturnValue(0);
     Object.defineProperty(navigator, 'deviceMemory', { configurable: true, value: 'lots' });
     try {
-      expect(readBrowserSignals()).toMatchObject({
+      expect(readBrowserSignals({ softwareRendering: false })).toMatchObject({
         saveData: undefined,
         deviceMemory: undefined,
         hardwareConcurrency: undefined,
@@ -127,8 +133,13 @@ describe('readBrowserSignals', () => {
     }
   });
 
+  it('passes on what the WebGL2 detection said about software rendering', () => {
+    stubMatchMedia(false);
+    expect(readBrowserSignals({ softwareRendering: true }).softwareRendering).toBe(true);
+  });
+
   it('answers fine pointer without matchMedia', () => {
     vi.stubGlobal('matchMedia', undefined);
-    expect(readBrowserSignals().coarsePointer).toBe(false);
+    expect(readBrowserSignals({ softwareRendering: false }).coarsePointer).toBe(false);
   });
 });

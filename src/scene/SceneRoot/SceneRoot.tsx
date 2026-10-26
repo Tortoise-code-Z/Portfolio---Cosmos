@@ -1,5 +1,5 @@
 import { Canvas, type RootState } from '@react-three/fiber';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { LEVEL_SETTINGS, type RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
 
@@ -14,7 +14,9 @@ export interface SceneRootProps {
   readonly level: RenderLevel;
   /**
    * La escena no puede seguir: `SceneMount` pasa a sin WebGL y la desmonta. Un error al crear el contexto
-   * o al pintar no llega aquí: se lanza y lo recoge el `ErrorBoundary` de la escena.
+   * o al renderizar con React no llega aquí: se lanza y lo recoge el `ErrorBoundary` de la escena. Un error
+   * dentro del bucle de frames (`useFrame`, `gl.render`) no lo recoge ningún boundary: corre en el
+   * `requestAnimationFrame` de R3F (docs/04-escena/rendimiento.md → «Robustez»).
    */
   readonly onFail: (reason: SceneFailure) => void;
 }
@@ -37,6 +39,10 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
 export default function SceneRoot({ level, onFail }: SceneRootProps): ReactNode {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const onFailRef = useRef(onFail);
+  /** El `invalidate` del lienzo (llega con `onCreated`): pide un frame al recuperar el contexto. */
+  const invalidateRef = useRef<(() => void) | null>(null);
+  /** El renderer existe (`onCreated`): lo esperan los e2e para dar la escena por montada. */
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     onFailRef.current = onFail;
@@ -45,22 +51,36 @@ export default function SceneRoot({ level, onFail }: SceneRootProps): ReactNode 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas === null) return undefined;
-    return watchContextLoss(canvas, (reason) => {
-      console.error('[scene] WebGL context lost for good', reason);
-      onFailRef.current(reason);
+    return watchContextLoss(canvas, {
+      onGiveUp: (reason) => {
+        console.error('[scene] WebGL context lost for good', reason);
+        onFailRef.current(reason);
+      },
+      // Three rehace su estado al volver, pero no pinta: con `frameloop="demand"` hay que pedírselo.
+      onRestored: () => {
+        invalidateRef.current?.();
+      },
     });
   }, []);
 
-  function onCreated({ gl }: RootState): void {
-    // Un shader que no compila no lanza: Three solo lo registra. Aquí se registra y se pasa a sin WebGL.
-    gl.debug.onShaderError = (context, program) => {
-      console.error('[scene] Shader failed to compile', context.getProgramInfoLog(program));
+  function onCreated({ gl, invalidate }: RootState): void {
+    invalidateRef.current = invalidate;
+    // Un shader que no compila no lanza: Three solo lo registra, y con un `onShaderError` propio ni eso.
+    // Aquí se registra todo lo que Three habría escrito (el programa y cada shader, con sus líneas) y se
+    // pasa a sin WebGL.
+    gl.debug.onShaderError = (context, program, vertexShader, fragmentShader) => {
+      console.error('[scene] Shader failed to compile', {
+        program: context.getProgramInfoLog(program),
+        vertex: context.getShaderInfoLog(vertexShader),
+        fragment: context.getShaderInfoLog(fragmentShader),
+      });
       onFailRef.current('shader-error');
     };
+    setReady(true);
   }
 
   return (
-    <div className={styles.scene} aria-hidden="true">
+    <div className={styles.scene} aria-hidden="true" data-ready={ready ? 'true' : undefined}>
       <Canvas
         ref={canvasRef}
         style={NO_POINTER}

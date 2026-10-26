@@ -228,6 +228,8 @@ test.describe('404 por idioma (sin redirecciones)', () => {
       await page.waitForLoadState('networkidle');
       await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
+      // Una sola región de aviso (la de la escena, en `Layout`): ni huérfana del HTML ni repetida.
+      await expect(page.getByRole('status')).toHaveCount(1);
       await expect(page).toHaveURL(path);
       const meta = await head(page);
       expect(meta.lang).toBe(locale);

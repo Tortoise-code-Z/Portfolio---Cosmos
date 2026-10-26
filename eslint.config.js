@@ -57,7 +57,15 @@ const LAYER_RULES = [
   {
     files: ['src/features/**'],
     forbidden: [...THREE, ...['scene', 'routes'].flatMap(layer)],
-    message: 'features no toca Three ni la escena (esta se monta en diferido desde root).',
+    message:
+      'features no toca Three ni la escena: solo features/scene-mount/SceneMount la carga, en diferido.',
+  },
+  {
+    // Las rutas y la raíz pueden importar todas las capas menos la escena: Three entraría en el JS inicial.
+    files: ['src/routes/**', 'src/root.tsx'],
+    forbidden: [...THREE, ...layer('scene')],
+    message:
+      'routes y root.tsx no tocan Three ni la escena: solo features/scene-mount/SceneMount la carga, en diferido.',
   },
   {
     files: ['src/scene/**'],
@@ -114,6 +122,7 @@ export default defineConfig(
 
   // `no-restricted-imports` no mira los `import()`: un import dinámico de la escena o de Three se
   // saltaría las capas. Solo `SceneMount` carga la escena así (arquitectura.md → «Carga de la escena»).
+  // Un `import()` cuya ruta no es una cadena fija (plantilla, variable) no se puede comprobar: se prohíbe.
   {
     files: ['src/**'],
     ignores: ['src/scene/**', 'src/features/scene-mount/SceneMount/SceneMount.tsx'],
@@ -125,6 +134,11 @@ export default defineConfig(
             'ImportExpression[source.value=/^(?:three|@react-three\\/)|(?:^~|\\/)scene(?:\\/|$)/]',
           message:
             'La escena (y Three.js) solo se carga en diferido desde features/scene-mount/SceneMount.',
+        },
+        {
+          selector: "ImportExpression[source.type!='Literal']",
+          message:
+            'import() solo con una cadena fija: si no, las capas no pueden comprobar qué se carga (la escena y Three.js, solo desde features/scene-mount/SceneMount).',
         },
       ],
     },

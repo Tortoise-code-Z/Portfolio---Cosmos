@@ -1,53 +1,97 @@
 /**
- * Pérdida del contexto WebGL en caliente (docs/02-experiencia/estados-y-accesibilidad.md → «Sin WebGL»):
- * se intenta restaurar **una vez**. Three.js ya pide la restauración (`preventDefault` en
- * `webglcontextlost`) y rehace su estado al volver; aquí solo se decide cuándo rendirse: si el contexto no
- * vuelve en `timeoutMs`, o si se pierde una segunda vez, se llama a `onGiveUp` (modo sin WebGL).
+ * Pérdida del contexto WebGL en caliente (docs/02-experiencia/estados-y-accesibilidad.md → «Sin WebGL» y
+ * docs/04-escena/rendimiento.md → «Robustez»): se intenta restaurar **una vez**. Three.js ya pide la
+ * restauración (`preventDefault` en `webglcontextlost`) y rehace su estado al volver; aquí solo se decide
+ * cuándo rendirse: si el contexto no vuelve en `timeoutMs` **con la página a la vista**, o si se pierde una
+ * segunda vez con la página a la vista, se llama a `onGiveUp` (modo sin WebGL).
+ *
+ * Con la página oculta el plazo no corre: un móvil libera la GPU al pasar a otra app y no la devuelve hasta
+ * que la página se vuelve a ver. Esa pérdida no gasta el intento; el plazo arranca (entero) al volver a la
+ * vista, y se para si la página se oculta antes de que el contexto vuelva.
  */
 
-/** Lo que se espera a que el navegador devuelva el contexto antes de pasar a sin WebGL. */
+/** Lo que se espera, con la página a la vista, a que el navegador devuelva el contexto. */
 export const CONTEXT_RESTORE_TIMEOUT_MS = 3000;
 
 export type GiveUpReason = 'context-lost-twice' | 'context-not-restored';
 
+export interface ContextLossHandlers {
+  /** El contexto no va a volver: hay que pasar a sin WebGL. Se llama como mucho una vez. */
+  readonly onGiveUp: (reason: GiveUpReason) => void;
+  /**
+   * El contexto ha vuelto. Three rehace su estado pero no pinta: con `frameloop="demand"` hay que pedir un
+   * frame (`invalidate`) o el lienzo se queda vacío.
+   */
+  readonly onRestored?: () => void;
+  readonly timeoutMs?: number;
+}
+
 /** Vigila el lienzo y devuelve la función que deja de vigilarlo. */
 export function watchContextLoss(
   canvas: HTMLCanvasElement,
-  onGiveUp: (reason: GiveUpReason) => void,
-  timeoutMs: number = CONTEXT_RESTORE_TIMEOUT_MS,
+  { onGiveUp, onRestored, timeoutMs = CONTEXT_RESTORE_TIMEOUT_MS }: ContextLossHandlers,
 ): () => void {
-  let losses = 0;
+  const doc = canvas.ownerDocument;
+  /** Pérdidas con la página a la vista: la segunda agota el intento. */
+  let visibleLosses = 0;
+  /** El contexto está perdido y aún no ha vuelto. */
+  let lost = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let gaveUp = false;
 
-  function giveUp(reason: GiveUpReason): void {
-    if (gaveUp) return;
-    gaveUp = true;
+  const isHidden = (): boolean => doc.visibilityState === 'hidden';
+
+  function stopClock(): void {
     clearTimeout(timer);
-    onGiveUp(reason);
+    timer = undefined;
   }
 
-  function onLost(): void {
-    losses += 1;
-    if (losses > 1) {
-      giveUp('context-lost-twice');
-      return;
-    }
+  function startClock(): void {
+    stopClock();
     timer = setTimeout(() => {
       giveUp('context-not-restored');
     }, timeoutMs);
   }
 
-  function onRestored(): void {
-    clearTimeout(timer);
-    timer = undefined;
+  function giveUp(reason: GiveUpReason): void {
+    if (gaveUp) return;
+    gaveUp = true;
+    stopClock();
+    onGiveUp(reason);
+  }
+
+  function onLost(): void {
+    if (gaveUp) return;
+    lost = true;
+    // Oculta: lo provoca el sistema al esconder la página. El plazo arranca al volver a la vista.
+    if (isHidden()) return;
+    visibleLosses += 1;
+    if (visibleLosses > 1) {
+      giveUp('context-lost-twice');
+      return;
+    }
+    startClock();
+  }
+
+  function onContextRestored(): void {
+    lost = false;
+    stopClock();
+    if (!gaveUp) onRestored?.();
+  }
+
+  function onVisibilityChange(): void {
+    if (!lost || gaveUp) return;
+    if (isHidden()) stopClock();
+    else startClock();
   }
 
   canvas.addEventListener('webglcontextlost', onLost);
-  canvas.addEventListener('webglcontextrestored', onRestored);
+  canvas.addEventListener('webglcontextrestored', onContextRestored);
+  doc.addEventListener('visibilitychange', onVisibilityChange);
   return () => {
-    clearTimeout(timer);
+    stopClock();
     canvas.removeEventListener('webglcontextlost', onLost);
-    canvas.removeEventListener('webglcontextrestored', onRestored);
+    canvas.removeEventListener('webglcontextrestored', onContextRestored);
+    doc.removeEventListener('visibilitychange', onVisibilityChange);
   };
 }

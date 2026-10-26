@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 
 import { chooseInitialLevel, readBrowserSignals } from '~/lib/device/sceneLevel/sceneLevel';
-import { hasWebGL2 } from '~/lib/device/webgl2/webgl2';
+import { detectWebGL2 } from '~/lib/device/webgl2/webgl2';
 import { useT } from '~/lib/i18n/useT/useT';
 import {
   selectLanguageNoticeOpen,
@@ -46,10 +46,11 @@ function whenIdle(task: () => void): () => void {
 
 /**
  * Monta la escena 3D (docs/05-tecnico/arquitectura.md → «Carga de la escena»). `root.tsx` lo pinta una
- * sola vez, fuera de las rutas, para que el lienzo no se recree al navegar. En el pre-render y al hidratar
+ * sola vez, en `Layout` detrás de las rutas, para que el lienzo no se recree al navegar. En el pre-render y al hidratar
  * no pinta nada (solo la región del aviso, vacía); después, con el navegador libre:
  * - sin WebGL2 → modo sin WebGL, sin descargar Three.js;
- * - con WebGL2 → elige el nivel y carga la escena en diferido, dentro de su `ErrorBoundary`.
+ * - con WebGL2 → elige el nivel (Bajo si pinta por software) y carga la escena en diferido, dentro de su
+ *   `ErrorBoundary`.
  * Cualquier fallo de la escena pasa a sin WebGL para el resto de la visita: clase `no-gl` en `<html>` y un
  * aviso, una vez por visita, que espera su turno si la sugerencia de idioma se está viendo.
  */
@@ -59,8 +60,14 @@ export function SceneMount(): ReactNode {
   useEffect(
     () =>
       whenIdle(() => {
-        if (hasWebGL2()) setSceneLevel(chooseInitialLevel(readBrowserSignals()));
-        else turnSceneOff();
+        const support = detectWebGL2();
+        if (support === 'none') {
+          turnSceneOff();
+          return;
+        }
+        // Pintado por la CPU (sin GPU usable): arranca en Bajo.
+        const softwareRendering = support === 'software';
+        setSceneLevel(chooseInitialLevel(readBrowserSignals({ softwareRendering })));
       }),
     [],
   );

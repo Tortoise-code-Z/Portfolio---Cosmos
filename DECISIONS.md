@@ -309,7 +309,10 @@
   de forma estática (`tags: ['$initial']` de Rolldown) y un grupo `scene` recoge las demás. La regex habría
   dejado fuera Three.js y React Three Fiber, pero no lo que estos arrastran (`react-reconciler`, `its-fine`,
   `suspend-react`…), que habría acabado en el JS inicial. El framework se quedó en 108,9 KB; el JS de la
-  escena (241,6 KB) tiene su propio presupuesto y su test.
+  escena (241,6 KB) tiene su propio presupuesto y su test. El grupo `scene` es el **resto de dependencias
+  diferidas**, no solo la escena: un `import()` nuevo de otra librería necesita su propio grupo, o esa
+  librería acabaría junto a Three.js y quien la cargara descargaría la escena (también sin WebGL2). Lo vigila
+  `budgets.spec.ts`: solo `SceneRoot` puede importar el chunk `scene`.
 - Detalle: `docs/05-tecnico/calidad.md` → «Presupuestos».
 
 ## ADR-021 · Interfaz fija sin escena: `m` sin suavizar y lectura bajo una barra de altura fija
