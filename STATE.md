@@ -3,52 +3,54 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F2 cerrada** (`v0.1.0` en `3a3e0de` y `v0.1.1` en `50b6fb4`, PR #37–#40) · la cadena no
-tiene encargos abiertos · siguiente: **F3 · paso 1** (`SceneMount` diferido, WebGL2, niveles y `ErrorBoundary`).
+**Dónde estamos:** **F2 cerrada** y CI rehecho (`main` en `721bb1d`, PR #41–#43) · la cadena no tiene encargos
+abiertos · siguiente: **F3 · paso 1** (`SceneMount` diferido, WebGL2, niveles y `ErrorBoundary`).
 
-_Última actualización: 2026-10-26 (**CIERRE DE SESIÓN · 17**) · Cierre de F2: ficha de Cosmos recortada a lo hecho,
-recorridos e2e del recruiter, Lighthouse medido (Accessibility y SEO 100 en local y en producción), versión 0.1.0 y
-AUD-F2-CIERRE corregida entera (v0.1.1). 813 unitarios y 173 e2e en Chromium; CI en verde en los tres navegadores._
+_Última actualización: 2026-10-26 (**CIERRE DE SESIÓN · 18**) · Sesión de mantenimiento antes de F3: los e2e del
+CI corren en la imagen de Playwright, un job por navegador (ADR-024), y eso destapó un salto real de la ficha a
+390 px (cambio de la fuente mono), ya corregido. 813 unitarios y 173 e2e en Chromium; CI en verde en los tres
+navegadores._
 
-**Hecho esta sesión** (vivas S17 en `_claude/cadena/hecho/2026-10-26/decisiones-vivas-S17.md`):
-1. **Ficha de Cosmos a lo hecho** (PR #37, `d1137a0`; vivas S17 #1, CF2-1-A y CF2-2): sin partículas ni WebGL en el
-   resumen, sin «particle morphing» ni «constellations and plates», «Readable without JavaScript and with reduced
-   motion» y `stack.core` = React y TypeScript. El texto final, con ⏳ en `cosmos.md`; el roadmap dice qué vuelve
-   en F3 (paso 7) y en F4.
-2. **Recorridos del recruiter** (PR #38, `c348db6`): `tests/e2e/recruiter.spec.ts`, EN y ES. A 1280 px, «Projects»
-   de la barra → proyectos en pantalla → ficha → código en pestaña nueva (GitHub simulado). A 390 px, la misión
-   rápida pone los proyectos en pantalla con un toque y el raíl cae con la escena primero; en ambos, la ficha tras
-   un deslizamiento.
-3. **Lighthouse** (vivas #5, #8, #10): 13.5.0 con `npx`, sin dependencia nueva. Local (móvil simulado): A 100 · BP
-   100 · SEO 100 en las 5 páginas indexables, P 92–96, CLS 0, LCP 2,4–2,7 s; la 404, SEO 54 a propósito (`noindex`).
-   Producción (PageSpeed Insights): `/` P 97 · LCP 2,3 s y `/projects/chessmate` P 98 · LCP 2,1 s, el resto 100.
-   `npm audit`: 0. En `calidad.md` → «Mediciones».
-4. **Versión 0.1.0** (PR #39, `3a3e0de`): `package.json` y el lock; `git-y-despliegue.md` (`v0.1.0` es F2).
-   Víctor etiquetó `v0.1.0` antes de decidir la auditoría (vivas #12); las correcciones van en `v0.1.1` (TAG-1-A).
-5. **AUD-F2-CIERRE** (Mesa; vivas #13–#16; PR #40, `50b6fb4`): 0 bloqueantes, corregidos 1-A, 2-A, 3, 4, 5-A, 6,
-   7-B y 8; P1-A y P2-A (el `about` y la habilidad Three.js se quedan). La nota de Cosmos ya no promete el README
-   (vuelve en F6); `recruiter.spec` mide el deslizamiento a 390 px, la ruta exacta y el `lang`; ayudas comunes de
-   los e2e en `tests/e2e/support/helpers.ts` (`collectErrors`, `projectBySlug`), sin las 4 copias.
+**Hecho esta sesión** (vivas S18 en `_claude/cadena/hecho/2026-10-26/decisiones-vivas-S18.md`):
+1. **CI de e2e rehecho** (PR #42, `a9dbd3b`; vivas #1–#4; ADR-024): los e2e se colgaban instalando los tres
+   navegadores. Ahora corren en `mcr.microsoft.com/playwright:v1.64.0-noble` (`--user 1001`), un job por navegador
+   en paralelo (`fail-fast: false`) y un job `E2E (Chromium · Firefox · WebKit)` que los resume con el nombre de
+   siempre (la protección de `main` no cambia). En el CI: 1 reintento y `globalTimeout` de 10 min. Script nuevo
+   `npm run e2e:chromium` (DEVELOPMENT_RULES §13: el que se pasa en local al tocar interfaz). Chromium tarda
+   ~1,2 min de tests. Docs: `git-y-despliegue.md`, `stack.md`, `calidad.md`.
+2. **El test de CLS dice qué se mueve** (dentro del squash de #42; CLS-1-A): «slow images…» de
+   `project-images.spec.ts` guarda cada desplazamiento (elemento, momento y píxeles) y lo escribe si falla.
+3. **Salto de la ficha a 390 px corregido** (PR #43, `7fa64e7`; CLS-2-A, CLS-3-A): la reserva monoespaciada del CI
+   y de Windows (Consolas) es más estrecha que IBM Plex Mono; los metadatos («2024 · … · Personal project») cabían
+   en una línea hasta que llegaba Plex (~90 ms, sin precarga), saltaban a la siguiente y todo bajaba 15 px
+   (CLS 0,105 en el CI, 0,119 en Windows). `--font-mono` pone delante `'Courier New', 'Liberation Mono',
+   'DejaVu Sans Mono'` (0,6 em como Plex); el porqué, en `design-system.md` → «Tipografía».
+4. **Cierre de la sesión 17 fusionado** (PR #41, `721bb1d`) tras «Update branch», en el orden #43 → #42 → #41.
+5. **Dudas de Víctor** en `_claude/dudas/`: por qué se atascaba el CI y los comandos uno a uno
+   (`2026-10-26-ci-e2e-por-navegador.md`) y varias ramas a la vez con «Update branch»
+   (`2026-10-26-ramas-y-update-branch.md`).
 
 **Incidencias y lecciones:**
-- **El clic de Playwright desplaza solo hasta el elemento**, esté donde esté: un e2e que diga «a un toque» tiene
-  que comprobar `toBeInViewport()` antes del clic. A 390 px «View project» quedaba a y≈990 en una pantalla de 844 y
-  el spec lo daba por «a un toque»; lo vio la Mesa. Ahora: fuera al llegar, un deslizamiento (`mouse.wheel`), dentro.
-- **A 390 px las anclas caen en la escena** (`03-tortuga.md` → «Móvil»: escena primero): en F2 son ~700 px vacíos
-  sobre el título de Proyectos. En móvil, la métrica del brief (proyectos en ≤ 2 interacciones) la cumple la misión
-  rápida. Anotado en `navegacion.md` → «Raíl de capítulos».
-- **Lighthouse en local sobrestima la LCP** frente a producción (sin CDN): 2,6–2,7 s en local, 2,1–2,3 s en
-  Vercel. Las notas de A11y, BP y SEO coinciden.
-- **Producción no se alcanza desde el contenedor ni desde el shell del equipo** (proxy 403): las notas de
-  PageSpeed Insights se leyeron con el navegador de la app.
-- **Etiquetar antes de la auditoría** obliga a una versión de parche: la etiqueta va después de decidir la Mesa
-  (`git-y-despliegue.md`: sobre el commit de `main` que sube la versión; aquí, `v0.1.1`).
-- Método de siempre en el contenedor (Node 24.22.0 de `node-linux-x64` por npm —nodejs.org da 403—, enlaces
-  `chromium*-1248 → -1243`, `.env`, clon de GitHub y md5 de la carpeta antes de empezar). Paso a la carpeta con
-  `git diff` + `patch -p1` (o tar en base64) y md5 de todo el árbol ordenado igual al del contenedor. El aviso de
-  push del contenedor se ignora (se guarda el trabajo con `git stash`).
+- **Los e2e en local prueban `build/`**: sin `npm run build` antes, prueban una versión vieja. El 26-10 dieron 121
+  fallos falsos con un build del 23-10 (sin imágenes, texto viejo de Cosmos).
+- **Un CLS idéntico entre repeticiones** (0,11923… en Windows, 0,10503… en el CI) es un salto concreto que a veces
+  ocurre (una carrera), no lentitud: hay que ver qué elemento se mueve, no subir el límite.
+- **La fuente de reserva cambia con la máquina**: en el contenedor de Claude la mono genérica es DejaVu Sans Mono
+  (mismo ancho que Plex) y el fallo no salía (20/20 verdes). Se reprodujo con `FONTCONFIG_FILE` apuntando a un
+  `fonts.conf` que manda `monospace` a una fuente estrecha (DejaVu Sans Condensed): 6/6 fallos idénticos al CI.
+- **El CI de un PR usa el `ci.yml` de su mezcla con `main`**: relanzar no basta para coger una receta nueva; hace
+  falta «Update branch» (lo mismo para la regla «rama al día»).
+- **Squash por PR**: el commit del test (CLS-1-A) fue dentro de «ci: …» (#42) por ir en la misma rama. Aceptado;
+  lo siguiente que no sea del CI, en su rama.
+- Método del contenedor esta vez: Node 22 del contenedor con `npm ci --engine-strict=false` (sin bajar Node 24),
+  enlaces `chromium*-1248 → -1243`, árbol por `tar` desde `_claude/cadena/tmp/` y build con `VITE_SITE_URL`.
 
 **Deuda anotada:**
+- **F6 · fuentes:** IBM Plex Mono no se precarga y pinta la primera pantalla (barra, metadatos de la ficha, HUD,
+  eyebrows). Desde #43 sus reservas miden lo mismo por letra (0,6 em) y el cambio ya no mueve las líneas; valorar
+  precargarla midiendo la LCP, y mirar en un Windows real cómo se ve Courier New mientras llega.
+- **CI:** cada job de e2e descarga la imagen de Playwright (~2 GB). Si el CI vuelve a ir lento, medir cuánto es
+  la descarga antes de tocar nada. Subir `@playwright/test` = subir cada `image:` de `ci.yml` (ADR-024).
 - **F6 · Lighthouse:** aviso sin peso `label-content-name-mismatch` en EN / ES (se ve «EN», el nombre accesible
   es «English», decidido en `componentes.md`): revisarlo con NVDA y control por voz. Hasta F6, Lighthouse se pasa
   a mano al cerrar cada fase y se apunta en `calidad.md` → «Mediciones» (en local y, con PageSpeed Insights, en
@@ -116,16 +118,10 @@ AUD-F2-CIERRE corregida entera (v0.1.1). 813 unitarios y 173 e2e en Chromium; CI
 **Dudas abiertas:** D2 · dominio propio (F7) · D5 · analítica (F7). Tareas de Víctor: script de consola en el
 README de Chessmate (lo cita el «Try it»), CV en PDF EN/ES.
 **Limpieza manual del usuario:**
-- Ramas locales ya fusionadas: `git branch -D feat/scroll-nav-hud docs/session-close-2026-10-23-4
-  docs/session-close-2026-10-23-5 fix/aud-f2-5 docs/session-close-2026-10-24 feat/quick-mission
-  docs/session-close-2026-10-24-2 feat/project-page docs/session-close-2026-10-24-3 fix/aud-f2-6
-  docs/session-close-2026-10-24-4 fix/aud-f2-7 docs/session-close-2026-10-25 feat/project-images
-  docs/session-close-2026-10-25-2 fix/aud-f2-8 docs/session-close-2026-10-25-3 fix/cosmos-entry-f2
-  test/recruiter-journeys chore/release-0.1.0 fix/aud-f2-cierre`, y `docs/session-close-2026-10-26` cuando se
+- Ramas locales: ya no queda ninguna salvo `main`; la de este cierre (`docs/session-close-2026-10-26-2`) cuando se
   fusione.
-- En el buzón se pueden borrar `_claude/cadena/tmp/arbol*.tar.gz`, `_claude/cadena/tmp/*.blobs`,
-  `_claude/cadena/tmp/s16-files.list`, `_claude/cadena/tmp/STATE-s16.md`, `_claude/cadena/tmp/cierre-s13.tar.gz` y
-  `_claude/cadena/tmp/STATE-cierre-s12.md` y, dentro de `_claude/cadena/hecho/`, los `arbol.tar.gz` y
-  `cambio.diff` (nunca la carpeta `_claude/cadena/`).
+- En el buzón se pueden borrar todo lo de `_claude/cadena/tmp/` (`arbol*.tar.gz`, `*.blobs`, `cierre-s13.tar.gz`,
+  `cierre-s15.tar.gz`, `s16-files.list`, `STATE-s16.md`, `STATE-cierre-s12.md`) y, dentro de
+  `_claude/cadena/hecho/`, los `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`).
 
 **Bloqueos:** ninguno.
