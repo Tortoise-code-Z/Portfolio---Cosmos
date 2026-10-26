@@ -3,65 +3,69 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F3 · paso 2 hecho** (`main` en `feb3e3c`: F3.2 en PR #48, dominio en PR #49) · **AUD-F3-2**
-entregada y decidida (corrige 1–10, con 2-A y 3-B), **sin corregir** · siguiente: corregir AUD-F3-2 y después
-**F3 · paso 3** (`Particles` con el shader de morph y estrellas de fondo).
+**Dónde estamos:** **F3 · paso 3 hecho** (`main` en `7a56e41`: AUD-F3-2 corregida en PR #51, F3.3 en PR #52 y
+#53) · **AUD-F3-3** preparada para la Mesa (los dos PR de F3.3, base `3f3ff07` · hasta `7a56e41`), sin lanzar ·
+siguiente: lanzarla, decidir F33-6 (peso) y **F3 · paso 4** (`CameraRig`).
 
-_Última actualización: 2026-10-26 (**CIERRE DE SESIÓN · 20**) · AUD-F3-1 corregida, las formas de la escena en un
-worker (F3.2) y el sitio en su dominio propio, `tortoisecode.dev`. 995 unitarios y 187 e2e en Chromium; los tres
-PR fusionados con el check obligatorio del CI._
+_Última actualización: 2026-10-26 (**CIERRE DE SESIÓN · 21**) · AUD-F3-2 corregida y la escena pinta: partículas
+con el shader de morph entre las 5 formas, estrellas de fondo y un bucle de frames propio. 1034 unitarios y 191 e2e
+en Chromium; los tres PR fusionados con el check obligatorio del CI._
 
-**Hecho esta sesión** (vivas S20 en `_claude/cadena/hecho/2026-10-26/decisiones-vivas-S20.md`):
-1. **AUD-F3-1 corregida** (PR #47, `86263e7`; vivas #7–#17): el plazo del contexto perdido solo corre con la
-   página a la vista y al volver se pide un frame; el shader que no compila registra cada shader; WebGL2 por
-   software arranca en Bajo (`detectWebGL2`); `SceneMount` en `Layout` (una sola región de aviso, también en la
-   404); ESLint vigila `routes/`, `root.tsx` y los `import()` con ruta no fija; e2e con `data-ready`, recargar,
-   el chunk que no llega y la 404; regla del bucle de frames en `rendimiento.md`; nota de ADR-020.
-2. **EST-F3-2** (la Mesa estudió F3.2: 16 preguntas, todas A; vivas #18–#34) y **F3.2** (PR #48, `59da754`;
-   vivas #35–#40): `scene/shapes` (prng/subSeed, noise, sampling, hexGrid, los 4 generadores con los números del
-   prototipo, `shapeContract`, `generateShapes`), `scene/config` (`SCENE_SEED`, `SHELL`, `HEX_SIZE`,
-   `plateSlots`/`assignPlates`), `scene/worker` (protocolo validado, un worker por encargo, 3 s) y
-   `useSceneShapes` (reintento único en el hilo principal a Bajo con `lowerSceneLevel`; si falla, Apagado);
-   `data-shapes`; ESLint (`Math.random`, imports del código puro); presupuestos del worker y del reintento;
-   `formas.md` y `rendimiento.md` reescritos. ADR-026 y nota de ADR-011 (en este cierre).
-3. **Dominio propio** (PR #49, `feb3e3c`; ADR-025; vivas #41–#49): D2 resuelta con `tortoisecode.dev`; `www` y
-   `cosmos-portfolio-two.vercel.app` → 308 → apex; `VITE_SITE_URL` en Production y Preview. Comprobado en
-   producción tras un Redeploy (canónica, `robots.txt`, `sitemap.xml`).
-4. **AUD-F3-2** entregada (3 recomendados, 7 menores; sin bloqueantes) y decidida (viva #50); la corrección queda
-   para la próxima sesión.
+**Hecho esta sesión** (vivas S21 en `_claude/cadena/hecho/2026-10-26/decisiones-vivas-S21.md`):
+1. **AUD-F3-2 corregida** (PR #51, `3f3ff07`; vivas #1–#6): tests que ahora pueden fallar (la Tierra agota sus
+   intentos y cuenta el azar; huellas con 1.000 partículas, con ojos y cola; bulbo 7–9 %; partes de la tortuga
+   > 0 y cajas completas; `terminate` contado; otro `count` → otras formas y cancelación; `mockReset` de
+   `SceneRoot`; el e2e normal no descarga los generadores y el del reintento sí), `obtainShapes` devuelve
+   `'aborted'` sin `console.error` si se desmonta mientras falla el reintento, tiempo como mejor de 3 vueltas,
+   ESLint de la capa pura (sin `import()`, sin datos de `content` salvo en tests, `react/**`,
+   `globalThis.Math.random`) y cinco docs. Comprobado rompiendo cada guarda a propósito.
+2. **F3.3 · PR 1** (PR #52, `d56399d`; vivas #7–#15): el `main` de cada página en `--z-content` (por encima del
+   lienzo) y, sin WebGL, un fondo estático del espacio (`--gradient-space`).
+3. **F3.3 · PR 2** (PR #53, `7a56e41`; vivas #16–#21): `Particles` (un `Points`, morph de la forma actual a la
+   siguiente, animaciones de cada forma, luz de la Tierra; carga, placa y gravedad a 0 hasta F4), `BackgroundStars`,
+   cabecera GLSL generada desde TS (etiquetas del contrato, que pasan a `shapeContract`, y la paleta, contrastada
+   con la tabla del design system), Bajo sin estela ni luces de ciudad, movimiento reducido que congela el reloj,
+   **bucle de frames propio** (ADR-027: `frameloop="never"`, `advance()` en un `try`, `frame-error`), lienzo opaco
+   sin gestión de color, cámara fija provisional y el relevo del punto del hero (`scene-on`: el punto se funde, el
+   halo se queda, como el prototipo).
 
 **Incidencias y lecciones:**
-- **Vercel aplica un cambio de variable solo a los despliegues nuevos:** `VITE_SITE_URL` se guardó con el build
-  del merge ya en marcha y producción salió con la URL vieja. Redeploy sin caché y se arregló (lo recoge
-  `git-y-despliegue.md`).
-- **Rolldown `INEFFECTIVE_DYNAMIC_IMPORT`:** el protocolo importaba `generateShapes` y los generadores entraban en
-  el chunk de `SceneRoot`; por eso el contrato va aparte (`shapeContract`, ADR-026). Mirar ese aviso en el build.
-- El worker sale en IIFE aunque se cree con `type: 'module'` y funciona: `vite.config.ts` no se tocó. Probado en
-  `npm run dev` (formas del worker en `/`, una ficha y `/es`).
-- `projectEntries` en la escena lo saca a un chunk compartido `entries-*` (y aparece `preload-helper-*`) que
-  piden también las páginas; presupuestos del JS inicial en verde.
-- **React 19 registra con `console.error` todo error que recoge un boundary:** un fallo de escena deja dos
-  registros. El Chromium headless (SwiftShader) da WebGL2 solo por software: los e2e montan la escena en Bajo.
-- Los tests de repo cazan dos cosas al escribir código nuevo: ninguna clave del buzón en el código
-  (`code-references.test.ts`) y ningún archivo solo en una carpeta con su nombre (`structure.test.ts`).
-- **Método del contenedor:** Node 24 con `npm pack node-linux-x64@24.22.0`, `PLAYWRIGHT_BROWSERS_PATH` propio con
-  enlaces `chromium*-1248 → -1243`, árbol por `tar` desde `_claude/cadena/tmp/` y vuelta con `tar --overwrite` +
-  md5 de cada archivo y de todo el árbol. Los commits de marca del contenedor hacen saltar el aviso de push:
-  al acabar, dejar la copia del contenedor en `origin/main` (nunca push). En el equipo, nunca `git diff` contra el
-  árbol de trabajo (se usó una vez por error; no dejó `index.lock`).
+- **El relevo del hero:** fundir el punto y el halo dejaba el hero en un puntito de 2 px. El prototipo mantiene el
+  halo CSS por encima del lienzo (su `core-glow`): con escena solo cede el punto (viva #17).
+- **La regla de estructura (ADR-018) cuenta el nombre antes del primer punto:** `particles.vert.glsl` y
+  `particles.frag.glsl` son el mismo nombre y van en su carpeta (`shaders/particles/`). Un componente sin test
+  (`Particles.tsx`) no puede ir solo en `Particles/`: va suelto.
+- **Las etiquetas no pueden salir de los generadores:** importar `TURTLE_TAG` de `turtle.ts` en la escena metería
+  el generador en el chunk (como ADR-026); van en `shapeContract`.
+- **`no-unnecessary-condition` y los cierres:** TS no ve que una función llamada dentro del frame pare el bucle; se
+  pide el frame siguiente antes del `step` y la parada lo cancela.
+- **`pkill -f` en el contenedor** mata la propia shell si el patrón aparece en el comando: usar `pgrep` y excluir
+  `$$`. `vite preview`/`react-router dev` con `waitUntil: 'networkidle'` no acaba en dev (HMR): usar `load`.
+- **Método del contenedor** (sin cambios): Node 24 con `npm pack node-linux-x64@24.22.0`,
+  `PLAYWRIGHT_BROWSERS_PATH` propio con enlaces `chromium*-1248 → -1243`, árbol por `tar` desde
+  `_claude/cadena/tmp/` y vuelta con `tar --overwrite` tras comprobar el md5 de la base y después el de cada
+  archivo. Capturas de los capítulos con `vite preview` y Playwright para enseñarlas.
 
 **Deuda anotada:**
-- **F3.3 · peso de la escena:** 241,6 KB de 250 con el lienzo vacío y las formas pedidas (R3F importa Three.js
-  entero; los generadores van aparte: worker 4,4 KB y reintento 3,8 KB, ADR-026). Si los shaders y `Particles` lo
-  pasan, decidir (subir el límite con ADR, importar menos de Three…) antes de tocar el número.
-- **F3.3:** antes de pintar partículas, `--z-content` en el contenido de los capítulos (hoy solo el hero) y los
-  estilos que cuelgan de `no-gl` (fondo, relevo del punto del hero); hoy la clase solo marca.
-- **F3.3 · shader (notas de AUD-F3-2):** las placas pasan de las etiquetas 2..4 del prototipo a 20..26: en el
-  shader del prototipo caerían en `tag > 13.5` (el color del plastrón), hay que reescribir esa cadena de `if`.
-  `uPlate = 0` como «ninguna» solo es seguro si `abs(tag − uPlate)` va **dentro** de la rama de placas (la
-  etiqueta 0 es la base del caparazón). En Bajo la estela se esconde con un uniform (el generador no mira el
-  nivel). Los tipos vienen de `scene/shapes/shapeContract`. Errores del bucle de frames: decidir el mecanismo
-  con el primer `useFrame` (`rendimiento.md` → «Robustez»).
+- **Peso de la escena (F33-6, sin decidir):** 247,3 KB de 250 con las partículas, sus shaders y las estrellas
+  (+5,7 KB; R3F importa Three.js entero). Opción a mano: quitar los comentarios del GLSL al compilar (un plugin en
+  `vite.config.ts`, ~−1,4 KB). Decidirlo antes o durante F3.4 (cámara) y F4 (constelaciones); subir el límite,
+  solo con ADR.
+- **F3.4 · cámara:** hoy fija en el keyframe 0 (`PROVISIONAL_CAMERA_POSITION` en `sceneConfig`): la galaxia se ve
+  de canto. `CameraRig` sustituye la `camera` del `<Canvas>`.
+- **F3.5 · pausa:** la escena pinta continua (ADR-027) hasta la pausa; la pausa es no pedir el frame siguiente en
+  `scene/frameLoop`. Desde F3.3 los e2e de Chromium pasan de ~4,5 a ~6,7 min (SwiftShader pinta sin parar):
+  mirar los tiempos del CI.
+- **F4.1 · halo del hero:** con escena, el halo CSS se queda (solo se funde el punto, `scene-on`), pero va en el
+  hero (se va con el scroll); en el prototipo era fijo, se apagaba con `m` (`1 − smooth(0, 0,12, m)`) y crecía con
+  la carga. Hacerlo con la detonación.
+- **Shaders:** los coeficientes propios de cada forma (giros, amplitudes) van en el GLSL junto a su fórmula, sin
+  `const` con nombre (peso; `particulas-y-shaders.md` → «Mejoras»). Si se ajustan con capturas (F3.6), valorar
+  nombrarlos.
+- **`npm run dev`:** en una navegación dentro de la misma página el worker de las formas puede pasar de 3 s (Vite
+  lo transforma al pedirlo) y se usa el reintento; en el build y los e2e va por el worker.
+- La guarda `controller.signal.aborted` de `useSceneShapes` no la puede ver ningún test (`obtainShapes` ya
+  devuelve `'aborted'` en todos los caminos): se queda como defensa.
 - **F3.6 · regenerar a media visita (AUD-F3-2-3-B):** hoy cualquier cambio de `count` pasa por `obtainShapes`,
   que reintenta en el hilo principal y, si falla, apaga la escena. F3.6 debe regenerar con `loadShapes` sin
   reintento y, si falla, quedarse como estaba. Pregunta de orden: si se baja el nivel antes de regenerar,
@@ -119,7 +123,8 @@ PR fusionados con el check obligatorio del CI._
 - Grupos de Skills enfocables (`tabindex`) solo en **F4.3**, cuando enciendan su constelación.
 - Iconos de GitHub y LinkedIn: hoy enlaces de texto + icono externo; decidir si se dibujan en F6.
 - **WebKit descarga dos veces las fuentes precargadas** (bug 194589): en F6, medir en un Safari real.
-- Contraste AA sobre el velo de los paneles (`--color-veil`) encima de la escena: F3–F4 (ADR-015).
+- Contraste AA sobre el velo de los paneles (`--color-veil`) encima de la escena: ya hay partículas detrás de los
+  paneles; medirlo con la cámara de F3.4 y en F4 (ADR-015).
 - La lista de valores neutros del test de colores obliga a ampliarla con un valor legítimo nuevo (a propósito).
 - `@lhci/cli` y los scripts `visual` / `lhci` se instalan en F3/F6.
 - **F7:** que `/es/*` reciba la 404 ES y que las 404 salgan con estado 404 real en Vercel (en `preview` salen con
@@ -131,25 +136,25 @@ PR fusionados con el check obligatorio del CI._
 - Si alguna ruta lanza un 404 desde un `loader` (`throw data(null, { status: 404 })`), choca con
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
 - **F3.5:** la escena deja de pintar con `quickMissionOpen` de `uiStore` y suaviza `m`; hasta entonces
-  `setScrollTarget` escribe `m = mTarget` (ADR-021 → Consecuencias). Hoy pinta bajo demanda (un frame).
+  `setScrollTarget` escribe `m = mTarget` (ADR-021 → Consecuencias) y el morph va pegado al scroll.
 
 
 **Siguiente paso (próxima sesión, conversación nueva):**
-1. Arrancar con `session-start` (y la skill `taller`). **Corregir AUD-F3-2** (1–10, con 2-A y 3-B) en
-   `fix/aud-f3-2`, su propio commit; detalle en `_claude/cadena/aud-f3-2/auditoria.md`. Al hacerlo: el punto 9
-   (fila de `uiStore` en `arquitectura.md`) ya no choca con el dominio (fusionado); traer de nuevo el árbol al
-   contenedor (la copia de allí está en `acd72a9`).
-2. **F3 · paso 3** (esquema → VB): `Particles` con el shader de morph entre las 5 formas y estrellas de fondo
-   (`docs/04-escena/particulas-y-shaders.md`), con la deuda de F3.3 de arriba. Ojo al presupuesto de la escena.
+1. Arrancar con `session-start` (y la skill `taller`). Si Víctor no la ha lanzado aún, lanzar **AUD-F3-3** en un
+   chat nuevo (mensaje listo en la cola del tablero, punto 1); cuando llegue, decidir y corregir en `fix/aud-f3-3`.
+2. Decidir **F33-6** (peso de la escena: dejarlo o quitar comentarios del GLSL al compilar).
+3. **F3 · paso 4** (esquema → VB): `CameraRig` con los keyframes, encuadre por capítulo, FOV de móvil y paralaje
+   (`docs/04-escena/camara-y-encuadre.md`), sustituyendo la cámara provisional. Ojo al presupuesto (2,7 KB libres).
 
-**Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
-«Try it»), CV en PDF EN/ES.
+**Dudas abiertas:** F33-6 (peso de la escena) · D5 · analítica (F7). Tareas de Víctor: script de consola en el
+README de Chessmate (lo cita el «Try it»), CV en PDF EN/ES.
 **Limpieza manual del usuario:**
 - Ramas locales ya fusionadas: `feat/f3-1-scene-mount`, `docs/session-close-2026-10-26-2`,
-  `docs/session-close-2026-10-26-3`, `fix/aud-f3-1`, `feat/f3-2-shapes`, `chore/domain-tortoisecode`, y la de
-  este cierre (`docs/session-close-2026-10-26-4`) cuando se fusione.
-- En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` (`arbol*.tar.gz`, `cambio*.tar.gz`, `cambio*.md5`,
-  `*.blobs`, `cierre-s*.tar.gz`, `s16-files.list`, `STATE-*.md`) y, dentro de `_claude/cadena/hecho/` y de
-  `_claude/cadena/aud-f3-2/`, los `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`).
+  `docs/session-close-2026-10-26-3`, `docs/session-close-2026-10-26-4`, `fix/aud-f3-1`, `feat/f3-2-shapes`,
+  `chore/domain-tortoisecode`, `fix/aud-f3-2`, `feat/f3-3-layers`, `feat/f3-3-particles`, y la de este cierre
+  (`docs/session-close-2026-10-26-5`) cuando se fusione.
+- En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` (`arbol*.tar.gz`, `cambio*.tar.gz`, `*.md5`,
+  `*.blobs`, `cierre-s*.tar.gz`, `s16-files.list`, `STATE-*.md`) y, dentro de `_claude/cadena/hecho/`, los
+  `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`).
 
 **Bloqueos:** ninguno.
