@@ -49,7 +49,8 @@
 | Regresión visual (Playwright + Docker) | Un estado por capítulo y por tamaño de referencia | Capturas en 1440×900 y 390×844, tolerancia de píxeles acordada |
 | Lighthouse CI | Rendimiento, accesibilidad, SEO | Presupuestos de abajo |
 
-**Cobertura mínima** (falla el CI por debajo): 90 % en `src/lib`, `src/content` y `src/scene/{shapes,math,config}`;
+**Cobertura mínima** (falla el CI por debajo): 90 % en `src/lib`, `src/content` y `src/scene/{shapes,math,config,worker}`
+(fuera, la entrada del worker, `shapes.worker.ts`: solo conecta el mensaje con `handleShapesRequest`);
 70 % global de líneas.
 
 ## Presupuestos (Lighthouse CI y tamaño)
@@ -58,7 +59,8 @@
 |---|---|
 | JS inicial (sin escena), gzip | **Framework ≤ 112 KB** (las dependencias del JS inicial, chunk `entry.client` o `framework`; 107,3 KB en F2.4; las de la escena van en su chunk diferido) + **código propio ≤ 35 KB por página** (home 17,4 · proyecto 12,6 · 404 7,0 KB en F2.4). Alarma propia, no requisito externo (mandan los Core Web Vitals y Lighthouse del brief). E2E `budgets.spec.ts` sobre el build, en **todos** los HTML del build (ADR-020) |
 | CSS (hoja única), gzip | ≤ 50 KB (ADR-019: por encima, revisar si conviene volver a partirla; 4,3 KB en F2.4). E2E `budgets.spec.ts` sobre la hoja que piden las páginas |
-| Chunk de la escena, gzip | ≤ 250 KB (Three.js, React Three Fiber y `SceneRoot`; 241,6 KB en F3.1 con el lienzo vacío, casi todo Three.js entero). E2E `budgets.spec.ts`: lo sigue desde el import dinámico y exige que ningún HTML lo pida |
+| Chunk de la escena, gzip | ≤ 250 KB (Three.js, React Three Fiber y `SceneRoot`; 241,6 KB en F3.1 con el lienzo vacío y en F3.2 con las formas pedidas, casi todo Three.js entero). E2E `budgets.spec.ts`: lo sigue desde el import dinámico y exige que ningún HTML lo pida |
+| Lo que la escena carga aparte, gzip | **Worker de las formas ≤ 10 KB** (4,4 KB en F3.2) y **generadores del reintento ≤ 10 KB** (el mismo código en su chunk; 3,8 KB). E2E `budgets.spec.ts`: clasifica cada `import()` y `new URL(…)` que sale de la escena; uno sin clasificar (o con una ruta que no se puede leer) hace fallar el test |
 | Fuentes (todas, woff2 subconjunto latino) | ≤ 150 KB (e2e `budgets.spec.ts` desde F2; Lighthouse CI en F6) |
 | Imágenes (cada variante que ofrecen las páginas: AVIF, WebP y JPEG para compartir) | ≤ 200 KB por archivo (148 KB la mayor en F2.8). E2E `budgets.spec.ts` sobre las que piden los HTML del build |
 | LCP móvil (simulado) | < 2,5 s |

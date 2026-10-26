@@ -70,13 +70,20 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
       // Fuera de la cobertura: root.tsx (el documento HTML solo lo pintan los e2e; su lógica, `meta`,
-      // `ErrorBoundary` y `HydrateFallback`, la prueba root.test.tsx) y routes.ts (configuración).
-      exclude: ['src/**/*.test.{ts,tsx}', 'src/**/*.d.ts', 'src/root.tsx', 'src/routes.ts'],
+      // `ErrorBoundary` y `HydrateFallback`, la prueba root.test.tsx), routes.ts (configuración) y la entrada
+      // del worker de las formas (solo conecta el mensaje con `handleShapesRequest`, que sí se prueba).
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/**/*.d.ts',
+        'src/root.tsx',
+        'src/routes.ts',
+        'src/scene/worker/shapes.worker.ts',
+      ],
       thresholds: {
         lines: 70,
         'src/lib/**': STRICT,
         'src/content/**': STRICT,
-        'src/scene/{shapes,math,config}/**': STRICT,
+        'src/scene/{shapes,math,config,worker}/**': STRICT,
       },
     },
   },

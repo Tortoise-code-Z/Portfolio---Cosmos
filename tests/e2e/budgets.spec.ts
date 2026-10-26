@@ -44,6 +44,18 @@ const IMAGE_FILE = /\/assets\/[^"' ,]+\.(?:avif|webp|jpe?g|png)/g;
  * entero (React Three Fiber lo importa completo).
  */
 const SCENE_JS_BUDGET_BYTES = 250_000;
+/**
+ * Lo que la escena carga aparte, fuera de sus 250 KB, cada cosa con su límite gzip: el worker de
+ * las formas y los generadores del reintento en el hilo principal (el mismo código: el mismo límite). Medido
+ * en F3.2: worker 4,4 KB, reintento 3,8 KB. Cualquier otro `import()` o `new URL(…)` que salga de la escena
+ * hace fallar el test hasta que se clasifique aquí.
+ */
+const SCENE_SATELLITES = [
+  { name: 'shapes worker', pattern: /\/assets\/shapes\.worker-[^/]+\.js$/, budget: 10_000 },
+  { name: 'main-thread retry', pattern: /\/assets\/generateShapes-[^/]+\.js$/, budget: 10_000 },
+] as const;
+/** La URL de un worker (o de cualquier recurso) que Vite resuelve con `new URL(…, import.meta.url)`. */
+const ASSET_URL = /new URL\(\s*[`"'](\/assets\/[^`"']+\.js)[`"']/g;
 /** El import dinámico de `SceneMount` que trae la escena (en el chunk de `root`). */
 const SCENE_ROOT_IMPORT = /import\(`\.\/(SceneRoot-[^`]+\.js)`\)/;
 const STATIC_IMPORT = /(?:from|import)\s*"\.\/([^"]+\.js)"/g;
@@ -134,6 +146,33 @@ function reachableChunks(): Set<string> {
   return chunks;
 }
 
+/** Lo que un chunk de la escena carga aparte: `import()` y `new URL(…)`, y si alguno no se pudo leer. */
+function sceneOutgoing(chunk: string): { targets: string[]; unreadable: string[] } {
+  const code = readFileSync(join(CLIENT_DIR, chunk), 'utf8');
+  const dynamic = chunkImports(chunk).dynamic;
+  const urls = Array.from(code.matchAll(ASSET_URL), ([, url]) => url ?? '');
+  const unreadable: string[] = [];
+  // Un `import()` o un `import.meta.url` que los patrones no leen (una ruta calculada) no se puede pesar.
+  if (code.split('import(').length - 1 !== dynamic.length) unreadable.push(`${chunk}: import()`);
+  if (code.split('import.meta.url').length - 1 !== urls.length)
+    unreadable.push(`${chunk}: new URL()`);
+  return { targets: [...dynamic, ...urls], unreadable };
+}
+
+/** Un chunk y lo que importa de forma estática, sin lo ya cargado (`loaded`), comprimido con gzip. */
+function gzipWithStaticImports(entry: string, loaded: ReadonlySet<string>): number {
+  const seen = new Set<string>();
+  const pending = [entry];
+  let bytes = 0;
+  for (let chunk = pending.pop(); chunk !== undefined; chunk = pending.pop()) {
+    if (seen.has(chunk) || loaded.has(chunk)) continue;
+    seen.add(chunk);
+    bytes += gzipSync(readFileSync(join(CLIENT_DIR, chunk))).length;
+    pending.push(...chunkImports(chunk).static);
+  }
+  return bytes;
+}
+
 test.describe('build budgets', () => {
   test('self-hosted fonts stay within the font budget', () => {
     test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
@@ -199,6 +238,26 @@ test.describe('build budgets', () => {
       0,
     );
     expect(bytes).toBeLessThanOrEqual(SCENE_JS_BUDGET_BYTES);
+  });
+
+  test('what the scene loads apart is known (the shapes worker, the retry) and within its budget', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
+    const scene = sceneChunks();
+    const loaded = new Set([...pageScripts('index.html'), ...scene]);
+    const outgoing = scene.map(sceneOutgoing);
+    expect(outgoing.flatMap(({ unreadable }) => unreadable)).toEqual([]);
+    const targets = [...new Set(outgoing.flatMap(({ targets }) => targets))];
+    const unknown = targets.filter((target) =>
+      SCENE_SATELLITES.every(({ pattern }) => !pattern.test(target)),
+    );
+    expect(unknown, 'Each import() or new URL() out of the scene needs its budget here').toEqual(
+      [],
+    );
+    for (const { name, pattern, budget } of SCENE_SATELLITES) {
+      const found = targets.filter((target) => pattern.test(target));
+      expect(found, name).toHaveLength(1);
+      expect(gzipWithStaticImports(found[0] ?? '', loaded), name).toBeLessThanOrEqual(budget);
+    }
   });
 
   test('only SceneRoot pulls in the scene group: no other deferred import lands in it', () => {

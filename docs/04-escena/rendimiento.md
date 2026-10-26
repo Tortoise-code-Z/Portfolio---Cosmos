@@ -6,8 +6,9 @@
 - De esos 16,6 ms, la escena puede usar ~8 ms en GPU y ~2 ms en CPU (proyección de etiquetas, store, uniforms).
 - El código 3D va en un **chunk aparte** que se carga después de la primera pintura: el JS inicial de la interfaz
   no incluye Three.js. Sin WebGL2 ni siquiera se descarga. Pesa ≤ 250 KB gzip (`calidad.md` → «Presupuestos»);
-  en F3.1, con el lienzo vacío, 241,6 KB: React Three Fiber importa Three.js entero, así que lo que añadan las
-  formas y los shaders tiene poco margen.
+  en F3.2, con el lienzo vacío y las formas pedidas, 241,6 KB: React Three Fiber importa Three.js entero, así
+  que lo que añadan los shaders y `Particles` tiene poco margen. Los generadores no cuentan ahí: van en el
+  worker (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
 
 ## Niveles
 
@@ -29,9 +30,37 @@ como `deviceMemory` en Firefox y Safari, no baja el nivel):
 - `hardwareConcurrency ≤ 4` → Medio.
 - En otro caso → Alto.
 
-**Degradación en caliente** (F3.6, con partículas que medir): media de fps en ventanas de 2 s; si está por debajo de 45 (escritorio) o 26
-(móvil) en **3 ventanas seguidas**, se baja un nivel (se regeneran las formas en el worker con el nuevo
-`count`). Nunca se sube durante la visita. Un fallo al regenerar deja el nivel actual.
+En Bajo, la estela de la tortuga la esconde el shader (un uniform) y las luces de ciudad son color del shader:
+el generador de las formas no mira el nivel (las mismas fracciones en todos).
+
+**Degradación en caliente** (F3.6, con partículas que medir): media de fps en ventanas de 2 s; si está por
+debajo de 45 (escritorio) o 26 (móvil) en **3 ventanas seguidas**, se baja un nivel con
+`uiStore.lowerSceneLevel` (solo baja) y se regeneran las formas en el worker con el nuevo `count`
+(`loadShapes`, sin reintento en el hilo principal). Nunca se sube durante la visita. Un fallo al regenerar
+deja el nivel actual.
+
+## Worker de las formas
+
+`src/scene/worker/` (generadores: `formas.md`). `SceneRoot` las pide al montar (`useSceneShapes`) con las
+partículas de su nivel, la semilla del proyecto y las placas con proyecto (`assignPlates(projectEntries)`), y
+las guarda; F3.3 las pinta. Solo pide otras si el nivel pide otro `count`.
+
+- **Un worker por encargo** (`loadShapes`): se crea, responde y se cierra (`terminate`); también al vencer el
+  plazo o al desmontar, y una respuesta tardía se ignora. Las 5 matrices vuelven **transferidas** (sin
+  copiar). `loadShapes` no reintenta: devuelve las formas o el motivo, y quien llama decide.
+- **Validación a los dos lados** (`worker/protocol`): el worker rechaza una petición mala con
+  `{ ok: false, reason }`; el hilo principal comprueba que llegan las 5 matrices `Float32Array` con
+  `count · 3` / `count · 4`. La entrada del worker (`shapes.worker.ts`) solo conecta el mensaje con
+  `handleShapesRequest`, que nunca lanza.
+- **Qué es fallar:** el constructor lanza (`unavailable`), evento `error` (no carga o lanza dentro),
+  `messageerror`, `{ ok: false }` (`rejected`), una respuesta que no valida (`invalid`) o el **plazo de 3 s**,
+  que corre desde que se crea el worker (incluye su descarga), con la página visible u oculta.
+- **Reintento:** si el worker falla, `console.warn` (degradación prevista) y se generan **una vez** en el hilo
+  principal con el `count` de Bajo, cargando los generadores con un `import()` (su propio chunk: solo se
+  descargan si hace falta). La escena entera baja a Bajo (`lowerSceneLevel('low')`: DPR, estrellas, extras) y
+  `SceneRoot` no vuelve a pedir formas. Si el reintento también falla: `console.error` y Apagado
+  (`onFail('shapes-failed')`), con su aviso.
+- `SceneRoot` marca de dónde llegaron (`data-shapes="worker" | "main"`) para los e2e.
 
 ## Ahorro de trabajo
 
@@ -59,7 +88,8 @@ como `deviceMemory` en Firefox y Safari, no baja el nivel):
   `onFail` (Apagado). El mecanismo (una envoltura de `useFrame` o un bucle propio con `frameloop="never"` y
   `advance()` en un solo `try`, que serviría también para la pausa de F3.5) se decide con el primer
   `useFrame` (F3.3).
-- Si el worker falla o tarda más de 3 s, se reintenta una vez en el hilo principal con el nivel Bajo.
+- Si el worker de las formas falla o tarda más de 3 s, se reintenta una vez en el hilo principal con el nivel
+  Bajo; si eso también falla, Apagado (ver «Worker de las formas»).
 - La escena nunca lanza errores hacia la interfaz: al montar y al renderizar con React está aislada en un
   *error boundary* propio; en el bucle de frames, por la regla de arriba.
 
@@ -67,8 +97,8 @@ como `deviceMemory` en Firefox y Safari, no baja el nivel):
 
 | Tipo | Herramienta | Qué cubre |
 |---|---|---|
-| Unitarios | Vitest | Generadores, mapeo de `m`, cámara, proyección, elección de nivel, formato del HUD, paridad TS/GLSL de las funciones compartidas |
+| Unitarios | Vitest | Generadores, mapeo de `m`, cámara, proyección, elección de nivel, formato del HUD, paridad TS/GLSL de la posición de los pins (F4.4; el ruido no la necesita, `formas.md`) |
 | Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error |
-| Extremo a extremo | Playwright | Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado) |
+| Extremo a extremo | Playwright | Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado), formas del worker y del reintento (`data-shapes`) |
 | Regresión visual | Playwright (capturas) | Un estado por capítulo en los tamaños de referencia, render por software (SwiftShader) y tolerancia de píxeles |
 | Rendimiento | Lighthouse CI + medida manual | Core Web Vitals y presupuesto de JS; fps medidos a mano en un móvil real antes de cada versión |

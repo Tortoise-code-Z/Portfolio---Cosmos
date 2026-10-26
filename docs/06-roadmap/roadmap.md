@@ -59,6 +59,8 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
    *(Hecho en F3.1: lienzo vacío en su chunk `scene`, que ningún HTML pide; modo sin WebGL con su aviso. La
    degradación en caliente pasa al paso 6, con partículas que medir.)*
 2. Utilidades puras (PRNG, ruido, hex) y generadores de las 4 formas en el worker, con sus tests.
+   *(Hecho en F3.2: `SceneRoot` pide las formas al montar y las guarda sin pintar; si el worker falla, una vez
+   en el hilo principal a nivel Bajo, y si no, Apagado. Worker y reintento con presupuesto propio.)*
 3. `Particles` con el shader de morph entre las 5 formas; estrellas de fondo. Antes de pintar partículas, el
    contenido de los capítulos va por encima del lienzo (`--z-content`; hoy solo lo lleva el hero) y lo que
    cuelga de la clase `no-gl` (fondo, relevo del punto del hero) se ajusta a lo que ya pinta la escena.

@@ -76,6 +76,19 @@ export function setSceneLevel(sceneLevel: RenderLevel): void {
   useUiStore.setState({ sceneLevel });
 }
 
+/** De más a menos: un nivel solo baja durante la visita (docs/04-escena/rendimiento.md → «Niveles»). */
+const LEVEL_RANK: Readonly<Record<RenderLevel, number>> = { high: 3, medium: 2, low: 1 };
+
+/**
+ * Baja el nivel de la escena, nunca lo sube: el reintento de las formas en el hilo principal (a Bajo) y,
+ * desde F3.6, la degradación en caliente. Sin nivel elegido o en Apagado, nada.
+ */
+export function lowerSceneLevel(sceneLevel: RenderLevel): void {
+  const current = useUiStore.getState().sceneLevel;
+  if (current === null || current === 'off') return;
+  if (LEVEL_RANK[sceneLevel] < LEVEL_RANK[current]) useUiStore.setState({ sceneLevel });
+}
+
 /** Modo sin WebGL: sin WebGL2, o la escena falló (contexto, shader, chunk). No tiene vuelta atrás. */
 export function turnSceneOff(): void {
   if (useUiStore.getState().sceneLevel === 'off') return;

@@ -7,6 +7,7 @@ import {
   selectQuickMissionOpen,
   selectSceneLevel,
   setLanguageNoticeOpen,
+  lowerSceneLevel,
   setSceneLevel,
   setVisitedProject,
   takeVisitedProject,
@@ -68,6 +69,24 @@ describe('uiStore', () => {
     expect(selectSceneLevel(useUiStore.getState())).toBe('high');
     setSceneLevel('medium');
     expect(selectSceneLevel(useUiStore.getState())).toBe('medium');
+  });
+
+  it('lowering the level only ever goes down, and does nothing before a level is chosen or once off', () => {
+    const level = (): string | null => selectSceneLevel(useUiStore.getState());
+    lowerSceneLevel('low');
+    expect(level()).toBeNull();
+    setSceneLevel('high');
+    lowerSceneLevel('medium');
+    expect(level()).toBe('medium');
+    lowerSceneLevel('high');
+    expect(level()).toBe('medium');
+    lowerSceneLevel('medium');
+    expect(level()).toBe('medium');
+    lowerSceneLevel('low');
+    expect(level()).toBe('low');
+    turnSceneOff();
+    lowerSceneLevel('low');
+    expect(level()).toBe('off');
   });
 
   it('once off, the scene stays off for the rest of the visit', () => {
