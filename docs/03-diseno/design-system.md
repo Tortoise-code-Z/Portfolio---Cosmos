@@ -43,6 +43,7 @@ activo.
 | `--color-flash` | `#fff4dc` | Destello del Big Bang | — |
 | `--color-singularity` | `#fff2d9` | Punto CSS de la singularidad (hero sin escena) | — |
 | `--gradient-singularity-halo` | radial cálido → azul → transparente | Halo CSS del punto | — |
+| `--gradient-space` | dos nubes radiales muy tenues (violeta al 9 %, turquesa al 5 %) | Fondo del espacio sin escena (`no-gl`), en la capa del lienzo | — |
 
 **Garantía de lectura:** el peor caso medido (texto sobre el velo encima de la zona más brillante de la escena)
 da `--color-dim` 5,9 : 1 y `--color-ink` > 10 : 1: todo el texto cumple AA.
@@ -186,11 +187,11 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 
 | Token | Valor | Capa |
 |---|---|---|
-| `--z-scene` | 0 | Lienzo WebGL |
-| `--z-glow` | 1 | Halo CSS de la singularidad |
+| `--z-scene` | 0 | Lienzo WebGL (y, sin WebGL, el fondo `--gradient-space`) |
+| `--z-glow` | 1 | Halo CSS de la singularidad (dentro de `main`: por debajo del texto del hero) |
 | `--z-flash` | 3 | Destello |
 | `--z-labels` | 4 | Etiquetas y pins proyectados |
-| `--z-content` | 5 | Capítulos y paneles |
+| `--z-content` | 5 | El `main` de cada página (capítulos, fichas, 404): todo el contenido por encima del lienzo |
 | `--z-chrome` | 15 | Raíl y HUD |
 | `--z-topbar` | 20 | Barra superior |
 | `--z-skip` | 30 | «Skip to content» al recibir el foco (por encima de la barra) |
