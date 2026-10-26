@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { mulberry32 } from '../prng/prng';
-import { EARTH, EARTH_LAYERS, EARTH_TAG, generateEarth } from './earth';
+import { EARTH_TAG } from '../shapeContract/shapeContract';
+import { EARTH, EARTH_LAYERS, generateEarth } from './earth';
 
 const EPS = 1e-4;
 

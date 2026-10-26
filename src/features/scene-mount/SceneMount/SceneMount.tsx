@@ -24,6 +24,13 @@ const SceneRoot = lazy(() => import('~/scene/SceneRoot/SceneRoot'));
 /** Clase de `<html>` en el modo sin WebGL (docs/02-experiencia/estados-y-accesibilidad.md). */
 export const NO_GL_CLASS = 'no-gl';
 
+/**
+ * Clase de `<html>` mientras la escena pinta partículas: el punto CSS del hero se funde y la singularidad de
+ * partículas lo releva en el mismo sitio; el halo se queda (estados-y-accesibilidad.md → «Secuencia de carga»).
+ * Sin escena (o si falla) no está, y el punto vuelve.
+ */
+export const SCENE_ON_CLASS = 'scene-on';
+
 /** Lo más que se espera a que el navegador quede libre antes de decidir (con `requestIdleCallback`). */
 export const IDLE_TIMEOUT_MS = 2000;
 
@@ -73,16 +80,26 @@ export function SceneMount(): ReactNode {
   );
 
   const off = level === 'off';
+  const [painted, setPainted] = useState(false);
   useEffect(() => {
     document.documentElement.classList.toggle(NO_GL_CLASS, off);
   }, [off]);
+  useEffect(() => {
+    document.documentElement.classList.toggle(SCENE_ON_CLASS, painted && !off);
+  }, [painted, off]);
 
   return (
     <>
       {level === null || level === 'off' ? null : (
         <SceneErrorBoundary onError={turnSceneOff}>
           <Suspense fallback={null}>
-            <SceneRoot level={level} onFail={turnSceneOff} />
+            <SceneRoot
+              level={level}
+              onFail={turnSceneOff}
+              onPainted={() => {
+                setPainted(true);
+              }}
+            />
           </Suspense>
         </SceneErrorBoundary>
       )}

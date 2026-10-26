@@ -96,6 +96,8 @@ interface ShapeSet {
   nebula: Float32Array;  galaxy: Float32Array;  turtle: Float32Array;  earth: Float32Array;  // count · 3
   rand: Float32Array;    // aR (count · 4): x aleatorio · y etiqueta tortuga · z etiqueta Tierra · w aleatorio
 }
+// Las etiquetas también son contrato (las lee el shader sin cargar los generadores):
+// TURTLE_TAG, TURTLE_FLIPPERS, EARTH_TAG
 // src/scene/shapes/generateShapes: lanza RangeError con una petición que no vale
 function generateShapes(request: ShapeRequest): ShapeSet;
 ```

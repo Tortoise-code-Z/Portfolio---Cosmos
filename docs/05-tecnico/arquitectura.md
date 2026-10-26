@@ -217,14 +217,16 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   lanza dentro del bucle de frames (`useFrame`, `gl.render`) no le llega: corre en el `requestAnimationFrame`
   de R3F (regla en `docs/04-escena/rendimiento.md` → «Robustez»). `SceneRoot` avisa con `onFail` de lo que no
   lanza: un shader que no compila (`gl.debug.onShaderError`, que registra el programa y cada shader) o un
-  contexto perdido que no vuelve (`contextLoss`: un intento, 3 s con la página a la vista; al volver, pide un
-  frame) o unas formas que no llegan de ninguna manera (`shapes-failed`). Sin WebGL: clase `no-gl` en `<html>`, el lienzo se desmonta y un aviso, una vez por visita.
-  `SceneRoot` marca su envoltorio con `data-ready` cuando existe el renderer y con `data-shapes`
-  (`worker` | `main`) cuando tiene las formas: lo esperan los e2e.
+  contexto perdido que no vuelve (`contextLoss`: un intento, 3 s con la página a la vista), unas formas que no
+  llegan de ninguna manera (`shapes-failed`) o un frame que lanza (`frame-error`, ADR-027). Sin WebGL: clase `no-gl` en `<html>`, el lienzo se desmonta y un aviso, una vez por visita.
+  `SceneRoot` marca su envoltorio con `data-ready` cuando existe el renderer, con `data-shapes`
+  (`worker` | `main`) cuando tiene las formas y con `data-particles="painted"` tras su primer frame con
+  partículas: lo esperan los e2e. Entonces `SceneMount` pone `scene-on` en `<html>` (el punto CSS del hero se
+  funde).
 - `SceneRoot` monta el `<Canvas>` fijo detrás del contenido (`--z-scene`), `aria-hidden`, sin puntero (R3F
-  pone `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. Hoy está
-  vacío y pinta bajo demanda (`frameloop="demand"`). Al montar pide las formas al worker y las guarda sin
-  pintarlas (F3.3 las pinta); si el worker falla, las genera una vez en el hilo principal a nivel Bajo, y si
+  pone `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. Pinta con su propio bucle
+  (`frameloop="never"` + `scene/frameLoop`, ADR-027) las partículas (`Particles`) y las estrellas de fondo
+  (`BackgroundStars`), con una cámara fija provisional hasta F3.4. Al montar pide las formas al worker; si falla, las genera una vez en el hilo principal a nivel Bajo, y si
   eso también falla, Apagado (`docs/04-escena/rendimiento.md` → «Worker de las formas»).
 - `scene/{shapes,math,config,worker}` es código puro: lo que corre en el worker o se prueba sin WebGL. ESLint
   le prohíbe Three, React, Zustand, `stores`, los datos de `content` (solo sus tipos) y cualquier `import()`

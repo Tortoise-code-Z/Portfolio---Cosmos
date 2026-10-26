@@ -19,6 +19,11 @@ const GENERATOR_CHUNK = /\/assets\/generateShapes-[^/]+\.js$/;
 const SCENE_CHUNK = /\/assets\/(?:scene|SceneRoot)-[^/]+\.js$/;
 const NOTICE = "Your browser can't show the 3D universe, but everything else is here.";
 
+/** El punto y el halo CSS del hero (`[data-chapter="0"]`): primero el halo, después el punto. */
+const heroGlow = (page: Page) => page.locator('[data-chapter="0"] > [aria-hidden="true"] > span');
+/** La escena ha pintado sus partículas (`SceneRoot` → `data-particles`). */
+const PARTICLES_PAINTED = '[data-particles="painted"]:has(canvas)';
+
 /** Lienzo de la escena (el único `<canvas>` de la página). */
 const sceneCanvas = (page: Page) => page.locator('canvas');
 const noGlNotice = (page: Page) => page.getByRole('status').getByText(NOTICE);
@@ -177,6 +182,32 @@ test.describe('the scene with WebGL', () => {
     await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
   });
 
+  test('paints its particles: the shaders compile, the hero dot hands over and the journey runs without errors', async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
+      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+    });
+    await expect(page.locator('html')).toHaveClass(/\bscene-on\b/);
+    // La singularidad de partículas releva al punto; el halo se queda.
+    await expect(heroGlow(page).last()).toHaveCSS('opacity', '0');
+    await expect(heroGlow(page).first()).not.toHaveCSS('opacity', '0');
+    // Por los 5 capítulos (las 5 formas, de una en una): ningún error, ningún shader roto.
+    for (const id of ['about', 'skills', 'projects', 'contact']) {
+      await page.locator(`#${id}`).scrollIntoViewIfNeeded();
+      await page.evaluate(
+        () =>
+          new Promise((resolve) => {
+            requestAnimationFrame(() => requestAnimationFrame(resolve));
+          }),
+      );
+    }
+    await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
+    expect(errors).toEqual([]);
+  });
+
   test('generates its shapes in the worker, without downloading the generators', async ({
     page,
   }) => {
@@ -257,8 +288,12 @@ test.describe('without WebGL', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await expect(noGlNotice(page)).toBeVisible();
     await expect(page.locator('html')).toHaveClass(/\bno-gl\b/);
+    await expect(page.locator('html')).not.toHaveClass(/\bscene-on\b/);
     await expect(sceneCanvas(page)).toHaveCount(0);
     expect(requests).toEqual([]);
+    // Sin escena, el hero se ve completo: el punto CSS y su halo.
+    await expect(heroGlow(page)).toHaveCount(2);
+    for (const glow of await heroGlow(page).all()) await expect(glow).not.toHaveCSS('opacity', '0');
     // En lugar del lienzo, el fondo estático del espacio, fijo en la capa de la escena.
     const backdrop = await page.evaluate(() => {
       const style = getComputedStyle(document.body, '::before');

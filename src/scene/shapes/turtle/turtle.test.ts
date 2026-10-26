@@ -4,7 +4,8 @@ import { PLATE_SLOTS } from '../../config/plateSlots/plateSlots';
 import { HEX_SIZE, SHELL } from '../../config/sceneConfig';
 import { hexCell, type HexCell } from '../hexGrid/hexGrid';
 import { mulberry32 } from '../prng/prng';
-import { generateTurtle, TURTLE, TURTLE_PARTS, TURTLE_TAG } from './turtle';
+import { TURTLE_TAG } from '../shapeContract/shapeContract';
+import { generateTurtle, TURTLE, TURTLE_PARTS } from './turtle';
 
 const EPS = 1e-4;
 const ALL_PLATES = PLATE_SLOTS.map(({ label }) => label);

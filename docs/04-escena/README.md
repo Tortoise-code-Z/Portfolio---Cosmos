@@ -54,19 +54,23 @@ src/scene/
   SceneRoot/               ← el <Canvas> (nivel recibido de SceneMount, DPR, onFail) · contextLoss/
                              (la carga diferida y la elección del nivel: features/scene-mount/SceneMount;
                              la tabla de niveles, la elección y la detección de WebGL2: lib/device/)
-  Particles.tsx            ← geometría + ShaderMaterial + useFrame
-  BackgroundStars.tsx
+  Particles.tsx            ← monta los Points de las partículas (F3.3)
+  BackgroundStars.tsx      ← estrellas de fondo (F3.3)
+  particleGeometry/ · sceneMaterials/   ← atributos · uniforms y materiales (F3.3)
+  frameLoop/ · sceneClock/ ← bucle de frames propio y reloj de animación (F3.3, ADR-027)
   Constellations.tsx
   Sun.tsx
   CameraRig.tsx
   overlay/ProjectedLabels.tsx   ← etiquetas y pins DOM actualizados por refs
-  shaders/particles.vert.glsl · particles.frag.glsl · stars.*.glsl
+  shaders/ particles/ · stars/ (los .glsl) · glslHeader/ (etiquetas y colores desde TS)   (F3.3)
   useSceneShapes/          ← pide las formas al montar; reintento en el hilo principal (F3.2)
   worker/  shapes.worker.ts · handleShapesRequest/ · protocol/ · loadShapes/   (F3.2)
   shapes/  prng/ · noise/ · sampling/ · hexGrid/ · nebula/ · galaxy/ · turtle/ · earth/ ·
            shapeContract/ · generateShapes/   (F3.2; la singularidad no se genera: formas.md)
+           stars/   (F3.3: las estrellas de fondo, en el hilo principal)
   math/    camera.ts · projection.ts · easing.ts
-  config/  sceneConfig.ts · plateSlots/ (F3.2) · constellationLayout.ts   (niveles: lib/device/sceneLevel)
+  config/  sceneConfig.ts · plateSlots/ (F3.2) · scenePalette/ (F3.3) · constellationLayout.ts
+                             (niveles: lib/device/sceneLevel)
                              (cada archivo con test, en su carpeta: ADR-018)
 ```
 

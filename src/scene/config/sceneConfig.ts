@@ -17,3 +17,15 @@ export const SHELL = { AX: 2.7, AY: 1.3, AZ: 2.15 } as const;
 
 /** Tamaño de la rejilla hexagonal del caparazón (centro a vértice), *pointy-top*. */
 export const HEX_SIZE = 0.95;
+
+/**
+ * Lente de la cámara (docs/04-escena/camara-y-encuadre.md → «Campo de visión»): 55° en vertical. El FOV de
+ * móvil, los keyframes y el encuadre llegan con `CameraRig` (F3.4).
+ */
+export const CAMERA_LENS = { fov: 55, near: 0.1, far: 400 } as const;
+
+/** Hasta F3.4, la cámara se queda fija en el keyframe del capítulo 0, mirando al origen. */
+export const PROVISIONAL_CAMERA_POSITION = [0, 0, 14] as const;
+
+/** Subsemilla de las estrellas de fondo (como las de cada forma, `subSeed`). */
+export const STARS_SEED_NAME = 'stars';

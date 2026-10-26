@@ -6,8 +6,9 @@
 - De esos 16,6 ms, la escena puede usar ~8 ms en GPU y ~2 ms en CPU (proyección de etiquetas, store, uniforms).
 - El código 3D va en un **chunk aparte** que se carga después de la primera pintura: el JS inicial de la interfaz
   no incluye Three.js. Sin WebGL2 ni siquiera se descarga. Pesa ≤ 250 KB gzip (`calidad.md` → «Presupuestos»);
-  en F3.2, con el lienzo vacío y las formas pedidas, 241,6 KB: React Three Fiber importa Three.js entero, así
-  que lo que añadan los shaders y `Particles` tiene poco margen. Los generadores no cuentan ahí: van en el
+  en F3.2, con el lienzo vacío y las formas pedidas, 241,6 KB; en F3.3, con las partículas, sus shaders y las
+  estrellas, 247,3 KB. React Three Fiber importa Three.js entero, así que lo que añadan la cámara (F3.4) y las
+  constelaciones (F4) tiene muy poco margen. Los generadores no cuentan ahí: van en el
   worker (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
 
 ## Niveles
@@ -43,7 +44,7 @@ deja el nivel actual.
 
 `src/scene/worker/` (generadores: `formas.md`). `SceneRoot` las pide al montar (`useSceneShapes`) con las
 partículas de su nivel, la semilla del proyecto y las placas con proyecto (`assignPlates(projectEntries)`), y
-las guarda; F3.3 las pinta. Solo pide otras si el nivel pide otro `count`.
+las pinta (`Particles`). Solo pide otras si el nivel pide otro `count`.
 
 - **Un worker por encargo** (`loadShapes`): se crea, responde y se cierra (`terminate`); también al vencer el
   plazo o al desmontar, y una respuesta tardía se ignora. Las 5 matrices vuelven **transferidas** (sin
@@ -78,16 +79,16 @@ las guarda; F3.3 las pinta. Solo pide otras si el nivel pide otro `count`.
   vuelve en 3 s **con la página a la vista** o se pierde otra vez con la página a la vista, Apagado
   (`src/scene/contextLoss`). Con la página oculta el plazo no corre (un móvil libera la GPU al cambiar de app
   y no la devuelve hasta volver): arranca entero al volver a la vista y esa pérdida no gasta el intento. Al
-  volver el contexto, Three rehace su estado pero no pinta: `SceneRoot` pide un frame (`invalidate`).
+  volver el contexto, Three rehace su estado y el bucle de frames (continuo) pinta el siguiente.
 - Un shader que no compila no lanza (Three.js solo lo registra, y con un `onShaderError` propio ni eso):
   `gl.debug.onShaderError` registra lo que Three habría escrito (el registro del programa y el de cada shader,
   con sus líneas) y pasa a Apagado.
 - **Errores del bucle de frames:** lo que lanza en `useFrame` o en `gl.render` corre en el
-  `requestAnimationFrame` de R3F, fuera de React: no lo recoge ningún *error boundary* y se repetiría en cada
-  frame. Todo trabajo por frame de la escena va dentro de un `try/catch` que registra (`[scene]`) y llama a
-  `onFail` (Apagado). El mecanismo (una envoltura de `useFrame` o un bucle propio con `frameloop="never"` y
-  `advance()` en un solo `try`, que serviría también para la pausa de F3.5) se decide con el primer
-  `useFrame` (F3.3).
+  `requestAnimationFrame`, fuera de React: no lo recoge ningún *error boundary* y se repetiría en cada frame.
+  Por eso el lienzo va con `frameloop="never"` y la escena tiene su propio bucle (`scene/frameLoop`, ADR-027):
+  cada frame rellena el `SceneFrame` compartido y llama a `advance()` dentro de un solo `try`; el primer error
+  para el bucle, se registra (`[scene] A frame failed…`) y pasa a Apagado (`frame-error`). Una pieza nueva de la
+  escena solo añade su `useFrame` y queda cubierta.
 - Si el worker de las formas falla o tarda más de 3 s, se reintenta una vez en el hilo principal con el nivel
   Bajo; si eso también falla, Apagado (ver «Worker de las formas»).
 - La escena nunca lanza errores hacia la interfaz: al montar y al renderizar con React está aislada en un

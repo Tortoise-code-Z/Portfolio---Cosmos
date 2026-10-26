@@ -19,8 +19,8 @@ export interface ContextLossHandlers {
   /** El contexto no va a volver: hay que pasar a sin WebGL. Se llama como mucho una vez. */
   readonly onGiveUp: (reason: GiveUpReason) => void;
   /**
-   * El contexto ha vuelto. Three rehace su estado pero no pinta: con `frameloop="demand"` hay que pedir un
-   * frame (`invalidate`) o el lienzo se queda vacío.
+   * El contexto ha vuelto. Three rehace su estado; con el bucle de frames de la escena (continuo, ADR-027) no
+   * hace falta nada más, pero un lienzo que pintara bajo demanda tendría que pedir un frame aquí.
    */
   readonly onRestored?: () => void;
   readonly timeoutMs?: number;

@@ -477,3 +477,32 @@
   pero regenerar a media visita no debe reintentar ni apagar la escena (deuda anotada en `STATE.md`).
 - Detalle: `docs/04-escena/rendimiento.md` («Worker de las formas»), `docs/04-escena/formas.md` («Contrato y
   tests»), `docs/05-tecnico/calidad.md` («Presupuestos»).
+
+## ADR-027 · Bucle de frames propio para la escena y lienzo sin gestión de color
+- Estado: Aceptada
+- Fecha: 2026-10-26
+- Contexto: F3.3 pinta las partículas y la escena pasa a animarse en cada frame. Lo que lanza en un `useFrame` o
+  en `gl.render` corre en el `requestAnimationFrame` de React Three Fiber, fuera de React: ningún *error
+  boundary* lo recoge y se repetiría 60 veces por segundo (`rendimiento.md` → «Robustez» lo dejó para el primer
+  `useFrame`). Además, los colores del shader son los del prototipo, que pintaba sin gestión de color sobre un
+  lienzo opaco.
+- Decisión:
+  - **`frameloop="never"` y un bucle propio** (`scene/frameLoop`): pide cada frame y, dentro de un único `try`,
+    rellena el frame compartido (`m`, el reloj de animación, densidad de píxeles, aspecto, extras del nivel) y
+    llama a `advance()` de R3F (todos los `useFrame` y `gl.render`). El primer error para el bucle, se registra
+    (`[scene] A frame failed…`) y pasa a sin WebGL (`frame-error`). La pausa de F3.5 será no pedir el frame
+    siguiente.
+  - **Un solo objeto de frame** para toda la visita (`SceneFrame`): las piezas lo leen en su `useFrame`, sin
+    crear objetos por frame (ADR-004).
+  - **Reloj de animación propio** (`scene/sceneClock`): se congela con movimiento reducido y no salta más de
+    0,1 s entre frames (una pestaña que vuelve).
+  - **Lienzo opaco, sin gestión de color ni mapeo de tonos** (`alpha: false`, `linear`, `flat`), limpiado con
+    `--color-void` leído del token: los shaders suman la luz tal cual, como el prototipo.
+- Alternativas descartadas: envolver cada `useFrame` en su propio `try` (no cubre `gl.render`, y cada pieza
+  nueva tendría que acordarse); seguir pintando bajo demanda (la escena se anima de forma continua); lienzo
+  transparente (la mezcla aditiva deja un alfa que el navegador compone de forma distinta según el motor).
+- Consecuencias: la escena pinta siempre que está montada, también sin cambios en pantalla, hasta la pausa de
+  F3.5; R3F ya no pide frames por su cuenta, así que tras recuperar el contexto basta con el frame siguiente del
+  bucle. Una pieza nueva solo necesita su `useFrame`: queda dentro del `try`.
+- Detalle: `docs/04-escena/rendimiento.md` («Robustez»), `docs/04-escena/particulas-y-shaders.md` («Colores»,
+  «Etiquetas y colores»).
