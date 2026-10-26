@@ -19,7 +19,8 @@
 - Ramas cortas por tarea: `feat/…`, `fix/…`, `chore/…`, `docs/…`, `test/…`, `refactor/…`.
 - **Conventional Commits** (`feat(scene): add turtle shape generator`), en inglés, pequeños y atómicos.
 - Fusión **squash** (un commit por PR en `main`); el título del PR sigue el formato convencional.
-- Etiquetas por versión: `v0.1.0` (fase 1)… `v1.0.0` (lanzamiento).
+- Etiquetas por versión: `v0.1.0` (F2, el sitio sin escena)… `v1.0.0` (lanzamiento); la de cada fase, en
+  `docs/06-roadmap/roadmap.md`. La etiqueta va sobre el commit de `main` que sube `version` en `package.json`.
 - Nunca se commitean `.env`, `node_modules`, `build/`, informes de cobertura ni capturas temporales.
 
 ## Hooks locales (Husky + lint-staged)

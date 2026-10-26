@@ -63,6 +63,38 @@
 | TBT | < 200 ms |
 | Lighthouse móvil | Performance ≥ 85 · Accessibility ≥ 95 · Best Practices ≥ 95 · SEO ≥ 95 |
 
+### Mediciones
+
+Hasta F6, Lighthouse se pasa a mano al cerrar cada fase (`npx lighthouse@<versión exacta>`, perfil móvil por
+defecto, sobre `npm run build` + `npm run preview`) y se apunta aquí; en F6 lo sustituye Lighthouse CI.
+
+**Cierre de F2 (`v0.1.0`) · Lighthouse 13.5.0 · móvil simulado · build local**
+
+| Página | Performance | Accessibility | Best Practices | SEO | LCP | CLS | TBT |
+|---|---|---|---|---|---|---|---|
+| `/` | 93 | 100 | 100 | 100 | 2,7 s | 0 | 50 ms |
+| `/es` | 92 | 100 | 100 | 100 | 2,7 s | 0 | 0 ms |
+| `/projects/chessmate` | 94 | 100 | 100 | 100 | 2,6 s | 0 | 10 ms |
+| `/es/projects/astrohub` | 95 | 100 | 100 | 100 | 2,6 s | 0 | 0 ms |
+| `/projects/cosmos` | 96 | 100 | 100 | 100 | 2,4 s | 0 | 0 ms |
+| `/404` | 97 | 100 | 100 | 54 | 2,4 s | 0 | 0 ms |
+
+**Cierre de F2 · PageSpeed Insights (Lighthouse 13.5.0, Moto G Power emulado, 4G lenta) · producción en Vercel ·
+2026-10-26**
+
+| Página | Performance | Accessibility | Best Practices | SEO | LCP | CLS | TBT |
+|---|---|---|---|---|---|---|---|
+| `/` | 97 | 100 | 100 | 100 | 2,3 s | 0 | 0 ms |
+| `/projects/chessmate` | 98 | 100 | 100 | 100 | 2,1 s | 0 | 0 ms |
+
+- La 404 no puntúa en SEO a propósito: lleva `noindex` y no tiene descripción (no se indexa).
+- LCP de las fichas: la portada (`fetchpriority="high"`, sin `loading="lazy"`, ya en el HTML inicial); casi todo
+  el tiempo es retraso de render, no descarga. En la home, el texto de entrada del hero (~2,2 s de retraso de
+  render en local). En local, la home y las fichas de Chessmate y AstroHub pasan algo del presupuesto de LCP
+  (< 2,5 s); en producción (CDN de Vercel) quedan dentro. Se vigila en F6 con Lighthouse CI y en un móvil real.
+- Aviso sin peso en la nota: `label-content-name-mismatch` en EN / ES (se ve «EN», el nombre es «English»,
+  `componentes.md`). Se revisa con NVDA y control por voz en F6.
+
 ## Definición de «hecho» (por tarea)
 
 1. `npm run check` en verde y build correcto. Si el cambio toca la config de Vite o los imports especiales
