@@ -30,7 +30,8 @@
 | `lint` / `lint:fix` | ESLint |
 | `format` / `format:check` | Prettier |
 | `test` / `test:watch` / `test:coverage` | Vitest |
-| `e2e` | Playwright (recorridos) |
+| `e2e` | Playwright (recorridos) en los tres navegadores |
+| `e2e:chromium` | Los mismos recorridos solo en Chromium: el que se lanza en local al tocar interfaz (ADR-024) |
 | `visual` / `visual:update` | Capturas de regresión dentro del contenedor Docker de Playwright |
 | `lhci` | Lighthouse CI sobre `preview` |
 | `check` | `typecheck` + `lint` + `format:check` + `test` (lo mínimo antes de cada commit) |

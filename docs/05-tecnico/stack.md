@@ -95,7 +95,7 @@ GSAP y Lenis (el scroll lo resuelve un hook propio), librerías de i18n (diccion
 | Accesibilidad en ESLint | Se usa el fork `eslint-plugin-jsx-a11y-x` (menos adopción que el original) | Revisar en cada actualización trimestral; si el fork se abandona, ADR nuevo |
 | React 19.4 | `@react-three/fiber` 9.8 declara React < 19.4 | No subir React por encima de 19.3.x sin subir Fiber |
 | Node 26 LTS (28-10-2026) | Todas las piezas declaran soporte para Node ≥ 22/24 | ADR de migración tras la v1 |
-| `@playwright/test` ↔ imagen Docker | La imagen debe ser **la misma versión** (`mcr.microsoft.com/playwright:v1.64.0-noble`) | Subirlas siempre juntas |
+| `@playwright/test` ↔ imagen Docker | La imagen debe ser **la misma versión** (`mcr.microsoft.com/playwright:v1.64.0-noble`); la usan los e2e del CI (ADR-024) y la regresión visual (ADR-010) | Subirlas siempre juntas: `package.json`, el lock y cada `image:` de `ci.yml` |
 | Finales de línea en Windows | Prettier usa LF; Git for Windows convierte a CRLF por defecto | `.gitattributes` con `* text=auto eol=lf` desde el primer commit |
 | Playwright en Windows | Windows Defender retiene archivos de Firefox y WebKit (`nss3.dll`, `icuin77.dll`…) y no arrancan | Excluir `%LOCALAPPDATA%\ms-playwright` en Defender y `npx playwright install --force firefox webkit` |
 
