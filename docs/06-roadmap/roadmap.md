@@ -61,7 +61,8 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
    pausa con pestaña oculta y en misión rápida (`quickMissionOpen` de `uiStore`, desde F2.6).
 6. Primeras capturas de regresión visual (Docker) y medición de fps.
 7. Ficha de **Cosmos** con la escena: el resumen final, «Scroll-driven particle morphing…», «Works without WebGL…»
-   y Three.js / React Three Fiber / GLSL en el stack (`docs/01-contenido/proyectos/cosmos.md`, ⏳).
+   (en lugar de «Readable without JavaScript…») y Three.js / React Three Fiber / GLSL en el stack
+   (`docs/01-contenido/proyectos/cosmos.md`, ⏳).
 
 **Hecho cuando:** el viaje se ve de punta a punta con las 5 formas, 60 fps en escritorio y sin errores con WebGL
 desactivado. Etiqueta `v0.2.0`.
@@ -94,7 +95,8 @@ Etiqueta `v0.3.0`.
 - Movimiento reducido completo, táctil, encuadre en los 6 tamaños de referencia, degradación de nivel en caliente.
 - Presupuestos de Lighthouse CI activados en CI; revisión con NVDA; pruebas en un móvil real.
 - Ficha de **Cosmos** con datos reales (proceso, retos, capturas; revisar el stack); imágenes Open Graph EN/ES; favicon.
-- README del repo en inglés con capturas y arquitectura.
+- README del repo en inglés con capturas y arquitectura; con él, la nota de la ficha de Cosmos vuelve a citarlo
+  (`docs/01-contenido/proyectos/cosmos.md` → Notes, ⏳).
 
 **Hecho cuando:** todas las métricas del brief se cumplen medidas en producción de preview. Etiqueta `v0.9.0`.
 

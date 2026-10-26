@@ -1,6 +1,6 @@
 // Fuente: docs/01-contenido/proyectos/cosmos.md. Stack desde docs/05-tecnico/stack.md.
 // Solo se publica lo que está hecho: la escena 3D (resumen, funcionalidades y stack) vuelve a la ficha en F3–F4,
-// y process y highlights quedan vacíos hasta F6 (roadmap).
+// y process, highlights y la nota del README esperan a F6 (roadmap).
 
 import type { ProjectEntry } from '../types';
 import { RESPONSIVE_DESIGN } from './labels';
@@ -68,8 +68,8 @@ export const cosmos: ProjectEntry = {
     {
       kind: 'info',
       text: {
-        en: 'The source code is public; the README explains the architecture.',
-        es: 'El código es público; el README explica la arquitectura.',
+        en: 'The source code is public on GitHub.',
+        es: 'El código es público en GitHub.',
       },
     },
   ],
