@@ -61,10 +61,13 @@ src/scene/
   CameraRig.tsx
   overlay/ProjectedLabels.tsx   ← etiquetas y pins DOM actualizados por refs
   shaders/particles.vert.glsl · particles.frag.glsl · stars.*.glsl
-  worker/shapes.worker.ts
-  shapes/  singularity.ts · nebula.ts · galaxy.ts · turtle.ts · earth.ts · hex.ts · noise.ts · prng.ts
+  useSceneShapes/          ← pide las formas al montar; reintento en el hilo principal (F3.2)
+  worker/  shapes.worker.ts · handleShapesRequest/ · protocol/ · loadShapes/   (F3.2)
+  shapes/  prng/ · noise/ · sampling/ · hexGrid/ · nebula/ · galaxy/ · turtle/ · earth/ ·
+           shapeContract/ · generateShapes/   (F3.2; la singularidad no se genera: formas.md)
   math/    camera.ts · projection.ts · easing.ts
-  config/  constants.ts · constellationLayout.ts · plateSlots.ts   (niveles: lib/device/sceneLevel)
+  config/  sceneConfig.ts · plateSlots/ (F3.2) · constellationLayout.ts   (niveles: lib/device/sceneLevel)
+                             (cada archivo con test, en su carpeta: ADR-018)
 ```
 
 `sceneStore` no vive aquí: está en `src/stores/sceneStore/sceneStore.ts` (capa `stores`, ver `docs/05-tecnico/arquitectura.md`).

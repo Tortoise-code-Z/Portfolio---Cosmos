@@ -40,8 +40,14 @@ cosmos-portfolio/
 │  │  ├─ errors/                ← NotFoundPage (la 404 del idioma; la usan las rutas y `root.tsx`)
 │  │  └─ scene-mount/           ← SceneMount (monta la escena en diferido y el aviso sin WebGL; lo pinta
 │  │                              `root.tsx`) y SceneErrorBoundary (aísla los fallos de la escena)
-│  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido: SceneRoot (el `<Canvas>`)
-│  │                              y contextLoss (pérdida del contexto WebGL: un intento de restaurar)
+│  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido: SceneRoot (el `<Canvas>`),
+│  │                              contextLoss (pérdida del contexto WebGL: un intento de restaurar) y
+│  │                              useSceneShapes (pide las formas; reintento en el hilo principal)
+│  │  ├─ config/                ← lo compartido: sceneConfig (semilla, semiejes del caparazón, hex) y
+│  │  │                           plateSlots (huecos de las placas, assignPlates)
+│  │  ├─ shapes/                ← código puro: prng, noise, sampling, hexGrid, un generador por forma
+│  │  │                           (nebula, galaxy, turtle, earth), shapeContract y generateShapes
+│  │  └─ worker/                ← shapes.worker.ts (la entrada), handleShapesRequest, protocol y loadShapes
 │  ├─ ui/                       ← componentes genéricos sin dominio: ButtonOutline, HoldButton, ActionLink,
 │  │                              CopyButton, Notice, Icon, VisuallyHidden, ArrowText (las «→» del texto
 │  │                              con el icono), Picture (`<picture>` AVIF/WebP) y Lightbox (visor de imágenes)
@@ -211,11 +217,17 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   de R3F (regla en `docs/04-escena/rendimiento.md` → «Robustez»). `SceneRoot` avisa con `onFail` de lo que no
   lanza: un shader que no compila (`gl.debug.onShaderError`, que registra el programa y cada shader) o un
   contexto perdido que no vuelve (`contextLoss`: un intento, 3 s con la página a la vista; al volver, pide un
-  frame). Sin WebGL: clase `no-gl` en `<html>`, el lienzo se desmonta y un aviso, una vez por visita.
-  `SceneRoot` marca su envoltorio con `data-ready` cuando existe el renderer: lo esperan los e2e.
+  frame) o unas formas que no llegan de ninguna manera (`shapes-failed`). Sin WebGL: clase `no-gl` en `<html>`, el lienzo se desmonta y un aviso, una vez por visita.
+  `SceneRoot` marca su envoltorio con `data-ready` cuando existe el renderer y con `data-shapes`
+  (`worker` | `main`) cuando tiene las formas: lo esperan los e2e.
 - `SceneRoot` monta el `<Canvas>` fijo detrás del contenido (`--z-scene`), `aria-hidden`, sin puntero (R3F
-  pone `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. En F3.1 está
-  vacío y pinta bajo demanda (`frameloop="demand"`); el worker de las formas llega en F3.2.
+  pone `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. Hoy está
+  vacío y pinta bajo demanda (`frameloop="demand"`). Al montar pide las formas al worker y las guarda sin
+  pintarlas (F3.3 las pinta); si el worker falla, las genera una vez en el hilo principal a nivel Bajo, y si
+  eso también falla, Apagado (`docs/04-escena/rendimiento.md` → «Worker de las formas»).
+- `scene/{shapes,math,config,worker}` es código puro: lo que corre en el worker o se prueba sin WebGL. ESLint
+  le prohíbe Three, React, Zustand y `stores` (un import así engordaría el worker sin avisar), y prohíbe
+  `Math.random` en toda la escena (ADR-011: el azar con semilla de `scene/shapes/prng`).
 - Three.js, React Three Fiber y lo que arrastran van en el chunk `scene` (grupo de `vite.config.ts`), que
   ningún HTML pide (ADR-020). El grupo es el resto de dependencias diferidas: un `import()` nuevo de otra
   librería necesita su propio grupo (lo vigila `budgets.spec.ts`). Solo `SceneMount` importa la escena, y solo

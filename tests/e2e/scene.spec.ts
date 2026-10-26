@@ -1,6 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../../src/scene/contextLoss/contextLoss.ts';
+import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
 import { collectErrors, SCENE_READY } from './support/helpers.ts';
 
 /**
@@ -10,6 +11,8 @@ import { collectErrors, SCENE_READY } from './support/helpers.ts';
  * contexto que se pierde, el chunk que no llega) deja la página entera con su aviso.
  */
 
+/** El worker de las formas (su propio archivo, que pide la escena al montar). */
+const SHAPES_WORKER = /\/assets\/shapes\.worker-[^/]+\.js$/;
 /** Los dos chunks de la escena: `SceneRoot-*` (el componente) y `scene-*` (Three.js, R3F…, vite.config.ts). */
 const SCENE_CHUNK = /\/assets\/(?:scene|SceneRoot)-[^/]+\.js$/;
 const NOTICE = "Your browser can't show the 3D universe, but everything else is here.";
@@ -126,6 +129,38 @@ test.describe('the scene with WebGL', () => {
     await expect(sceneCanvas(page)).toHaveCount(1);
     await expect(noGlNotice(page)).toHaveCount(0);
     await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
+  });
+
+  test('generates its shapes in the worker', async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await expect(page.locator(SCENE_READY)).toHaveAttribute('data-shapes', 'worker', {
+      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+    });
+    expect(errors).toEqual([]);
+  });
+
+  test('a shapes worker that never arrives: generated once on the main thread, the scene goes on', async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    const warnings: string[] = [];
+    page.on('console', (message) => {
+      if (message.type() === 'warning') warnings.push(message.text());
+    });
+    await page.route(SHAPES_WORKER, (route) => route.abort());
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await expect(page.locator(SCENE_READY)).toHaveAttribute('data-shapes', 'main', {
+      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+    });
+    await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
+    await expect(noGlNotice(page)).toHaveCount(0);
+    expect(errors.filter((error) => !error.startsWith('Failed to load resource'))).toEqual([]);
+    expect(warnings).toContainEqual(
+      expect.stringMatching(
+        /^\[scene\] The shapes worker failed; generating once on the main thread/,
+      ),
+    );
   });
 
   test('a scene chunk that never arrives leaves the whole page, without WebGL', async ({

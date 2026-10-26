@@ -63,7 +63,9 @@ la parte superior del caparazón.
 | 6 | (−1, 1) | 26 | 7.º |
 
 - Asignación: el `featured` al hueco 0; el resto, por `order`, a los huecos siguientes. Máximo 7 proyectos
-  (si hubiera más, solo se muestran los 7 primeros en la tortuga; todos siguen en la lista).
+  (si hubiera más, solo se muestran los 7 primeros en la tortuga; todos siguen en la lista). Lo hace
+  `assignPlates(projects)` (`config/plateSlots`), que recibe los proyectos por parámetro: el worker de las
+  formas no carga el contenido.
 - Los huecos sin proyecto son celdas normales del caparazón (pueden tener árboles).
 - Con 3 proyectos (v1): Chessmate en el centro, AstroHub detrás y Cosmos delante, hacia la cabeza.
 

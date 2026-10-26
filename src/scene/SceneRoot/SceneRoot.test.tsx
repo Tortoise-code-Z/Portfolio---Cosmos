@@ -3,7 +3,11 @@ import { useEffect, type ReactNode, type Ref } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../contextLoss/contextLoss';
+import { useSceneShapes } from '../useSceneShapes/useSceneShapes';
 import SceneRoot from './SceneRoot';
+
+// Las formas tienen sus propios tests (worker, reintento): aquí solo se mira cómo las usa SceneRoot.
+vi.mock('../useSceneShapes/useSceneShapes', () => ({ useSceneShapes: vi.fn(() => null) }));
 
 interface FakeGl {
   readonly getProgramInfoLog: (program: object) => string;
@@ -123,6 +127,30 @@ describe('SceneRoot', () => {
       '[scene] WebGL context lost for good',
       'context-not-restored',
     );
+  });
+
+  it('asks for the shapes of its level, marks where they came from and gives up without them', () => {
+    const { canvas, onFail } = renderScene('medium');
+    const wrapper = canvas.closest('[aria-hidden="true"]');
+    expect(wrapper).not.toHaveAttribute('data-shapes');
+    const [askedLevel, onShapesFail] = vi.mocked(useSceneShapes).mock.calls.at(-1) ?? [];
+    expect(askedLevel).toBe('medium');
+    onShapesFail?.('shapes-failed');
+    expect(onFail).toHaveBeenCalledExactlyOnceWith('shapes-failed');
+
+    vi.mocked(useSceneShapes).mockReturnValue({
+      source: 'main',
+      shapes: {
+        count: 1,
+        nebula: new Float32Array(3),
+        galaxy: new Float32Array(3),
+        turtle: new Float32Array(3),
+        earth: new Float32Array(3),
+        rand: new Float32Array(4),
+      },
+    });
+    const again = renderScene('low');
+    expect(again.canvas.closest('[aria-hidden="true"]')).toHaveAttribute('data-shapes', 'main');
   });
 
   it('stops watching the canvas when unmounted', () => {

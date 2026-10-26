@@ -72,6 +72,14 @@ const LAYER_RULES = [
     forbidden: [...['ui', 'features', 'routes'].flatMap(layer)],
     message: 'scene solo puede importar lib, stores y content.',
   },
+  {
+    // El código puro de la escena: lo que corre en el worker de las formas (≤ 10 KB) o se prueba sin WebGL.
+    // Sin Three, React, Zustand ni stores: un import así reventaría el worker sin que nadie lo notara.
+    files: ['src/scene/{shapes,math,config,worker}/**'],
+    forbidden: [...THREE, ...REACT, ...['ui', 'features', 'routes', 'stores'].flatMap(layer)],
+    message:
+      'scene/{shapes,math,config,worker} es código puro (va en el worker): sin Three, React, Zustand ni stores.',
+  },
 ];
 
 export default defineConfig(
@@ -139,6 +147,22 @@ export default defineConfig(
           selector: "ImportExpression[source.type!='Literal']",
           message:
             'import() solo con una cadena fija: si no, las capas no pueden comprobar qué se carga (la escena y Three.js, solo desde features/scene-mount/SceneMount).',
+        },
+      ],
+    },
+  },
+
+  // ADR-011: el mismo universo en cada visita. La escena usa el azar con semilla de `scene/shapes/prng`.
+  {
+    files: ['src/scene/**'],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'Math',
+          property: 'random',
+          message:
+            'La escena usa el azar con semilla (scene/shapes/prng, ADR-011), no Math.random.',
         },
       ],
     },
