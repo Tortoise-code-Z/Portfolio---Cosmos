@@ -86,6 +86,10 @@ test.describe('the scene with WebGL', () => {
 
   test('is decorative and lets clicks through to the content underneath', async ({ page }) => {
     await expect(sceneCanvas(page)).toBeAttached();
+    // Con escena, el fondo estático de `no-gl` no está.
+    expect(await page.evaluate(() => getComputedStyle(document.body, '::before').content)).toBe(
+      'none',
+    );
     const wrapper = page.locator('[aria-hidden="true"]', { has: sceneCanvas(page) });
     await expect(wrapper).toHaveCSS('position', 'fixed');
     // React Three Fiber pone `pointer-events: auto` en línea a su envoltorio: no debe tapar los enlaces.
@@ -95,6 +99,37 @@ test.describe('the scene with WebGL', () => {
       .click();
     await expect(page).toHaveURL(/\/projects\//);
   });
+
+  for (const path of ['/', '/projects/chessmate', '/es/no-such-page']) {
+    test(`the content of ${path} sits above the canvas (both in the root stacking order)`, async ({
+      page,
+    }) => {
+      await page.goto(path);
+      await expect(page.locator(SCENE_READY)).toBeAttached();
+      // El lienzo es fijo y con z-index: sin una capa propia, el texto (sin posicionar) quedaría debajo.
+      const layers = await page.evaluate(() => {
+        const layer = (element: Element | null) => {
+          if (element === null) return null;
+          const style = getComputedStyle(element);
+          return { position: style.position, zIndex: Number(style.zIndex) };
+        };
+        const canvas = document.querySelector('canvas');
+        const scene = canvas?.closest('[aria-hidden="true"]') ?? null;
+        const main = document.querySelector('main');
+        // Los dos cuelgan de `body` sin otro contexto de apilado en medio: sus z-index se comparan.
+        return {
+          main: layer(main),
+          scene: layer(scene),
+          sameContext:
+            scene?.parentElement === document.body && main?.parentElement === document.body,
+        };
+      });
+      expect(layers.main?.position).not.toBe('static');
+      expect(layers.scene?.position).toBe('fixed');
+      expect(layers.main?.zIndex).toBeGreaterThan(layers.scene?.zIndex ?? Number.POSITIVE_INFINITY);
+      expect(layers.sameContext).toBe(true);
+    });
+  }
 
   test('is mounted once: the same canvas survives going to a project and back', async ({
     page,
@@ -224,6 +259,15 @@ test.describe('without WebGL', () => {
     await expect(page.locator('html')).toHaveClass(/\bno-gl\b/);
     await expect(sceneCanvas(page)).toHaveCount(0);
     expect(requests).toEqual([]);
+    // En lugar del lienzo, el fondo estático del espacio, fijo en la capa de la escena.
+    const backdrop = await page.evaluate(() => {
+      const style = getComputedStyle(document.body, '::before');
+      return { position: style.position, image: style.backgroundImage };
+    });
+    expect(backdrop).toEqual({
+      position: 'fixed',
+      image: expect.stringMatching(/^radial-gradient\(/) as unknown,
+    });
 
     await page.getByRole('button', { name: 'Got it' }).click();
     await expect(noGlNotice(page)).toHaveCount(0);

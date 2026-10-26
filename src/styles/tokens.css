@@ -34,6 +34,10 @@
     var(--color-veil) var(--space-8),
     var(--color-veil) 100%
   );
+  /* Fondo del espacio sin escena (`no-gl`): dos nubes muy tenues con los tonos de la nebulosa. */
+  --gradient-space:
+    radial-gradient(60% 50% at 78% 22%, rgb(128 71 255 / 0.09) 0%, transparent 100%),
+    radial-gradient(55% 45% at 18% 82%, rgb(36 217 224 / 0.05) 0%, transparent 100%);
   --color-flash: #fff4dc;
   --color-singularity: #fff2d9;
   --gradient-singularity-halo: radial-gradient(

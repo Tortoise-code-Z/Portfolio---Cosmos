@@ -21,7 +21,8 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 - Se detecta al iniciar; ante cualquier error de contexto o de shader, o si las formas no llegan de ninguna
   manera (ni del worker ni del reintento), se desmonta la escena y se marca el documento con una clase
   (`no-gl`).
-- Fondo: degradado estático del espacio en CSS; hero con el punto CSS.
+- Fondo: degradado estático del espacio en CSS (`--gradient-space`, fijo en la capa de la escena); hero con el
+  punto CSS.
 - Aviso discreto, una vez por visita: «Your browser can't show the 3D universe, but everything else is here.» con
   «Got it» para descartarlo (navegar dentro del sitio no lo repite; recargar sí, porque sigue siendo verdad). Si
   la sugerencia de idioma está a la vista, espera a que se conteste: los dos flotan en el mismo sitio y nunca se
