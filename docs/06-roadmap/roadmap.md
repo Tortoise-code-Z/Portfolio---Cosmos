@@ -56,12 +56,17 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
 
 1. `SceneMount` diferido, detección de WebGL2, niveles de rendimiento y `ErrorBoundary` de escena. Antes de
    importar la escena, sacar `three` y `@react-three/*` del grupo `framework` de `vite.config.ts` (ADR-020).
+   *(Hecho en F3.1: lienzo vacío en su chunk `scene`, que ningún HTML pide; modo sin WebGL con su aviso. La
+   degradación en caliente pasa al paso 6, con partículas que medir.)*
 2. Utilidades puras (PRNG, ruido, hex) y generadores de las 4 formas en el worker, con sus tests.
-3. `Particles` con el shader de morph entre las 5 formas; estrellas de fondo.
+3. `Particles` con el shader de morph entre las 5 formas; estrellas de fondo. Antes de pintar partículas, el
+   contenido de los capítulos va por encima del lienzo (`--z-content`; hoy solo lo lleva el hero) y lo que
+   cuelga de la clase `no-gl` (fondo, relevo del punto del hero) se ajusta a lo que ya pinta la escena.
 4. `CameraRig` con keyframes, encuadre por capítulo, FOV para móvil y paralaje.
 5. Puente `sceneStore` ↔ scroll (el scroll ya escribe `mTarget` desde F2.5, ADR-021: la escena pasa a suavizar `m`);
    pausa con pestaña oculta y en misión rápida (`quickMissionOpen` de `uiStore`, desde F2.6).
-6. Primeras capturas de regresión visual (Docker) y medición de fps.
+6. Primeras capturas de regresión visual (Docker) y medición de fps; degradación en caliente de nivel (media de
+   fps en ventanas de 2 s, `docs/04-escena/rendimiento.md` → «Degradación en caliente»).
 7. Ficha de **Cosmos** con la escena: el resumen final, «Scroll-driven particle morphing…», «Works without WebGL…»
    (en lugar de «Readable without JavaScript…») y Three.js / React Three Fiber / GLSL en el stack
    (`docs/01-contenido/proyectos/cosmos.md`, ⏳).

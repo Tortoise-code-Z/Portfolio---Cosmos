@@ -305,6 +305,11 @@
   para F3.1:** hoy el `test` del grupo es todo `node_modules`; cuando la escena importe `three` y
   `@react-three/*` en diferido, el grupo los arrastraría al chunk inicial. En F3.1 el `test` debe excluirlos
   (`/node_modules[\\/](?!three[\\/]|@react-three[\\/])/`); el presupuesto saltaría si no, pero mejor no llegar ahí.
+  **Hecho en F3.1, de otra forma:** el grupo `framework` captura solo las dependencias que una entrada importa
+  de forma estática (`tags: ['$initial']` de Rolldown) y un grupo `scene` recoge las demás. La regex habría
+  dejado fuera Three.js y React Three Fiber, pero no lo que estos arrastran (`react-reconciler`, `its-fine`,
+  `suspend-react`…), que habría acabado en el JS inicial. El framework se quedó en 108,9 KB; el JS de la
+  escena (241,6 KB) tiene su propio presupuesto y su test.
 - Detalle: `docs/05-tecnico/calidad.md` → «Presupuestos».
 
 ## ADR-021 · Interfaz fija sin escena: `m` sin suavizar y lectura bajo una barra de altura fija

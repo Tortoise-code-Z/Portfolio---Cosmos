@@ -1,0 +1,193 @@
+import { act, cleanup, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { useEffect, type ReactNode } from 'react';
+import { MemoryRouter } from 'react-router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
+import { hasWebGL2 } from '~/lib/device/webgl2/webgl2';
+import { selectSceneLevel, setLanguageNoticeOpen, useUiStore } from '~/stores/uiStore/uiStore';
+
+import { IDLE_TIMEOUT_MS, NO_GL_CLASS, SceneMount } from './SceneMount';
+
+/** Lo que hará la escena falsa al montarse, y los niveles con los que se montó. */
+interface FakeScene {
+  behaviour: 'render' | 'throw' | 'fail';
+  levels: string[];
+}
+const scene = vi.hoisted((): FakeScene => ({ behaviour: 'render', levels: [] }));
+
+// La escena de verdad necesita WebGL: aquí se sustituye por un componente que dice con qué nivel se montó.
+vi.mock('~/scene/SceneRoot/SceneRoot', () => ({
+  default: function FakeSceneRoot({
+    level,
+    onFail,
+  }: {
+    readonly level: RenderLevel;
+    readonly onFail: (reason: string) => void;
+  }): ReactNode {
+    if (scene.behaviour === 'throw') throw new Error('WebGL context could not be created');
+    useEffect(() => {
+      scene.levels.push(level);
+      if (scene.behaviour === 'fail') onFail('shader-error');
+    }, [level, onFail]);
+    return <div data-testid="scene">{level}</div>;
+  },
+}));
+
+vi.mock('~/lib/device/webgl2/webgl2', () => ({ hasWebGL2: vi.fn(() => true) }));
+
+const NOTICE_TEXT = "Your browser can't show the 3D universe, but everything else is here.";
+
+function renderMount(path = '/'): void {
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <p>The page</p>
+      <SceneMount />
+    </MemoryRouter>,
+  );
+}
+
+/** Deja correr la espera de «navegador libre» (sin `requestIdleCallback` en jsdom, un `setTimeout`). */
+async function idle(): Promise<void> {
+  await act(async () => {
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+  });
+}
+
+const sceneLevel = (): string | null => selectSceneLevel(useUiStore.getState());
+
+beforeEach(() => {
+  vi.stubGlobal('innerWidth', 1440);
+  vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query }));
+  vi.spyOn(navigator, 'hardwareConcurrency', 'get').mockReturnValue(8);
+});
+
+afterEach(() => {
+  // Desmontar antes de quitar los globales falsos (`cancelIdleCallback`).
+  cleanup();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  vi.mocked(hasWebGL2).mockReturnValue(true);
+  useUiStore.setState(useUiStore.getInitialState(), true);
+  document.documentElement.classList.remove(NO_GL_CLASS);
+  scene.behaviour = 'render';
+  scene.levels = [];
+});
+
+describe('SceneMount', () => {
+  it('paints nothing before the browser is idle: only the empty notice region', () => {
+    renderMount();
+    expect(screen.queryByTestId('scene')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    expect(sceneLevel()).toBeNull();
+    expect(hasWebGL2).not.toHaveBeenCalled();
+  });
+
+  it('with WebGL2, mounts the scene at the level the browser signals pick', async () => {
+    renderMount();
+    await idle();
+    expect(await screen.findByTestId('scene')).toHaveTextContent('high');
+    expect(sceneLevel()).toBe('high');
+    expect(document.documentElement).not.toHaveClass(NO_GL_CLASS);
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('a narrow window starts at the low level', async () => {
+    vi.stubGlobal('innerWidth', 390);
+    renderMount();
+    await idle();
+    expect(await screen.findByTestId('scene')).toHaveTextContent('low');
+  });
+
+  it('waits for requestIdleCallback where it exists, with a deadline', async () => {
+    const requestIdleCallback = vi.fn((task: () => void) => setTimeout(task, 0));
+    vi.stubGlobal('requestIdleCallback', requestIdleCallback);
+    vi.stubGlobal('cancelIdleCallback', vi.fn());
+    renderMount();
+    expect(requestIdleCallback).toHaveBeenCalledWith(expect.any(Function), {
+      timeout: IDLE_TIMEOUT_MS,
+    });
+    await idle();
+    expect(sceneLevel()).toBe('high');
+  });
+
+  it('without WebGL2: no scene, the no-gl class and the notice, in the page language', async () => {
+    vi.mocked(hasWebGL2).mockReturnValue(false);
+    renderMount('/es');
+    await idle();
+    expect(screen.queryByTestId('scene')).not.toBeInTheDocument();
+    expect(sceneLevel()).toBe('off');
+    expect(document.documentElement).toHaveClass(NO_GL_CLASS);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Tu navegador no puede mostrar el universo 3D, pero todo lo demás está aquí.',
+    );
+    expect(screen.getByRole('button', { name: 'Entendido' })).toBeInTheDocument();
+  });
+
+  it('the notice shows once per visit: «Got it» hides it for good', async () => {
+    vi.mocked(hasWebGL2).mockReturnValue(false);
+    renderMount();
+    await userEvent.click(await screen.findByRole('button', { name: 'Got it' }));
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    // Otra señal de «sin WebGL» (la escena fallaría otra vez) no lo hace volver.
+    act(() => {
+      useUiStore.setState({ sceneLevel: 'off' });
+    });
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    expect(document.documentElement).toHaveClass(NO_GL_CLASS);
+  });
+
+  it('waits for the language suggestion to be answered: they never cover each other', async () => {
+    vi.mocked(hasWebGL2).mockReturnValue(false);
+    setLanguageNoticeOpen(true);
+    renderMount();
+    await idle();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    act(() => {
+      setLanguageNoticeOpen(false);
+    });
+    expect(screen.getByRole('status')).toHaveTextContent(NOTICE_TEXT);
+  });
+
+  it('a scene that throws is logged and contained: the page stays, without WebGL', async () => {
+    scene.behaviour = 'throw';
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    renderMount();
+    await idle();
+    expect(consoleError).toHaveBeenCalledWith(
+      '[scene] The 3D scene failed; continuing without WebGL',
+      expect.objectContaining({ message: 'WebGL context could not be created' }),
+      expect.any(String),
+    );
+    expect(sceneLevel()).toBe('off');
+    expect(screen.getByText('The page')).toBeInTheDocument();
+    expect(screen.queryByTestId('scene')).not.toBeInTheDocument();
+    expect(document.documentElement).toHaveClass(NO_GL_CLASS);
+    expect(screen.getByRole('status')).toHaveTextContent(NOTICE_TEXT);
+  });
+
+  it('a scene that gives up (context lost, shader) is unmounted and the visit goes on without WebGL', async () => {
+    scene.behaviour = 'fail';
+    renderMount();
+    await idle();
+    expect(scene.levels).toEqual(['high']);
+    expect(sceneLevel()).toBe('off');
+    expect(screen.queryByTestId('scene')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(NOTICE_TEXT);
+  });
+
+  it('unmounted before the browser is idle, it decides nothing', async () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <SceneMount />
+      </MemoryRouter>,
+    );
+    unmount();
+    await idle();
+    expect(hasWebGL2).not.toHaveBeenCalled();
+    expect(sceneLevel()).toBeNull();
+  });
+});

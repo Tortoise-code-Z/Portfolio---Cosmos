@@ -26,3 +26,20 @@ export function projectBySlug(slug: string): ProjectEntry {
   if (project === undefined) throw new Error(`No hay ningún proyecto «${slug}» en el contenido`);
   return project;
 }
+
+/**
+ * Espera a que el sitio decida la escena (el lienzo o el modo sin WebGL) y, si salió el aviso «sin WebGL»,
+ * lo descarta. Para los tests que miden la posición del scroll al usar algo del pie de la ventana: en un
+ * navegador sin WebGL (un motor del CI sin GPU) el aviso flota abajo y, por accesibilidad, sube lo
+ * enfocado por encima de él (`Notice`), lo que movería la página. No vale si la sugerencia de idioma está
+ * a la vista: el aviso sin WebGL espera su turno y saldría después.
+ */
+export async function settleScene(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () =>
+      document.querySelector('canvas') !== null ||
+      document.documentElement.classList.contains('no-gl'),
+  );
+  const gotIt = page.getByRole('button', { name: /^(?:Got it|Entendido)$/ });
+  if (await gotIt.isVisible()) await gotIt.click();
+}

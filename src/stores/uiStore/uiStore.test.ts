@@ -3,9 +3,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   closeQuickMission,
   openQuickMission,
+  selectLanguageNoticeOpen,
   selectQuickMissionOpen,
+  selectSceneLevel,
+  setLanguageNoticeOpen,
+  setSceneLevel,
   setVisitedProject,
   takeVisitedProject,
+  turnSceneOff,
   useUiStore,
 } from './uiStore';
 
@@ -52,5 +57,43 @@ describe('uiStore', () => {
     takeVisitedProject();
     expect(listener).toHaveBeenCalledTimes(1);
     unsubscribe();
+  });
+
+  it('starts with the scene level undecided', () => {
+    expect(selectSceneLevel(useUiStore.getState())).toBeNull();
+  });
+
+  it('sets the scene level and can still change it while the scene is on', () => {
+    setSceneLevel('high');
+    expect(selectSceneLevel(useUiStore.getState())).toBe('high');
+    setSceneLevel('medium');
+    expect(selectSceneLevel(useUiStore.getState())).toBe('medium');
+  });
+
+  it('once off, the scene stays off for the rest of the visit', () => {
+    setSceneLevel('low');
+    turnSceneOff();
+    setSceneLevel('high');
+    expect(selectSceneLevel(useUiStore.getState())).toBe('off');
+  });
+
+  it('does not notify when the scene level or the language notice did not change', () => {
+    const listener = vi.fn();
+    const unsubscribe = useUiStore.subscribe(listener);
+    setSceneLevel('high');
+    setSceneLevel('high');
+    turnSceneOff();
+    turnSceneOff();
+    setLanguageNoticeOpen(false);
+    setLanguageNoticeOpen(true);
+    setLanguageNoticeOpen(true);
+    expect(listener).toHaveBeenCalledTimes(3);
+    unsubscribe();
+  });
+
+  it('knows whether the language suggestion is showing', () => {
+    expect(selectLanguageNoticeOpen(useUiStore.getState())).toBe(false);
+    setLanguageNoticeOpen(true);
+    expect(selectLanguageNoticeOpen(useUiStore.getState())).toBe(true);
   });
 });

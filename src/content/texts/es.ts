@@ -121,6 +121,7 @@ export const es: UiTexts = {
   'project.pager': 'Más proyectos',
   'project.contact': 'Contacto',
   'noGl.notice': 'Tu navegador no puede mostrar el universo 3D, pero todo lo demás está aquí.',
+  'noGl.dismiss': 'Entendido',
   'langNotice.text': 'Esta página también está en español.',
   'langNotice.accept': 'Ver en español',
   'langNotice.dismiss': 'No, gracias',

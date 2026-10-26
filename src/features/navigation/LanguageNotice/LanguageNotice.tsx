@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useStore } from 'zustand';
 
@@ -8,6 +8,7 @@ import { translate } from '~/lib/i18n/translate/translate';
 import { useLocale } from '~/lib/i18n/useT/useT';
 import { readStorage, writeStorage } from '~/lib/storage/storage/storage';
 import { sceneStore, selectActiveChapter } from '~/stores/sceneStore/sceneStore';
+import { setLanguageNoticeOpen } from '~/stores/uiStore/uiStore';
 import { ButtonOutline } from '~/ui/ButtonOutline/ButtonOutline';
 import { Notice } from '~/ui/Notice/Notice';
 
@@ -64,6 +65,15 @@ export function LanguageNotice({ pathFor }: LanguageNoticeProps): ReactNode {
   );
   const [answered, setAnswered] = useState(false);
   const target = answered ? null : suggested;
+  const open = target !== null;
+
+  // El aviso sin WebGL espera a que esta sugerencia se conteste (uiStore → `languageNoticeOpen`).
+  useEffect(() => {
+    setLanguageNoticeOpen(open);
+    return () => {
+      setLanguageNoticeOpen(false);
+    };
+  }, [open]);
 
   function answer(): void {
     rememberLanguageAnswer();
@@ -71,7 +81,7 @@ export function LanguageNotice({ pathFor }: LanguageNoticeProps): ReactNode {
   }
 
   return (
-    <Notice open={target !== null} lang={target ?? undefined}>
+    <Notice open={open} lang={target ?? undefined}>
       {target === null ? null : (
         <>
           <p>{translate(target, 'langNotice.text')}</p>

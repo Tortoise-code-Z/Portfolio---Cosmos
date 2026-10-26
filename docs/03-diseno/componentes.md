@@ -190,7 +190,8 @@
   el foco crece con ella y el documento gana ese alto al final. Nada enfocado queda debajo (WCAG 2.4.11).
   Firefox no mira el `scroll-padding` si lo enfocado ya está dentro de la ventana (aunque sea debajo del aviso):
   tras cada cambio de foco, el aviso comprueba si tapa lo enfocado y, si es así, sube la página lo justo.
-- Uso: sugerencia de idioma (con su `lang`) y, desde F3, sin WebGL. Descartable.
+- Uso: sugerencia de idioma (con su `lang`) y, desde F3, sin WebGL («Got it», una vez por visita). Descartable.
+  Nunca dos a la vez: el de sin WebGL espera a que se conteste la sugerencia de idioma.
 
 ### Nota de proyecto (`ProjectNote`)
 - Bloque con borde izquierdo de 2 px (`--note-border-width`): turquesa (`info`) o ámbar (`warning`), icono del

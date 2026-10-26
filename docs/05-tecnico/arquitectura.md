@@ -37,8 +37,11 @@ cosmos-portfolio/
 │  │  ├─ project/               ← ProjectPage (la página), ProjectHeader, ProjectSection, ProjectStack,
 │  │  │                           ProjectNote, ProjectTryIt, ProjectGallery, ProjectPager y `neighbours`
 │  │  │                           (proyecto anterior y siguiente, puro)
-│  │  └─ errors/                ← NotFoundPage (la 404 del idioma; la usan las rutas y `root.tsx`)
-│  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido
+│  │  ├─ errors/                ← NotFoundPage (la 404 del idioma; la usan las rutas y `root.tsx`)
+│  │  └─ scene-mount/           ← SceneMount (monta la escena en diferido y el aviso sin WebGL; lo pinta
+│  │                              `root.tsx`) y SceneErrorBoundary (aísla los fallos de la escena)
+│  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido: SceneRoot (el `<Canvas>`)
+│  │                              y contextLoss (pérdida del contexto WebGL: un intento de restaurar)
 │  ├─ ui/                       ← componentes genéricos sin dominio: ButtonOutline, HoldButton, ActionLink,
 │  │                              CopyButton, Notice, Icon, VisuallyHidden, ArrowText (las «→» del texto
 │  │                              con el icono), Picture (`<picture>` AVIF/WebP) y Lightbox (visor de imágenes)
@@ -53,8 +56,9 @@ cosmos-portfolio/
 │  │  │                           jumpToChapter (scroll + foco al título + ancla)
 │  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
 │  │  │                           sitemap y robots (reciben origen y datos por parámetro, ADR-017)
-│  │  ├─ device/                ← señales del dispositivo: reducedMotion (prefersReducedMotion, jumpBehavior);
-│  │  │                           después nivel de rendimiento y usePointerType
+│  │  ├─ device/                ← señales del dispositivo: reducedMotion (prefersReducedMotion, jumpBehavior),
+│  │  │                           sceneLevel (niveles de la escena, su tabla y la elección inicial, pura) y
+│  │  │                           webgl2 (hasWebGL2); después usePointerType
 │  │  ├─ hold/                  ← carga de «mantén pulsado»: charge (puro) y useHoldCharge (rAF + variable CSS)
 │  │  ├─ css/                   ← cx (unir clases) y useHeightVar (altura de un elemento como variable CSS)
 │  │  └─ math/                  ← clamp, smoothstep, lerp (después, easing)
@@ -169,7 +173,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
-| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); después, grupo de skills activo, proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4), nivel de rendimiento, escena disponible | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
+| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); después, grupo de skills activo y proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
 | `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; sin escena, `m = mTarget`), y desde F3 carga, puntero, peso de capítulos, flags de pausa | `useFrame` y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
@@ -190,11 +194,23 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 
 ## Carga de la escena
 
-- `root.tsx` renderiza **una sola vez** `<SceneMount />` (fuera de `<Outlet />`), que en cliente hace
-  `lazy(() => import('~/scene/SceneRoot'))` tras la hidratación y cuando el navegador está libre.
-  Las rutas **no** montan la escena: así el lienzo no se recrea al navegar.
-- `SceneRoot` comprueba WebGL2, elige nivel, lanza el worker y monta el `<Canvas>`. Envuelto en un
-  `ErrorBoundary` que, ante cualquier fallo, marca `no-gl` y desmonta.
+- `root.tsx` renderiza **una sola vez** `<SceneMount />` (`features/scene-mount`, fuera de `<Outlet />`).
+  Las rutas **no** montan la escena: así el lienzo no se recrea al navegar. En el pre-render y al hidratar
+  no pinta nada (solo la región vacía del aviso). Después, cuando el navegador está libre
+  (`requestIdleCallback` con 2 s de plazo; en Safari, la vuelta siguiente del bucle de eventos):
+  - sin WebGL2 (`hasWebGL2`) → modo sin WebGL, **sin descargar** Three.js;
+  - con WebGL2 → elige el nivel (`chooseInitialLevel`, `uiStore.sceneLevel`) y hace
+    `lazy(() => import('~/scene/SceneRoot/SceneRoot'))`, dentro de `SceneErrorBoundary`.
+- `SceneErrorBoundary` recoge cualquier error de la escena (el chunk que no llega, el contexto que no se crea,
+  un fallo al pintar), lo registra y pasa a sin WebGL. `SceneRoot` avisa con `onFail` de lo que no lanza: un
+  shader que no compila (`gl.debug.onShaderError`) o un contexto perdido que no vuelve (`contextLoss`: un
+  intento, 3 s). Sin WebGL: clase `no-gl` en `<html>`, el lienzo se desmonta y un aviso, una vez por visita.
+- `SceneRoot` monta el `<Canvas>` fijo detrás del contenido (`--z-scene`), `aria-hidden`, sin puntero (R3F
+  pone `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. En F3.1 está
+  vacío y pinta bajo demanda (`frameloop="demand"`); el worker de las formas llega en F3.2.
+- Three.js, React Three Fiber y lo que arrastran van en el chunk `scene` (grupo de `vite.config.ts`), que
+  ningún HTML pide (ADR-020). Solo `SceneMount` importa la escena, y solo en diferido: las capas lo vigilan con
+  `no-restricted-imports` y los `import()` de `scene/` o de Three fuera de ahí, con `no-restricted-syntax`.
 - El lienzo vive en `root.tsx` (persistente entre rutas); `routes/journey/journey.tsx` y `routes/project/project.tsx` le
   comunican su estado (viaje, proyecto activo, atenuación) vía `sceneStore`.
 

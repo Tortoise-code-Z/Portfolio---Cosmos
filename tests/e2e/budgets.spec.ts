@@ -38,6 +38,15 @@ const FRAMEWORK_CHUNK = /\/assets\/(?:entry\.client|framework)-[^/]+\.js$/;
  */
 const IMAGE_BUDGET_BYTES = 200_000;
 const IMAGE_FILE = /\/assets\/[^"' ,]+\.(?:avif|webp|jpe?g|png)/g;
+/**
+ * JS de la escena (Three.js, React Three Fiber, lo que arrastran y `SceneRoot`), gzip: se pide en diferido
+ * y ningún HTML lo nombra (ADR-020). Medido en F3.1, con el lienzo vacío: 241,6 KB, casi todo Three.js
+ * entero (React Three Fiber lo importa completo).
+ */
+const SCENE_JS_BUDGET_BYTES = 250_000;
+/** El import dinámico de `SceneMount` que trae la escena (en el chunk de `root`). */
+const SCENE_ROOT_IMPORT = /import\(`\.\/(SceneRoot-[^`]+\.js)`\)/;
+const STATIC_IMPORT = /(?:from|import)\s*"\.\/([^"]+\.js)"/g;
 /** Hoja única (ADR-019), gzip: por encima, revisar si conviene volver a partirla. */
 const CSS_BUDGET_BYTES = 50_000;
 
@@ -52,14 +61,19 @@ function htmlPages(dir = CLIENT_DIR): string[] {
 
 const PAGES = htmlPages();
 
+/** Los JS que pide el HTML de una página (scripts y modulepreload), como `/assets/x.js`. */
+function pageScripts(htmlFile: string): Set<string> {
+  const html = readFileSync(join(CLIENT_DIR, htmlFile), 'utf8');
+  return new Set(Array.from(html.matchAll(/\/assets\/[^"']+\.js/g), (match) => match[0]));
+}
+
 /** JS que pide el HTML pre-renderizado (scripts y modulepreload), comprimido con gzip estándar. */
 function initialJs(htmlFile: string): {
   framework: string[];
   frameworkBytes: number;
   ownBytes: number;
 } {
-  const html = readFileSync(join(CLIENT_DIR, htmlFile), 'utf8');
-  const scripts = new Set(Array.from(html.matchAll(/\/assets\/[^"']+\.js/g), (match) => match[0]));
+  const scripts = pageScripts(htmlFile);
   const result = { framework: [] as string[], frameworkBytes: 0, ownBytes: 0 };
   for (const script of scripts) {
     const bytes = gzipSync(readFileSync(join(CLIENT_DIR, script))).length;
@@ -71,6 +85,27 @@ function initialJs(htmlFile: string): {
     }
   }
   return result;
+}
+
+/**
+ * Los chunks que solo trae el import dinámico de la escena: `SceneRoot-*` y lo que importa, menos lo que
+ * ya pide el HTML (el framework). Se sigue desde el JS inicial de la home, no desde lo que haya en assets/.
+ */
+function sceneChunks(): string[] {
+  const initial = pageScripts('index.html');
+  const sceneRoot = [...initial]
+    .map((script) => SCENE_ROOT_IMPORT.exec(readFileSync(join(CLIENT_DIR, script), 'utf8'))?.[1])
+    .find((name) => name !== undefined);
+  if (sceneRoot === undefined) return [];
+  const chunks = new Set<string>();
+  const pending = [`/assets/${sceneRoot}`];
+  for (let chunk = pending.pop(); chunk !== undefined; chunk = pending.pop()) {
+    if (chunks.has(chunk) || initial.has(chunk)) continue;
+    chunks.add(chunk);
+    const code = readFileSync(join(CLIENT_DIR, chunk), 'utf8');
+    for (const [, name] of code.matchAll(STATIC_IMPORT)) pending.push(`/assets/${name ?? ''}`);
+  }
+  return [...chunks];
 }
 
 test.describe('build budgets', () => {
@@ -118,6 +153,26 @@ test.describe('build budgets', () => {
       .map((image) => ({ image, bytes: statSync(join(CLIENT_DIR, image)).size }))
       .filter(({ bytes }) => bytes > IMAGE_BUDGET_BYTES);
     expect(over).toEqual([]);
+  });
+
+  test('the scene JS is deferred: no page asks for it, and it stays within its budget', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
+    const chunks = sceneChunks();
+    // SceneRoot y el chunk `scene` del grupo de vite.config.ts (Three.js, React Three Fiber…).
+    expect(chunks).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/\/SceneRoot-[^/]+\.js$/),
+        expect.stringMatching(/\/scene-[^/]+\.js$/),
+      ]),
+    );
+    for (const page of PAGES) {
+      expect(chunks.filter((chunk) => pageScripts(page).has(chunk))).toEqual([]);
+    }
+    const bytes = chunks.reduce(
+      (sum, chunk) => sum + gzipSync(readFileSync(join(CLIENT_DIR, chunk))).length,
+      0,
+    );
+    expect(bytes).toBeLessThanOrEqual(SCENE_JS_BUDGET_BYTES);
   });
 
   test('the budgets see every page type (home, project and 404, in both languages)', () => {

@@ -5,6 +5,7 @@ import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { sceneStore } from '~/stores/sceneStore/sceneStore';
+import { selectLanguageNoticeOpen, useUiStore } from '~/stores/uiStore/uiStore';
 
 import { LANGUAGE_NOTICE_KEY, LanguageNotice } from './LanguageNotice';
 
@@ -37,7 +38,10 @@ afterEach(() => {
   vi.restoreAllMocks();
   window.localStorage.clear();
   sceneStore.setState(sceneStore.getInitialState(), true);
+  useUiStore.setState(useUiStore.getInitialState(), true);
 });
+
+const noticeOpenInStore = (): boolean => selectLanguageNoticeOpen(useUiStore.getState());
 
 describe('LanguageNotice', () => {
   it('on an English page with a Spanish browser, offers Spanish, in Spanish', () => {
@@ -90,6 +94,30 @@ describe('LanguageNotice', () => {
     document.body.replaceChildren();
     renderNotice();
     expect(notice()).toBeEmptyDOMElement();
+  });
+
+  it('tells uiStore while it shows, so the no-WebGL notice waits its turn', async () => {
+    renderNotice();
+    expect(noticeOpenInStore()).toBe(true);
+    await userEvent.click(screen.getByRole('button', { name: 'No, gracias' }));
+    expect(noticeOpenInStore()).toBe(false);
+  });
+
+  it('leaving the page with the suggestion showing frees the turn', () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <LanguageNotice />
+      </MemoryRouter>,
+    );
+    expect(noticeOpenInStore()).toBe(true);
+    unmount();
+    expect(noticeOpenInStore()).toBe(false);
+  });
+
+  it('with nothing to suggest, it never takes the turn', () => {
+    browserLanguages(['en-GB', 'en']);
+    renderNotice();
+    expect(noticeOpenInStore()).toBe(false);
   });
 
   it('«Ver en español» goes to the Spanish page and remembers the answer too', async () => {
