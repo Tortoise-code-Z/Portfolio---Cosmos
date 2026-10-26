@@ -425,3 +425,22 @@
   - Si se renombra el job que resume, hay que actualizar la protección de `main`; los jobs por navegador se
     pueden renombrar sin tocarla.
 - Detalle: `docs/05-tecnico/git-y-despliegue.md` («CI») y `docs/05-tecnico/stack.md` («Conflictos»).
+
+## ADR-025 · Dominio propio: `tortoisecode.dev`
+- Estado: Aceptada
+- Fecha: 2026-10-26
+- Contexto: el sitio vivía en el subdominio de Vercel `cosmos-portfolio-two.vercel.app` (provisional hasta
+  resolver D2). Víctor compra `tortoisecode.dev` en Vercel durante F3 y lo conecta a Production; `www` ya
+  redirige al apex.
+- Decisión:
+  - El canónico es el apex, `https://tortoisecode.dev`: `VITE_SITE_URL` vale eso en Production y en Preview, y
+    en el repo (`.env.example`, `ci.yml`).
+  - `www.tortoisecode.dev` y `cosmos-portfolio-two.vercel.app` redirigen al apex con 308 (permanente).
+  - Orden del cambio: la variable en Vercel, después fusionar, después la redirección del dominio viejo, y
+    comprobar en producción la canónica, el sitemap y `robots.txt`.
+- Alternativas descartadas: `www` como canónico (más largo, sin ventaja en Vercel); quedarse en el subdominio de
+  Vercel (D2 lo dejaba abierto para F7, pero el dominio propio ya está comprado y da una URL que se recuerda).
+- Consecuencias: `.dev` exige HTTPS (HSTS precargado), que Vercel ya sirve. Las previews comparten la canónica de
+  producción y deben ir con `noindex` (se comprueba en F7, junto a las 404 reales y `cleanUrls`). El enlace de
+  la demo de Cosmos pasa al dominio nuevo.
+- Detalle: `docs/05-tecnico/git-y-despliegue.md` («Despliegue»).

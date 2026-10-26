@@ -16,7 +16,7 @@
 | role | `frontend` |
 | context | `personal` |
 | links.code | https://github.com/Tortoise-code-Z/Portfolio---Cosmos |
-| links.demo | https://cosmos-portfolio-two.vercel.app (provisional hasta D2: dominio) |
+| links.demo | https://tortoisecode.dev |
 | links.readme | https://github.com/Tortoise-code-Z/Portfolio---Cosmos#readme ⏳ (README en F6) |
 
 ## Tagline

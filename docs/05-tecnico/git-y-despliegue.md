@@ -83,8 +83,14 @@ install (npm ci)
 - Variables en Vercel: `VITE_SITE_URL` en **Production, Preview y Development**, con «Sensitive» **apagado**
   (las variables `VITE_` acaban en el cliente y Vercel no deja marcarlas como secretas). Sin ella en Preview, el
   build de los PR falla a propósito.
-- Dominio: `https://cosmos-portfolio-two.vercel.app` (subdominio de Vercel; `cosmos-portfolio` ya estaba cogido)
-  hasta resolver D2 (dominio propio).
+- Dominio: **`https://tortoisecode.dev`** (comprado en Vercel; ADR-025). El apex es el canónico:
+  `www.tortoisecode.dev` y el subdominio de Vercel del proyecto (`cosmos-portfolio-two.vercel.app`) redirigen a
+  él con 308. `VITE_SITE_URL` vale `https://tortoisecode.dev` en Production y en Preview (las previews apuntan su
+  canónica al sitio real; su `noindex` se comprueba en F7).
+- Cambiar de dominio, en este orden: (1) `VITE_SITE_URL` en Vercel, (2) fusionar el PR que lo cambia en el repo
+  (`.env.example`, `ci.yml`, enlaces del contenido), (3) la redirección 308 del dominio viejo, (4) comprobar en
+  producción la canónica, `sitemap.xml` y `robots.txt`. Si se fusiona antes de cambiar la variable, producción
+  sale con las canónicas al dominio viejo.
 
 ## Seguridad
 
