@@ -3,49 +3,53 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F2 cerrada** y CI rehecho (`main` en `721bb1d`, PR #41–#43) · la cadena no tiene encargos
-abiertos · siguiente: **F3 · paso 1** (`SceneMount` diferido, WebGL2, niveles y `ErrorBoundary`).
+**Dónde estamos:** **F3 · paso 1 hecho** (`main` en `9b4ad1b`, PR #45) · la Mesa audita **AUD-F3-1** (lanzada, sin
+entrega) · siguiente: **F3 · paso 2** (utilidades puras y generadores de las 4 formas en el worker).
 
-_Última actualización: 2026-10-26 (**CIERRE DE SESIÓN · 18**) · Sesión de mantenimiento antes de F3: los e2e del
-CI corren en la imagen de Playwright, un job por navegador (ADR-024), y eso destapó un salto real de la ficha a
-390 px (cambio de la fuente mono), ya corregido. 813 unitarios y 173 e2e en Chromium; CI en verde en los tres
-navegadores._
+_Última actualización: 2026-10-26 (**CIERRE DE SESIÓN · 19**) · Primer paso de F3: la escena se monta en diferido
+en su propio chunk (lienzo aún vacío), con detección de WebGL2, niveles de rendimiento, `ErrorBoundary` propio y
+modo sin WebGL con su aviso. 859 unitarios y 181 e2e en Chromium; CI en verde en los tres navegadores._
 
-**Hecho esta sesión** (vivas S18 en `_claude/cadena/hecho/2026-10-26/decisiones-vivas-S18.md`):
-1. **CI de e2e rehecho** (PR #42, `a9dbd3b`; vivas #1–#4; ADR-024): los e2e se colgaban instalando los tres
-   navegadores. Ahora corren en `mcr.microsoft.com/playwright:v1.64.0-noble` (`--user 1001`), un job por navegador
-   en paralelo (`fail-fast: false`) y un job `E2E (Chromium · Firefox · WebKit)` que los resume con el nombre de
-   siempre (la protección de `main` no cambia). En el CI: 1 reintento y `globalTimeout` de 10 min. Script nuevo
-   `npm run e2e:chromium` (DEVELOPMENT_RULES §13: el que se pasa en local al tocar interfaz). Chromium tarda
-   ~1,2 min de tests. Docs: `git-y-despliegue.md`, `stack.md`, `calidad.md`.
-2. **El test de CLS dice qué se mueve** (dentro del squash de #42; CLS-1-A): «slow images…» de
-   `project-images.spec.ts` guarda cada desplazamiento (elemento, momento y píxeles) y lo escribe si falla.
-3. **Salto de la ficha a 390 px corregido** (PR #43, `7fa64e7`; CLS-2-A, CLS-3-A): la reserva monoespaciada del CI
-   y de Windows (Consolas) es más estrecha que IBM Plex Mono; los metadatos («2024 · … · Personal project») cabían
-   en una línea hasta que llegaba Plex (~90 ms, sin precarga), saltaban a la siguiente y todo bajaba 15 px
-   (CLS 0,105 en el CI, 0,119 en Windows). `--font-mono` pone delante `'Courier New', 'Liberation Mono',
-   'DejaVu Sans Mono'` (0,6 em como Plex); el porqué, en `design-system.md` → «Tipografía».
-4. **Cierre de la sesión 17 fusionado** (PR #41, `721bb1d`) tras «Update branch», en el orden #43 → #42 → #41.
-5. **Dudas de Víctor** en `_claude/dudas/`: por qué se atascaba el CI y los comandos uno a uno
-   (`2026-10-26-ci-e2e-por-navegador.md`) y varias ramas a la vez con «Update branch»
-   (`2026-10-26-ramas-y-update-branch.md`).
+**Hecho esta sesión** (vivas S19 en `_claude/cadena/hecho/2026-10-26/decisiones-vivas-S19.md`):
+1. **F3.1 · escena diferida** (PR #45, `9b4ad1b`; vivas #2–#12):
+   - `vite.config.ts`: el grupo `framework` coge solo las dependencias importadas de forma estática desde una
+     entrada (`tags: ['$initial']`) y un grupo `scene` coge el resto. Es más robusto que la regex prevista en
+     ADR-020, que se habría dejado `react-reconciler`, `its-fine`… en el JS inicial (nota en ADR-020).
+     Framework 108,9 KB; JS de la escena 241,6 KB de 250 (test nuevo en `budgets.spec.ts`).
+   - `lib/device/sceneLevel` (tabla de niveles, `chooseInitialLevel` pura) y `lib/device/webgl2` (`hasWebGL2`).
+   - `uiStore`: `sceneLevel` (`null` → nivel → `off` para el resto de la visita) y `languageNoticeOpen`.
+   - `features/scene-mount`: `SceneMount` (en `root.tsx`, una vez; con el navegador libre decide; sin WebGL2 no
+     descarga la escena) y `SceneErrorBoundary`. Sin WebGL: clase `no-gl` y aviso una vez por visita («Got it» /
+     «Entendido», clave `noGl.dismiss`), que espera a que se conteste la sugerencia de idioma (F3.1-3-A, F3.1-4-A).
+   - `scene/SceneRoot` (lienzo fijo, `aria-hidden`, sin puntero, DPR por nivel, `frameloop="demand"`, shader que
+     no compila → sin WebGL) y `scene/contextLoss` (un intento de restaurar, 3 s).
+   - ESLint: un `import()` de la escena o de Three fuera de `SceneMount` es error (`no-restricted-syntax`).
+   - E2E `scene.spec.ts` y ayuda `settleScene` (descarta el aviso en los e2e que miden el scroll al pie).
+   - Docs: arquitectura, rendimiento, calidad, estados, componentes, textos, roadmap y la nota de ADR-020.
+2. Decidido (vivas #3, #4): la degradación en caliente pasa a **F3.6**; sin estudio de la Mesa para F3 por ahora.
 
 **Incidencias y lecciones:**
-- **Los e2e en local prueban `build/`**: sin `npm run build` antes, prueban una versión vieja. El 26-10 dieron 121
-  fallos falsos con un build del 23-10 (sin imágenes, texto viejo de Cosmos).
-- **Un CLS idéntico entre repeticiones** (0,11923… en Windows, 0,10503… en el CI) es un salto concreto que a veces
-  ocurre (una carrera), no lentitud: hay que ver qué elemento se mueve, no subir el límite.
-- **La fuente de reserva cambia con la máquina**: en el contenedor de Claude la mono genérica es DejaVu Sans Mono
-  (mismo ancho que Plex) y el fallo no salía (20/20 verdes). Se reprodujo con `FONTCONFIG_FILE` apuntando a un
-  `fonts.conf` que manda `monospace` a una fuente estrecha (DejaVu Sans Condensed): 6/6 fallos idénticos al CI.
-- **El CI de un PR usa el `ci.yml` de su mezcla con `main`**: relanzar no basta para coger una receta nueva; hace
-  falta «Update branch» (lo mismo para la regla «rama al día»).
-- **Squash por PR**: el commit del test (CLS-1-A) fue dentro de «ci: …» (#42) por ir en la misma rama. Aceptado;
-  lo siguiente que no sea del CI, en su rama.
-- Método del contenedor esta vez: Node 22 del contenedor con `npm ci --engine-strict=false` (sin bajar Node 24),
-  enlaces `chromium*-1248 → -1243`, árbol por `tar` desde `_claude/cadena/tmp/` y build con `VITE_SITE_URL`.
+- **R3F pone `pointer-events: auto` en línea a su envoltorio**: el lienzo, aunque transparente, tapaba los enlaces.
+  Lo cazó el e2e; `SceneRoot` lo anula con `style`. Cualquier capa fija nueva: probar un clic «a través» de ella.
+- **Simular un motor sin GPU** antes del CI: Chromium con `--disable-webgl --disable-webgl2 --disable-3d-apis`
+  (config temporal de Playwright fuera del repo). Así salieron 3 e2e que el aviso movía. En el CI Firefox y WebKit
+  pasaron, pero no sabemos si allí tienen WebGL2: los tests de `scene.spec.ts` con WebGL se omiten si no lo hay.
+- **Un `fixed` vacío no es «visible» para Playwright**: la región `role="status"` mide 0×0; se busca el texto
+  dentro (`getByRole('status').getByText(...)`).
+- **`lib/scene/…` no vale como ruta**: el patrón de capas `**/scene/**` de ESLint la bloquearía.
+- **Dev:** sin `optimizeDeps.include` de three/R3F, Vite los descubría tarde y la primera carga fallaba con
+  «Outdated Optimize Dep» (vivas #13). Con la caché `.vite` vacía, zustand aún provoca una recarga (ya pasaba).
+- Método del contenedor: igual que S18 (Node 22 con `--engine-strict=false`, enlaces `chromium*-1248 → -1243`,
+  árbol por `tar`); para devolver archivos al equipo, `tar --overwrite` (sin permiso de borrar, `tar` normal falla).
 
 **Deuda anotada:**
+- **F3.2–F3.3 · peso de la escena:** 241,6 KB de 250 con el lienzo vacío (R3F importa Three.js entero). Si las
+  formas y shaders lo pasan, decidir (subir el límite con ADR, importar menos de Three…) antes de tocar el número.
+- **F3.3:** antes de pintar partículas, `--z-content` en el contenido de los capítulos (hoy solo el hero) y los
+  estilos que cuelgan de `no-gl` (fondo, relevo del punto del hero); hoy la clase solo marca (vivas #7, #11).
+- **R3F 9.8.1 + three 0.186:** `console.warn` «THREE.Clock: This module has been deprecated» al montar el lienzo.
+  Se va cuando R3F use `THREE.Timer`: mirarlo al subir R3F (vivas #14).
+- **F6 · NVDA:** el aviso sin WebGL se descarta con «Got it» y el foco cae al `body` (igual que «No, gracias»).
 - **F6 · fuentes:** IBM Plex Mono no se precarga y pinta la primera pantalla (barra, metadatos de la ficha, HUD,
   eyebrows). Desde #43 sus reservas miden lo mismo por letra (0,6 em) y el cambio ya no mueve las líneas; valorar
   precargarla midiendo la LCP, y mirar en un Windows real cómo se ve Courier New mientras llega.
@@ -84,10 +88,6 @@ navegadores._
   scroll, como el prototipo (es decorativo y sin puntero), y la sugerencia de idioma lo tapa hasta que se contesta.
 - **F6 · texto al 200 %:** a 390 px, las filas de Proyectos del viaje se salen del ancho (`scrollWidth` ≈ 605 px).
   La ficha de proyecto y la 404 no (lo vigila `project-page.spec.ts`).
-- **F3:** la escena deja de pintar con `quickMissionOpen` de `uiStore` (roadmap F3.5); la escena suaviza `m`; hasta
-  entonces `setScrollTarget` escribe `m = mTarget` (ADR-021 → Consecuencias).
-- **F3.1:** el `test` del grupo `framework` de `vite.config.ts` es todo `node_modules`: excluir `three` y
-  `@react-three/*` antes de importar la escena en diferido (ADR-020 → Consecuencias; roadmap F3.1).
 - **F6:** el «≈» de los eyebrows, los superíndices `⁰ ⁴–⁹ ⁻` y el «∞» del HUD salen con la mono del sistema
   (excepción en `design-system.md` → «Iconos»): mirarlo en los tres motores. El hero en un móvil real y el CLS.
 - El `useLayoutEffect` del HUD (sin parpadeo al cambiar de idioma) no tiene test: mirarlo con Performance en F6.
@@ -106,22 +106,25 @@ navegadores._
   actualizar React Router, comprobar si ya lo pasa.
 - Si alguna ruta lanza un 404 desde un `loader` (`throw data(null, { status: 404 })`), choca con
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
+- **F3.5:** la escena deja de pintar con `quickMissionOpen` de `uiStore` y suaviza `m`; hasta entonces
+  `setScrollTarget` escribe `m = mTarget` (ADR-021 → Consecuencias). Hoy pinta bajo demanda (un frame).
 
 **Siguiente paso (próxima sesión, conversación nueva):**
-1. Arrancar con `session-start` (y la skill `taller`). Fijar en el tablero las **zonas calientes de F3**.
-2. **F3 · paso 1** (esquema → VB): `SceneMount` diferido, detección de WebGL2, niveles de rendimiento y
-   `ErrorBoundary` de escena; antes, sacar `three` y `@react-three/*` del grupo `framework` de `vite.config.ts`
-   (ADR-020, roadmap F3.1). Docs: `docs/04-escena/` (rendimiento) y `docs/05-tecnico/arquitectura.md`.
-3. Valorar con Víctor un estudio de la Mesa para F3 (reglas de la escena: rendimiento, determinismo, cero
-   asignaciones por frame).
+1. Arrancar con `session-start` (y la skill `taller`). Si ha llegado la entrega de **AUD-F3-1**
+   (`_claude/cadena/aud-f3-1/auditoria.md`, sello «vivas S19 hasta #16»), decidir con Víctor qué se corrige; va en
+   su propio commit.
+2. **F3 · paso 2** (esquema → VB): utilidades puras (PRNG con semilla, ruido, hex) y generadores de las 4 formas en
+   el worker, con sus tests (`docs/04-escena/formas.md`, `particulas-y-shaders.md`, `rendimiento.md` → worker y
+   reintento en el hilo principal). Cobertura 90 % en `src/scene/{shapes,math,config}`. Ojo al presupuesto de la
+   escena (241,6 de 250 KB).
 
 **Dudas abiertas:** D2 · dominio propio (F7) · D5 · analítica (F7). Tareas de Víctor: script de consola en el
 README de Chessmate (lo cita el «Try it»), CV en PDF EN/ES.
 **Limpieza manual del usuario:**
-- Ramas locales: ya no queda ninguna salvo `main`; la de este cierre (`docs/session-close-2026-10-26-2`) cuando se
-  fusione.
-- En el buzón se pueden borrar todo lo de `_claude/cadena/tmp/` (`arbol*.tar.gz`, `*.blobs`, `cierre-s13.tar.gz`,
-  `cierre-s15.tar.gz`, `s16-files.list`, `STATE-s16.md`, `STATE-cierre-s12.md`) y, dentro de
+- Ramas locales: `feat/f3-1-scene-mount` y `docs/session-close-2026-10-26-2` (ya fusionadas) y la de este cierre
+  (`docs/session-close-2026-10-26-3`) cuando se fusione.
+- En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` (`arbol*.tar.gz`, `cambio-s19-f3-1.tar.gz`,
+  `*.blobs`, `cierre-s*.tar.gz`, `s16-files.list`, `STATE-s16.md`, `STATE-cierre-s12.md`) y, dentro de
   `_claude/cadena/hecho/`, los `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`).
 
 **Bloqueos:** ninguno.
