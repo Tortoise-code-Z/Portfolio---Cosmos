@@ -14,6 +14,7 @@ import geologicaLatin from '@fontsource-variable/geologica/files/geologica-latin
 
 import { profile } from '~/content/profile';
 import { NotFoundPage } from '~/features/errors/NotFoundPage/NotFoundPage';
+import { SceneMount } from '~/features/scene-mount/SceneMount/SceneMount';
 import { localeFromPathname } from '~/lib/i18n/locale/locale';
 import { homePath } from '~/lib/i18n/paths/paths';
 import { translate } from '~/lib/i18n/translate/translate';
@@ -62,8 +63,17 @@ export function Layout({ children }: { readonly children: ReactNode }): ReactNod
   );
 }
 
+/**
+ * Las rutas y, fuera de ellas, la escena: se monta una sola vez y no se recrea al navegar
+ * (docs/05-tecnico/arquitectura.md → «Carga de la escena»).
+ */
 export default function App(): ReactNode {
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <SceneMount />
+    </>
+  );
 }
 
 /**

@@ -222,6 +222,7 @@ Las etiquetas de `ui/Lightbox`, que no sabe de qué página es (abrir cada image
 | `langNotice.accept` | View in English | Ver en español |
 | `langNotice.dismiss` | No, thanks | No, gracias |
 | `noGl.notice` | Your browser can't show the 3D universe, but everything else is here. | Tu navegador no puede mostrar el universo 3D, pero todo lo demás está aquí. |
+| `noGl.dismiss` | Got it | Entendido |
 | `notFound.title` | Lost in space | Perdido en el espacio |
 | `notFound.body` | This page drifted out of orbit. | Esta página se salió de su órbita. |
 | `notFound.cta` | Back to the start | Volver al inicio |

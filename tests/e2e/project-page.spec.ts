@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { collectErrors } from './support/helpers.ts';
+import { collectErrors, settleScene } from './support/helpers.ts';
 
 /**
  * Página de proyecto (F2 · paso 7): docs/02-experiencia/pagina-proyecto.md y navegacion.md → «Volver
@@ -75,6 +75,7 @@ test.describe('project page', () => {
   }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/#projects', { waitUntil: 'networkidle' });
+    await settleScene(page);
     const view = page.getByRole('link', { name: 'View project Cosmos' });
     await view.scrollIntoViewIfNeeded();
     // Fuera del punto del ancla: un Atrás que volviera a aterrizar en #projects no pasaría.

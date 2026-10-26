@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { collectErrors } from './support/helpers.ts';
+import { collectErrors, settleScene } from './support/helpers.ts';
 
 /**
  * El viaje sin escena (F2 · paso 4): capítulos, anclas, detonación, encuadre y lectura sin JS.
@@ -103,6 +103,7 @@ test.describe('the journey (home)', () => {
 
   test('a short click does not detonate: the charge drains back to 0', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
+    await settleScene(page);
     const button = page.getByRole('button', { name: 'Hold to detonate' });
     await button.click();
     // Si soltar no funcionara, la carga seguiría subiendo hasta detonar y nunca volvería a 0.
@@ -116,6 +117,7 @@ test.describe('the journey (home)', () => {
   test('with reduced motion the jump to About is instant', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/', { waitUntil: 'networkidle' });
+    await settleScene(page);
     const button = page.getByRole('button', { name: 'Hold to detonate' });
     const box = await button.boundingBox();
     if (box === null) throw new Error('Hold button not rendered');

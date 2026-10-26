@@ -1,0 +1,18 @@
+/*
+ * Lienzo de la escena (docs/03-diseno/design-system.md → «Capas»): fijo a toda la ventana, detrás del
+ * contenido y sin puntero (nada interactivo existe solo en él). Entra con un fundido, como los avisos:
+ * llega después de la primera pintura y no debe notarse el corte.
+ */
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-scene);
+  pointer-events: none;
+  animation: fade-in var(--dur-fade-slow) var(--ease-out);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}

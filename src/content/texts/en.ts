@@ -119,6 +119,7 @@ export const en = {
   'project.pager': 'More projects',
   'project.contact': 'Contact',
   'noGl.notice': "Your browser can't show the 3D universe, but everything else is here.",
+  'noGl.dismiss': 'Got it',
   'langNotice.text': 'This page is also available in English.',
   'langNotice.accept': 'View in English',
   'langNotice.dismiss': 'No, thanks',

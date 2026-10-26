@@ -126,12 +126,18 @@ export default defineConfig(({ mode }) => {
     // cliente aunque case otra ruta (`/ES`, slug desconocido), y la hidratación no falla.
     build: {
       cssCodeSplit: false,
-      // Las dependencias (React, React Router…) en un solo chunk con la entrada del cliente: el
-      // presupuesto de JS mide aparte el framework y el código propio de cada página (ADR-020).
+      // Las dependencias del JS inicial (React, React Router…) en un solo chunk con la entrada del
+      // cliente: el presupuesto de JS mide aparte el framework y el código propio de cada página
+      // (ADR-020). Solo las que se importan de forma estática desde una entrada (`$initial`): las de la
+      // escena (Three.js, React Three Fiber y lo que arrastran) llegan por un import dinámico y van en
+      // su chunk `scene`, que no pide ningún HTML.
       rolldownOptions: {
         output: {
           codeSplitting: {
-            groups: [{ name: 'framework', test: /node_modules[\\/]/ }],
+            groups: [
+              { name: 'framework', test: /node_modules[\\/]/, tags: ['$initial'], priority: 2 },
+              { name: 'scene', test: /node_modules[\\/]/, priority: 1 },
+            ],
           },
         },
       },
@@ -139,5 +145,8 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: { '~': fileURLToPath(new URL('./src', import.meta.url)) },
     },
+    // En desarrollo, Vite descubre Three.js y React Three Fiber tarde (llegan por el import dinámico de la
+    // escena), los re-optimiza y la primera carga falla con «Outdated Optimize Dep». Se preparan de entrada.
+    optimizeDeps: { include: ['three', '@react-three/fiber'] },
   };
 });

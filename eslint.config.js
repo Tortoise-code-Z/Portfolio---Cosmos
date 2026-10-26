@@ -112,6 +112,24 @@ export default defineConfig(
     },
   })),
 
+  // `no-restricted-imports` no mira los `import()`: un import dinámico de la escena o de Three se
+  // saltaría las capas. Solo `SceneMount` carga la escena así (arquitectura.md → «Carga de la escena»).
+  {
+    files: ['src/**'],
+    ignores: ['src/scene/**', 'src/features/scene-mount/SceneMount/SceneMount.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            'ImportExpression[source.value=/^(?:three|@react-three\\/)|(?:^~|\\/)scene(?:\\/|$)/]',
+          message:
+            'La escena (y Three.js) solo se carga en diferido desde features/scene-mount/SceneMount.',
+        },
+      ],
+    },
+  },
+
   {
     files: ['*.config.{js,ts}', 'tests/**'],
     languageOptions: { globals: { ...globals.node } },
