@@ -63,6 +63,10 @@ shell», arriba, y los enlaces del pie (GitHub, LinkedIn y el email).
   sin JavaScript llevan al ancla y con Ctrl/Cmd/Shift/Alt o el botón central abren otra pestaña.
 - Por debajo de md (900 px) va pegado al borde derecho: el texto de los capítulos (también el del hero) le deja
   su columna.
+- En móvil, el salto cae en el capítulo con **la escena primero** (p. ej. `capitulos/03-tortuga.md` → «Móvil»): el
+  título asoma abajo y las filas de Proyectos quedan a un deslizamiento (lo fija `recruiter.spec.ts`). Por eso, en
+  móvil, la métrica del brief (proyectos en ≤ 2 interacciones) la cumple la misión rápida, que los pone en la
+  primera pantalla.
 
 ## HUD (abajo a la derecha en escritorio, abajo a la izquierda en tableta, oculto en móvil pequeño)
 

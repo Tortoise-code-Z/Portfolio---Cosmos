@@ -12,7 +12,8 @@ Versiones exactas y conflictos → `docs/05-tecnico/stack.md`.
 - **El código vive en la raíz del repo** (no hay subcarpeta de app): `package.json` y configs en la raíz.
 - `src/` = `appDirectory` de React Router: `root.tsx`, `routes.ts`, `routes/` y las capas
   (`content`, `lib`, `stores`, `ui`, `features`, `scene`). Alias `~/` → `src/`.
-- `tests/e2e/` (Playwright) · `tests/setup.ts` (Vitest) · tests unitarios junto al archivo (`*.test.ts(x)`).
+- `tests/e2e/` (Playwright; ayudas comunes en `tests/e2e/support/`) · `tests/setup.ts` (Vitest) · tests
+  unitarios junto al archivo (`*.test.ts(x)`).
 - Archivos con el mismo nombre (`x.ts` + `x.test.ts`…) van juntos en su carpeta `x/` (ADR-018).
 - `public/` estáticos · `build/client/` salida que se despliega · `.github/workflows/ci.yml`.
 - Capas y lo que puede importar cada una → `docs/05-tecnico/arquitectura.md` (las vigila ESLint).
