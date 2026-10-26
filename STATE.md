@@ -3,55 +3,62 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** F2 · paso 8 en `main` y **AUD-F2-8 corregida** (PR #35, `e0dce6a`) · la cadena no tiene
-encargos abiertos · siguiente: **cierre de F2** (`v0.1.0`).
+**Dónde estamos:** **F2 cerrada** (`v0.1.0` en `3a3e0de` y `v0.1.1` en `50b6fb4`, PR #37–#40) · la cadena no
+tiene encargos abiertos · siguiente: **F3 · paso 1** (`SceneMount` diferido, WebGL2, niveles y `ErrorBoundary`).
 
-_Última actualización: 2026-10-25 (**CIERRE DE SESIÓN · 16**) · AUD-F2-8 corregida entera en 5 commits (PR #35,
-squash): alt de AstroHub, galerías atadas a su ficha, `sizes` desde los tokens, regla 5 sobre el build, e2e de
-imágenes que prueban lo que dicen y docs. 813 unitarios y 167 e2e en Chromium; CI en verde en los tres
-navegadores._
+_Última actualización: 2026-10-26 (**CIERRE DE SESIÓN · 17**) · Cierre de F2: ficha de Cosmos recortada a lo hecho,
+recorridos e2e del recruiter, Lighthouse medido (Accessibility y SEO 100 en local y en producción), versión 0.1.0 y
+AUD-F2-CIERRE corregida entera (v0.1.1). 813 unitarios y 173 e2e en Chromium; CI en verde en los tres navegadores._
 
-**Hecho esta sesión** (vivas S16 en `_claude/cadena/hecho/2026-10-25/decisiones-vivas-S16.md`):
-1. **AUD-F2-8 decidida** (vivas S16 #1): Víctor corrige los 17 hallazgos y las 2 preguntas; 1-A, 2-B+C, P1-A, P2-A.
-2. **Contenido** (C1): los tres `alt` EN de AstroHub decían `astrohubNews` / `astrohubAppointments`. `content.test.ts`
-   fija ahora `EXPECTED_MEDIA` (alt de la portada y galería [archivo, EN, ES] en orden, copiada de las fichas).
-   `findProjectMediaProblems` (`validate.ts`, con casos rotos): con galería, portada obligatoria e igual a la 1.ª
-   captura, imagen para compartir de 1200 px y sin capturas repetidas. La home y la misión rápida importan
-   `projectEntries` (ya no cargan las imágenes); `ProjectRow` y `QuickProject` reciben `ProjectEntry`.
-3. **`sizes`** (C2): `features/project/imageSizes` (`PROJECT_LAYOUT`, `coverSizes`, `thumbSizes`): portada
-   `(min-width: 768px) 696px, 100vw`; miniaturas `(min-width: 732px) 232px, (min-width: 484px) 50vw, 100vw`. Su
-   test compara las medidas con `tokens.css` y con los CSS de página y galería.
-4. **Tests y configs** (C3): `src/content/imageWidths.ts` (anchos de las variantes y 1200 px), que leen
-   `vite.config.ts`, el sustituto de Vitest (ahora recorta los anchos como imagetools, sin ampliar), las reglas y
-   los e2e. Nuevos e2e: regla 5 sobre cada `<picture>` y `og:image` de las fichas del build; la home sin imágenes;
-   a densidad 1 y en el formato que elija cada navegador, miniatura de 640 y visor de 1920 a 1440 px (WebKit ya no
-   se salta); CLS también con una miniatura que llega tarde, tras aplicarse la CSS; visor `contain` dentro de la
-   pantalla; cuentas exactas (55 / 73 / 128, derivadas de los anchos); `WITH_COVER` solo con proyectos que existen.
-5. **CI** (C4): `restore-keys: imagetools-` y la clave suma `imageWidths.ts`.
-6. **Docs** (C5): ADR-023 (forma de dev, listas a mano, ~13,2 MB, `projectEntries` en el viaje), tabla de capas y
-   mensaje de ESLint (`media.ts` importa capturas), `sitePages(projectEntries)`, componentes, assets,
-   modelo-de-datos (regla 5 y árbol con `validate/`), secuencia de carga (LCP de las fichas), cosmos.md y
-   `calidad.md` (y `DEVELOPMENT_RULES` §11): abrir `npm run dev` si se toca la config de Vite (P1-A).
+**Hecho esta sesión** (vivas S17 en `_claude/cadena/hecho/2026-10-26/decisiones-vivas-S17.md`):
+1. **Ficha de Cosmos a lo hecho** (PR #37, `d1137a0`; vivas S17 #1, CF2-1-A y CF2-2): sin partículas ni WebGL en el
+   resumen, sin «particle morphing» ni «constellations and plates», «Readable without JavaScript and with reduced
+   motion» y `stack.core` = React y TypeScript. El texto final, con ⏳ en `cosmos.md`; el roadmap dice qué vuelve
+   en F3 (paso 7) y en F4.
+2. **Recorridos del recruiter** (PR #38, `c348db6`): `tests/e2e/recruiter.spec.ts`, EN y ES. A 1280 px, «Projects»
+   de la barra → proyectos en pantalla → ficha → código en pestaña nueva (GitHub simulado). A 390 px, la misión
+   rápida pone los proyectos en pantalla con un toque y el raíl cae con la escena primero; en ambos, la ficha tras
+   un deslizamiento.
+3. **Lighthouse** (vivas #5, #8, #10): 13.5.0 con `npx`, sin dependencia nueva. Local (móvil simulado): A 100 · BP
+   100 · SEO 100 en las 5 páginas indexables, P 92–96, CLS 0, LCP 2,4–2,7 s; la 404, SEO 54 a propósito (`noindex`).
+   Producción (PageSpeed Insights): `/` P 97 · LCP 2,3 s y `/projects/chessmate` P 98 · LCP 2,1 s, el resto 100.
+   `npm audit`: 0. En `calidad.md` → «Mediciones».
+4. **Versión 0.1.0** (PR #39, `3a3e0de`): `package.json` y el lock; `git-y-despliegue.md` (`v0.1.0` es F2).
+   Víctor etiquetó `v0.1.0` antes de decidir la auditoría (vivas #12); las correcciones van en `v0.1.1` (TAG-1-A).
+5. **AUD-F2-CIERRE** (Mesa; vivas #13–#16; PR #40, `50b6fb4`): 0 bloqueantes, corregidos 1-A, 2-A, 3, 4, 5-A, 6,
+   7-B y 8; P1-A y P2-A (el `about` y la habilidad Three.js se quedan). La nota de Cosmos ya no promete el README
+   (vuelve en F6); `recruiter.spec` mide el deslizamiento a 390 px, la ruta exacta y el `lang`; ayudas comunes de
+   los e2e en `tests/e2e/support/helpers.ts` (`collectErrors`, `projectBySlug`), sin las 4 copias.
 
 **Incidencias y lecciones:**
-- **Romper `aspect-ratio` no hace fallar el e2e de CLS, y está bien:** los `width`/`height` del `<img>` reservan
-  el hueco igual. Para ver que el test caza el salto hay que quitar las dos cosas (salta 162 px). Cada test nuevo
-  se probó contra su rotura: `sizes` de la miniatura y del visor, la home con `projects`, presets sin `sort` o con
-  la WebP menor de respaldo, `object-fit: cover` y un slug inventado en `WITH_COVER`.
-- **vite-imagetools no amplía** (sin `allowUpscale`, recorta `w` al ancho del PNG y quita repetidos) y nombra cada
-  variante en caché con el hash de su config + los bytes del PNG: por eso `restore-keys` es seguro. Visto en su
-  código, no supuesto.
-- Un `alt` mal escrito pasó Vitest, los e2e y la revisión del PR: solo lo vio la Mesa. La lista escrita a mano
-  de cada galería lo vigila ahora.
-- Método de siempre en el contenedor (Node 24.22.0 de `node-linux-x64`, enlaces `chromium*-1248 → -1243`, `.env`,
-  clon de GitHub y md5 de la carpeta antes de empezar). C1 se pasó solo; C2–C5 juntos tras su commit, porque no
-  compartían archivos con C1 salvo `ProjectPage.test.tsx` (cada uno con su `arbol-s16-cN.tar.gz` + `s16-cN.blobs`,
-  `cat > destino` y `git hash-object`; md5 de los 309 archivos igual). `HEAD^{tree}` de `main` tras el squash =
-  el del contenedor. El aviso de push del contenedor se ignora.
+- **El clic de Playwright desplaza solo hasta el elemento**, esté donde esté: un e2e que diga «a un toque» tiene
+  que comprobar `toBeInViewport()` antes del clic. A 390 px «View project» quedaba a y≈990 en una pantalla de 844 y
+  el spec lo daba por «a un toque»; lo vio la Mesa. Ahora: fuera al llegar, un deslizamiento (`mouse.wheel`), dentro.
+- **A 390 px las anclas caen en la escena** (`03-tortuga.md` → «Móvil»: escena primero): en F2 son ~700 px vacíos
+  sobre el título de Proyectos. En móvil, la métrica del brief (proyectos en ≤ 2 interacciones) la cumple la misión
+  rápida. Anotado en `navegacion.md` → «Raíl de capítulos».
+- **Lighthouse en local sobrestima la LCP** frente a producción (sin CDN): 2,6–2,7 s en local, 2,1–2,3 s en
+  Vercel. Las notas de A11y, BP y SEO coinciden.
+- **Producción no se alcanza desde el contenedor ni desde el shell del equipo** (proxy 403): las notas de
+  PageSpeed Insights se leyeron con el navegador de la app.
+- **Etiquetar antes de la auditoría** obliga a una versión de parche: la etiqueta va después de decidir la Mesa
+  (`git-y-despliegue.md`: sobre el commit de `main` que sube la versión; aquí, `v0.1.1`).
+- Método de siempre en el contenedor (Node 24.22.0 de `node-linux-x64` por npm —nodejs.org da 403—, enlaces
+  `chromium*-1248 → -1243`, `.env`, clon de GitHub y md5 de la carpeta antes de empezar). Paso a la carpeta con
+  `git diff` + `patch -p1` (o tar en base64) y md5 de todo el árbol ordenado igual al del contenedor. El aviso de
+  push del contenedor se ignora (se guarda el trabajo con `git stash`).
 
 **Deuda anotada:**
+- **F6 · Lighthouse:** aviso sin peso `label-content-name-mismatch` en EN / ES (se ve «EN», el nombre accesible
+  es «English», decidido en `componentes.md`): revisarlo con NVDA y control por voz. Hasta F6, Lighthouse se pasa
+  a mano al cerrar cada fase y se apunta en `calidad.md` → «Mediciones» (en local y, con PageSpeed Insights, en
+  producción).
+- **F3–F4 · móvil:** a 390 px el raíl (y cualquier ancla) cae en el capítulo con la escena primero
+  (`03-tortuga.md` → «Móvil»); en F2 son ~700 px vacíos. La escena los llena; `recruiter.spec.ts` fija que las filas
+  quedan a **un** deslizamiento y avisará si el hueco crece.
 - **Imágenes (F2.8):** Vercel no guarda la caché de `vite-imagetools`, así que cada despliegue genera las 128
-  variantes (~1 min más; ADR-023). La LCP de las fichas es la portada: medirla con Lighthouse al cerrar F2 y en F6.
+  variantes (~1 min más; ADR-023). La LCP de las fichas es la portada: medida al cerrar F2 (`calidad.md` →
+  «Mediciones»); en local pasa algo de 2,5 s y en producción no: vigilarla en F6.
   El `og:image` de las fichas mide ~1200×576 (proporción de la captura, no 1,91:1): ver cómo lo recortan las redes
   cuando se hagan las imágenes del sitio (F6). Las capturas traen de origen la barra de scroll del navegador a la
   derecha: recortarla en F6 si molesta. En el contenedor solo corre Chromium: Firefox y WebKit de
@@ -62,9 +69,6 @@ navegadores._
 - **F6:** mirar si al navegar dentro del sitio a una ficha se pide también la WebP de 1920 (`src`) además de la
   AVIF elegida (sin evidencia; la Mesa lo dejó como comprobación: `page.on('request')` yendo de `/` a «View
   project»).
-- **Antes de etiquetar `v0.1.0` o enseñar una preview (P5):** la ficha de Cosmos (`src/content/projects/cosmos.ts`)
-  lista funcionalidades y stack de F3–F5 (partículas, constelaciones, Three.js / R3F / GLSL): recortarlos a lo
-  hecho o esperar a tenerlos (`docs/01-contenido/proyectos/cosmos.md`: «no se publica nada que no esté hecho»).
 - **Windows/Edge:** comprobar a mano que abrir y cerrar «Quick mission» no hace saltar la página de lado
   (`scrollbar-gutter`), si no se hizo.
 - **F6 · iPhone real:** el aire de arriba de la ficha con la zona segura (headless no la tiene).
@@ -102,13 +106,12 @@ navegadores._
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
 
 **Siguiente paso (próxima sesión, conversación nueva):**
-1. Arrancar con `session-start` (y la skill `taller`).
-2. **Cierre de F2** (esquema → VB):
-   - Antes, recortar la ficha de Cosmos a lo hecho (deuda de arriba).
-   - Lighthouse Accessibility ≥ 95 y SEO ≥ 95 (y medir la LCP de las fichas), y recorridos e2e del recruiter
-     (`docs/06-roadmap/roadmap.md` → F2, «Hecho cuando»).
-   - Etiqueta `v0.1.0`.
-   - Auditoría de cierre de fase con la Mesa si Víctor la quiere.
+1. Arrancar con `session-start` (y la skill `taller`). Fijar en el tablero las **zonas calientes de F3**.
+2. **F3 · paso 1** (esquema → VB): `SceneMount` diferido, detección de WebGL2, niveles de rendimiento y
+   `ErrorBoundary` de escena; antes, sacar `three` y `@react-three/*` del grupo `framework` de `vite.config.ts`
+   (ADR-020, roadmap F3.1). Docs: `docs/04-escena/` (rendimiento) y `docs/05-tecnico/arquitectura.md`.
+3. Valorar con Víctor un estudio de la Mesa para F3 (reglas de la escena: rendimiento, determinismo, cero
+   asignaciones por frame).
 
 **Dudas abiertas:** D2 · dominio propio (F7) · D5 · analítica (F7). Tareas de Víctor: script de consola en el
 README de Chessmate (lo cita el «Try it»), CV en PDF EN/ES.
@@ -117,7 +120,9 @@ README de Chessmate (lo cita el «Try it»), CV en PDF EN/ES.
   docs/session-close-2026-10-23-5 fix/aud-f2-5 docs/session-close-2026-10-24 feat/quick-mission
   docs/session-close-2026-10-24-2 feat/project-page docs/session-close-2026-10-24-3 fix/aud-f2-6
   docs/session-close-2026-10-24-4 fix/aud-f2-7 docs/session-close-2026-10-25 feat/project-images
-  docs/session-close-2026-10-25-2 fix/aud-f2-8`, y `docs/session-close-2026-10-25-3` cuando se fusione.
+  docs/session-close-2026-10-25-2 fix/aud-f2-8 docs/session-close-2026-10-25-3 fix/cosmos-entry-f2
+  test/recruiter-journeys chore/release-0.1.0 fix/aud-f2-cierre`, y `docs/session-close-2026-10-26` cuando se
+  fusione.
 - En el buzón se pueden borrar `_claude/cadena/tmp/arbol*.tar.gz`, `_claude/cadena/tmp/*.blobs`,
   `_claude/cadena/tmp/s16-files.list`, `_claude/cadena/tmp/STATE-s16.md`, `_claude/cadena/tmp/cierre-s13.tar.gz` y
   `_claude/cadena/tmp/STATE-cierre-s12.md` y, dentro de `_claude/cadena/hecho/`, los `arbol.tar.gz` y

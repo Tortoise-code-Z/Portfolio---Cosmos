@@ -49,6 +49,8 @@ se abre. Etiqueta `v0.0.1`.
 
 **Hecho cuando:** el sitio completo se puede usar y desplegar sin escena; Lighthouse Accessibility ≥ 95 y SEO ≥ 95;
 recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar ya.)*
+*(Cerrada el 2026-10-26: Accessibility y SEO 100 en local y en producción, `docs/05-tecnico/calidad.md` →
+«Mediciones»; `recruiter.spec.ts` en verde; `v0.1.0` y `v0.1.1` con las correcciones de la auditoría de cierre.)*
 
 ## F3 · Motor de escena
 
