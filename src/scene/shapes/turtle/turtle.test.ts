@@ -43,6 +43,20 @@ describe('generateTurtle', () => {
         tally.set(key, (tally.get(key) ?? 0) + 1);
       }
       const share = (key: string): number => (tally.get(key) ?? 0) / count;
+      // `toBeCloseTo(x, 2)` admite ±0,005: para los ojos (0,4 %) eso dejaría pasar cero. Cada parte, al menos una.
+      const parts = [
+        'shell',
+        'flippers',
+        ...[
+          TURTLE_TAG.plastron,
+          TURTLE_TAG.forest,
+          TURTLE_TAG.head,
+          TURTLE_TAG.eyes,
+          TURTLE_TAG.tail,
+          TURTLE_TAG.wake,
+        ].map(String),
+      ];
+      for (const part of parts) expect(tally.get(part) ?? 0).toBeGreaterThan(0);
       expect(share('shell')).toBeCloseTo(TURTLE_PARTS.shell, 2);
       expect(share(String(TURTLE_TAG.plastron))).toBeCloseTo(
         TURTLE_PARTS.plastron - TURTLE_PARTS.shell,
@@ -81,6 +95,12 @@ describe('generateTurtle', () => {
         expect(y).toBeCloseTo(plastron.y, 5);
         expect(Math.hypot(x / SHELL.AX, z / SHELL.AZ)).toBeLessThanOrEqual(plastron.radius + EPS);
       } else if (tag === TURTLE_TAG.forest) {
+        // La base del árbol está en la franja media del caparazón (su anillo, como mucho √(1 − 0,3²)) y la hoja
+        // se separa de ella como mucho el radio del árbol.
+        const ring = Math.sqrt(1 - forest.minHeight ** 2);
+        const treeRadius = forest.treeRadiusMin + forest.treeRadiusRange;
+        expect(Math.abs(x)).toBeLessThanOrEqual(SHELL.AX * ring + treeRadius + EPS);
+        expect(Math.abs(z)).toBeLessThanOrEqual(SHELL.AZ * ring + treeRadius + EPS);
         expect(y).toBeGreaterThanOrEqual(
           SHELL.AY * forest.minHeight * (1 - TURTLE.shell.depth) - EPS,
         );
@@ -109,6 +129,13 @@ describe('generateTurtle', () => {
         expect(Math.sign(z)).toBe(index % 2 === 1 ? 1 : -1);
         expect(Math.abs(z)).toBeGreaterThanOrEqual(flipper.reachMin - EPS);
         expect(Math.abs(z)).toBeLessThanOrEqual(flipper.reachMin + 2 * flipper.reach + EPS);
+        // Lo que la aleta se aleja del cuerpo la barre hacia atrás (X) y la baja (Y): sin ese barrido, X queda
+        // a un ancho de su raíz e Y dentro de su grosor.
+        const reached = Math.abs(z) - flipper.reachMin;
+        expect(Math.abs(x + reached * flipper.sweepX - flipper.x)).toBeLessThanOrEqual(
+          flipper.width + EPS,
+        );
+        expect(Math.abs(y + reached * flipper.dropY)).toBeLessThanOrEqual(flippers.thickness + EPS);
       } else if (tag === TURTLE_TAG.tail) {
         expect(x).toBeLessThanOrEqual(tail.x + EPS);
         expect(x).toBeGreaterThanOrEqual(tail.x - tail.length - EPS);

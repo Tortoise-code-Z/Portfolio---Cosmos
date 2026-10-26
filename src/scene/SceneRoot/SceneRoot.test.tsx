@@ -52,6 +52,9 @@ afterEach(() => {
   vi.restoreAllMocks();
   renderer.debug.onShaderError = null;
   invalidate.mockReset();
+  // `restoreAllMocks` solo deshace los `spyOn`: lo que un test le haga devolver al simulacro de `vi.mock` se
+  // quedaría para los siguientes (vuelve a `() => null`).
+  vi.mocked(useSceneShapes).mockReset();
 });
 
 function renderScene(level: 'high' | 'medium' | 'low' = 'high'): {

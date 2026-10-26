@@ -36,7 +36,7 @@ describe('generateNebula', () => {
     expect(ball / protostarCount).toBeCloseTo(NEBULA.protostar.ballShare, 1);
   });
 
-  it('the cloud stays inside its ellipsoid (and so inside its box)', () => {
+  it('the cloud stays inside its ellipsoid and inside its box (which trims the ellipsoid in Y)', () => {
     const [bx, by, bz] = NEBULA.cloud.box;
     for (let i = protostarCount; i < count; i++) {
       const [x = 0, y = 0, z = 0] = out.subarray(i * 3, i * 3 + 3);

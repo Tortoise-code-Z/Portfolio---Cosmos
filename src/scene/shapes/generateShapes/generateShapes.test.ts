@@ -8,11 +8,17 @@ import {
   type ShapeRequest,
   type ShapeSet,
 } from '../shapeContract/shapeContract';
+import { TURTLE_TAG } from '../turtle/turtle';
 import { generateShapes } from './generateShapes';
 
 const ALL_PLATES = PLATE_SLOTS.map(({ label }) => label);
+/**
+ * 1.000 partículas: las partes de la tortuga van por índice y con menos no cae ninguna en los ojos (0,4 %) ni en
+ * la cola (1 %), así que la huella no las vería (formas.md → «Contrato y tests»).
+ */
+const FINGERPRINT_COUNT = 1000;
 const request = (overrides: Partial<ShapeRequest> = {}): ShapeRequest => ({
-  count: 30,
+  count: FINGERPRINT_COUNT,
   seed: SCENE_SEED,
   plates: [20, 21, 22],
   ...overrides,
@@ -70,12 +76,17 @@ describe('generateShapes', () => {
   });
 
   it('a fixed fingerprint per array: a change to the look has to be on purpose (ADR-011)', () => {
-    expect(fingerprints(generateShapes(request()))).toEqual({
-      nebula: '950dc785',
-      galaxy: '21c1cbe1',
-      turtle: '92a1d625',
-      earth: 'ce81cdb5',
-      rand: 'ae7052f1',
+    const shapes = generateShapes(request());
+    // Todas las partes de la tortuga entran en la huella, también las más pequeñas.
+    const turtleTags = new Set(component(shapes.rand, 1));
+    expect(turtleTags.has(TURTLE_TAG.eyes)).toBe(true);
+    expect(turtleTags.has(TURTLE_TAG.tail)).toBe(true);
+    expect(fingerprints(shapes)).toEqual({
+      nebula: '93a983a6',
+      galaxy: 'a187e024',
+      turtle: 'b964510a',
+      earth: 'afbcfb21',
+      rand: '0e05c4c9',
     });
   });
 

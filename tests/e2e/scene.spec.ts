@@ -13,6 +13,8 @@ import { collectErrors, SCENE_READY } from './support/helpers.ts';
 
 /** El worker de las formas (su propio archivo, que pide la escena al montar). */
 const SHAPES_WORKER = /\/assets\/shapes\.worker-[^/]+\.js$/;
+/** Los generadores, en su propio chunk: solo se descargan si el worker falla y hay que reintentar. */
+const GENERATOR_CHUNK = /\/assets\/generateShapes-[^/]+\.js$/;
 /** Los dos chunks de la escena: `SceneRoot-*` (el componente) y `scene-*` (Three.js, R3F…, vite.config.ts). */
 const SCENE_CHUNK = /\/assets\/(?:scene|SceneRoot)-[^/]+\.js$/;
 const NOTICE = "Your browser can't show the 3D universe, but everything else is here.";
@@ -26,6 +28,15 @@ function sceneRequests(page: Page): string[] {
   const urls: string[] = [];
   page.on('request', (request) => {
     if (SCENE_CHUNK.test(new URL(request.url()).pathname)) urls.push(request.url());
+  });
+  return urls;
+}
+
+/** Las peticiones del chunk de los generadores desde ahora. */
+function generatorRequests(page: Page): string[] {
+  const urls: string[] = [];
+  page.on('request', (request) => {
+    if (GENERATOR_CHUNK.test(new URL(request.url()).pathname)) urls.push(request.url());
   });
   return urls;
 }
@@ -131,12 +142,17 @@ test.describe('the scene with WebGL', () => {
     await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
   });
 
-  test('generates its shapes in the worker', async ({ page }) => {
+  test('generates its shapes in the worker, without downloading the generators', async ({
+    page,
+  }) => {
     const errors = collectErrors(page);
+    const generator = generatorRequests(page);
     await page.goto('/', { waitUntil: 'networkidle' });
     await expect(page.locator(SCENE_READY)).toHaveAttribute('data-shapes', 'worker', {
       timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
     });
+    // Los generadores van dentro del worker: su chunk del hilo principal es solo para el reintento.
+    expect(generator).toEqual([]);
     expect(errors).toEqual([]);
   });
 
@@ -148,11 +164,14 @@ test.describe('the scene with WebGL', () => {
     page.on('console', (message) => {
       if (message.type() === 'warning') warnings.push(message.text());
     });
+    const generator = generatorRequests(page);
     await page.route(SHAPES_WORKER, (route) => route.abort());
     await page.goto('/', { waitUntil: 'networkidle' });
     await expect(page.locator(SCENE_READY)).toHaveAttribute('data-shapes', 'main', {
       timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
     });
+    // El reintento sí lo descarga (y así se sabe que el patrón de arriba casa con su nombre).
+    expect(generator).toHaveLength(1);
     await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
     await expect(noGlNotice(page)).toHaveCount(0);
     expect(errors.filter((error) => !error.startsWith('Failed to load resource'))).toEqual([]);

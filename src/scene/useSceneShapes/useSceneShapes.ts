@@ -61,6 +61,8 @@ export async function obtainShapes(
     const shapes = generateShapes(requestFor(LEVEL_SETTINGS.low.particles));
     return { shapes, source: 'main' };
   } catch (error) {
+    // Desmontado mientras se descargaba el reintento: que su chunk falle ya no es un fallo de la escena.
+    if (signal.aborted) return 'aborted';
     console.error('[scene] The shapes could not be generated; continuing without WebGL', error);
     return 'failed';
   }
