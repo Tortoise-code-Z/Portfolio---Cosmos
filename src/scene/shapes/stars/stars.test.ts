@@ -43,5 +43,7 @@ describe('generateStars', () => {
     generateStars(count, mulberry32(7), again, againRand);
     expect(again).toEqual(positions);
     expect(againRand).toEqual(rand);
+    // Y el titileo es azar de verdad, no una constante.
+    expect(new Set(rand).size).toBeGreaterThan(count / 2);
   });
 });

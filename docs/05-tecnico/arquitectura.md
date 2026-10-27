@@ -43,7 +43,7 @@ cosmos-portfolio/
 │  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido: SceneRoot (el `<Canvas>`),
 │  │                              contextLoss (pérdida del contexto WebGL: un intento de restaurar),
 │  │                              useSceneShapes (pide las formas; reintento en el hilo principal),
-│  │                              Particles (useParticles) y BackgroundStars (montan los Points),
+│  │                              Particles (useParticles) y BackgroundStars (useBackgroundStars; montan los Points),
 │  │                              particleGeometry (atributos), sceneMaterials (uniforms, materiales y el
 │  │                              `SceneFrame`), frameLoop (el bucle de frames, ADR-027), sceneClock (el reloj de
 │  │                              animación), voidColour (el fondo del lienzo), CameraRig y pointer (la cámara
@@ -125,7 +125,7 @@ content  ◄── lib ◄── stores ◄── ui ◄── features ◄─�
 | `ui` | `lib` | `features`, `scene`, `content` (recibe datos por props) |
 | `features` | `ui`, `lib`, `stores`, `content` | `three`, `@react-three/*`, `scene` (salvo el punto de montaje diferido) |
 | `scene` | `lib`, `stores`, `content` (solo ids y orden) | `features`, `ui` |
-| `scene/{shapes,math,config,worker}` (código puro: va en el worker) | `lib`, `content/types` (los datos, por parámetro; sus tests sí usan el contenido real) | Three, React, Zustand, `stores`, `features`, `ui`, `routes`, los datos de `content` y cualquier `import()` |
+| `scene/{shapes,math,config,worker}` (código puro: va en el worker) | `lib`, `content/types` (los datos, por parámetro; sus tests sí usan el contenido real) y el tipo de `scene/pointer` (`math/camera`) | Three, React, Zustand, `stores`, `features`, `ui`, `routes`, los módulos de la escena con Three, React o un store (`IMPURE_SCENE_MODULES` de `eslint.config.js`), los datos de `content` y cualquier `import()` |
 | `routes` (y `root.tsx`) | todo lo anterior menos la escena | `scene`, `three`, `@react-three/*` (la escena solo llega por `SceneMount`) |
 
 Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import prohibido rompe el lint. Los
@@ -194,7 +194,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
 | `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, en F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); después, grupo de skills activo y proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
-| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028), y desde F3 carga, puntero, peso de capítulos, flags de pausa | el bucle de la escena (`scene/frameLoop`, que lo deja en el `SceneFrame` que leen los `useFrame`) y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
+| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028), y desde F4 carga y peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el bucle de la escena (`scene/frameLoop`, que lo deja en el `SceneFrame` que leen los `useFrame`) y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
 ningún store: se guarda en `localStorage` (`lib/storage`), la lee solo `LanguageNotice` y la escriben el aviso y
@@ -244,11 +244,13 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   `scene/pointer` y si es escritorio de `watchMediaQuery`. Al montar pide las formas al worker; si falla, las genera una vez en el hilo principal a nivel Bajo, y si
   eso también falla, Apagado (`docs/04-escena/rendimiento.md` → «Worker de las formas»).
 - `scene/{shapes,math,config,worker}` es código puro: lo que corre en el worker o se prueba sin WebGL. ESLint
-  le prohíbe Three, React, Zustand, `stores`, los módulos de la escena que los usan (por ruta relativa:
-  `SceneRoot`, `CameraRig`, `Particles`, `BackgroundStars`, `sceneMaterials`, `particleGeometry`,
-  `useSceneShapes`, `contextLoss`, `voidColour`, `pause`), los datos de `content` (solo sus tipos) y cualquier `import()`
+  le prohíbe Three, React, Zustand, `stores`, los módulos de la escena que usan Three, React o un store, más
+  `contextLoss`, que vive con el lienzo (por ruta relativa: `SceneRoot`, `CameraRig`, `Particles`,
+  `BackgroundStars`, `sceneMaterials`, `particleGeometry`, `useSceneShapes`, `contextLoss`, `voidColour`,
+  `pause`; `pointer` y `frameLoop` no, son DOM sin dependencias), los datos de `content` (solo sus tipos) y cualquier `import()`
   (un import así engordaría el worker sin avisar), y prohíbe `Math.random` en toda la escena, también escrito
-  `globalThis.Math.random` (ADR-011: el azar con semilla de `scene/shapes/prng`).
+  `globalThis.Math.random` (ADR-011: el azar con semilla de `scene/shapes/prng`). **Un módulo nuevo de `scene/`
+  con Three, React o un store se añade a `IMPURE_SCENE_MODULES`** (`eslint.config.js`): la lista es a mano.
 - Three.js, React Three Fiber y lo que arrastran van en el chunk `scene` (grupo de `vite.config.ts`), que
   ningún HTML pide (ADR-020). El grupo es el resto de dependencias diferidas: un `import()` nuevo de otra
   librería necesita su propio grupo (lo vigila `budgets.spec.ts`). Solo `SceneMount` importa la escena, y solo

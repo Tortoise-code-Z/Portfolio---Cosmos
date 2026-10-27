@@ -1,6 +1,7 @@
 # Partículas y shaders
 
-> Código: `src/scene/Particles/` (monta; `useParticles` se prueba sin WebGL) y `BackgroundStars.tsx`, `scene/particleGeometry` (atributos),
+> Código: `src/scene/Particles/` y `src/scene/BackgroundStars/` (montan; `useParticles` y `useBackgroundStars` se
+> prueban sin WebGL), `scene/particleGeometry` (atributos),
 > `scene/sceneMaterials` (uniforms y materiales), `scene/shaders/` (los `.glsl`, importados con `?raw`, que
 > llegan sin comentarios por el plugin `cosmos:glsl-without-comments` de `vite.config.ts`, y `glslHeader`). Los frames los pide `SceneRoot` con su propio bucle (`rendimiento.md` → «Robustez», ADR-027).
 
@@ -101,6 +102,11 @@ system. Variación por partícula con `aR.x` (brillo 0,7–1,3) y `aR.w` (tono y
 **Sin gestión de color ni mapeo de tonos** (ADR-027): el lienzo es opaco, se limpia con `--color-void` y va con
 `linear` y `flat`; los shaders no incluyen los trozos de Three que convierten el color. La luz se suma tal cual,
 como en el prototipo (de ahí los factores > 1 del núcleo y del destello).
+
+El fondo sale de `scene/voidColour` con los números del hex tal cual (`hexToRgb` + `Color.setRGB`), como la
+paleta. **No** `new Color(token)`: toma el hex como sRGB y lo linealiza, y con la salida lineal el espacio se
+pintaría casi negro. Al recuperar el contexto WebGL, Three rehace su fondo en negro y `SceneRoot` lo vuelve a
+poner (`rendimiento.md` → «Robustez»).
 
 ### Iluminación de la Tierra
 

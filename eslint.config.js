@@ -23,8 +23,11 @@ const REACT = [
 /** El código puro de la escena (arquitectura.md → «Capas»). */
 const PURE_SCENE = 'src/scene/{shapes,math,config,worker}/**';
 /**
- * Los módulos de la escena que no son puros (Three, React o el DOM): importarlos por ruta relativa desde el
- * código puro metería Three en el worker sin pasar por los nombres de `THREE`.
+ * Los módulos de la escena que el código puro no puede importar por ruta relativa (así se colarían Three, React o
+ * los stores en el worker sin pasar por los nombres de arriba): los que usan Three, React o un store, y
+ * `contextLoss` (vive con el lienzo). `pointer` y `frameLoop` no: son DOM sin dependencias (`math/camera` usa el
+ * tipo de `pointer`). **Un módulo nuevo de `scene/` con Three, React o un store se añade aquí** (arquitectura.md →
+ * «Capas»).
  */
 const IMPURE_SCENE_MODULES = [
   'SceneRoot',

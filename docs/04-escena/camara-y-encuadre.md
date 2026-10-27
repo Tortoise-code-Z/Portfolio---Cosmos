@@ -21,10 +21,12 @@
   a la derecha para dejar sitio a los paneles. Solo en escritorio: la misma media query que pone los paneles a un
   lado, `(width >= 900px)` (md; los breakpoints no son tokens: `tokens.css` los lista en su cabecera). Un test la
   compara con la de `ChapterPanel.module.css`.
-- Paralaje: posición `+ (puntero.x · 0,7, puntero.y · 0,45)`, con el puntero en NDC (−1 a 1), suavizado a ritmo
-  `min(1, dt · 2)` con el tiempo real del frame (`SceneFrame.delta`, que no se congela). Solo con ratón
-  (`pointerType === 'mouse'`, evento a evento: en táctil y con lápiz no hay paralaje, también en un portátil con
-  pantalla táctil). Si el ratón sale de la ventana, vuelve al centro al mismo ritmo. Con movimiento reducido, al
+- Paralaje: posición `+ (puntero.x · 0,7, puntero.y · 0,45)`, con el puntero en NDC (−1 a 1; el paralaje lo
+  acota ahí, porque arrastrando fuera de la ventana puede pasar de ±1), suavizado a ritmo `min(1, dt · 2)` con el
+  tiempo real del frame (`SceneFrame.delta`, que no se congela). Solo con ratón (`pointerType === 'mouse'`,
+  evento a evento: en táctil y con lápiz no hay paralaje, también en un portátil con pantalla táctil). Si el
+  ratón sale de la ventana (su `pointerout` sin destino; el de un dedo o un lápiz que se levanta no cuenta),
+  vuelve al centro al mismo ritmo. Con movimiento reducido, al
   centro de golpe (un corte, no un movimiento) y quieto.
 - Todas las cifras viven en `scene/config/sceneConfig.ts`; se ajustan con capturas reales en los tamaños de
   referencia (F3.6).

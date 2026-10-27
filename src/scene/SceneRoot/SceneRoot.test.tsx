@@ -46,7 +46,7 @@ vi.mock('../Particles/Particles', async () => {
     },
   };
 });
-vi.mock('../BackgroundStars', () => ({
+vi.mock('../BackgroundStars/BackgroundStars', () => ({
   BackgroundStars: function FakeStars({ count }: { readonly count: number }) {
     seen.stars.push(count);
     return null;

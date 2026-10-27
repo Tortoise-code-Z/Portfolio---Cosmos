@@ -58,7 +58,8 @@
 - Detalle: `docs/04-escena/particulas-y-shaders.md`, `docs/04-escena/formas.md`.
 
 ## ADR-004 · Zustand para el estado de UI y un store mutable para la escena
-- Estado: Aceptada
+- Estado: Aceptada · quién lee qué lo matizan ADR-027 y ADR-028: el ratón no va en `sceneStore` (lo escribe
+  `scene/pointer` en el `SceneFrame`) y `useFrame` no lee el store (lo lee el bucle de la escena)
 - Fecha: 2026-10-22
 - Contexto: hay estado de interfaz (React) y estado que cambia en cada frame (`m`, puntero, carga).
 - Decisión: `uiStore` (Zustand con selectores finos) y `sceneStore` (Zustand *vanilla*, mutable) que `useFrame` y

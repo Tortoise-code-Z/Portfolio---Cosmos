@@ -14,17 +14,29 @@ import { describe, expect, it } from 'vitest';
  */
 
 const REPO_DIR = fileURLToPath(new URL('..', import.meta.url));
-const CODE_DIRS = ['src', 'tests', '.husky', '.github'] as const;
+const CODE_DIRS = ['src', 'tests', '.husky', '.github', 'public'] as const;
 const THIS_FILE = 'src/code-references.test.ts';
-const CONFIG_FILE = /\.(?:ts|js)$/;
+const CONFIG_FILE = /\.(?:ts|js|json)$/;
 /** Imágenes y fuentes: binarios, sin texto que leer (y con bytes que casarían por azar). */
 const BINARY_FILE = /\.(?:png|jpe?g|webp|avif|gif|ico|woff2?|ttf|otf)$/i;
 /**
- * Vivas («viva S5 #1», «viva #9»), encargos («AUD-F2-3-1»), claves de pregunta («F25-1-A», y sin opción,
- * «F33-6») y opciones sueltas («la opción A»), y el buzón.
+ * Vivas («viva S5 #1», «Viva-S5», «viva #9», «S22 #20»), encargos («AUD-F2-3-1»), claves de pregunta («F25-1-A»,
+ * sin opción «F33-6», y de letras «CAM-1-B», «FIX-1»; no «ADR-027» ni «UTF-8»), opciones sueltas («la opción A»,
+ * también en mayúscula) y el buzón (`_claude/`, el archivo de las vivas).
  */
-const OFF_REPO_REFERENCE =
-  /\bvivas? S\d|\bvivas? #\d|\b(?:EST|AUD)-F\d|\b[A-Z]+\d+-\d+-[A-Z]\b|\b[A-Z]+\d{2,}-\d+\b|\bla opción [A-C]\b|_claude\//;
+const OFF_REPO_REFERENCE = new RegExp(
+  [
+    String.raw`\b[Vv]ivas?[ -]S\d`,
+    String.raw`\b[Vv]ivas? #\d`,
+    String.raw`\bS\d{1,3} #\d`,
+    String.raw`\b(?:EST|AUD)-F\d`,
+    String.raw`\b[A-Z]+\d+-\d+-[A-Z]\b`,
+    String.raw`\b[A-Z]+\d{2,}-\d+\b`,
+    String.raw`\b(?!ADR-|UTF-)[A-Z]{3,}-\d+(?:-[A-Z])?\b`,
+    String.raw`\b[Ll]a opción [A-C]\b`,
+    String.raw`_claude\/|decisiones-vivas`,
+  ].join('|'),
+);
 
 function listFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -53,16 +65,23 @@ describe('el código no cita notas de fuera del repo', () => {
       { path: 'd.ts', text: '// F25-1-A\n// como dice la opción B' },
       {
         path: 'e.ts',
-        text: '// Tamaños: H1-2 · UTF-8 · ES-419 · F2.5-1 · ADR-027 · WCAG 2.1 · F3.3',
+        text: '// Tamaños: H1-2 · UTF-8 · ES-419 · F2.5-1 · ADR-027 · WCAG 2.1 · F3.3 · S22 · #20 · AB-1',
       },
       { path: 'f.ts', text: '// F33-6 (sin opción)\n// lo decidió la viva #9' },
+      {
+        path: 'g.ts',
+        text: '// CAM-1-B\n// FIX-1\n// Viva S5 #1\n// La opción A\n// (S22 #20)\n// decisiones-vivas-S22.md',
+      },
     ]);
-    expect(found).toHaveLength(9);
+    expect(found).toHaveLength(15);
     expect(found.some((line) => line.startsWith('c.ts') || line.startsWith('e.ts'))).toBe(false);
   });
 
-  it('src/, tests/, los hooks, el CI y las configs de la raíz no las tienen', () => {
-    const rootConfigs = readdirSync(REPO_DIR).filter((name) => CONFIG_FILE.test(name));
+  it('src/, tests/, public/, los hooks, el CI y las configs y JSON de la raíz no las tienen', () => {
+    // `package-lock.json` lo genera npm (licencias como «BSD-2-Clause» casarían): no lo escribe nadie.
+    const rootConfigs = readdirSync(REPO_DIR).filter(
+      (name) => CONFIG_FILE.test(name) && name !== 'package-lock.json',
+    );
     const paths = [
       ...CODE_DIRS.flatMap((dir) => listFiles(join(REPO_DIR, dir))).filter(
         (path) => !BINARY_FILE.test(path),

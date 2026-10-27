@@ -256,9 +256,12 @@ test.describe('build budgets', () => {
       // El código del shader sí llega (si no, el test buscaría en el sitio equivocado)…
       const firstCodeLine = source.split('\n').find((line) => /^\w/.test(line)) ?? '';
       expect(code, shader).toContain(firstCodeLine.trim());
-      // …y ningún trozo de texto de sus comentarios (el plugin `cosmos:glsl-without-comments`).
-      const prose = Array.from(source.matchAll(/\/\/(.*)$/gm), ([, text]) =>
-        /[\p{L} ]{12,}/u.exec(text ?? '')?.[0].trim(),
+      // …y ningún trozo de texto de sus comentarios, de línea o de bloque (el plugin
+      // `cosmos:glsl-without-comments`). Solo letras ASCII: si el minificador escapara las tildes, un trozo con
+      // «í» no casaría nunca y el test no vigilaría nada.
+      const prose = Array.from(
+        source.matchAll(/\/\/(.*)$|\/\*([\s\S]*?)\*\//gm),
+        ([, line, block]) => /[A-Za-z ]{12,}/.exec(line ?? block ?? '')?.[0].trim(),
       ).filter((text): text is string => text !== undefined && text.length >= 12);
       expect(prose.length, shader).toBeGreaterThan(0);
       expect(

@@ -44,13 +44,18 @@ describe('useParticles', () => {
     expect(onFirstFrame).toHaveBeenCalledTimes(1);
   });
 
-  it('fills the uniforms from the shared frame in each frame', () => {
+  it('fills the uniforms from the shared frame in every frame, not only the first', () => {
     const { result, frame } = renderParticles();
     frame.m = 2.5;
     frame.time = 1.25;
     paintFrame();
     expect(result.current.material.uniforms.uM?.value).toBe(2.5);
     expect(result.current.material.uniforms.uTime?.value).toBe(1.25);
+    frame.m = 3.5;
+    frame.time = 2;
+    paintFrame();
+    expect(result.current.material.uniforms.uM?.value).toBe(3.5);
+    expect(result.current.material.uniforms.uTime?.value).toBe(2);
   });
 
   it('new shapes: a new geometry and the old one freed; the material stays', () => {

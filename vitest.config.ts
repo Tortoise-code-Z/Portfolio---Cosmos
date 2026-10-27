@@ -85,8 +85,9 @@ export default defineConfig({
         'src/content/**': STRICT,
         'src/scene/{shapes,math,config,worker}/**': STRICT,
         // Lógica de la escena que se prueba sin WebGL (el bucle, el reloj, uniforms y materiales, la geometría,
-        // la cabecera y la limpieza del GLSL, el color de fondo, la pausa): también al 90 %.
-        'src/scene/{frameLoop,sceneClock,sceneMaterials,particleGeometry,voidColour,pause}/**':
+        // la cabecera y la limpieza del GLSL, el color de fondo, la pausa, el ratón y la pérdida del contexto):
+        // también al 90 %.
+        'src/scene/{frameLoop,sceneClock,sceneMaterials,particleGeometry,voidColour,pause,pointer,contextLoss}/**':
           STRICT,
         'src/scene/shaders/**': STRICT,
       },

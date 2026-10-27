@@ -55,7 +55,7 @@ Víctor decide el Visto Bueno entendiendo el paso, no solo leyéndolo.
   `stores`, `ui`, `features`, `scene` y `routes` de `docs/05-tecnico/arquitectura.md`; `no-restricted-imports`
   las hace cumplir.
 - **Simple y explícito** sobre ingenioso. Sin duplicación, sin números mágicos (constantes con nombre en
-  `config/constants.ts` y tokens), sin configuración hardcodeada.
+  `scene/config/` en la escena y tokens en la interfaz), sin configuración hardcodeada.
 
 ### Reglas propias de este proyecto
 

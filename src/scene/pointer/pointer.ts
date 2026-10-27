@@ -1,5 +1,6 @@
 /**
- * El ratón sobre la escena, en coordenadas normalizadas (NDC: de −1 a 1, `y` hacia arriba). Lo usa el paralaje
+ * El ratón sobre la escena, en coordenadas normalizadas (NDC: de −1 a 1 dentro de la ventana, `y` hacia arriba;
+ * al arrastrar fuera de ella con el botón pulsado puede salirse de ±1: quien lo use pone su tope). Lo usa el paralaje
  * de la cámara (F3.4) y lo usará la gravedad del cursor (F4, `uMouse`). Un solo objeto para toda la visita: los
  * eventos lo escriben y la escena lo lee en cada frame (cero objetos nuevos por frame, ADR-004).
  */
@@ -17,8 +18,9 @@ export function createScenePointer(): ScenePointer {
 /**
  * Escucha el ratón en la ventana y lo escribe en `pointer`; devuelve cómo dejar de escuchar. Solo el ratón
  * (`pointerType === 'mouse'`): en táctil y con lápiz no hay paralaje ni gravedad
- * (docs/04-escena/camara-y-encuadre.md), también en un portátil con pantalla táctil, evento a evento. Salir de
- * la ventana (`pointerout` sin destino) lo da por fuera.
+ * (docs/04-escena/camara-y-encuadre.md), también en un portátil con pantalla táctil, evento a evento. Que el
+ * ratón salga de la ventana (`pointerout` de ratón sin destino) lo da por fuera; el `pointerout` de un dedo o un
+ * lápiz que se levanta no.
  */
 export function watchPointer(pointer: ScenePointer, target: Window = window): () => void {
   const onMove = (event: PointerEvent): void => {
@@ -28,7 +30,7 @@ export function watchPointer(pointer: ScenePointer, target: Window = window): ()
     pointer.inside = true;
   };
   const onOut = (event: PointerEvent): void => {
-    if (event.relatedTarget === null) pointer.inside = false;
+    if (event.pointerType === 'mouse' && event.relatedTarget === null) pointer.inside = false;
   };
   target.addEventListener('pointermove', onMove, { passive: true });
   target.addEventListener('pointerout', onOut, { passive: true });

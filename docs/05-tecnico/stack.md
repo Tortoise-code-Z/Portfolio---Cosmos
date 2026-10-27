@@ -32,7 +32,7 @@ e iOS). Lo que entienden esas versiones se usa sin alternativa; lo demás, solo 
 | `isbot` | 5.2.2 | Dependencia del entry de servidor que genera el framework |
 | `three` | 0.186.1 | Motor WebGL |
 | `@react-three/fiber` | 9.8.1 | Three.js declarativo en React (requiere React < 19.4) |
-| `zustand` | 5.0.15 | Store de interfaz y store mutable de la escena (lectura sin re-render en `useFrame`) |
+| `zustand` | 5.0.15 | Store de interfaz y store mutable de la escena (lo lee sin re-render el bucle de la escena, ADR-027) |
 | `@fontsource-variable/anybody` | 5.3.0 | Fuente display autoalojada: archivo `standard` (ejes `wdth` 50–150 y `wght` 100–900, verificado por el e2e de fuentes, que mide el ancho pintado), 56,9 KB |
 | `@fontsource-variable/geologica` | 5.3.0 | Fuente de texto autoalojada: archivo `wght` (solo eje de grosor; el `standard` añade ejes que no usamos), 24,9 KB |
 | `@fontsource/ibm-plex-mono` | 5.3.0 | Fuente monoespaciada (solo 400 y 500), 14,7 + 14,9 KB |
