@@ -60,7 +60,8 @@ src/scene/
   frameLoop/ · sceneClock/ ← bucle de frames propio y reloj de animación (F3.3, ADR-027)
   Constellations.tsx
   Sun.tsx
-  CameraRig.tsx
+  CameraRig/               ← aplica la pose de math/camera a la cámara del <Canvas> en cada frame (F3.4)
+  pointer/                 ← el ratón en NDC, solo `pointerType: mouse` (paralaje en F3.4; gravedad en F4)
   overlay/ProjectedLabels.tsx   ← etiquetas y pins DOM actualizados por refs
   shaders/ particles/ · stars/ (los .glsl) · glslHeader/ (etiquetas y colores desde TS)   (F3.3)
            stripGlslComments/ (los .glsl sin comentarios al compilar: plugin de vite.config.ts, F33-6)
@@ -69,7 +70,7 @@ src/scene/
   shapes/  prng/ · noise/ · sampling/ · hexGrid/ · nebula/ · galaxy/ · turtle/ · earth/ ·
            shapeContract/ · generateShapes/   (F3.2; la singularidad no se genera: formas.md)
            stars/   (F3.3: las estrellas de fondo, en el hilo principal)
-  math/    camera.ts · projection.ts · easing.ts
+  math/    camera/ (pose por m, FOV de móvil, paralaje; F3.4) · projection.ts · easing.ts
   config/  sceneConfig.ts · plateSlots/ (F3.2) · scenePalette/ (F3.3) · constellationLayout.ts
                              (niveles: lib/device/sceneLevel)
                              (cada archivo con test, en su carpeta: ADR-018)

@@ -37,15 +37,15 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 | Se mantiene | Se quita |
 |---|---|
 | Interfaz: fundidos de opacidad, en 150 ms (`--dur-fade-*`) | Interfaz: el resto de transiciones (color, desplazamiento) pasa a 0 ms (`--dur-fast/base/slow/flight`) |
-| Morph de formas ligado al scroll (lo controla el usuario) | Temblor, destello y vibración del hero |
+| Morph de formas y cámara ligados al scroll (lo controla el usuario) | Temblor, destello y vibración del hero |
 | Iluminación de constelaciones y placas | Giro autónomo de nebulosa, galaxia y Tierra; nado de la tortuga |
-| Detonación (sin efectos) | Gravedad del cursor; ciclo automático de placas |
+| Detonación (sin efectos) | Gravedad del cursor y paralaje de la cámara; ciclo automático de placas |
 | | Scroll suave en saltos (pasa a instantáneo) y vuelo de cámara a proyectos |
 
 ## Táctil y móvil
 
 - Sin hover: los encendidos se activan con un toque y se apagan tocando fuera.
-- Sin gravedad de cursor (no hay puntero fino).
+- Sin gravedad de cursor ni paralaje de la cámara (no hay puntero fino; solo cuenta el ratón).
 - Paneles no *sticky*; primero se ve la escena y luego sube el texto.
 - La detonación funciona manteniendo el dedo; se evita el menú contextual y la selección de texto en el botón.
 

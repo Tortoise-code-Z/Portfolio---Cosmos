@@ -67,6 +67,9 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
    *(Hecho en F3.3: `main` por encima del lienzo y fondo estático sin WebGL; partículas con el morph entre las 5
    formas, estrellas de fondo y un bucle de frames propio (ADR-027); cámara fija provisional hasta el paso 4.)*
 4. `CameraRig` con keyframes, encuadre por capítulo, FOV para móvil y paralaje.
+   *(Hecho en F3.4: la cámara sigue a `m` por los 5 keyframes, se aparta a un lado en escritorio con la misma
+   media query que los paneles, abre el campo de visión en pantallas estrechas y se mueve un poco con el ratón;
+   las cifras del prototipo, a ajustar con capturas en F3.6.)*
 5. Puente `sceneStore` ↔ scroll (el scroll ya escribe `mTarget` desde F2.5, ADR-021: la escena pasa a suavizar `m`);
    pausa con pestaña oculta y en misión rápida (`quickMissionOpen` de `uiStore`, desde F2.6).
 6. Primeras capturas de regresión visual (Docker) y medición de fps; degradación en caliente de nivel (media de

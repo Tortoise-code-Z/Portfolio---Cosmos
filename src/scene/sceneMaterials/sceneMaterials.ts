@@ -2,6 +2,7 @@ import { AdditiveBlending, ShaderMaterial, Vector2, type IUniform } from 'three'
 
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
 
+import { createScenePointer, type ScenePointer } from '../pointer/pointer';
 import { glslHeader } from '../shaders/glslHeader/glslHeader';
 import particlesFragment from '../shaders/particles/particles.frag.glsl?raw';
 import particlesVertex from '../shaders/particles/particles.vert.glsl?raw';
@@ -76,15 +77,31 @@ export function createStarUniforms(): StarUniforms {
 export interface SceneFrame {
   m: number;
   time: number;
+  /** Segundos reales desde el frame anterior (`sceneClock.delta`): para suavizar, no para animar. */
+  delta: number;
   reducedMotion: boolean;
   pixelRatio: number;
   aspect: number;
   /** Extras del nivel (estela y luces de ciudad; no en Bajo). */
   extras: boolean;
+  /** Escritorio (`WIDE_LAYOUT_QUERY`, la media query de los paneles): el encuadre se aparta a un lado. */
+  wide: boolean;
+  /** El ratón (lo escribe `watchPointer`; es el mismo objeto toda la visita). */
+  readonly pointer: ScenePointer;
 }
 
 export function createSceneFrame(): SceneFrame {
-  return { m: 0, time: 0, reducedMotion: false, pixelRatio: 1, aspect: 1, extras: true };
+  return {
+    m: 0,
+    time: 0,
+    delta: 0,
+    reducedMotion: false,
+    pixelRatio: 1,
+    aspect: 1,
+    extras: true,
+    wide: false,
+    pointer: createScenePointer(),
+  };
 }
 
 export function updateParticleUniforms(

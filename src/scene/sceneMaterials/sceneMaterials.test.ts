@@ -17,10 +17,13 @@ import {
 const frame: Readonly<SceneFrame> = {
   m: 2.5,
   time: 12,
+  delta: 0.016,
   reducedMotion: false,
   pixelRatio: 2,
   aspect: 1.6,
   extras: true,
+  wide: true,
+  pointer: { x: 0.2, y: -0.4, inside: true },
 };
 
 describe('particle uniforms', () => {
@@ -57,14 +60,17 @@ describe('particle uniforms', () => {
 });
 
 describe('createSceneFrame', () => {
-  it('starts at the singularity, with motion and extras', () => {
+  it('starts at the singularity, with motion and extras, narrow and with no mouse', () => {
     expect(createSceneFrame()).toEqual({
       m: 0,
       time: 0,
+      delta: 0,
       reducedMotion: false,
       pixelRatio: 1,
       aspect: 1,
       extras: true,
+      wide: false,
+      pointer: { x: 0, y: 0, inside: false },
     });
   });
 });
