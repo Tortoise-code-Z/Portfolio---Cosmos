@@ -3,68 +3,74 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F3 · paso 5 hecho** (`main` en `e6dfbf5`: AUD-F3-3 corregida en PR #58, F3.5 en PR #59,
-AUD-F3-4 corregida en PR #60) · siguiente: ofrecer la Mesa para F3.5 + la corrección de AUD-F3-4 y **F3 · paso 6**
-(capturas de regresión visual, fps y degradación en caliente).
+**Dónde estamos:** **F3 · paso 6 a medias** (`main` en `3e6ac0a`: F3.6a degradación en caliente en PR #62, F3.6b
+capturas de regresión visual en PR #63) · siguiente: decidir **AUD-F3-5** (ya entregada) y **F3.6c** (encuadre,
+fps medidos y shader).
 
-_Última actualización: 2026-10-27 (**CIERRE DE SESIÓN · 23**) · el fondo del espacio ya es `--color-void` (no
-negro), la escena suaviza su propia `m` y se pausa cuando no se ve, y dos auditorías corregidas. 1111 unitarios y
-196 e2e en Chromium; los tres PR fusionados con el check obligatorio del CI._
+_Última actualización: 2026-10-27 (**CIERRE DE SESIÓN · 24**) · la escena baja un nivel sola si va lenta, hay 10
+capturas de referencia comparadas en Docker y en el CI, y `main` por fin exige los cuatro checks. 1133 unitarios y
+198 e2e en Chromium; las capturas, 10/10 dos veces en Docker._
 
-**Hecho esta sesión** (vivas S23 en `_claude/cadena/hecho/2026-10-27/decisiones-vivas-S23.md`):
-1. **AUD-F3-3 corregida** (PR #58, `2c248aa`; vivas #1–#9): el lienzo se limpia con los números del hex tal cual
-   (`scene/voidColour`: `hexToRgb` + `Color.setRGB`; `new Color('#…')` lo dejaba casi negro) y lo repone al
-   recuperar el contexto, escuchando después de Three; potencias del GLSL sin base negativa; ojos con
-   `COLOR_TURTLE_EYES`; `Particles/` con `useParticles`; `SceneMount` quita sus clases al desmontarse; 90 % para
-   la lógica de la escena y guarda de ESLint de la capa pura (`IMPURE_SCENE_MODULES`); guardián de citas más
-   amplio (quitó «F33-6» de 7 sitios); e2e de píxeles, movimiento reducido y avisos de WebGL; docs y ADR-027.
-2. **F3.5 · suavizado y pausa** (PR #59, `ce325b6`; vivas #12–#14; F35-1-A): **ADR-028**: la escena suaviza su
-   propia `m` (`SceneFrame.m`, `lib/math/damp`, `M_SMOOTHING` 3,4 / 12 con movimiento reducido, umbral 1e-4) y
-   arranca en `mTarget`; `sceneStore.m` sigue siendo `mTarget` (raíl, HUD e idioma a saltos). La pausa:
-   `FrameLoop.setPaused` y `scene/pause` (`watchScenePause`: pestaña oculta o misión rápida), `data-paused`.
-3. **AUD-F3-4** (F33-6 + F3.4 + la corrección de AUD-F3-3; 0 · 1 recomendado · 15 menores) decidida (todo, con lo
-   recomendado) y **corregida** (PR #60, `e6dfbf5`; vivas #15–#20): `pointerout` solo de ratón, paralaje acotado
-   a ±1, `stripGlslComments` no pega palabras, `BackgroundStars/` con `useBackgroundStars`, `pointer` y
-   `contextLoss` al 90 %, criterio escrito de la guarda, e2e de píxeles por `/#about` con `expect.poll` (F35-2-A)
-   y del color del fondo (al cargar y tras recuperar el contexto; comprobado quitando el oyente), guardián de
-   citas con más formatos (lee JSON y `public/`), docs del puntero en `SceneFrame` (ADR-004 matizado en su estado).
+**Hecho esta sesión** (vivas S24 en `_claude/cadena/hecho/2026-10-27/decisiones-vivas-S24.md`):
+1. **F3.6a · degradación en caliente** (PR #62, `65683de`; vivas #1–#9, F36-1/2/3-A): `scene/fpsMeter` (puro: ventanas
+   de 2 s, 3 lentas seguidas, sin los 2 s de calentamiento ni la ventana de una pausa), `useHotDegradation` (solo con
+   partículas y un nivel por debajo; deja de medir si una bajada falla), `useSceneShapes` → `lowerTo` (primero las
+   formas del worker, sin reintento, y después el nivel, a la vez; si no llegan, todo sigue igual: cierra
+   AUD-F3-2-3-B), `nextLowerLevel` e `isHandheld` en `lib/device/sceneLevel`, `HOT_DEGRADATION` en `sceneConfig`,
+   `data-level` en `SceneRoot`. Dos e2e: Alto → Medio → Bajo con SwiftShader y «las formas no llegan».
+2. **F3.6b · regresión visual** (PR #63, `3e6ac0a`; vivas #10–#19, F36-4/5/6/7-A): `playwright.visual.config.ts`,
+   `tests/visual/chapters.spec.ts` (5 capítulos × 1440×900 y 390×844 táctil, movimiento reducido, siempre en Bajo),
+   `scripts/visual.ts` + `scripts/visual-in-docker.sh` (`npm run visual` / `visual:update` en la imagen de la versión de
+   `@playwright/test`, volumen propio para `node_modules`; `visual:run` sin Docker), job `Visual regression` del CI,
+   10 referencias (2,5 MB) generadas por Víctor con Docker Desktop. `calidad.md` → «Regresión visual»; ADR-010 matizado.
+   `fpsMeter` y `useHotDegradation` entran en el 90 % de la lógica de la escena.
+3. **Protección de `main`:** ningún check estaba marcado como obligatorio (la doc decía lo contrario). Víctor marca
+   los cuatro: `Typecheck · lint · format · tests`, `Build`, `E2E (Chromium · Firefox · WebKit)`, `Visual regression`.
+4. **AUD-F3-5 entregada** por la Mesa (F3.5 + corrección de AUD-F3-4): 0 · 2 recomendados · 15 menores · 1 pregunta.
+   Sin decidir.
+5. Dudas de Víctor guardadas en `_claude/dudas/` (por qué Docker, check obligatorio, paso a paso en Docker, por qué
+   fallaban las capturas, checks obligatorios de `main`).
 
 **Incidencias y lecciones:**
-- **El orden de los oyentes de `webglcontextrestored` importa:** Three rehace su fondo en negro en el suyo, que se
-  registra al crear el renderer (R3F lo crea tras medir el lienzo, después de los efectos de `SceneRoot`). Lo que
-  deba ir detrás de Three se escucha desde `onCreated`.
-- **Un test que lee «todos los archivos» lee también binarios:** `code-references` leía las PNG (un byte casó por
-  azar) y, al añadir JSON, `package-lock.json` (licencias SPDX como «BSD-2-Clause»). Filtrar por tipo.
-- **Un JSDoc no puede contener `*/`** (ni dentro de un ejemplo de código): cierra el comentario.
-- **No dar los comandos de commit con una pregunta abierta que pueda tocar los archivos:** F3.5 se commiteó antes
-  de decidir F35-2 y su arreglo pasó al PR siguiente.
-- **La sesión se reinició a mitad de un turno** y la #9 de las vivas quedó repetida (aclarado en la #10): tras un
-  reinicio, releer el final de las vivas y el tablero antes de escribir.
-- **Medir píxeles de la escena:** entrar por el ancla del capítulo (la escena arranca en su `m` exacto) y medir
-  con `expect.poll`; el fondo, por el color dominante de una zona vacía contra el token leído en la página.
-- **Método del contenedor:** Node 24 con `npm pack node-linux-x64@24.22.0`, `PLAYWRIGHT_BROWSERS_PATH` propio con
-  enlaces `chromium*-1248 → -1243`, árbol por `tar` desde `_claude/cadena/tmp/` (con `.git`; sin `node_modules`,
-  `build`, `_claude` ni `.env`, que se copia de `.env.example`) y vuelta con `tar --overwrite` tras comprobar el
-  md5 de la base y después el de cada archivo. Un commit auxiliar en el contenedor hace saltar el aviso de push:
-  dejar la copia en `main` y borrar la rama auxiliar (nunca push). Un archivo movido (`Particles.tsx`,
-  `BackgroundStars.tsx`) se quita en el equipo con `git rm`, en los comandos del commit.
+- **En un e2e, ir de `/` a `/#about` solo cambia el ancla:** no recarga, así que un `addInitScript` añadido después no
+  corre. Pasar antes por `about:blank` (F3.6a). La Mesa encontró lo mismo en un e2e de F3.4 (AUD-F3-5-1).
+- **Docker Desktop no es el contenedor de Claude:** dentro, `localhost` llevaba a `::1` al escuchar y a `127.0.0.1` al
+  conectar, y el pre-renderizado del build fallaba (`ECONNREFUSED`): `--dns-result-order=ipv4first` en
+  `visual-in-docker.sh`. Y el Chromium de la imagen dice tener GPU: la escena arrancaba en Alto y la degradación la
+  bajaba a mitad de la foto. Las referencias se generan siempre en Docker; Claude solo prueba la lógica.
+- **La doc decía que `main` tenía checks obligatorios y no los tenía:** comprobar en GitHub lo que la doc da por hecho
+  cuando se pueda (se descubrió al marcar el nuevo).
+- **Un módulo nuevo de lógica de la escena va también al 90 % de `vitest.config.ts`** (F3.6a lo olvidó; entró en F3.6b).
+- **El aviso de «cambios sin commit» del entorno de Claude** se refiere a su copia del repo: se deja limpia con
+  `git stash`; nunca commit ni push desde ahí.
+- **Método del contenedor:** el de la sesión 23 (Node 24 con `npm pack`, navegadores enlazados, árbol por `tar`, md5
+  de la base y de cada archivo). Para un archivo suelto que cambia después, `device_commit_files` y comprobar su md5.
 
 **Deuda anotada:**
-- **Peso de la escena:** 248,4 KB de 250 (F3.4 248,0; corrección de AUD-F3-3 +155 B; F3.5 +290 B; AUD-F3-4
-  +22 B). R3F importa Three.js entero: las constelaciones y el Sol de F4 apenas caben. Subir el límite, solo con
+- **Peso de la escena:** 249,0 KB de 250 (F3.5 248,4; AUD-F3-4 +22 B; F3.6a, la degradación en caliente, +590 B).
+  R3F importa Three.js entero: las constelaciones y el Sol de F4 no caben en ~1 KB. Subir el límite, solo con
   ADR; antes, mirar qué más se puede ahorrar (sangría y líneas vacías del GLSL solo darían ~77 B y romperían las
   líneas de los errores).
-- **e2e de Chromium:** ~6–7,5 min en el contenedor. SwiftShader pinta sin parar mientras la página está a la vista
+- **CI · nivel de la escena en los e2e de Chromium:** en la imagen de Playwright, Chromium da contexto WebGL con
+  `failIfMajorPerformanceCaveat` (la detección dice «hardware»): en escritorio los e2e arrancan casi seguro en Alto y
+  la degradación en caliente puede cambiar el nivel a mitad de un e2e (las capturas ya fuerzan «software»). Nada
+  falla hoy; decidir en F3.6c si los e2e fuerzan también Bajo o se deja (sin comprobar en el log del CI).
+- **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
+- **Degradación en caliente:** un navegador que limita los frames a 30 (ahorro de batería) baja a Bajo en
+  escritorio: aceptado y escrito en `rendimiento.md`. Medirla en un equipo real en F3.6c.
+- **e2e de Chromium:** ~7,1 min en el contenedor (F3.6a añadió ~45 s: los dos e2e de la degradación). SwiftShader pinta sin parar mientras la página está a la vista
   (la pausa de F3.5 solo actúa con la pestaña oculta o la misión rápida): mirar los tiempos del CI.
 - **F4 · escena:** todo lo nuevo lee `SceneFrame.m` (la `m` suavizada de la escena), nunca `sceneStore.m`
   (ADR-028). Un módulo nuevo de `scene/` con Three, React o un store se añade a `IMPURE_SCENE_MODULES` de
-  `eslint.config.js` (la lista es a mano).
+  `eslint.config.js` (la lista es a mano), y uno de lógica que se prueba sin WebGL, al 90 % de `vitest.config.ts`
+  (F3.6a lo olvidó con `fpsMeter` y `useHotDegradation`; `useSceneShapes` sigue fuera de esa lista).
 - **F4 · gravedad:** las coordenadas del puntero son sobre la ventana, no sobre el lienzo: con una barra de scroll
   clásica, `uMouse` se desplaza ~1–2 % (lo apuntó la Mesa como descartado para F3.4).
 - **F3.6 · encuadre:** la cámara usa las cifras del prototipo. En las capturas de F3.4, a 1280×720 y 1920×1080 la
   Tierra se corta un poco por la derecha, bajo el raíl, y la cabeza de la tortuga queda pegada a él; en móvil
   (390, 360) el campo de visión llega al tope de 100° (como el prototipo). Ajustar `CAMERA_KEYFRAMES` /
-  `shiftX` con las capturas de regresión de F3.6.
+  `shiftX` con las capturas de regresión de F3.6 (en las de F3.6b, a 1440×900, la Tierra queda detrás de las
+  etiquetas del raíl y la tortuga roza su columna). Cada cambio visible, con `npm run visual:update` y sus PNG.
 - **F4.1 · halo del hero:** con escena, el halo CSS se queda (solo se funde el punto, `scene-on`), pero va en el
   hero (se va con el scroll); en el prototipo era fijo, se apagaba con `m` (`1 − smooth(0, 0,12, m)`) y crecía con
   la carga. Hacerlo con la detonación.
@@ -75,10 +81,6 @@ negro), la escena suaviza su propia `m` y se pausa cuando no se ve, y dos audito
   lo transforma al pedirlo) y se usa el reintento; en el build y los e2e va por el worker.
 - La guarda `controller.signal.aborted` de `useSceneShapes` no la puede ver ningún test (`obtainShapes` ya
   devuelve `'aborted'` en todos los caminos): se queda como defensa.
-- **F3.6 · regenerar a media visita (AUD-F3-2-3-B):** hoy cualquier cambio de `count` pasa por `obtainShapes`,
-  que reintenta en el hilo principal y, si falla, apaga la escena. F3.6 debe regenerar con `loadShapes` sin
-  reintento y, si falla, quedarse como estaba. Pregunta de orden: si se baja el nivel antes de regenerar,
-  «dejar el nivel actual» ya no es posible.
 - **F3.6 · rendimiento del shader (AUD-F3-3-P5, A):** medir antes de tocar: tope del tamaño de punto en píxeles
   del dispositivo (`SIZE_MAX_PX = 48`), `MAX_STEP_S = 0,1` (por debajo de 10 fps la animación va más lenta que el
   reloj), la estela con alfa 0 en Bajo (`gl_PointSize = 0.0` la saltaría) y la compilación síncrona del shader al
@@ -157,12 +159,15 @@ negro), la escena suaviza su propia `m` y se pausa cuando no se ve, y dos audito
 - Si alguna ruta lanza un 404 desde un `loader` (`throw data(null, { status: 404 })`), choca con
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
 **Siguiente paso (próxima sesión, conversación nueva):**
-1. Arrancar con `session-start` (y la skill `taller`). Ofrecer la Mesa **AUD-F3-5** para F3.5 + la corrección de
-   AUD-F3-4 (`base 2c248aa · hasta e6dfbf5`, PR #59 y #60), si Víctor quiere auditarlos.
-2. **F3 · paso 6** (esquema → VB): primeras capturas de regresión visual (Docker), medición de fps y degradación
-   en caliente de nivel (media de fps en ventanas de 2 s, medida en el `step` del bucle, ADR-027). Con la deuda de
-   F3.6: encuadre (`CAMERA_KEYFRAMES` / `shiftX`), regenerar a media visita sin reintento (AUD-F3-2-3-B) y los
-   ajustes del shader (AUD-F3-3-P5), medidos antes de tocar.
+1. Arrancar con `session-start` (y la skill `taller`). **Decidir AUD-F3-5** (`_claude/cadena/aud-f3-5/auditoria.md`:
+   2 recomendados, 15 menores y la pregunta P1 sobre congelar la escena durante el fundido de la misión rápida).
+   Su sello es `e6dfbf5`: contrastar con F3.6a/F3.6b (`65683de`, `3e6ac0a`), que tocan `SceneRoot`, `useSceneShapes` y
+   `vitest.config.ts`. Corregir lo elegido en su propio PR (con `npm run visual` si cambia algo visible).
+2. **F3.6c** (esquema → VB): encuadre con las capturas (`CAMERA_KEYFRAMES` / `shiftX`, y `visual:update`), medición de
+   fps a mano en un equipo real, ajustes del shader medidos antes de tocar (AUD-F3-3-P5) y si los e2e de Chromium del
+   CI deben forzar Bajo.
+3. Ofrecer la Mesa para F3.6a + F3.6b (base `f576888` · hasta `3e6ac0a`), sola o con F3.6c. Después, F3.7 (ficha de
+   Cosmos) y `v0.2.0`.
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»), CV en PDF EN/ES.
@@ -171,10 +176,12 @@ negro), la escena suaviza su propia `m` y se pausa cuando no se ve, y dos audito
   `docs/session-close-2026-10-26-3`, `docs/session-close-2026-10-26-4`, `docs/session-close-2026-10-26-5`,
   `fix/aud-f3-1`, `feat/f3-2-shapes`, `chore/domain-tortoisecode`, `fix/aud-f3-2`, `feat/f3-3-layers`,
   `feat/f3-3-particles`, `chore/f33-6-glsl-comments`, `feat/f3-4-camera-rig`, `docs/session-close-2026-10-27`,
-  `fix/aud-f3-3`, `feat/f3-5-smoothing-pause`, `fix/aud-f3-4`, y la de este cierre
-  (`docs/session-close-2026-10-27-2`) cuando se fusione.
+  `fix/aud-f3-3`, `feat/f3-5-smoothing-pause`, `fix/aud-f3-4`, `docs/session-close-2026-10-27-2`,
+  `feat/f3-6-hot-degradation`, `test/f3-6-visual` y la de este cierre (`docs/session-close-2026-10-27-3`) cuando se fusione.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` (`arbol*.tar.gz`, `cambio*.tar.gz`, `*.md5`,
-  `*.blobs`, `cierre-s*.tar.gz`, `s16-files.list`, `STATE-*.md`, `historial-*.md`) y, dentro de `_claude/cadena/hecho/`, los
+  `*.blobs`, `cierre-s*.tar.gz`, `s16-files.list`, `STATE-*.md`, `historial-*.md`, `cambio-s24-*.tar.gz`, `*-s24-*.md5`) y, dentro de `_claude/cadena/hecho/`, los
   `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`).
+- Si alguna vez falla `npm ci` dentro de Docker: `docker volume rm cosmos-portfolio-visual-node-modules`. La carpeta
+  `build\` quedó construida desde Linux: `npm run build` la rehace en Windows si hace falta.
 
 **Bloqueos:** ninguno.

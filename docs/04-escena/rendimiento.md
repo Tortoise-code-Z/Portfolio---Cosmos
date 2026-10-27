@@ -27,8 +27,10 @@
 `src/lib/device/sceneLevel`, con la tabla de arriba en `LEVEL_SETTINGS`; una señal que el navegador no da,
 como `deviceMemory` en Firefox y Safari, no baja el nivel):
 - WebGL2 pintado por software (`detectWebGL2` → `software`: solo da contexto sin
-  `failIfMajorPerformanceCaveat`; SwiftShader, llvmpipe, un escritorio remoto) → Bajo. Las capturas de F3.6
-  con SwiftShader siguen teniendo escena.
+  `failIfMajorPerformanceCaveat`; SwiftShader, llvmpipe, un escritorio remoto) → Bajo. No todo SwiftShader lo
+  dice: en la imagen de Playwright (la de los e2e del CI y las capturas), Chromium da contexto incluso con esa
+  opción y en escritorio arranca en Alto. Las capturas lo fuerzan a «software» (`calidad.md` → «Regresión
+  visual»); los e2e de Chromium del CI, no (ver `STATE.md`).
 - `navigator.connection.saveData` o `deviceMemory ≤ 2` → Bajo.
 - Puntero grueso (táctil) o ancho < 760 px → Bajo.
 - `hardwareConcurrency ≤ 4` → Medio.
