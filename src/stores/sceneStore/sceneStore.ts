@@ -12,13 +12,16 @@ import { clamp } from '~/lib/math/clamp/clamp';
 export interface SceneState {
   /** `m` que pide el scroll (de 0 a 4). */
   readonly mTarget: number;
-  /** `m` que se pinta. Sin escena es `mTarget` tal cual; la escena lo suavizará por frame (F3). */
+  /**
+   * `m` de la interfaz (raíl, HUD, idioma): `mTarget` tal cual, a saltos. La escena no lo escribe: suaviza su propia
+   * copia desde `mTarget` (`SceneFrame.m`, ADR-028).
+   */
   readonly m: number;
 }
 
 export const sceneStore = createStore<SceneState>()(() => ({ mTarget: 0, m: 0 }));
 
-/** Lo que pide el scroll. Mientras no hay escena, `m` lo sigue sin suavizado. */
+/** Lo que pide el scroll. `m` lo sigue sin suavizado (la escena suaviza el suyo, ADR-028). */
 export function setScrollTarget(mTarget: number): void {
   if (sceneStore.getState().mTarget === mTarget) return;
   sceneStore.setState({ mTarget, m: mTarget });

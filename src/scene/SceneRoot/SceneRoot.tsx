@@ -4,14 +4,16 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { watchMediaQuery } from '~/lib/device/mediaQuery/mediaQuery';
 import { watchReducedMotion } from '~/lib/device/reducedMotion/reducedMotion';
 import { LEVEL_SETTINGS, type RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
+import { damp } from '~/lib/math/damp/damp';
 import { sceneStore } from '~/stores/sceneStore/sceneStore';
 
 import { BackgroundStars } from '../BackgroundStars';
 import { CameraRig } from '../CameraRig/CameraRig';
-import { CAMERA_LENS, WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
+import { CAMERA_LENS, M_SMOOTHING, WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
 import { watchContextLoss } from '../contextLoss/contextLoss';
-import { startFrameLoop } from '../frameLoop/frameLoop';
+import { startFrameLoop, type FrameLoop } from '../frameLoop/frameLoop';
 import { Particles } from '../Particles/Particles';
+import { watchScenePause } from '../pause/pause';
 import { watchPointer } from '../pointer/pointer';
 import { createSceneClock } from '../sceneClock/sceneClock';
 import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
@@ -60,9 +62,12 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * si falla, reintento) y las pinta (`Particles`), con las estrellas de fondo; la cámara la lleva `CameraRig`.
  *
  * Los frames los pide su propio bucle (`frameloop="never"` + `startFrameLoop`, ADR-027): antes de cada
- * `advance()` rellena el frame compartido (`m`, reloj, densidad de píxeles…; el ratón y si es escritorio los
- * escriben sus observadores, `watchPointer` y `watchMediaQuery`) y, si un frame lanza, para y pasa a
- * sin WebGL. El lienzo es opaco, del color del espacio, y sin gestión de color ni mapeo de tonos (`linear`,
+ * `advance()` rellena el frame compartido (`m` suavizado, reloj, densidad de píxeles…; el ratón y si es
+ * escritorio los escriben sus observadores, `watchPointer` y `watchMediaQuery`) y, si un frame lanza, para y pasa
+ * a sin WebGL. La `m` de la escena es suya: persigue a `mTarget` con un amortiguado (`M_SMOOTHING`, con el tiempo
+ * real del frame) y arranca en él (sin repetir la explosión a mitad del viaje); `sceneStore` sigue con
+ * `m = mTarget` para la interfaz (ADR-028). Con la página oculta o la misión rápida abierta, el bucle se pausa
+ * (`watchScenePause`; `data-paused` para los e2e). El lienzo es opaco, del color del espacio, y sin gestión de color ni mapeo de tonos (`linear`,
  * `flat`): los shaders suman la luz tal cual, como el prototipo (particulas-y-shaders.md → «Colores»).
  */
 export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps): ReactNode {
@@ -73,10 +78,13 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
   const [ready, setReady] = useState(false);
   /** Las partículas ya se han pintado: lo esperan los e2e (`data-particles`). */
   const [painted, setPainted] = useState(false);
+  /** El bucle está en pausa: lo miran los e2e (`data-paused`). */
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
   const [clock] = useState(createSceneClock);
   const [frame] = useState(createSceneFrame);
   const levelRef = useRef(level);
-  const stopLoopRef = useRef<(() => void) | null>(null);
+  const loopRef = useRef<FrameLoop | null>(null);
   const stopVoidRef = useRef<(() => void) | null>(null);
   const shapes = useSceneShapes(level, (reason) => {
     onFailRef.current(reason);
@@ -107,9 +115,19 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
   useEffect(() => watchPointer(frame.pointer), [frame]);
 
   useEffect(
+    () =>
+      watchScenePause((value) => {
+        pausedRef.current = value;
+        loopRef.current?.setPaused(value);
+        setPaused(value);
+      }),
+    [],
+  );
+
+  useEffect(
     () => () => {
-      stopLoopRef.current?.();
-      stopLoopRef.current = null;
+      loopRef.current?.stop();
+      loopRef.current = null;
       stopVoidRef.current?.();
       stopVoidRef.current = null;
     },
@@ -158,12 +176,24 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
       };
     }
 
-    stopLoopRef.current?.();
-    stopLoopRef.current = startFrameLoop({
+    loopRef.current?.stop();
+    // El primer frame arranca en `mTarget`: quien llega a mitad del viaje no ve la explosión otra vez.
+    let first = true;
+    const loop = startFrameLoop({
       step: (seconds) => {
         clock.tick(seconds);
         const state = get();
-        frame.m = sceneStore.getState().m;
+        const { mTarget } = sceneStore.getState();
+        frame.m = first
+          ? mTarget
+          : damp(
+              frame.m,
+              mTarget,
+              clock.delta,
+              clock.reduced ? M_SMOOTHING.reducedRate : M_SMOOTHING.rate,
+              M_SMOOTHING.epsilon,
+            );
+        first = false;
         frame.time = clock.time;
         frame.delta = clock.delta;
         frame.reducedMotion = clock.reduced;
@@ -173,11 +203,13 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
         state.advance(seconds);
       },
       onError: (error) => {
-        stopLoopRef.current = null;
+        loopRef.current = null;
         console.error('[scene] A frame failed; continuing without WebGL', error);
         onFailRef.current('frame-error');
       },
     });
+    loop.setPaused(pausedRef.current);
+    loopRef.current = loop;
     setReady(true);
   }
 
@@ -193,6 +225,7 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
       data-ready={ready ? 'true' : undefined}
       data-shapes={shapes?.source}
       data-particles={painted ? 'painted' : undefined}
+      data-paused={paused ? 'true' : undefined}
     >
       <Canvas
         ref={canvasRef}

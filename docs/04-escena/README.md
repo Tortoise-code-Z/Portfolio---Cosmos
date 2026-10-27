@@ -19,8 +19,8 @@
 ```
             ┌───────────────────────── hilo principal ──────────────────────────┐
 scroll ───► │ scroll/mapM (puro) ──► sceneStore (mutable, sin re-render de React) │
-puntero ──► │                            │                                        │
-            │  frameLoop (cada frame) ◄──┘ rellena SceneFrame (m, reloj…)         │
+puntero ──► │                            │ mTarget                                │
+            │  frameLoop (cada frame) ◄──┘ suaviza m y rellena SceneFrame         │
             │       useFrame de cada pieza (R3F) ◄── leen SceneFrame              │
             │        ├─ uniforms de partículas (uM, uTime, uCharge, uPlate…)      │
             │        ├─ cámara (keyframes + encuadre + paralaje)                  │
@@ -65,6 +65,7 @@ src/scene/
   Sun.tsx
   CameraRig/               ← aplica la pose de math/camera a la cámara del <Canvas> en cada frame (F3.4)
   pointer/                 ← el ratón en NDC, solo `pointerType: mouse` (paralaje en F3.4; gravedad en F4)
+  pause/                   ← cuándo pausar el bucle: pestaña oculta o misión rápida abierta (F3.5)
   overlay/ProjectedLabels.tsx   ← etiquetas y pins DOM actualizados por refs
   shaders/ particles/ · stars/ (los .glsl) · glslHeader/ (etiquetas y colores desde TS)   (F3.3)
            stripGlslComments/ (los .glsl sin comentarios al compilar: plugin de vite.config.ts)

@@ -10,7 +10,7 @@
   estrellas, 248,2 KB. Desde justo antes de F3.4 los shaders llegan sin comentarios (el plugin `cosmos:glsl-without-comments`
   de `vite.config.ts`, que conserva los saltos de línea para que la línea de un error siga siendo la del archivo):
   247,0 KB; en F3.4, con la cámara (`CameraRig`, `math/camera`, el ratón), 247,9 KB; con el color de fondo leído sin linealizar y
-  el reajuste de las partículas y del shader, 248,1 KB. React Three Fiber importa
+  el reajuste de las partículas y del shader, 248,1 KB; en F3.5, con el suavizado de `m` y la pausa, 248,4 KB. React Three Fiber importa
   Three.js entero, así que lo que añadan las constelaciones (F4) tiene muy poco margen. Los generadores no cuentan ahí: van en el
   worker (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
 
@@ -68,8 +68,10 @@ las pinta (`Particles`). Solo pide otras si el nivel pide otro `count`.
 
 ## Ahorro de trabajo
 
-- **Pausa** del render con la pestaña oculta (`visibilitychange`), el modo misión rápida abierto o el lienzo
-  fuera de vista.
+- **Pausa** del render con la pestaña oculta (`visibilitychange`) o el modo misión rápida abierto (que la tapa):
+  `scene/pause` (`watchScenePause`) avisa y el bucle deja de pedir frames (`FrameLoop.setPaused`); al volver, el
+  reloj limita el salto a 0,1 s. `SceneRoot` lo marca con `data-paused` (e2e). «Lienzo fuera de vista» no se
+  da mientras el lienzo sea fijo a toda la ventana.
 - Las etiquetas solo se proyectan si el peso de su capítulo es > 0,01.
 - El HUD solo toca el DOM cuando su texto cambia.
 - Cero asignaciones por frame en `useFrame` (vectores reutilizados) para no provocar recolección de basura.

@@ -7,7 +7,8 @@ El scroll es una **línea de tiempo**. Su posición se traduce en un número con
 Todo lo que se mueve (partículas, cámara, HUD, raíl, efectos del hero) lee `m`. Nada más controla el tiempo.
 
 ```
-scroll (px) ──► m objetivo ──► suavizado ──► m (por frame) ──► escena · cámara · HUD · raíl
+scroll (px) ──► m objetivo (mTarget) ──┬──► raíl · HUD · idioma (a saltos, con y sin escena)
+                                       └──► suavizado (escena) ──► m por frame ──► partículas · cámara · estrellas
 ```
 
 ## Capítulos y alturas
@@ -41,12 +42,15 @@ arriba del todo, `m` sigue siendo 0 (la barra no adelanta la explosión). Códig
 
 ## Suavizado
 
-- `m` persigue al valor objetivo con un amortiguado exponencial: `m += (objetivo − m) · min(1, dt · k)`,
-  con `k ≈ 3,4` (y `k ≈ 12` con movimiento reducido, que equivale a casi sin inercia).
+- La escena suaviza **su propia** `m` (ADR-028): persigue al valor objetivo con un amortiguado exponencial,
+  `m += (objetivo − m) · min(1, dt · k)`, con `k = 3,4` (y `k = 12` con movimiento reducido, que equivale a casi
+  sin inercia). En su primer frame arranca en el objetivo: si el usuario ya había hecho scroll, no se repite la
+  explosión. Código: `src/lib/math/damp` y el bucle de `SceneRoot` (`M_SMOOTHING` en `scene/config/sceneConfig`).
 - El suavizado es **independiente de los fps** (usa `dt`). Por debajo de un umbral (`|objetivo − m| < 1e-4`)
   se iguala para no recalcular sin fin.
-- **Sin escena (hasta F3, y con WebGL desactivado) no hay suavizado:** `m` es el objetivo tal cual. Quienes lo
-  leen entonces (raíl, HUD, idioma) cambian a saltos, así que no lo necesitan.
+- **La interfaz no se suaviza:** `sceneStore.m` es el objetivo tal cual, con y sin escena. Quienes lo leen (raíl,
+  HUD, idioma) cambian a saltos, así que no lo necesitan; durante la inercia van un instante por delante de la
+  escena. Sin escena (WebGL desactivado) no hay suavizado en ningún sitio.
 - No se usa scroll suavizado de terceros (Lenis, etc.): el scroll del navegador se respeta tal cual, solo se
   suaviza la escena. Así no se rompen la accesibilidad, los atajos de teclado ni la restauración del scroll.
 

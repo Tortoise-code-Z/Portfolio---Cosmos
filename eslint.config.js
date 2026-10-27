@@ -36,6 +36,7 @@ const IMPURE_SCENE_MODULES = [
   'useSceneShapes',
   'contextLoss',
   'voidColour',
+  'pause',
 ].flatMap((name) => [`**/${name}`, `**/${name}/**`]);
 const PURE_SCENE_FORBIDDEN = [
   ...THREE,

@@ -47,7 +47,7 @@ cosmos-portfolio/
 │  │                              particleGeometry (atributos), sceneMaterials (uniforms, materiales y el
 │  │                              `SceneFrame`), frameLoop (el bucle de frames, ADR-027), sceneClock (el reloj de
 │  │                              animación), voidColour (el fondo del lienzo), CameraRig y pointer (la cámara
-│  │                              y el ratón)
+│  │                              y el ratón) y pause (cuándo pausar el bucle: pestaña oculta, misión rápida)
 │  │  ├─ shaders/               ← los `.glsl` (particles, stars), glslHeader (etiquetas y colores desde TS) y
 │  │  │                           stripGlslComments (el plugin de vite.config.ts)
 │  │  ├─ math/                  ← código puro: camera (pose por `m`, campo de visión, paralaje)
@@ -79,7 +79,7 @@ cosmos-portfolio/
 │  │  │                           con GPU, por software o sin WebGL2); después usePointerType
 │  │  ├─ hold/                  ← carga de «mantén pulsado»: charge (puro) y useHoldCharge (rAF + variable CSS)
 │  │  ├─ css/                   ← cx (unir clases) y useHeightVar (altura de un elemento como variable CSS)
-│  │  └─ math/                  ← clamp, smoothstep, lerp (después, easing)
+│  │  └─ math/                  ← clamp, smoothstep, lerp, damp (el amortiguado de `m`; después, easing)
 │  ├─ stores/                   ← uiStore (React) · sceneStore (mutable, sin re-render)
 │  ├─ styles/                   ← tokens.css, global.css, fonts.css
 │  └─ assets/projects/<slug>/   ← capturas originales `NN-<nombre>.png` (vite-imagetools genera las variantes
@@ -194,7 +194,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
 | `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, en F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); después, grupo de skills activo y proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
-| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; sin escena, `m = mTarget`), y desde F3 carga, puntero, peso de capítulos, flags de pausa | el bucle de la escena (`scene/frameLoop`, que lo deja en el `SceneFrame` que leen los `useFrame`) y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
+| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028), y desde F3 carga, puntero, peso de capítulos, flags de pausa | el bucle de la escena (`scene/frameLoop`, que lo deja en el `SceneFrame` que leen los `useFrame`) y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
 ningún store: se guarda en `localStorage` (`lib/storage`), la lee solo `LanguageNotice` y la escriben el aviso y
@@ -208,9 +208,10 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 2. Un único listener de scroll pasivo calcula `mTarget = mapM(scrollY, layout)` y lo escribe en `sceneStore`
    (`setScrollTarget`; también al montar, para una recarga a mitad del viaje). La ruta del viaje los conecta:
    `lib` no importa `stores`, así que el destino le llega por parámetro.
-3. El bucle de la escena lee `m` en cada frame y lo deja en el `SceneFrame` compartido; los `useFrame` de cada
-   pieza (uniforms, cámara y, en F4, etiquetas) lo leen de ahí. Desde F3.5 el bucle suaviza `m` con el tiempo real
-   del frame (`SceneFrame.delta`); hasta entonces, y sin WebGL, `m = mTarget`.
+3. El bucle de la escena lee `mTarget` en cada frame y suaviza su propia `m` (`damp` con el tiempo real del frame,
+   `M_SMOOTHING`; en su primer frame arranca en `mTarget`), que deja en el `SceneFrame` compartido; los `useFrame`
+   de cada pieza (uniforms, cámara y, en F4, etiquetas) la leen de ahí (ADR-028). `sceneStore.m` sigue siendo
+   `mTarget`. Con la página oculta o la misión rápida abierta, el bucle se pausa (`scene/pause`).
 4. El raíl y el idioma eligen `round(m)` (`selectActiveChapter`); el HUD se suscribe y solo toca el DOM cuando
    cambia su texto (cambios discretos, no por frame).
 
@@ -245,7 +246,7 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 - `scene/{shapes,math,config,worker}` es código puro: lo que corre en el worker o se prueba sin WebGL. ESLint
   le prohíbe Three, React, Zustand, `stores`, los módulos de la escena que los usan (por ruta relativa:
   `SceneRoot`, `CameraRig`, `Particles`, `BackgroundStars`, `sceneMaterials`, `particleGeometry`,
-  `useSceneShapes`, `contextLoss`, `voidColour`), los datos de `content` (solo sus tipos) y cualquier `import()`
+  `useSceneShapes`, `contextLoss`, `voidColour`, `pause`), los datos de `content` (solo sus tipos) y cualquier `import()`
   (un import así engordaría el worker sin avisar), y prohíbe `Math.random` en toda la escena, también escrito
   `globalThis.Math.random` (ADR-011: el azar con semilla de `scene/shapes/prng`).
 - Three.js, React Three Fiber y lo que arrastran van en el chunk `scene` (grupo de `vite.config.ts`), que
