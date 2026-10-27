@@ -142,11 +142,11 @@ describe('useSceneShapes', () => {
     workerAnswers((count) => ({ ok: true, shapes: { ...small(count), count } }));
     const onFail = vi.fn();
     const { result } = renderHook(() => useSceneShapes('high', onFail));
-    expect(result.current).toBeNull();
+    expect(result.current.shapes).toBeNull();
     await waitFor(() => {
-      expect(result.current?.source).toBe('worker');
+      expect(result.current.shapes?.source).toBe('worker');
     });
-    expect(result.current?.shapes.count).toBe(LEVEL_SETTINGS.high.particles);
+    expect(result.current.shapes?.shapes.count).toBe(LEVEL_SETTINGS.high.particles);
     expect(level()).toBe('high');
     expect(onFail).not.toHaveBeenCalled();
   });
@@ -157,9 +157,9 @@ describe('useSceneShapes', () => {
       initialProps: { current: 'high' as const },
     });
     await waitFor(() => {
-      expect(result.current?.source).toBe('main');
+      expect(result.current.shapes?.source).toBe('main');
     });
-    expect(result.current?.shapes.count).toBe(LEVEL_SETTINGS.low.particles);
+    expect(result.current.shapes?.shapes.count).toBe(LEVEL_SETTINGS.low.particles);
     expect(level()).toBe('low');
     // `SceneMount` le pasa el nivel nuevo: las formas ya son de Bajo, no se piden otra vez.
     rerender({ current: 'low' as never });
@@ -179,7 +179,7 @@ describe('useSceneShapes', () => {
     await waitFor(() => {
       expect(onFail).toHaveBeenCalledExactlyOnceWith('shapes-failed');
     });
-    expect(result.current).toBeNull();
+    expect(result.current.shapes).toBeNull();
     expect(level()).toBe('high');
   });
 
@@ -228,7 +228,7 @@ describe('useSceneShapes', () => {
     expect(generateShapes).not.toHaveBeenCalled();
     expect(level()).toBe('high');
     expect(onFail).not.toHaveBeenCalled();
-    expect(result.current).toBeNull();
+    expect(result.current.shapes).toBeNull();
   });
 
   it('the level asks for another count: a second request with that count, and the new shapes', async () => {
@@ -237,17 +237,17 @@ describe('useSceneShapes', () => {
       initialProps: { current: 'high' as RenderLevel },
     });
     await waitFor(() => {
-      expect(result.current?.shapes.count).toBe(LEVEL_SETTINGS.high.particles);
+      expect(result.current.shapes?.shapes.count).toBe(LEVEL_SETTINGS.high.particles);
     });
     rerender({ current: 'medium' });
     await waitFor(() => {
-      expect(result.current?.shapes.count).toBe(LEVEL_SETTINGS.medium.particles);
+      expect(result.current.shapes?.shapes.count).toBe(LEVEL_SETTINGS.medium.particles);
     });
     expect(vi.mocked(loadShapes).mock.calls.map(([request]) => request.count)).toEqual([
       LEVEL_SETTINGS.high.particles,
       LEVEL_SETTINGS.medium.particles,
     ]);
-    expect(result.current?.source).toBe('worker');
+    expect(result.current.shapes?.source).toBe('worker');
   });
 
   it('the level changes with the request half way: the first one is cancelled, the second one wins', async () => {
@@ -271,8 +271,104 @@ describe('useSceneShapes', () => {
     const medium = LEVEL_SETTINGS.medium.particles;
     answers[1]?.({ ok: true, shapes: { ...small(medium), count: medium } });
     await waitFor(() => {
-      expect(result.current?.shapes.count).toBe(medium);
+      expect(result.current.shapes?.shapes.count).toBe(medium);
     });
     expect(warn).not.toHaveBeenCalled();
+  });
+
+  describe('lowerTo (hot degradation)', () => {
+    const settle = async (): Promise<void> => {
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+    };
+
+    it('asks the worker only for the lower count; with the shapes in, swaps them and lowers the level together', async () => {
+      workerAnswers((count) => ({ ok: true, shapes: { ...small(count), count } }));
+      const { result, rerender } = renderHook(({ current }) => useSceneShapes(current, vi.fn()), {
+        initialProps: { current: 'high' as RenderLevel },
+      });
+      await waitFor(() => {
+        expect(result.current.shapes?.shapes.count).toBe(LEVEL_SETTINGS.high.particles);
+      });
+      const lowerTo = result.current.lowerTo;
+      let outcome: string | undefined;
+      await act(async () => {
+        outcome = await result.current.lowerTo('medium');
+      });
+      expect(outcome).toBe('lowered');
+      expect(vi.mocked(loadShapes).mock.calls.at(-1)?.[0]).toEqual({
+        count: LEVEL_SETTINGS.medium.particles,
+        seed: SCENE_SEED,
+        plates: expect.any(Array) as unknown,
+      });
+      expect(result.current.shapes).toEqual({
+        shapes: expect.objectContaining({ count: LEVEL_SETTINGS.medium.particles }) as unknown,
+        source: 'worker',
+      });
+      expect(level()).toBe('medium');
+      // `SceneMount` le pasa el nivel nuevo: sus formas ya están, no se piden otra vez.
+      rerender({ current: 'medium' });
+      await settle();
+      expect(loadShapes).toHaveBeenCalledTimes(2);
+      // Sin reintento en el hilo principal (las formas pequeñas del simulacro del worker sí lo llaman).
+      expect(vi.mocked(generateShapes).mock.calls.map(([request]) => request.count)).not.toContain(
+        LEVEL_SETTINGS.low.particles,
+      );
+      expect(result.current.lowerTo).toBe(lowerTo);
+    });
+
+    it('the worker fails: no retry on the main thread, warned, and shapes and level stay as they were («kept»)', async () => {
+      workerAnswers((count) => ({ ok: true, shapes: { ...small(count), count } }));
+      const onFail = vi.fn();
+      const { result } = renderHook(() => useSceneShapes('high', onFail));
+      await waitFor(() => {
+        expect(result.current.shapes?.source).toBe('worker');
+      });
+      const before = result.current.shapes;
+      workerAnswers(() => workerFails);
+      vi.mocked(generateShapes).mockClear();
+      let outcome: string | undefined;
+      await act(async () => {
+        outcome = await result.current.lowerTo('medium');
+      });
+      await settle();
+      expect(outcome).toBe('kept');
+      expect(warn).toHaveBeenCalledExactlyOnceWith(
+        '[scene] The shapes for a lower level did not arrive; keeping the current level',
+        'timeout',
+        'no answer in 3000 ms',
+      );
+      expect(generateShapes).not.toHaveBeenCalled();
+      expect(result.current.shapes).toBe(before);
+      expect(level()).toBe('high');
+      expect(onFail).not.toHaveBeenCalled();
+      expect(error).not.toHaveBeenCalled();
+    });
+
+    it('unmounted half way: cancelled («aborted»), nothing logged and nothing changes', async () => {
+      workerAnswers((count) => ({ ok: true, shapes: { ...small(count), count } }));
+      const { result, unmount } = renderHook(() => useSceneShapes('high', vi.fn()));
+      await waitFor(() => {
+        expect(result.current.shapes?.source).toBe('worker');
+      });
+      let answer: (result: LoadShapesResult) => void = () => undefined;
+      vi.mocked(loadShapes).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            answer = resolve;
+          }),
+      );
+      const pending = result.current.lowerTo('medium');
+      const signal = vi.mocked(loadShapes).mock.calls.at(-1)?.[1]?.signal;
+      unmount();
+      expect(signal?.aborted).toBe(true);
+      // Un worker que no hace caso de la cancelación y contesta igual.
+      const medium = LEVEL_SETTINGS.medium.particles;
+      answer({ ok: true, shapes: { ...small(medium), count: medium } });
+      await expect(pending).resolves.toBe('aborted');
+      expect(level()).toBe('high');
+      expect(warn).not.toHaveBeenCalled();
+    });
   });
 });

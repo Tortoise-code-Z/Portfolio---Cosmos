@@ -76,6 +76,8 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
    (ADR-028). El bucle se pausa con la pestaña oculta o la misión rápida abierta.)*
 6. Primeras capturas de regresión visual (Docker) y medición de fps; degradación en caliente de nivel (media de
    fps en ventanas de 2 s, `docs/04-escena/rendimiento.md` → «Degradación en caliente»).
+   *(Degradación en caliente hecha en F3.6a: un nivel cada vez, primero las formas del worker y después el nivel, y
+   si no llegan se queda como está. Las capturas, el encuadre y los ajustes del shader, en F3.6b y F3.6c.)*
 7. Ficha de **Cosmos** con la escena: el resumen final, «Scroll-driven particle morphing…», «Works without WebGL…»
    (en lugar de «Readable without JavaScript…») y Three.js / React Three Fiber / GLSL en el stack
    (`docs/01-contenido/proyectos/cosmos.md`, ⏳).

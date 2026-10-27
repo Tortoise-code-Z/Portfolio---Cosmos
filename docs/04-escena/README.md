@@ -71,7 +71,8 @@ src/scene/
   overlay/ProjectedLabels.tsx   ← etiquetas y pins DOM actualizados por refs
   shaders/ particles/ · stars/ (los .glsl) · glslHeader/ (etiquetas y colores desde TS)   (F3.3)
            stripGlslComments/ (los .glsl sin comentarios al compilar: plugin de vite.config.ts)
-  useSceneShapes/          ← pide las formas al montar; reintento en el hilo principal (F3.2)
+  useSceneShapes/          ← pide las formas al montar; reintento en el hilo principal (F3.2); `lowerTo` (F3.6)
+  fpsMeter/ · useHotDegradation/   ← degradación en caliente: fps por ventanas de 2 s y bajar un nivel (F3.6)
   worker/  shapes.worker.ts · handleShapesRequest/ · protocol/ · loadShapes/   (F3.2)
   shapes/  prng/ · noise/ · sampling/ · hexGrid/ · nebula/ · galaxy/ · turtle/ · earth/ ·
            shapeContract/ · generateShapes/   (F3.2; la singularidad no se genera: formas.md)

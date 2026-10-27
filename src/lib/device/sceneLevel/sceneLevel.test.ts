@@ -4,9 +4,11 @@ import {
   type BrowserSignals,
   chooseInitialLevel,
   FEW_CORES,
+  isHandheld,
   LEVEL_SETTINGS,
   LOW_MEMORY_GB,
   NARROW_VIEWPORT_PX,
+  nextLowerLevel,
   readBrowserSignals,
 } from './sceneLevel';
 
@@ -65,6 +67,23 @@ describe('chooseInitialLevel', () => {
         hardwareConcurrency: undefined,
       }),
     ).toBe('high');
+  });
+});
+
+describe('isHandheld', () => {
+  it('a coarse pointer or a narrow window, the same line as the initial level', () => {
+    expect(isHandheld(DESKTOP)).toBe(false);
+    expect(isHandheld({ ...DESKTOP, coarsePointer: true })).toBe(true);
+    expect(isHandheld({ ...DESKTOP, viewportWidth: NARROW_VIEWPORT_PX - 1 })).toBe(true);
+    expect(isHandheld({ ...DESKTOP, viewportWidth: NARROW_VIEWPORT_PX })).toBe(false);
+  });
+});
+
+describe('nextLowerLevel', () => {
+  it('goes down one level at a time and stops at low (never off)', () => {
+    expect(nextLowerLevel('high')).toBe('medium');
+    expect(nextLowerLevel('medium')).toBe('low');
+    expect(nextLowerLevel('low')).toBeNull();
   });
 });
 

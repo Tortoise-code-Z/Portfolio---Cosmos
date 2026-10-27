@@ -43,6 +43,7 @@ cosmos-portfolio/
 │  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido: SceneRoot (el `<Canvas>`),
 │  │                              contextLoss (pérdida del contexto WebGL: un intento de restaurar),
 │  │                              useSceneShapes (pide las formas; reintento en el hilo principal),
+│  │                              fpsMeter y useHotDegradation (la degradación en caliente: fps por ventanas),
 │  │                              Particles (useParticles) y BackgroundStars (useBackgroundStars; montan los Points),
 │  │                              particleGeometry (atributos), sceneMaterials (uniforms, materiales y el
 │  │                              `SceneFrame`), frameLoop (el bucle de frames, ADR-027), sceneClock (el reloj de
@@ -193,7 +194,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
-| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, en F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); después, grupo de skills activo y proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
+| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); después, grupo de skills activo y proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
 | `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028), y desde F4 carga y peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el bucle de la escena (`scene/frameLoop`, que lo deja en el `SceneFrame` que leen los `useFrame`) y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
@@ -233,21 +234,23 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   «Robustez»). `SceneRoot` avisa con `onFail` de lo que no llega a ningún boundary: un shader que no compila (`gl.debug.onShaderError`, que registra el programa y cada shader) o un
   contexto perdido que no vuelve (`contextLoss`: un intento, 3 s con la página a la vista), unas formas que no
   llegan de ninguna manera (`shapes-failed`) o un frame que lanza (`frame-error`, ADR-027). Sin WebGL: clase `no-gl` en `<html>`, el lienzo se desmonta y un aviso, una vez por visita.
-  `SceneRoot` marca su envoltorio con `data-ready` cuando existe el renderer, con `data-shapes`
-  (`worker` | `main`) cuando tiene las formas y con `data-particles="painted"` tras su primer frame con
-  partículas: lo esperan los e2e. Entonces `SceneMount` pone `scene-on` en `<html>` (el punto CSS del hero se
+  `SceneRoot` marca su envoltorio con `data-ready` cuando existe el renderer, con `data-level` (su nivel), con
+  `data-shapes` (`worker` | `main`) cuando tiene las formas y con `data-particles="painted"` tras su primer frame
+  con partículas: lo esperan los e2e. Entonces `SceneMount` pone `scene-on` en `<html>` (el punto CSS del hero se
   funde).
 - `SceneRoot` monta el `<Canvas>` fijo detrás del contenido (`--z-scene`), `aria-hidden`, sin puntero (R3F
   pone `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. Pinta con su propio bucle
   (`frameloop="never"` + `scene/frameLoop`, ADR-027) las partículas (`Particles`) y las estrellas de fondo
   (`BackgroundStars`); la cámara la mueve `CameraRig` (`docs/04-escena/camara-y-encuadre.md`), con el ratón de
   `scene/pointer` y si es escritorio de `watchMediaQuery`. Al montar pide las formas al worker; si falla, las genera una vez en el hilo principal a nivel Bajo, y si
-  eso también falla, Apagado (`docs/04-escena/rendimiento.md` → «Worker de las formas»).
+  eso también falla, Apagado (`docs/04-escena/rendimiento.md` → «Worker de las formas»). Si después pinta por
+  debajo de los fps del presupuesto, baja un nivel (`useHotDegradation`: rendimiento.md → «Degradación en
+  caliente»).
 - `scene/{shapes,math,config,worker}` es código puro: lo que corre en el worker o se prueba sin WebGL. ESLint
   le prohíbe Three, React, Zustand, `stores`, los módulos de la escena que usan Three, React o un store, más
   `contextLoss`, que vive con el lienzo (por ruta relativa: `SceneRoot`, `CameraRig`, `Particles`,
-  `BackgroundStars`, `sceneMaterials`, `particleGeometry`, `useSceneShapes`, `contextLoss`, `voidColour`,
-  `pause`; `pointer` y `frameLoop` no, son DOM sin dependencias), los datos de `content` (solo sus tipos) y cualquier `import()`
+  `BackgroundStars`, `sceneMaterials`, `particleGeometry`, `useSceneShapes`, `useHotDegradation`, `contextLoss`,
+  `voidColour`, `pause`; `pointer`, `frameLoop` y `fpsMeter` no, son DOM o cálculo sin dependencias), los datos de `content` (solo sus tipos) y cualquier `import()`
   (un import así engordaría el worker sin avisar), y prohíbe `Math.random` en toda la escena, también escrito
   `globalThis.Math.random` (ADR-011: el azar con semilla de `scene/shapes/prng`). **Un módulo nuevo de `scene/`
   con Three, React o un store se añade a `IMPURE_SCENE_MODULES`** (`eslint.config.js`): la lista es a mano.
