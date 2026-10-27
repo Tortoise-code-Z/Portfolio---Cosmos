@@ -64,6 +64,8 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
 3. `Particles` con el shader de morph entre las 5 formas; estrellas de fondo. Antes de pintar partículas, el
    contenido de los capítulos va por encima del lienzo (`--z-content`; hoy solo lo lleva el hero) y lo que
    cuelga de la clase `no-gl` (fondo, relevo del punto del hero) se ajusta a lo que ya pinta la escena.
+   *(Hecho en F3.3: `main` por encima del lienzo y fondo estático sin WebGL; partículas con el morph entre las 5
+   formas, estrellas de fondo y un bucle de frames propio (ADR-027); cámara fija provisional hasta el paso 4.)*
 4. `CameraRig` con keyframes, encuadre por capítulo, FOV para móvil y paralaje.
 5. Puente `sceneStore` ↔ scroll (el scroll ya escribe `mTarget` desde F2.5, ADR-021: la escena pasa a suavizar `m`);
    pausa con pestaña oculta y en misión rápida (`quickMissionOpen` de `uiStore`, desde F2.6).
