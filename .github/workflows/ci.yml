@@ -94,6 +94,36 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  # Regresión visual (calidad.md → «Regresión visual»): las capturas de referencia salen de esta misma imagen
+  # (`npm run visual:update` en Docker), así que se comparan píxel a píxel. Sin reintentos: una diferencia no es
+  # pasajera. Si falla, el informe trae la referencia, la captura nueva y la diferencia.
+  visual:
+    name: Visual regression
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          name: build
+          path: build/
+      - run: npm run visual:run
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report-visual
+          path: playwright-report/
+          retention-days: 7
+
   # El check obligatorio de la protección de `main` (git-y-despliegue.md): resume los tres navegadores con el
   # nombre de siempre, así la regla no cambia aunque los e2e vayan en paralelo.
   e2e-result:
@@ -106,4 +136,4 @@ jobs:
       - name: Comprobar los tres navegadores
         run: test "${{ needs.e2e.result }}" = "success"
 
-  # Regresión visual (Docker) y Lighthouse CI se añaden en F3 y F6 (docs/06-roadmap/roadmap.md).
+  # Lighthouse CI se añade en F6 (docs/06-roadmap/roadmap.md).

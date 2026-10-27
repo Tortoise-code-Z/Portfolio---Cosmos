@@ -11,7 +11,9 @@
 - `main` siempre desplegable y protegida: solo entra por PR con CI en verde.
 - Protección de `main` (regla clásica en Settings → Branches): PR obligatorio sin aprobaciones (trabajo en
   solitario), rama al día y checks obligatorios `Typecheck · lint · format · tests`, `Build` y
-  `E2E (Chromium · Firefox · WebKit)` (el job que resume los tres navegadores; ADR-024). El admin puede
+  `E2E (Chromium · Firefox · WebKit)` (el job que resume los tres navegadores; ADR-024) y, desde F3.6,
+  `Visual regression` (las capturas de `calidad.md` → «Regresión visual»; ⚠ lo marca Víctor en la regla cuando
+  el primer PR lo muestre en verde). El admin puede
   saltársela en una emergencia. ⚠ Los checks se identifican
   por el `name` del job: si se renombra un job en `ci.yml`, hay que actualizar la regla o los PR se quedan
   esperando un check que ya no existe.
@@ -51,7 +53,7 @@ install (npm ci)
   └─ build ─┬─ e2e · chromium ─┐  (contenedor mcr.microsoft.com/playwright:v1.64.0-noble;
             ├─ e2e · firefox  ─┼─ E2E (Chromium · Firefox · WebKit)   un job por navegador, ADR-024)
             ├─ e2e · webkit   ─┘
-            ├─ visual (contenedor mcr.microsoft.com/playwright:v1.64.0-noble)
+            ├─ Visual regression (contenedor mcr.microsoft.com/playwright:v1.64.0-noble)
             └─ lhci (presupuestos)
 ```
 
@@ -62,7 +64,8 @@ install (npm ci)
   paralelo (`fail-fast: false`); el job `E2E (Chromium · Firefox · WebKit)` solo comprueba que los tres
   pasaron. En el CI, Playwright hace un reintento y corta a los 10 min (`globalTimeout`) para que el informe
   se suba antes del `timeout-minutes` del job (ADR-024).
-- Los informes de Playwright (uno por navegador: `playwright-report-<navegador>`) y Lighthouse se suben como
+- Los informes de Playwright (uno por navegador: `playwright-report-<navegador>`; el de las capturas,
+  `playwright-report-visual`, con la referencia, la captura y la diferencia) y Lighthouse se suben como
   artefactos cuando algo falla.
 - Cada job lleva `timeout-minutes: 15` (el que resume los e2e, 5): un cuelgue falla en 15 min en lugar de
   esperar las 6 h por defecto de GitHub.
