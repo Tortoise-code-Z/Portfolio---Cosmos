@@ -3,62 +3,68 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F3 · paso 4 hecho** (`main` en `b3d3c4e`: F33-6 en PR #55, F3.4 en PR #56) · **AUD-F3-3**
-entregada y decidida (corrige todo, 1–18, y P1–P6 = A), **sin corregir** · siguiente: corregir AUD-F3-3 y después
-**F3 · paso 5** (puente `sceneStore` ↔ scroll y pausa).
+**Dónde estamos:** **F3 · paso 5 hecho** (`main` en `e6dfbf5`: AUD-F3-3 corregida en PR #58, F3.5 en PR #59,
+AUD-F3-4 corregida en PR #60) · siguiente: ofrecer la Mesa para F3.5 + la corrección de AUD-F3-4 y **F3 · paso 6**
+(capturas de regresión visual, fps y degradación en caliente).
 
-_Última actualización: 2026-10-27 (**CIERRE DE SESIÓN · 22**) · los shaders llegan sin comentarios (F33-6) y la
-cámara sigue el viaje: keyframes, encuadre de escritorio, campo de visión de móvil y paralaje con el ratón. 1072
-unitarios y 194 e2e en Chromium; los dos PR fusionados con el check obligatorio del CI._
+_Última actualización: 2026-10-27 (**CIERRE DE SESIÓN · 23**) · el fondo del espacio ya es `--color-void` (no
+negro), la escena suaviza su propia `m` y se pausa cuando no se ve, y dos auditorías corregidas. 1111 unitarios y
+196 e2e en Chromium; los tres PR fusionados con el check obligatorio del CI._
 
-**Hecho esta sesión** (vivas S22 en `_claude/cadena/hecho/2026-10-27/decisiones-vivas-S22.md`):
-1. **F33-6 decidida (B) y hecha** (PR #55, `ca9a3d3`; vivas #1, #5–#7): `stripGlslComments`
-   (`scene/shaders/stripGlslComments/`, una pasada con los dos tipos de comentario; conserva los saltos de línea
-   para que la línea de un error sea la del archivo) y el plugin `cosmos:glsl-without-comments` de
-   `vite.config.ts` (`*.glsl?raw`, también en dev; Vitest lee los archivos tal cual). Escena de 248,2 a 247,0 KB.
-   Guarda e2e en `budgets.spec.ts`: ningún texto de los comentarios llega a los chunks (comprobado quitando el
-   plugin).
-2. **F3.4 · `CameraRig`** (PR #56, `b3d3c4e`; vivas #2–#4, #18–#22): `scene/math/camera` (pose por `m` con
-   `smoothstep`, `m = 4` exacto, `shiftX` en escritorio, FOV de móvil con tope de 100°, paralaje `min(1, dt·2)`),
-   `scene/CameraRig` (FOV solo al cambiar el aspecto), `scene/pointer` (solo `pointerType: mouse`; fuera de la
-   ventana vuelve al centro, CAM-1-B), `lib/device/mediaQuery` (`watchMediaQuery`; `watchReducedMotion` lo usa) con
-   `(width >= 900px)`, la media query de los paneles (CAM-2-A, atada por test a `ChapterPanel.module.css`).
-   `SceneFrame` gana `delta`, `wide` y `pointer`; fuera la cámara provisional. Escena 247,9 KB.
-3. **AUD-F3-3** entregada por la Mesa (0 bloqueantes · 6 recomendados · 12 menores · 6 preguntas) y **decidida**
-   (vivas #9–#17): se corrige todo con las opciones recomendadas (1-A, 3-A, 5-A, 12-B, 16-A) y P1–P6 = A. La parte
-   de la 18 que toca a `watchMediaQuery` y la línea de `camara-y-encuadre.md` de la 9 ya entraron en F3.4.
+**Hecho esta sesión** (vivas S23 en `_claude/cadena/hecho/2026-10-27/decisiones-vivas-S23.md`):
+1. **AUD-F3-3 corregida** (PR #58, `2c248aa`; vivas #1–#9): el lienzo se limpia con los números del hex tal cual
+   (`scene/voidColour`: `hexToRgb` + `Color.setRGB`; `new Color('#…')` lo dejaba casi negro) y lo repone al
+   recuperar el contexto, escuchando después de Three; potencias del GLSL sin base negativa; ojos con
+   `COLOR_TURTLE_EYES`; `Particles/` con `useParticles`; `SceneMount` quita sus clases al desmontarse; 90 % para
+   la lógica de la escena y guarda de ESLint de la capa pura (`IMPURE_SCENE_MODULES`); guardián de citas más
+   amplio (quitó «F33-6» de 7 sitios); e2e de píxeles, movimiento reducido y avisos de WebGL; docs y ADR-027.
+2. **F3.5 · suavizado y pausa** (PR #59, `ce325b6`; vivas #12–#14; F35-1-A): **ADR-028**: la escena suaviza su
+   propia `m` (`SceneFrame.m`, `lib/math/damp`, `M_SMOOTHING` 3,4 / 12 con movimiento reducido, umbral 1e-4) y
+   arranca en `mTarget`; `sceneStore.m` sigue siendo `mTarget` (raíl, HUD e idioma a saltos). La pausa:
+   `FrameLoop.setPaused` y `scene/pause` (`watchScenePause`: pestaña oculta o misión rápida), `data-paused`.
+3. **AUD-F3-4** (F33-6 + F3.4 + la corrección de AUD-F3-3; 0 · 1 recomendado · 15 menores) decidida (todo, con lo
+   recomendado) y **corregida** (PR #60, `e6dfbf5`; vivas #15–#20): `pointerout` solo de ratón, paralaje acotado
+   a ±1, `stripGlslComments` no pega palabras, `BackgroundStars/` con `useBackgroundStars`, `pointer` y
+   `contextLoss` al 90 %, criterio escrito de la guarda, e2e de píxeles por `/#about` con `expect.poll` (F35-2-A)
+   y del color del fondo (al cargar y tras recuperar el contexto; comprobado quitando el oyente), guardián de
+   citas con más formatos (lee JSON y `public/`), docs del puntero en `SceneFrame` (ADR-004 matizado en su estado).
 
 **Incidencias y lecciones:**
-- **La cifra del peso de F3.3 en los docs (247,3 KB) no cuadraba** con lo que mide `budgets.spec.ts` sobre el mismo
-  código (248,2 KB). Medir siempre con el algoritmo del test (`gzipSync` de los chunks que sigue desde
-  `SceneRoot`) y apuntar esa cifra.
-- **Linter de React (`immutability`):** no deja asignar propiedades de la cámara de `useThree` ni de un valor de
-  `useState` dentro del componente: el FOV va en una función de fuera (`fitLens`) y el aspecto en un `useRef`.
-- **Una regex por tipo de comentario falla** (`// a /* b` se comía código): una sola pasada con la alternancia,
-  donde manda el que empieza antes. Lo cazó su propio test.
-- **El aviso de commit y push del contenedor** (stop hook) se refiere a la copia de trabajo de la nube: se guarda con
-  `git stash -u` y no se empuja nada desde allí (el git lo ejecuta Víctor).
-- **Método del contenedor** (sin cambios): Node 24 con `npm pack node-linux-x64@24.22.0`,
-  `PLAYWRIGHT_BROWSERS_PATH` propio con enlaces `chromium*-1248 → -1243`, árbol por `tar` desde
-  `_claude/cadena/tmp/` y vuelta con `tar --overwrite` tras comprobar el md5 de la base y después el de cada
-  archivo. Capturas de los capítulos con `vite preview` y Playwright (SwiftShader) para enseñarlas; en móvil, al
-  principio de cada capítulo (con `scrollIntoView` el panel tapa la escena). En dev, la primera carga con la caché
-  `.vite` vacía da «Outdated Optimize Dep» (ya pasaba); la segunda va bien.
+- **El orden de los oyentes de `webglcontextrestored` importa:** Three rehace su fondo en negro en el suyo, que se
+  registra al crear el renderer (R3F lo crea tras medir el lienzo, después de los efectos de `SceneRoot`). Lo que
+  deba ir detrás de Three se escucha desde `onCreated`.
+- **Un test que lee «todos los archivos» lee también binarios:** `code-references` leía las PNG (un byte casó por
+  azar) y, al añadir JSON, `package-lock.json` (licencias SPDX como «BSD-2-Clause»). Filtrar por tipo.
+- **Un JSDoc no puede contener `*/`** (ni dentro de un ejemplo de código): cierra el comentario.
+- **No dar los comandos de commit con una pregunta abierta que pueda tocar los archivos:** F3.5 se commiteó antes
+  de decidir F35-2 y su arreglo pasó al PR siguiente.
+- **La sesión se reinició a mitad de un turno** y la #9 de las vivas quedó repetida (aclarado en la #10): tras un
+  reinicio, releer el final de las vivas y el tablero antes de escribir.
+- **Medir píxeles de la escena:** entrar por el ancla del capítulo (la escena arranca en su `m` exacto) y medir
+  con `expect.poll`; el fondo, por el color dominante de una zona vacía contra el token leído en la página.
+- **Método del contenedor:** Node 24 con `npm pack node-linux-x64@24.22.0`, `PLAYWRIGHT_BROWSERS_PATH` propio con
+  enlaces `chromium*-1248 → -1243`, árbol por `tar` desde `_claude/cadena/tmp/` (con `.git`; sin `node_modules`,
+  `build`, `_claude` ni `.env`, que se copia de `.env.example`) y vuelta con `tar --overwrite` tras comprobar el
+  md5 de la base y después el de cada archivo. Un commit auxiliar en el contenedor hace saltar el aviso de push:
+  dejar la copia en `main` y borrar la rama auxiliar (nunca push). Un archivo movido (`Particles.tsx`,
+  `BackgroundStars.tsx`) se quita en el equipo con `git rm`, en los comandos del commit.
 
 **Deuda anotada:**
-- **Peso de la escena:** 247,9 KB de 250 tras F33-6 (shaders sin comentarios, −1,2 KB) y F3.4 (cámara,
-  +0,9 KB). R3F importa Three.js entero: las constelaciones y el Sol de F4 apenas caben. Subir el límite, solo con
+- **Peso de la escena:** 248,4 KB de 250 (F3.4 248,0; corrección de AUD-F3-3 +155 B; F3.5 +290 B; AUD-F3-4
+  +22 B). R3F importa Three.js entero: las constelaciones y el Sol de F4 apenas caben. Subir el límite, solo con
   ADR; antes, mirar qué más se puede ahorrar (sangría y líneas vacías del GLSL solo darían ~77 B y romperían las
   líneas de los errores).
+- **e2e de Chromium:** ~6–7,5 min en el contenedor. SwiftShader pinta sin parar mientras la página está a la vista
+  (la pausa de F3.5 solo actúa con la pestaña oculta o la misión rápida): mirar los tiempos del CI.
+- **F4 · escena:** todo lo nuevo lee `SceneFrame.m` (la `m` suavizada de la escena), nunca `sceneStore.m`
+  (ADR-028). Un módulo nuevo de `scene/` con Three, React o un store se añade a `IMPURE_SCENE_MODULES` de
+  `eslint.config.js` (la lista es a mano).
+- **F4 · gravedad:** las coordenadas del puntero son sobre la ventana, no sobre el lienzo: con una barra de scroll
+  clásica, `uMouse` se desplaza ~1–2 % (lo apuntó la Mesa como descartado para F3.4).
 - **F3.6 · encuadre:** la cámara usa las cifras del prototipo. En las capturas de F3.4, a 1280×720 y 1920×1080 la
   Tierra se corta un poco por la derecha, bajo el raíl, y la cabeza de la tortuga queda pegada a él; en móvil
   (390, 360) el campo de visión llega al tope de 100° (como el prototipo). Ajustar `CAMERA_KEYFRAMES` /
   `shiftX` con las capturas de regresión de F3.6.
-- **F3.5 · pausa:** la escena pinta continua (ADR-027) hasta la pausa; la pausa es no pedir el frame siguiente en
-  `scene/frameLoop`. Desde F3.3 los e2e de Chromium pasan de ~4,5 a ~6,7 min (SwiftShader pinta sin parar):
-  mirar los tiempos del CI.
-  El suavizado de `m` y la pausa leen el tiempo real de `SceneFrame.delta` (`sceneClock.delta`, F3.4), no el
-  `delta` que R3F pasa a `useFrame` (sin tope).
 - **F4.1 · halo del hero:** con escena, el halo CSS se queda (solo se funde el punto, `scene-on`), pero va en el
   hero (se va con el scroll); en el prototipo era fijo, se apagaba con `m` (`1 − smooth(0, 0,12, m)`) y crecía con
   la carga. Hacerlo con la detonación.
@@ -150,19 +156,13 @@ unitarios y 194 e2e en Chromium; los dos PR fusionados con el check obligatorio 
   actualizar React Router, comprobar si ya lo pasa.
 - Si alguna ruta lanza un 404 desde un `loader` (`throw data(null, { status: 404 })`), choca con
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
-- **F3.5:** la escena deja de pintar con `quickMissionOpen` de `uiStore` y suaviza `m`; hasta entonces
-  `setScrollTarget` escribe `m = mTarget` (ADR-021 → Consecuencias) y el morph va pegado al scroll.
-
 **Siguiente paso (próxima sesión, conversación nueva):**
-1. Arrancar con `session-start` (y la skill `taller`). **Corregir AUD-F3-3** en `fix/aud-f3-3`: todo (1–18) con
-   las opciones de las vivas S22 #10–#17 (copia en `hecho/2026-10-27/decisiones-vivas-S22.md`; la entrega en
-   `hecho/2026-10-27/aud-f3-3/auditoria.md`). Aplicarlo sobre la versión de F3.4 de `SceneRoot`, `SceneFrame`,
-   `sceneClock` y `watchMediaQuery`. Incluye anotar P1 en `estados-y-accesibilidad.md`, P2 en la tabla «Capas»,
-   el fundido de P3 y el comentario de P4 en `tokens.css`; P5 y P6 ya están en la deuda.
-2. Ofrecer la Mesa para F33-6 + F3.4 (`base f850371 · hasta b3d3c4e`) si Víctor quiere auditarlos, o junto con la
-   corrección.
-3. **F3 · paso 5** (esquema → VB): puente `sceneStore` ↔ scroll (la escena suaviza `m` con `SceneFrame.delta`) y
-   pausa con la pestaña oculta y en misión rápida (`quickMissionOpen`), en `scene/frameLoop`.
+1. Arrancar con `session-start` (y la skill `taller`). Ofrecer la Mesa **AUD-F3-5** para F3.5 + la corrección de
+   AUD-F3-4 (`base 2c248aa · hasta e6dfbf5`, PR #59 y #60), si Víctor quiere auditarlos.
+2. **F3 · paso 6** (esquema → VB): primeras capturas de regresión visual (Docker), medición de fps y degradación
+   en caliente de nivel (media de fps en ventanas de 2 s, medida en el `step` del bucle, ADR-027). Con la deuda de
+   F3.6: encuadre (`CAMERA_KEYFRAMES` / `shiftX`), regenerar a media visita sin reintento (AUD-F3-2-3-B) y los
+   ajustes del shader (AUD-F3-3-P5), medidos antes de tocar.
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»), CV en PDF EN/ES.
@@ -170,10 +170,11 @@ unitarios y 194 e2e en Chromium; los dos PR fusionados con el check obligatorio 
 - Ramas locales ya fusionadas: `feat/f3-1-scene-mount`, `docs/session-close-2026-10-26-2`,
   `docs/session-close-2026-10-26-3`, `docs/session-close-2026-10-26-4`, `docs/session-close-2026-10-26-5`,
   `fix/aud-f3-1`, `feat/f3-2-shapes`, `chore/domain-tortoisecode`, `fix/aud-f3-2`, `feat/f3-3-layers`,
-  `feat/f3-3-particles`, `chore/f33-6-glsl-comments`, `feat/f3-4-camera-rig`, y la de este cierre
-  (`docs/session-close-2026-10-27`) cuando se fusione.
+  `feat/f3-3-particles`, `chore/f33-6-glsl-comments`, `feat/f3-4-camera-rig`, `docs/session-close-2026-10-27`,
+  `fix/aud-f3-3`, `feat/f3-5-smoothing-pause`, `fix/aud-f3-4`, y la de este cierre
+  (`docs/session-close-2026-10-27-2`) cuando se fusione.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` (`arbol*.tar.gz`, `cambio*.tar.gz`, `*.md5`,
-  `*.blobs`, `cierre-s*.tar.gz`, `s16-files.list`, `STATE-*.md`) y, dentro de `_claude/cadena/hecho/`, los
+  `*.blobs`, `cierre-s*.tar.gz`, `s16-files.list`, `STATE-*.md`, `historial-*.md`) y, dentro de `_claude/cadena/hecho/`, los
   `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`).
 
 **Bloqueos:** ninguno.
