@@ -47,8 +47,8 @@ vi.mock('~/lib/device/webgl2/webgl2', () => ({ detectWebGL2: vi.fn(() => 'hardwa
 
 const NOTICE_TEXT = "Your browser can't show the 3D universe, but everything else is here.";
 
-function renderMount(path = '/'): void {
-  render(
+function renderMount(path = '/'): ReturnType<typeof render> {
+  return render(
     <MemoryRouter initialEntries={[path]}>
       <p>The page</p>
       <SceneMount />
@@ -80,7 +80,6 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.mocked(detectWebGL2).mockReturnValue('hardware');
   useUiStore.setState(useUiStore.getInitialState(), true);
-  document.documentElement.classList.remove(NO_GL_CLASS, SCENE_ON_CLASS);
   scene.behaviour = 'render';
   scene.levels = [];
 });
@@ -114,6 +113,17 @@ describe('SceneMount', () => {
     });
     expect(document.documentElement).not.toHaveClass(SCENE_ON_CLASS);
     expect(document.documentElement).toHaveClass(NO_GL_CLASS);
+  });
+
+  it('unmounted after painting, it takes its classes off <html>: the hero dot comes back', async () => {
+    scene.behaviour = 'paint';
+    const { unmount } = renderMount();
+    await idle();
+    await screen.findByTestId('scene');
+    expect(document.documentElement).toHaveClass(SCENE_ON_CLASS);
+    unmount();
+    expect(document.documentElement).not.toHaveClass(SCENE_ON_CLASS);
+    expect(document.documentElement).not.toHaveClass(NO_GL_CLASS);
   });
 
   it('a mounted scene that has not painted yet leaves the hero dot alone', async () => {

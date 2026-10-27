@@ -11,6 +11,10 @@ import { constantName, glslFloat, glslHeader } from './glslHeader';
 
 const header = glslHeader();
 const SHADERS = { particlesVertex, particlesFragment, starsVertex, starsFragment };
+/** La cabecera solo se antepone a los vertex shaders (`sceneMaterials`). */
+const VERTEX_SHADERS = { particlesVertex, starsVertex };
+const FRAGMENT_SHADERS = { particlesFragment, starsFragment };
+const HEADER_NAME = /\b(?:TURTLE|EARTH|PLATE|COLOR)_\w+/g;
 
 /** Los nombres que define la cabecera (`#define X …` y `const vec3 X = …`). */
 const defined = new Set(
@@ -36,21 +40,34 @@ describe('glslHeader', () => {
     ).toBe(true);
   });
 
-  it('every tag, plate or colour name the shaders use is defined (a typo would not compile)', () => {
-    for (const [name, source] of Object.entries(SHADERS)) {
-      const used = new Set(
-        [...source.matchAll(/\b(?:TURTLE|EARTH|PLATE|COLOR)_\w+/g)].map(([match]) => match),
-      );
+  it('every tag, plate or colour name the vertex shaders use is defined (a typo would not compile)', () => {
+    for (const [name, source] of Object.entries(VERTEX_SHADERS)) {
+      const used = new Set([...source.matchAll(HEADER_NAME)].map(([match]) => match));
       const missing = [...used].filter((identifier) => !defined.has(identifier));
       expect(missing, name).toEqual([]);
     }
   });
 
-  it('the shaders write no tag number by hand: tag comparisons go through the names', () => {
-    // Una etiqueta escrita a mano se vería como `tag … 12.5` o `isTag(tag, 12.0)`.
+  it('the fragment shaders use none of its names: they do not get the header', () => {
+    for (const [name, source] of Object.entries(FRAGMENT_SHADERS)) {
+      expect(
+        [...source.matchAll(HEADER_NAME)].map(([match]) => match),
+        name,
+      ).toEqual([]);
+    }
+  });
+
+  it('the shaders write no tag number or colour by hand: they go through the names', () => {
     for (const [name, source] of Object.entries(SHADERS)) {
+      // Una etiqueta escrita a mano: `tag … 12.5`, `isTag(tag, 12.0)`, `abs(tag - 12.0)` o `aR.y < 12.5`.
       expect(source, name).not.toMatch(/\btag\s*[<>=]=?\s*\d/);
       expect(source, name).not.toMatch(/isTag\(tag,\s*\d/);
+      expect(source, name).not.toMatch(/abs\(tag\s*-\s*\d/);
+      expect(source, name).not.toMatch(/\baR\.[yz]\s*[<>=!]=?\s*\d/);
+      // Un nombre desplazado a mano, salvo el ±0,5 de redondeo: `TURTLE_FLIPPER + 1.5` da por hecho 2 aletas.
+      expect(source, name).not.toMatch(/\b(?:TURTLE|EARTH|PLATE)_[A-Z_]+\s*[+-]\s*(?!0\.5\b)\d/);
+      // Un color escrito a mano en vez de uno de la paleta: `c = vec3(2.0)`.
+      expect(source, name).not.toMatch(/\b[cC]\s*=\s*vec3\(\s*-?[\d.]/);
     }
   });
 

@@ -7,9 +7,10 @@
 - El código 3D va en un **chunk aparte** que se carga después de la primera pintura: el JS inicial de la interfaz
   no incluye Three.js. Sin WebGL2 ni siquiera se descarga. Pesa ≤ 250 KB gzip (`calidad.md` → «Presupuestos»);
   en F3.2, con el lienzo vacío y las formas pedidas, 241,6 KB; en F3.3, con las partículas, sus shaders y las
-  estrellas, 248,2 KB. Desde F33-6 los shaders llegan sin comentarios (el plugin `cosmos:glsl-without-comments`
+  estrellas, 248,2 KB. Desde justo antes de F3.4 los shaders llegan sin comentarios (el plugin `cosmos:glsl-without-comments`
   de `vite.config.ts`, que conserva los saltos de línea para que la línea de un error siga siendo la del archivo):
-  247,0 KB; en F3.4, con la cámara (`CameraRig`, `math/camera`, el ratón), 247,9 KB. React Three Fiber importa
+  247,0 KB; en F3.4, con la cámara (`CameraRig`, `math/camera`, el ratón), 247,9 KB; con el color de fondo leído sin linealizar y
+  el reajuste de las partículas y del shader, 248,1 KB. React Three Fiber importa
   Three.js entero, así que lo que añadan las constelaciones (F4) tiene muy poco margen. Los generadores no cuentan ahí: van en el
   worker (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
 
@@ -81,7 +82,8 @@ las pinta (`Particles`). Solo pide otras si el nivel pide otro `count`.
   vuelve en 3 s **con la página a la vista** o se pierde otra vez con la página a la vista, Apagado
   (`src/scene/contextLoss`). Con la página oculta el plazo no corre (un móvil libera la GPU al cambiar de app
   y no la devuelve hasta volver): arranca entero al volver a la vista y esa pérdida no gasta el intento. Al
-  volver el contexto, Three rehace su estado y el bucle de frames (continuo) pinta el siguiente.
+  volver el contexto, Three rehace su estado (y su fondo, en negro: `SceneRoot` vuelve a poner `--color-void`)
+  y el bucle de frames (continuo) pinta el siguiente.
 - Un shader que no compila no lanza (Three.js solo lo registra, y con un `onShaderError` propio ni eso):
   `gl.debug.onShaderError` registra lo que Three habría escrito (el registro del programa y el de cada shader,
   con sus líneas) y pasa a Apagado.
@@ -100,8 +102,8 @@ las pinta (`Particles`). Solo pide otras si el nivel pide otro `count`.
 
 | Tipo | Herramienta | Qué cubre |
 |---|---|---|
-| Unitarios | Vitest | Generadores, mapeo de `m`, cámara, proyección, elección de nivel, formato del HUD, paridad TS/GLSL de la posición de los pins (F4.4; el ruido no la necesita, `formas.md`) |
-| Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error |
-| Extremo a extremo | Playwright | Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado), formas del worker y del reintento (`data-shapes`) |
+| Unitarios | Vitest | Generadores (también las estrellas), mapeo de `m`, cámara, proyección, elección de nivel, formato del HUD, geometría y uniforms de las partículas, cabecera GLSL y shaders sin números ni nombres de más, shaders sin comentarios, paleta contra la tabla del design system, bucle de frames, reloj de la escena, color de fondo, paridad TS/GLSL de la posición de los pins (F4.4; el ruido no la necesita, `formas.md`) |
+| Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error (también un frame que lanza), movimiento reducido, color de fondo al crear y al recuperar el contexto, partículas (`useParticles`: aviso en el primer frame, uniforms, memoria liberada) |
+| Extremo a extremo | Playwright | Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado; el fondo por debajo del contenido), formas del worker y del reintento (`data-shapes`), partículas que se ven (fracción de píxeles que no son fondo), movimiento reducido, sin avisos de WebGL del navegador |
 | Regresión visual | Playwright (capturas) | Un estado por capítulo en los tamaños de referencia, render por software (SwiftShader) y tolerancia de píxeles |
 | Rendimiento | Lighthouse CI + medida manual | Core Web Vitals y presupuesto de JS; fps medidos a mano en un móvil real antes de cada versión |

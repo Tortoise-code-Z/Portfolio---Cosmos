@@ -55,15 +55,18 @@ body {
 
 /*
  * Capas (design-system.md → «Capas»): el lienzo de la escena es fijo, con `--z-scene`, y se pintaría por
- * encima del texto, que no está posicionado. El contenido de cada página (`main`: capítulos, fichas, 404)
- * va en su capa, por encima del lienzo; sus zonas transparentes dejan ver la escena.
+ * encima del texto, que no está posicionado. El contenido de cada página (`main`: capítulos, fichas, 404 y
+ * página de error) va en su capa, por encima del lienzo; sus zonas transparentes dejan ver la escena.
  */
 main {
   position: relative;
   z-index: var(--z-content);
 }
 
-/* Sin WebGL (`no-gl`, lo pone SceneMount): un fondo estático del espacio en la capa de la escena. */
+/*
+ * Sin WebGL (`no-gl`, lo pone SceneMount): un fondo estático del espacio en la capa de la escena. Entra con
+ * el mismo fundido que el lienzo (llega tras la primera pintura, o al apagarse la escena a media visita).
+ */
 :root.no-gl body::before {
   position: fixed;
   inset: 0;
@@ -71,6 +74,13 @@ main {
   background-image: var(--gradient-space);
   content: '';
   pointer-events: none;
+  animation: backdrop-fade-in var(--dur-fade-slow) var(--ease-out);
+}
+
+@keyframes backdrop-fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* ── Títulos: rol «display» (Anybody en mayúsculas, eje wdth como firma) ── */

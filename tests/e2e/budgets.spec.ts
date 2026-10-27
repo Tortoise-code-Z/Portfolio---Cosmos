@@ -54,7 +54,7 @@ const SCENE_SATELLITES = [
   { name: 'shapes worker', pattern: /\/assets\/shapes\.worker-[^/]+\.js$/, budget: 10_000 },
   { name: 'main-thread retry', pattern: /\/assets\/generateShapes-[^/]+\.js$/, budget: 10_000 },
 ] as const;
-/** Los shaders de la escena: llegan sin comentarios (F33-6, plugin de vite.config.ts). */
+/** Los shaders de la escena: llegan sin comentarios (el plugin de vite.config.ts). */
 const SHADERS_DIR = fileURLToPath(new URL('../../src/scene/shaders/', import.meta.url));
 const SHADER_FILES = readdirSync(SHADERS_DIR, { recursive: true, encoding: 'utf8' }).filter(
   (file) => file.endsWith('.glsl'),
@@ -245,7 +245,7 @@ test.describe('build budgets', () => {
     expect(bytes).toBeLessThanOrEqual(SCENE_JS_BUDGET_BYTES);
   });
 
-  test('the shaders reach the scene without their comments (F33-6)', () => {
+  test('the shaders reach the scene without their comments', () => {
     test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
     const code = sceneChunks()
       .map((chunk) => readFileSync(join(CLIENT_DIR, chunk), 'utf8'))

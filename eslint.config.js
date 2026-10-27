@@ -22,13 +22,29 @@ const REACT = [
 
 /** El código puro de la escena (arquitectura.md → «Capas»). */
 const PURE_SCENE = 'src/scene/{shapes,math,config,worker}/**';
+/**
+ * Los módulos de la escena que no son puros (Three, React o el DOM): importarlos por ruta relativa desde el
+ * código puro metería Three en el worker sin pasar por los nombres de `THREE`.
+ */
+const IMPURE_SCENE_MODULES = [
+  'SceneRoot',
+  'CameraRig',
+  'Particles',
+  'BackgroundStars',
+  'sceneMaterials',
+  'particleGeometry',
+  'useSceneShapes',
+  'contextLoss',
+  'voidColour',
+].flatMap((name) => [`**/${name}`, `**/${name}/**`]);
 const PURE_SCENE_FORBIDDEN = [
   ...THREE,
   ...REACT,
   ...['ui', 'features', 'routes', 'stores'].flatMap(layer),
+  ...IMPURE_SCENE_MODULES,
 ];
 const PURE_SCENE_MESSAGE =
-  'scene/{shapes,math,config,worker} es código puro (va en el worker): sin Three, React, Zustand ni stores.';
+  'scene/{shapes,math,config,worker} es código puro (va en el worker): sin Three, React, Zustand, stores ni los módulos de la escena que los usan.';
 
 /** `Math.random` también escrito como `globalThis.Math.random` (o `window.…`, `self.…`). */
 const NO_GLOBAL_MATH_RANDOM = {

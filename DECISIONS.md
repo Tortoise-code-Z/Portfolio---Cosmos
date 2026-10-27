@@ -497,12 +497,20 @@
   - **Reloj de animación propio** (`scene/sceneClock`): se congela con movimiento reducido y no salta más de
     0,1 s entre frames (una pestaña que vuelve).
   - **Lienzo opaco, sin gestión de color ni mapeo de tonos** (`alpha: false`, `linear`, `flat`), limpiado con
-    `--color-void` leído del token: los shaders suman la luz tal cual, como el prototipo.
+    `--color-void` leído del token: los shaders suman la luz tal cual, como el prototipo. El fondo lleva los
+    números del hex tal cual (`scene/voidColour`: `hexToRgb` + `Color.setRGB`), como la paleta de los shaders;
+    `new Color('#…')` los linealizaría y, con la salida lineal, el espacio saldría casi negro.
 - Alternativas descartadas: envolver cada `useFrame` en su propio `try` (no cubre `gl.render`, y cada pieza
   nueva tendría que acordarse); seguir pintando bajo demanda (la escena se anima de forma continua); lienzo
   transparente (la mezcla aditiva deja un alfa que el navegador compone de forma distinta según el motor).
 - Consecuencias: la escena pinta siempre que está montada, también sin cambios en pantalla, hasta la pausa de
   F3.5; R3F ya no pide frames por su cuenta, así que tras recuperar el contexto basta con el frame siguiente del
-  bucle. Una pieza nueva solo necesita su `useFrame`: queda dentro del `try`.
+  bucle y volver a poner el color de fondo (Three rehace su fondo en negro; `SceneRoot` lo repone escuchando
+  `webglcontextrestored` después de Three). Una pieza nueva solo necesita su `useFrame`: queda dentro del `try`.
+  - El primer error de un frame apaga la escena el resto de la visita (no hay reintento).
+  - El `delta` que R3F pasa a cada `useFrame` no tiene tope (`timestamp − clock.elapsedTime`): las piezas leen el
+    tiempo del frame compartido (`SceneFrame.time` y `SceneFrame.delta`, del reloj de la escena), nunca ese
+    `delta`. La media de fps de la degradación en caliente (F3.6) se mide en el `step` del bucle.
+  - Pintar sin parar cuesta en los e2e de Chromium (SwiftShader): de ~4,5 a ~6,7 min desde F3.3.
 - Detalle: `docs/04-escena/rendimiento.md` («Robustez»), `docs/04-escena/particulas-y-shaders.md` («Colores»,
   «Etiquetas y colores»).

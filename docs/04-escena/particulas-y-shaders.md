@@ -1,6 +1,6 @@
 # Partículas y shaders
 
-> Código: `src/scene/Particles.tsx` y `BackgroundStars.tsx` (montan), `scene/particleGeometry` (atributos),
+> Código: `src/scene/Particles/` (monta; `useParticles` se prueba sin WebGL) y `BackgroundStars.tsx`, `scene/particleGeometry` (atributos),
 > `scene/sceneMaterials` (uniforms y materiales), `scene/shaders/` (los `.glsl`, importados con `?raw`, que
 > llegan sin comentarios por el plugin `cosmos:glsl-without-comments` de `vite.config.ts`, y `glslHeader`). Los frames los pide `SceneRoot` con su propio bucle (`rendimiento.md` → «Robustez», ADR-027).
 
@@ -22,7 +22,7 @@ la dirección de `position` escalada a casi cero.
 | Uniform | Tipo | Origen |
 |---|---|---|
 | `uM` | float | `m` suavizado (0–4) |
-| `uTime` | float | segundos desde el arranque (congelado con movimiento reducido para los giros autónomos) |
+| `uTime` | float | reloj de animación de la escena (`scene/sceneClock`): segundos que avanzan con los frames, como mucho 0,1 s de uno a otro (una pestaña que vuelve no salta) y congelados con movimiento reducido |
 | `uCharge` | float | carga de la detonación (0–1) |
 | `uPR` | float | pixel ratio efectivo |
 | `uPlate` | float | etiqueta de la placa iluminada (0 = ninguna) |
@@ -44,10 +44,15 @@ antepone a cada shader de vértices:
   contrato que escribe el generador), `TURTLE_FLIPPERS` y el rango de placas `PLATE_FIRST`..`PLATE_LAST` (20..26,
   `config/plateSlots`).
 - `const vec3 COLOR_<NOMBRE>` desde `config/scenePalette`, que tiene todos los colores principales del design
-  system (lo comprueba su test leyendo la tabla) y los matices del prototipo que la tabla no lista.
+  system, cada uno en su papel (lo comprueba su test con la tabla), y los matices del prototipo que la tabla no
+  lista (los ojos de la tortuga son `COLOR_TURTLE_EYES` × 2: más brillantes que el blanco).
 
-Su test comprueba que todo nombre `TURTLE_*`, `EARTH_*`, `PLATE_*` o `COLOR_*` que usan los shaders existe y que
-ninguna comparación de etiquetas lleva un número escrito a mano. Las placas se comparan con `uPlate` **dentro**
+La cabecera solo va en los shaders de vértices: los de fragmentos no la llevan y no pueden usar sus nombres. Su
+test comprueba que todo nombre `TURTLE_*`, `EARTH_*`, `PLATE_*` o `COLOR_*` que usan los shaders de vértices
+existe, que los de fragmentos no usan ninguno, y que ni las etiquetas (comparaciones, `abs(tag - …)`, `aR.y`/`aR.z`,
+un nombre desplazado más allá del ±0,5 de redondeo) ni los colores (`c = vec3(…)`) llevan números escritos a mano.
+Las potencias del GLSL nunca llevan base negativa (indefinido en GLSL ES): `exp(-q * q)` y un `rim` que no baja
+de 0. Las placas se comparan con `uPlate` **dentro**
 de su rama (`PLATE_FIRST`..`PLATE_LAST`): `uPlate = 0` («ninguna») no casa nunca con la base del caparazón
 (etiqueta 0).
 
@@ -78,7 +83,9 @@ void main() {
 
 - Solo se evalúan **dos formas** por vértice (la actual y la siguiente).
 - Animaciones propias de cada forma dentro de `shape()`: giro lento (nebulosa, galaxia, Tierra), aletas,
-  balanceo y estela de la tortuga, iluminación de la Tierra. Todas multiplicadas por `uMotion`.
+  balanceo y estela de la tortuga, iluminación de la Tierra. Las oscilaciones (aletas, balanceo, cabeceo,
+  estela) van multiplicadas por `uMotion`; los giros no: se paran porque `uTime` se congela con movimiento
+  reducido.
 
 ### Gravedad del cursor
 

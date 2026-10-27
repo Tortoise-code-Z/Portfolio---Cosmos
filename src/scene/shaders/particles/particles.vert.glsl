@@ -114,7 +114,7 @@ void turtle(out vec3 P, out vec3 C, out float S, out float A) {
 
   if (flipper) {
     float reach = max(abs(p.z) - 1.5, 0.0) * uMotion;
-    float phase = tag < TURTLE_FLIPPER + 1.5 ? 0.0 : PI;
+    float phase = tag < TURTLE_FLIPPER + TURTLE_FLIPPERS * 0.5 - 0.5 ? 0.0 : PI;
     p.y += sin(uTime * 1.3 + phase) * 0.42 * reach;
     p.x += cos(uTime * 1.3 + phase) * 0.16 * reach;
   }
@@ -147,7 +147,7 @@ void turtle(out vec3 P, out vec3 C, out float S, out float A) {
   } else if (isTag(tag, TURTLE_HEAD) || flipper || isTag(tag, TURTLE_TAIL)) {
     c = COLOR_TURTLE_BODY;
   } else if (isTag(tag, TURTLE_EYES)) {
-    c = vec3(2.0);
+    c = COLOR_TURTLE_EYES * 2.0;
     s = 2.6;
   } else if (isTag(tag, TURTLE_WAKE)) {
     c = COLOR_TURTLE_WAKE * 0.85;
@@ -169,17 +169,18 @@ void earth(out vec3 P, out vec3 C, out float S, out float A) {
   vec3 n = normalize(p);
   float lam = dot(n, normalize(vec3(-0.72, 0.3, -0.45)));
   float day = smoothstep(-0.12, 0.45, lam);
-  float dawn = exp(-pow(lam * 4.5, 2.0));
+  float q = lam * 4.5;
+  float dawn = exp(-q * q);
   vec3 base = COLOR_EARTH_OCEAN;
   if (isTag(tag, EARTH_LAND)) base = mix(COLOR_EARTH_LAND, COLOR_EARTH_DESERT, aR.x);
   else if (isTag(tag, EARTH_CLOUDS)) base = COLOR_EARTH_CLOUDS;
   vec3 c = base * mix(0.04, 1.25, day);
-  c += COLOR_EARTH_DAWN * dawn * (tag > EARTH_CLOUDS - 0.5 ? 0.9 : 0.45);
+  c += COLOR_EARTH_DAWN * dawn * (isTag(tag, EARTH_CLOUDS) || isTag(tag, EARTH_ATMOSPHERE) ? 0.9 : 0.45);
   if (isTag(tag, EARTH_LAND) && lam < -0.15 && aR.w > 0.8) c += COLOR_EARTH_CITY * 0.9 * uExtras;
   float s = 1.2 + aR.w * 0.6;
   float a = 0.75;
   if (isTag(tag, EARTH_ATMOSPHERE)) {
-    float rim = 1.0 - abs(dot(n, normalize(cameraPosition - p)));
+    float rim = max(1.0 - abs(dot(n, normalize(cameraPosition - p))), 0.0);
     c = COLOR_EARTH_ATMOSPHERE * pow(rim, 2.5) * 2.2 * (0.25 + day) + COLOR_EARTH_RIM * dawn * pow(rim, 2.0);
     s = 2.2;
     a = 0.6;

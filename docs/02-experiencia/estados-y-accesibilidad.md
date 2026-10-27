@@ -11,20 +11,23 @@
    generan una vez en el hilo principal con el nivel Bajo (ese reintento sí lo bloquea, una vez); si eso también
    falla, sin WebGL (`docs/04-escena/rendimiento.md` → «Worker de las formas»).
 5. **Entrada del lienzo**: fundido de ~400 ms (`--dur-fade-slow`; 150 ms con movimiento reducido). En el hero, la
-   singularidad de partículas cae en el sitio del punto CSS: cuando la escena pinta su primer frame (clase
-   `scene-on` en `<html>`), el punto CSS se funde y el halo CSS se queda, por encima del lienzo, como en el
-   prototipo. Sin escena, o si falla, no hay `scene-on` y el punto vuelve.
+   singularidad de partículas cae en el sitio del punto CSS: cuando la escena pinta su primer frame con
+   partículas (las estrellas de fondo pintan antes; clase `scene-on` en `<html>`), el punto CSS se funde y el halo
+   CSS se queda, por encima del lienzo, como en el prototipo. Sin escena, o si falla, no hay `scene-on` y el
+   punto vuelve. Aceptado: si el contexto WebGL se pierde y vuelve (como mucho 3 s con la página a la vista),
+   `scene-on` sigue puesto y en ese hueco el hero se queda con el halo y sin punto; si no vuelve, la escena se
+   apaga y el punto regresa.
 6. Si el usuario ya había hecho scroll, la escena arranca en el `m` actual, sin repetir la explosión.
 
 No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 
 ## Sin WebGL (o si falla)
 
-- Se detecta al iniciar; ante cualquier error de contexto o de shader, o si las formas no llegan de ninguna
-  manera (ni del worker ni del reintento), se desmonta la escena y se marca el documento con una clase
-  (`no-gl`).
-- Fondo: degradado estático del espacio en CSS (`--gradient-space`, fijo en la capa de la escena); hero con el
-  punto CSS.
+- Se detecta al iniciar; ante cualquier error de contexto o de shader, un frame que lanza (en un `useFrame` o al
+  pintar: el bucle se para) o si las formas no llegan de ninguna manera (ni del worker ni del reintento), se
+  desmonta la escena y se marca el documento con una clase (`no-gl`).
+- Fondo: degradado estático del espacio en CSS (`--gradient-space`, fijo en la capa de la escena, por debajo del
+  contenido), que entra con el mismo fundido que el lienzo; hero con el punto CSS.
 - Aviso discreto, una vez por visita: «Your browser can't show the 3D universe, but everything else is here.» con
   «Got it» para descartarlo (navegar dentro del sitio no lo repite; recargar sí, porque sigue siendo verdad). Si
   la sugerencia de idioma está a la vista, espera a que se conteste: los dos flotan en el mismo sitio y nunca se
@@ -59,7 +62,7 @@ Valores en `docs/04-escena/`.
 |---|---|---|
 | Alto | Escritorio con GPU dedicada o integrada moderna | Todas las partículas, DPR hasta 2 |
 | Medio | Portátil modesto o fps bajos sostenidos | Menos partículas, DPR hasta 1,5 |
-| Bajo | Móvil, `saveData`, poca memoria | Partículas mínimas, DPR 1, sin estela |
+| Bajo | Móvil, `saveData`, poca memoria | Partículas mínimas, DPR 1, sin estela ni luces de ciudad |
 | Apagado | Sin WebGL o fallo | Modo sin WebGL |
 
 ## Pestaña oculta y modo misión rápida

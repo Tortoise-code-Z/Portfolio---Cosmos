@@ -25,6 +25,15 @@ describe('createSceneClock', () => {
     expect(clock.delta).toBe(0);
   });
 
+  it('reduced from the first frame: stands still from 0, while the real delta runs', () => {
+    const clock = createSceneClock();
+    clock.setReduced(true);
+    clock.tick(0);
+    clock.tick(0.05);
+    expect(clock.time).toBe(0);
+    expect(clock.delta).toBeCloseTo(0.05, 10);
+  });
+
   it('stands still with reduced motion, and goes on from there without a jump', () => {
     const clock = createSceneClock();
     clock.tick(0);

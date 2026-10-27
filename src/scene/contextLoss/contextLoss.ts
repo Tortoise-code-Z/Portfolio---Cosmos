@@ -20,7 +20,8 @@ export interface ContextLossHandlers {
   readonly onGiveUp: (reason: GiveUpReason) => void;
   /**
    * El contexto ha vuelto. Three rehace su estado; con el bucle de frames de la escena (continuo, ADR-027) no
-   * hace falta nada más, pero un lienzo que pintara bajo demanda tendría que pedir un frame aquí.
+   * hace falta pedir un frame (un lienzo que pintara bajo demanda tendría que pedirlo aquí). Ojo: este oyente
+   * puede ir antes que el de Three; lo que deba ir después (el color de fondo) se escucha en `onCreated`.
    */
   readonly onRestored?: () => void;
   readonly timeoutMs?: number;
