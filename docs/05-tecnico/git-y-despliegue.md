@@ -12,8 +12,9 @@
 - Protección de `main` (regla clásica en Settings → Branches): PR obligatorio sin aprobaciones (trabajo en
   solitario), rama al día y checks obligatorios `Typecheck · lint · format · tests`, `Build` y
   `E2E (Chromium · Firefox · WebKit)` (el job que resume los tres navegadores; ADR-024) y, desde F3.6,
-  `Visual regression` (las capturas de `calidad.md` → «Regresión visual»; ⚠ lo marca Víctor en la regla cuando
-  el primer PR lo muestre en verde). El admin puede
+  `Visual regression` (las capturas de `calidad.md` → «Regresión visual»). Los cuatro, marcados en la regla desde
+  la sesión 24 (antes la regla no tenía ninguno marcado). Un job nuevo solo aparece en el buscador de la regla
+  tras ejecutarse una vez: se marca cuando su primer PR lo muestra en verde, antes de fusionar. El admin puede
   saltársela en una emergencia. ⚠ Los checks se identifican
   por el `name` del job: si se renombra un job en `ci.yml`, hay que actualizar la regla o los PR se quedan
   esperando un check que ya no existe.
