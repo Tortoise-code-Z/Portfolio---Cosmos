@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -8,6 +9,7 @@ import { imagetools, type OutputFormat } from 'vite-imagetools';
 
 import { PROJECT_IMAGE_WIDTHS, SHARE_IMAGE_WIDTH } from './src/content/imageWidths.ts';
 import { parseSiteUrl } from './src/lib/env/siteUrl/siteUrl.ts';
+import { stripGlslComments } from './src/scene/shaders/stripGlslComments/stripGlslComments.ts';
 
 /**
  * `vite preview` sirve `/es` con el `index.html` de la raíz (fallback de SPA) en vez de
@@ -114,6 +116,27 @@ function projectImages(): Plugin {
   });
 }
 
+/**
+ * Los shaders (`*.glsl?raw`) sin sus comentarios (F33-6, docs/04-escena/rendimiento.md → «Presupuesto»): van
+ * comentados para leerlos, y en el chunk de la escena solo pesan. Se aplica también en desarrollo, para que el
+ * navegador compile lo mismo que en el build; los saltos de línea se conservan (`stripGlslComments`). Vitest
+ * tiene su propia config y lee los archivos tal cual.
+ */
+function glslWithoutComments(): Plugin {
+  return {
+    name: 'cosmos:glsl-without-comments',
+    enforce: 'pre',
+    async load(id) {
+      const match = /^(.+\.glsl)\?raw$/.exec(id);
+      if (match === null) return null;
+      const [, file = ''] = match;
+      this.addWatchFile(file);
+      const source = await readFile(file, 'utf8');
+      return `export default ${JSON.stringify(stripGlslComments(source))};`;
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   // Falla el build, el servidor de desarrollo y el preview con un mensaje claro si VITE_SITE_URL
   // falta o no es https: canónicas, hreflang y Open Graph son URL absolutas.
@@ -121,7 +144,7 @@ export default defineConfig(({ mode }) => {
   parseSiteUrl(env.VITE_SITE_URL);
 
   return {
-    plugins: [projectImages(), reactRouter(), previewDirectoryIndex()],
+    plugins: [glslWithoutComments(), projectImages(), reactRouter(), previewDirectoryIndex()],
     // Un solo CSS para todo el sitio (ADR-019): el <head> de la 404 servida coincide con el que pinta el
     // cliente aunque case otra ruta (`/ES`, slug desconocido), y la hidratación no falla.
     build: {
