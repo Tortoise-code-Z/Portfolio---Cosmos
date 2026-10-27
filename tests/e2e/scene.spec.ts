@@ -208,6 +208,38 @@ test.describe('the scene with WebGL', () => {
     expect(errors).toEqual([]);
   });
 
+  for (const viewport of [
+    { width: 1280, height: 720 },
+    { width: 390, height: 844 },
+  ]) {
+    test(`at ${String(viewport.width)}×${String(viewport.height)}, the camera follows the journey and the mouse without errors`, async ({
+      page,
+    }) => {
+      const errors = collectErrors(page);
+      await page.setViewportSize(viewport);
+      await page.goto('/', { waitUntil: 'networkidle' });
+      await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
+        timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+      });
+      // Cada capítulo (su keyframe y, en escritorio, su encuadre) con el ratón moviéndose (paralaje) y
+      // saliendo de la ventana (vuelve al centro); a 390 px, el campo de visión de móvil.
+      for (const id of ['about', 'skills', 'projects', 'contact']) {
+        await page.locator(`#${id}`).scrollIntoViewIfNeeded();
+        await page.mouse.move(viewport.width * 0.9, viewport.height * 0.2, { steps: 4 });
+        await page.mouse.move(viewport.width * 0.1, viewport.height * 0.8, { steps: 4 });
+        await page.evaluate(
+          () =>
+            new Promise((resolve) => {
+              requestAnimationFrame(() => requestAnimationFrame(resolve));
+            }),
+        );
+      }
+      await page.mouse.move(-10, -10);
+      await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
+      expect(errors).toEqual([]);
+    });
+  }
+
   test('generates its shapes in the worker, without downloading the generators', async ({
     page,
   }) => {

@@ -2,15 +2,18 @@ import { Canvas, type RootState } from '@react-three/fiber';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Color } from 'three';
 
+import { watchMediaQuery } from '~/lib/device/mediaQuery/mediaQuery';
 import { watchReducedMotion } from '~/lib/device/reducedMotion/reducedMotion';
 import { LEVEL_SETTINGS, type RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
 import { sceneStore } from '~/stores/sceneStore/sceneStore';
 
 import { BackgroundStars } from '../BackgroundStars';
-import { CAMERA_LENS, PROVISIONAL_CAMERA_POSITION } from '../config/sceneConfig';
+import { CameraRig } from '../CameraRig/CameraRig';
+import { CAMERA_LENS, WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
 import { watchContextLoss } from '../contextLoss/contextLoss';
 import { startFrameLoop } from '../frameLoop/frameLoop';
 import { Particles } from '../Particles';
+import { watchPointer } from '../pointer/pointer';
 import { createSceneClock } from '../sceneClock/sceneClock';
 import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
 import { useSceneShapes } from '../useSceneShapes/useSceneShapes';
@@ -52,17 +55,15 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
 /** El color de fondo del lienzo: el del espacio (`--color-void`), leído del token (ADR-005). */
 const VOID_TOKEN = '--color-void';
 
-/** La cámara provisional (F3.4 la sustituye por `CameraRig`). */
-const CAMERA = { ...CAMERA_LENS, position: [...PROVISIONAL_CAMERA_POSITION] } as const;
-
 /**
  * Raíz de la escena (docs/05-tecnico/arquitectura.md → «Carga de la escena»). Llega en su propio chunk,
  * con Three.js y React Three Fiber, después de la primera pintura: el JS inicial no la incluye. Fija detrás del
  * contenido, decorativa (`aria-hidden`) y sin puntero. Pide las formas al montar (`useSceneShapes`: worker y,
- * si falla, reintento) y las pinta (`Particles`), con las estrellas de fondo.
+ * si falla, reintento) y las pinta (`Particles`), con las estrellas de fondo; la cámara la lleva `CameraRig`.
  *
  * Los frames los pide su propio bucle (`frameloop="never"` + `startFrameLoop`, ADR-027): antes de cada
- * `advance()` rellena el frame compartido (`m`, reloj, densidad de píxeles…) y, si un frame lanza, para y pasa a
+ * `advance()` rellena el frame compartido (`m`, reloj, densidad de píxeles…; el ratón y si es escritorio los
+ * escriben sus observadores, `watchPointer` y `watchMediaQuery`) y, si un frame lanza, para y pasa a
  * sin WebGL. El lienzo es opaco, del color del espacio, y sin gestión de color ni mapeo de tonos (`linear`,
  * `flat`): los shaders suman la luz tal cual, como el prototipo (particulas-y-shaders.md → «Colores»).
  */
@@ -95,6 +96,16 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
       }),
     [clock],
   );
+
+  useEffect(
+    () =>
+      watchMediaQuery(WIDE_LAYOUT_QUERY, (wide) => {
+        frame.wide = wide;
+      }),
+    [frame],
+  );
+
+  useEffect(() => watchPointer(frame.pointer), [frame]);
 
   useEffect(
     () => () => {
@@ -140,6 +151,7 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
         const state = get();
         frame.m = sceneStore.getState().m;
         frame.time = clock.time;
+        frame.delta = clock.delta;
         frame.reducedMotion = clock.reduced;
         frame.pixelRatio = state.viewport.dpr;
         frame.aspect = state.size.width / Math.max(state.size.height, 1);
@@ -175,10 +187,11 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
         frameloop="never"
         flat
         linear
-        camera={CAMERA}
+        camera={CAMERA_LENS}
         gl={{ alpha: false, antialias: false, powerPreference: 'high-performance' }}
         onCreated={onCreated}
       >
+        <CameraRig frame={frame} />
         {shapes === null ? null : (
           <Particles shapes={shapes.shapes} frame={frame} onFirstFrame={onFirstFrame} />
         )}

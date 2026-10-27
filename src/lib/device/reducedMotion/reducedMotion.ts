@@ -1,3 +1,5 @@
+import { watchMediaQuery } from '../mediaQuery/mediaQuery';
+
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 /**
@@ -23,17 +25,5 @@ export function jumpBehavior(): ScrollBehavior {
  * `matchMedia`, avisa una vez con «no».
  */
 export function watchReducedMotion(onChange: (reduced: boolean) => void): () => void {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-    onChange(false);
-    return () => undefined;
-  }
-  const query = window.matchMedia(REDUCED_MOTION_QUERY);
-  const listener = (event: MediaQueryListEvent): void => {
-    onChange(event.matches);
-  };
-  onChange(query.matches);
-  query.addEventListener('change', listener);
-  return () => {
-    query.removeEventListener('change', listener);
-  };
+  return watchMediaQuery(REDUCED_MOTION_QUERY, onChange);
 }

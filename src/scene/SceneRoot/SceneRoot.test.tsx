@@ -12,7 +12,17 @@ import SceneRoot from './SceneRoot';
 vi.mock('../useSceneShapes/useSceneShapes', () => ({ useSceneShapes: vi.fn(() => null) }));
 
 /** Las piezas de Three necesitan WebGL: aquí solo se mira qué reciben (y las partículas «pintan» al montar). */
-const seen = vi.hoisted((): { frame: unknown; stars: number[] } => ({ frame: null, stars: [] }));
+const seen = vi.hoisted((): { frame: unknown; stars: number[]; cameraFrame: unknown } => ({
+  frame: null,
+  stars: [],
+  cameraFrame: null,
+}));
+vi.mock('../CameraRig/CameraRig', () => ({
+  CameraRig: function FakeCameraRig({ frame }: { readonly frame: unknown }) {
+    seen.cameraFrame = frame;
+    return null;
+  },
+}));
 vi.mock('../Particles', async () => {
   const { useEffect } = await import('react');
   return {
@@ -82,7 +92,7 @@ vi.mock('@react-three/fiber', () => ({
     readonly frameloop: string;
     readonly flat: boolean;
     readonly linear: boolean;
-    readonly camera: { readonly fov: number; readonly position: readonly number[] };
+    readonly camera: { readonly fov: number; readonly position?: readonly number[] };
     readonly gl: { readonly alpha: boolean };
     readonly onCreated: (state: { gl: typeof renderer; get: () => typeof r3fState }) => void;
     readonly children: ReactNode;
@@ -101,7 +111,7 @@ vi.mock('@react-three/fiber', () => ({
           data-flat={String(flat)}
           data-linear={String(linear)}
           data-alpha={String(gl.alpha)}
-          data-camera={`${String(camera.fov)}@${camera.position.join(',')}`}
+          data-camera={`${String(camera.fov)}@${camera.position?.join(',') ?? 'rig'}`}
         />
         {children}
       </>
@@ -117,6 +127,8 @@ afterEach(() => {
   advance.mockReset();
   seen.frame = null;
   seen.stars = [];
+  seen.cameraFrame = null;
+  vi.unstubAllGlobals();
   setScrollTarget(0);
   document.documentElement.style.removeProperty('--color-void');
   // `restoreAllMocks` solo deshace los `spyOn`: lo que un test le haga devolver al simulacro de `vi.mock` se
@@ -176,8 +188,8 @@ describe('SceneRoot', () => {
     expect(canvas).toHaveAttribute('data-alpha', 'false');
     expect(canvas).toHaveAttribute('data-flat', 'true');
     expect(canvas).toHaveAttribute('data-linear', 'true');
-    // Cámara provisional hasta F3.4: el keyframe del capítulo 0.
-    expect(canvas).toHaveAttribute('data-camera', '55@0,0,14');
+    // La lente; la posición la pone `CameraRig` en cada frame.
+    expect(canvas).toHaveAttribute('data-camera', '55@rig');
   });
 
   it('clears with the void colour of the tokens', () => {
@@ -211,11 +223,16 @@ describe('SceneRoot', () => {
     expect(seen.frame).toEqual({
       m: sceneStore.getState().m,
       time: expect.closeTo(0.05, 10) as unknown,
+      delta: expect.closeTo(0.05, 10) as unknown,
       reducedMotion: false,
       pixelRatio: 2,
       aspect: 1.6,
       extras: false,
+      wide: false,
+      pointer: { x: 0, y: 0, inside: false },
     });
+    // La cámara lee el mismo frame.
+    expect(seen.cameraFrame).toBe(seen.frame);
     expect(advance).toHaveBeenCalledTimes(2);
   });
 
@@ -244,6 +261,37 @@ describe('SceneRoot', () => {
     expect(frames.cancel).toHaveBeenCalled();
     frames.tick(0);
     expect(advance).not.toHaveBeenCalled();
+  });
+
+  it('tells its camera whether the layout is the desktop one and where the mouse is, until unmounted', () => {
+    const queries: string[] = [];
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => {
+        queries.push(query);
+        return {
+          matches: query === '(width >= 900px)',
+          addEventListener: () => undefined,
+          removeEventListener: () => undefined,
+        };
+      }),
+    );
+    vi.stubGlobal('innerWidth', 1000);
+    vi.stubGlobal('innerHeight', 500);
+    const { unmount } = renderScene();
+    const frame = seen.cameraFrame as { wide: boolean; pointer: object };
+    expect(queries).toContain('(width >= 900px)');
+    expect(frame.wide).toBe(true);
+    const move = (clientX: number): void => {
+      const event = new MouseEvent('pointermove', { clientX, clientY: 250 });
+      Object.defineProperty(event, 'pointerType', { value: 'mouse' });
+      window.dispatchEvent(event);
+    };
+    move(750);
+    expect(frame.pointer).toEqual({ x: 0.5, y: 0, inside: true });
+    unmount();
+    move(0);
+    expect(frame.pointer).toEqual({ x: 0.5, y: 0, inside: true });
   });
 
   it('says when the renderer exists (data-ready), so the e2e know the scene is mounted', () => {

@@ -62,7 +62,9 @@ cosmos-portfolio/
 │  │  │                           jumpToChapter (scroll + foco al título + ancla)
 │  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
 │  │  │                           sitemap y robots (reciben origen y datos por parámetro, ADR-017)
-│  │  ├─ device/                ← señales del dispositivo: reducedMotion (prefersReducedMotion, jumpBehavior),
+│  │  ├─ device/                ← señales del dispositivo: mediaQuery (watchMediaQuery: una media query ahora y
+│  │  │                           cada vez que cambie), reducedMotion (prefersReducedMotion, jumpBehavior,
+│  │  │                           watchReducedMotion),
 │  │  │                           sceneLevel (niveles de la escena, su tabla, la elección inicial, pura, y
 │  │  │                           readBrowserSignals, que lee las señales en cliente) y webgl2 (detectWebGL2:
 │  │  │                           con GPU, por software o sin WebGL2); después usePointerType
@@ -226,7 +228,8 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 - `SceneRoot` monta el `<Canvas>` fijo detrás del contenido (`--z-scene`), `aria-hidden`, sin puntero (R3F
   pone `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. Pinta con su propio bucle
   (`frameloop="never"` + `scene/frameLoop`, ADR-027) las partículas (`Particles`) y las estrellas de fondo
-  (`BackgroundStars`), con una cámara fija provisional hasta F3.4. Al montar pide las formas al worker; si falla, las genera una vez en el hilo principal a nivel Bajo, y si
+  (`BackgroundStars`); la cámara la mueve `CameraRig` (`docs/04-escena/camara-y-encuadre.md`), con el ratón de
+  `scene/pointer` y si es escritorio de `watchMediaQuery`. Al montar pide las formas al worker; si falla, las genera una vez en el hilo principal a nivel Bajo, y si
   eso también falla, Apagado (`docs/04-escena/rendimiento.md` → «Worker de las formas»).
 - `scene/{shapes,math,config,worker}` es código puro: lo que corre en el worker o se prueba sin WebGL. ESLint
   le prohíbe Three, React, Zustand, `stores`, los datos de `content` (solo sus tipos) y cualquier `import()`
