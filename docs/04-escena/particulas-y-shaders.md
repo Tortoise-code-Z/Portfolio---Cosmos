@@ -21,7 +21,7 @@ la dirección de `position` escalada a casi cero.
 
 | Uniform | Tipo | Origen |
 |---|---|---|
-| `uM` | float | `m` suavizado (0–4) |
+| `uM` | float | `m` suavizado por la escena (0–4; `SceneFrame.m`, ADR-028) |
 | `uTime` | float | reloj de animación de la escena (`scene/sceneClock`): segundos que avanzan con los frames, como mucho 0,1 s de uno a otro (una pestaña que vuelve no salta) y congelados con movimiento reducido |
 | `uCharge` | float | carga de la detonación (0–1) |
 | `uPR` | float | pixel ratio efectivo |

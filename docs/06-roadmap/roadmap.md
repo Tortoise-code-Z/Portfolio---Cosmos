@@ -72,6 +72,8 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
    las cifras del prototipo, a ajustar con capturas en F3.6.)*
 5. Puente `sceneStore` ↔ scroll (el scroll ya escribe `mTarget` desde F2.5, ADR-021: la escena pasa a suavizar `m`);
    pausa con pestaña oculta y en misión rápida (`quickMissionOpen` de `uiStore`, desde F2.6).
+   *(Hecho en F3.5: la escena suaviza su propia `m` desde `mTarget` y arranca en él; la interfaz sigue a saltos
+   (ADR-028). El bucle se pausa con la pestaña oculta o la misión rápida abierta.)*
 6. Primeras capturas de regresión visual (Docker) y medición de fps; degradación en caliente de nivel (media de
    fps en ventanas de 2 s, `docs/04-escena/rendimiento.md` → «Degradación en caliente»).
 7. Ficha de **Cosmos** con la escena: el resumen final, «Scroll-driven particle morphing…», «Works without WebGL…»

@@ -318,6 +318,25 @@ test.describe('the scene with WebGL', () => {
     });
   });
 
+  test('pauses while the quick mission covers it, and goes on when it closes', async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
+      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+    });
+    const scene = page.locator(SCENE_READY);
+    await expect(scene).not.toHaveAttribute('data-paused');
+    await page.getByRole('banner').getByRole('button', { name: 'Quick mission' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(scene).toHaveAttribute('data-paused', 'true');
+    await dialog.getByRole('button', { name: 'Close quick mission' }).click();
+    await expect(scene).not.toHaveAttribute('data-paused');
+    await nextFrames(page);
+    await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
+    expect(errors).toEqual([]);
+  });
+
   for (const viewport of [
     { width: 1280, height: 720 },
     { width: 390, height: 844 },

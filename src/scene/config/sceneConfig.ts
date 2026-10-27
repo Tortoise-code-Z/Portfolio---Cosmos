@@ -72,3 +72,10 @@ export const PARALLAX = { x: 0.7, y: 0.45, rate: 2 } as const;
 
 /** Subsemilla de las estrellas de fondo (como las de cada forma, `subSeed`). */
 export const STARS_SEED_NAME = 'stars';
+
+/**
+ * Suavizado de `m` en la escena (docs/02-experiencia/scroll-y-escena.md → «Suavizado», ADR-028): persigue a
+ * `mTarget` a ritmo `rate` (`min(1, dt · rate)`), `reducedRate` con movimiento reducido (casi sin inercia), y llega
+ * cuando le falta menos de `epsilon`.
+ */
+export const M_SMOOTHING = { rate: 3.4, reducedRate: 12, epsilon: 1e-4 } as const;

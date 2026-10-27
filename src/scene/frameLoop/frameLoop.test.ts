@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { startFrameLoop } from './frameLoop';
+import { startFrameLoop, type FrameLoop } from './frameLoop';
 
 /** `requestAnimationFrame` a mano: el test decide cuándo llega cada frame. */
 function fakeFrames() {
@@ -32,7 +32,7 @@ describe('startFrameLoop', () => {
     const step = vi.fn();
     // Un `cancel` que no cancela nada: el frame ya pedido llega igual.
     const cancel = vi.fn();
-    const stop = startFrameLoop({
+    const { stop } = startFrameLoop({
       step,
       onError: vi.fn(),
       request: (callback) => {
@@ -46,15 +46,6 @@ describe('startFrameLoop', () => {
     expect(cancel).toHaveBeenCalledTimes(1);
     (pending as FrameRequestCallback | null)?.(0);
     expect(step).not.toHaveBeenCalled();
-  });
-
-  it('asks the browser for frames by default (requestAnimationFrame), and cancels the one pending', () => {
-    const request = vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(7);
-    const cancel = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
-    const stop = startFrameLoop({ step: vi.fn(), onError: vi.fn() });
-    expect(request).toHaveBeenCalledTimes(1);
-    stop();
-    expect(cancel).toHaveBeenCalledExactlyOnceWith(7);
   });
 
   it('steps every frame with the seconds since it started', () => {
@@ -85,16 +76,16 @@ describe('startFrameLoop', () => {
 
   it('stop cancels the pending frame, and a stop during a frame asks for no other', () => {
     const frames = fakeFrames();
-    const stop = startFrameLoop({ step: vi.fn(), onError: vi.fn(), ...frames });
+    const { stop } = startFrameLoop({ step: vi.fn(), onError: vi.fn(), ...frames });
     stop();
     expect(frames.cancel).toHaveBeenCalledTimes(1);
     expect(frames.pending).toBe(0);
 
     const later = fakeFrames();
-    let stopLater = (): void => undefined;
-    stopLater = startFrameLoop({
+    let loop: FrameLoop | null = null;
+    loop = startFrameLoop({
       step: () => {
-        stopLater();
+        loop?.stop();
       },
       onError: vi.fn(),
       ...later,
@@ -103,10 +94,45 @@ describe('startFrameLoop', () => {
     expect(later.pending).toBe(0);
   });
 
+  it('paused, it asks for no frame (the pending one is cancelled); going on asks for one, once', () => {
+    const frames = fakeFrames();
+    const step = vi.fn<(seconds: number) => void>();
+    const { setPaused } = startFrameLoop({ step, onError: vi.fn(), ...frames });
+    frames.tick(1000);
+    setPaused(true);
+    expect(frames.cancel).toHaveBeenCalledTimes(1);
+    expect(frames.pending).toBe(0);
+    setPaused(true);
+    expect(frames.cancel).toHaveBeenCalledTimes(1);
+    setPaused(false);
+    setPaused(false);
+    expect(frames.request).toHaveBeenCalledTimes(3);
+    expect(frames.pending).toBe(1);
+    // Los segundos siguen contando desde el arranque (el reloj de la escena limita el salto).
+    frames.tick(3000);
+    expect(step.mock.calls.map(([seconds]) => seconds)).toEqual([0, 2]);
+  });
+
+  it('a frame that slips through while paused does nothing; after stop, pausing does nothing', () => {
+    let pending: FrameRequestCallback | null = null;
+    const step = vi.fn();
+    const request = vi.fn((callback: FrameRequestCallback) => {
+      pending = callback;
+      return 1;
+    });
+    const loop = startFrameLoop({ step, onError: vi.fn(), request, cancel: vi.fn() });
+    loop.setPaused(true);
+    (pending as FrameRequestCallback | null)?.(0);
+    expect(step).not.toHaveBeenCalled();
+    loop.stop();
+    loop.setPaused(false);
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
   it('uses requestAnimationFrame by default', () => {
     const request = vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(7);
     const cancel = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
-    const stop = startFrameLoop({ step: vi.fn(), onError: vi.fn() });
+    const { stop } = startFrameLoop({ step: vi.fn(), onError: vi.fn() });
     expect(request).toHaveBeenCalledTimes(1);
     stop();
     expect(cancel).toHaveBeenCalledExactlyOnceWith(7);

@@ -1,9 +1,10 @@
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 import type { Color } from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import { sceneStore, setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import { closeQuickMission, openQuickMission, useUiStore } from '~/stores/uiStore/uiStore';
 
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../contextLoss/contextLoss';
 import { MAX_STEP_S } from '../sceneClock/sceneClock';
@@ -145,6 +146,8 @@ afterEach(() => {
   seen.cameraFrame = null;
   vi.unstubAllGlobals();
   setScrollTarget(0);
+  useUiStore.setState(useUiStore.getInitialState(), true);
+  Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
   document.documentElement.style.removeProperty('--color-void');
   // `restoreAllMocks` solo deshace los `spyOn`: lo que un test le haga devolver al simulacro de `vi.mock` se
   // quedaría para los siguientes (vuelve a `() => null`).
@@ -308,6 +311,73 @@ describe('SceneRoot', () => {
     expect(advance).toHaveBeenCalledTimes(2);
     // R3F avanza con los segundos del bucle (sus `useFrame` leen el reloj del frame compartido).
     expect(advance).toHaveBeenLastCalledWith(1);
+  });
+
+  it('its m starts at the scroll target and then follows it smoothly; the store keeps the target for the interface', () => {
+    const frames = manualFrames();
+    setScrollTarget(3);
+    renderScene();
+    const frame = seen.cameraFrame as { m: number };
+    // Quien llega a mitad del viaje no ve la explosión otra vez.
+    frames.tick(1000);
+    expect(frame.m).toBe(3);
+    setScrollTarget(1);
+    frames.tick(1050);
+    // 0,05 s a ritmo 3,4: el 17 % del camino.
+    expect(frame.m).toBeCloseTo(3 - 2 * 0.05 * 3.4, 10);
+    expect(sceneStore.getState().m).toBe(1);
+    // Un frame largo (tope 0,1 s del reloj) no se pasa; al final llega y se queda.
+    for (let t = 1100; t < 5000; t += 100) frames.tick(t);
+    expect(frame.m).toBe(1);
+  });
+
+  it('with reduced motion its m follows faster (almost no inertia)', () => {
+    stubMatchMedia([REDUCED_MOTION]);
+    const frames = manualFrames();
+    renderScene();
+    const frame = seen.cameraFrame as { m: number };
+    frames.tick(1000);
+    setScrollTarget(1);
+    frames.tick(1050);
+    expect(frame.m).toBeCloseTo(0.05 * 12, 10);
+  });
+
+  it('pauses its loop while the quick mission is open or the page is hidden (data-paused), and goes on after', () => {
+    const frames = manualFrames();
+    const { canvas } = renderScene();
+    const wrapper = canvas.closest('[aria-hidden="true"]');
+    frames.tick(0);
+    expect(advance).toHaveBeenCalledTimes(1);
+    act(() => {
+      openQuickMission();
+    });
+    expect(wrapper).toHaveAttribute('data-paused', 'true');
+    frames.tick(16);
+    expect(advance).toHaveBeenCalledTimes(1);
+    act(() => {
+      Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+      closeQuickMission();
+    });
+    // Aún oculta: sigue en pausa.
+    frames.tick(32);
+    expect(advance).toHaveBeenCalledTimes(1);
+    act(() => {
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(wrapper).not.toHaveAttribute('data-paused');
+    frames.tick(48);
+    expect(advance).toHaveBeenCalledTimes(2);
+  });
+
+  it('a page that is hidden when the renderer is created starts paused', () => {
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    const frames = manualFrames();
+    const { canvas } = renderScene();
+    expect(canvas.closest('[aria-hidden="true"]')).toHaveAttribute('data-paused', 'true');
+    frames.tick(0);
+    expect(advance).not.toHaveBeenCalled();
   });
 
   it('obeys reduced motion: the clock stands still, goes on without a jump, and it stops listening when unmounted', () => {

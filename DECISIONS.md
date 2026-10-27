@@ -321,7 +321,7 @@
 - Detalle: `docs/05-tecnico/calidad.md` → «Presupuestos».
 
 ## ADR-021 · Interfaz fija sin escena: `m` sin suavizar y lectura bajo una barra de altura fija
-- Estado: Aceptada
+- Estado: Aceptada · la consecuencia «la escena dejará de escribir `m`» la sustituye ADR-028
 - Fecha: 2026-10-23
 - Contexto: F2 · paso 5 conecta el scroll con el raíl, el HUD y la barra superior antes de que exista la escena
   (F3), que es quien suaviza `m` por frame. La barra es fija y tapa la parte de arriba de la ventana: un ancla
@@ -514,3 +514,28 @@
   - Pintar sin parar cuesta en los e2e de Chromium (SwiftShader): de ~4,5 a ~6,7 min desde F3.3.
 - Detalle: `docs/04-escena/rendimiento.md` («Robustez»), `docs/04-escena/particulas-y-shaders.md` («Colores»,
   «Etiquetas y colores»).
+
+## ADR-028 · La escena suaviza su propia `m`; la interfaz fija sigue el scroll a saltos
+- Estado: Aceptada
+- Fecha: 2026-10-27
+- Contexto: F3.5 conecta el scroll con la escena: `m` tiene que perseguir a `mTarget` con inercia
+  (`scroll-y-escena.md` → «Suavizado»). ADR-021 dejó el raíl, el HUD y el idioma leyendo `m = mTarget` a saltos y
+  preveía que la escena pasara a escribir su `m` suavizada en `sceneStore`. Eso haría que la interfaz dependiera
+  de si hay escena (P1), escribiría el store en cada frame mientras converge (un objeto nuevo por frame, ADR-004)
+  y obligaría a devolver `m = mTarget` al pausar o apagar la escena.
+- Decisión: la escena suaviza **su propia copia** de `m` (`SceneFrame.m`), que leen todas sus piezas: en cada
+  frame, el bucle hace `m = damp(m, mTarget, dt, k)` (`lib/math/damp`: `min(1, dt · k)`, `k` = 3,4 y 12 con
+  movimiento reducido, llega por debajo de 1e-4; `M_SMOOTHING` en `sceneConfig`) con el tiempo real del frame
+  (`sceneClock.delta`, tope 0,1 s), y en su primer frame arranca en `mTarget` (quien llega a mitad del viaje no ve
+  otra vez la explosión). `sceneStore` sigue con `m = mTarget`: el raíl, el HUD y el idioma van a saltos, con y
+  sin escena. La pausa (pestaña oculta, misión rápida abierta: `scene/pause`) no pide el frame siguiente
+  (`FrameLoop.setPaused`).
+- Alternativas descartadas: escribir la `m` suavizada en `sceneStore` para que el HUD y el raíl también tengan
+  inercia (lo de arriba; además, el raíl cambiaría de capítulo con retraso tras un salto con ancla); suavizar en
+  la interfaz con un bucle propio (el que ADR-021 ya descartó).
+- Consecuencias: con escena, la escena y la interfaz pueden ir un instante desfasadas durante la inercia (la
+  interfaz va por delante); es lo previsto. Todo lo nuevo de la escena (constelaciones, etiquetas, placas, F4)
+  lee `SceneFrame.m`, nunca `sceneStore.m`. Al volver de una pausa, el reloj limita el salto (0,1 s) y la `m`
+  sigue desde donde estaba.
+- Detalle: `docs/02-experiencia/scroll-y-escena.md` («Suavizado»), `docs/05-tecnico/arquitectura.md` («Estado»,
+  «Puente scroll → escena»), `docs/04-escena/rendimiento.md` («Ahorro de trabajo»).
