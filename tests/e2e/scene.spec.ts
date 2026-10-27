@@ -59,21 +59,35 @@ async function nextFrames(page: Page): Promise<void> {
   );
 }
 
-/** El color de `--color-void` (`#04050b`), el del fondo del lienzo. */
-const VOID_RGB = [4, 5, 11] as const;
+interface Clip {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+type Rgb = readonly [number, number, number];
+
+/** El color del espacio, leído del token en la página (`--color-void`, `#rrggbb`): el fondo del lienzo. */
+async function voidRgb(page: Page): Promise<Rgb> {
+  const hex = await page.evaluate(() =>
+    getComputedStyle(document.documentElement).getPropertyValue('--color-void').trim(),
+  );
+  expect(hex).toMatch(/^#[\da-f]{6}$/i);
+  return [1, 3, 5].map((start) =>
+    Number.parseInt(hex.slice(start, start + 2), 16),
+  ) as unknown as Rgb;
+}
 
 /**
- * La parte de una zona de la ventana que no es el fondo del espacio: algo pinta ahí. La captura la descodifica
- * el propio navegador (en un lienzo 2D), sin dependencias. Un píxel cuenta si se aleja del fondo más que el
- * ruido de la compresión.
+ * Lo que se ve en una zona de la ventana: qué parte no es el fondo (algo pinta ahí: un píxel cuenta si se aleja
+ * del fondo más que el ruido de la compresión) y el color que más se repite. La captura la descodifica el propio
+ * navegador (en un lienzo 2D), sin dependencias.
  */
-async function paintedFraction(
-  page: Page,
-  clip: { x: number; y: number; width: number; height: number },
-): Promise<number> {
+async function look(page: Page, clip: Clip): Promise<{ painted: number; dominant: Rgb }> {
+  const background = await voidRgb(page);
   const png = await page.screenshot({ clip });
   return page.evaluate(
-    async ({ base64, background }) => {
+    async ({ base64, background: [r, g, b] }) => {
       const image = new Image();
       image.src = `data:image/png;base64,${base64}`;
       await image.decode();
@@ -84,19 +98,61 @@ async function paintedFraction(
       if (context === null) throw new Error('No 2D context');
       context.drawImage(image, 0, 0);
       const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
-      const [r, g, b] = background;
       let painted = 0;
+      const counts = new Map<number, number>();
       for (let i = 0; i < data.length; i += 4) {
-        const distance =
-          Math.abs((data[i] ?? 0) - r) +
-          Math.abs((data[i + 1] ?? 0) - g) +
-          Math.abs((data[i + 2] ?? 0) - b);
-        if (distance > 30) painted += 1;
+        const [pr = 0, pg = 0, pb = 0] = [data[i], data[i + 1], data[i + 2]];
+        if (Math.abs(pr - r) + Math.abs(pg - g) + Math.abs(pb - b) > 30) painted += 1;
+        const key = (pr << 16) | (pg << 8) | pb;
+        counts.set(key, (counts.get(key) ?? 0) + 1);
       }
-      return painted / (data.length / 4);
+      const [top = 0] = [...counts.entries()].sort((a, c) => c[1] - a[1])[0] ?? [];
+      return {
+        painted: painted / (data.length / 4),
+        dominant: [(top >> 16) & 255, (top >> 8) & 255, top & 255] as const,
+      };
     },
-    { base64: png.toString('base64'), background: VOID_RGB },
+    { base64: png.toString('base64'), background },
   );
+}
+
+/** Junto a los paneles, entre ellos y el raíl (escritorio): donde está la forma del capítulo. */
+function sceneClip(page: Page): Clip {
+  const { width, height } = page.viewportSize() ?? { width: 0, height: 0 };
+  return { x: width * 0.5, y: height * 0.15, width: width * 0.35, height: height * 0.7 };
+}
+
+/** Arriba a la derecha, bajo la barra y encima del raíl: en el hero solo hay espacio (y alguna estrella). */
+function emptyClip(page: Page): Clip {
+  const { width, height } = page.viewportSize() ?? { width: 0, height: 0 };
+  return { x: width * 0.7, y: height * 0.12, width: width * 0.15, height: height * 0.18 };
+}
+
+/**
+ * Las partículas se ven en el capítulo 1: se entra por su ancla (un ancla da su `m` exacto y la escena arranca en
+ * él, sin suavizado), se espera a que el raíl lo marque y, junto a los paneles, buena parte de los píxeles no es el
+ * fondo. Con un tamaño de punto 0, alfa 0 o un atributo vacío, casi ninguno.
+ */
+async function expectParticlesSeenInAbout(page: Page): Promise<void> {
+  await page.goto('/#about', { waitUntil: 'networkidle' });
+  await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
+    timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+  });
+  await expect(
+    page.getByRole('navigation', { name: 'Chapters' }).locator('[aria-current="step"]'),
+  ).toHaveAccessibleName(/^About/);
+  await expect.poll(async () => (await look(page, sceneClip(page))).painted).toBeGreaterThan(0.05);
+}
+
+/** El fondo que se ve es el del token, ±2 por canal (el lienzo no se limpia en negro). */
+async function expectVoidBackground(page: Page): Promise<void> {
+  const background = await voidRgb(page);
+  await expect
+    .poll(async () => {
+      const { dominant } = await look(page, emptyClip(page));
+      return Math.max(...dominant.map((channel, i) => Math.abs(channel - (background[i] ?? 0))));
+    })
+    .toBeLessThanOrEqual(2);
 }
 
 /** Pide los chunks de la escena que se descarguen desde ahora. */
@@ -252,6 +308,9 @@ test.describe('the scene with WebGL', () => {
     await expect(sceneCanvas(page)).toHaveCount(1);
     await expect(noGlNotice(page)).toHaveCount(0);
     await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
+    // Three rehace su fondo en negro al recuperar el contexto: la escena lo vuelve a poner.
+    await nextFrames(page);
+    await expectVoidBackground(page);
   });
 
   test('paints its particles: the shaders compile, the hero dot hands over and the journey runs without errors', async ({
@@ -267,27 +326,18 @@ test.describe('the scene with WebGL', () => {
     // La singularidad de partículas releva al punto; el halo se queda.
     await expect(heroCore(page)).toHaveCSS('opacity', '0');
     await expect(heroHalo(page)).not.toHaveCSS('opacity', '0');
+    // El fondo es el color del espacio, no negro.
+    await expectVoidBackground(page);
     // Por los 5 capítulos (las 5 formas, de una en una): ningún error, ningún shader roto.
     for (const id of ['about', 'skills', 'projects', 'contact']) {
       await page.locator(`#${id}`).scrollIntoViewIfNeeded();
       await nextFrames(page);
-      if (id === 'about') {
-        // Las partículas se ven: a la derecha de los paneles (escritorio), entre ellos y el raíl, buena parte de
-        // los píxeles no es el fondo. Con un tamaño de punto 0, alfa 0 o un atributo vacío, casi ninguno.
-        const { width, height } = page.viewportSize() ?? { width: 0, height: 0 };
-        const clip = {
-          x: width * 0.5,
-          y: height * 0.15,
-          width: width * 0.35,
-          height: height * 0.7,
-        };
-        expect(await paintedFraction(page, clip)).toBeGreaterThan(0.05);
-      }
     }
     // El recorrido llega de verdad al último capítulo.
     await expect(
       page.getByRole('navigation', { name: 'Chapters' }).locator('[aria-current="step"]'),
     ).toHaveAccessibleName(/^Contact/);
+    await expectParticlesSeenInAbout(page);
     await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
     expect(errors).toEqual([]);
     expect(glWarnings).toEqual([]);
@@ -296,7 +346,7 @@ test.describe('the scene with WebGL', () => {
   test.describe('with reduced motion', () => {
     test.use({ reducedMotion: 'reduce' });
 
-    test('still paints its particles and hands over the hero dot, without errors', async ({
+    test('still paints its particles (they are seen) and hands over the hero dot, without errors', async ({
       page,
     }) => {
       const errors = collectErrors(page);
@@ -312,6 +362,7 @@ test.describe('the scene with WebGL', () => {
       await expect(heroCore(page)).toHaveCSS('opacity', '0');
       await page.locator('#contact').scrollIntoViewIfNeeded();
       await nextFrames(page);
+      await expectParticlesSeenInAbout(page);
       await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
       expect(errors).toEqual([]);
       expect(glWarnings).toEqual([]);
@@ -341,7 +392,7 @@ test.describe('the scene with WebGL', () => {
     { width: 1280, height: 720 },
     { width: 390, height: 844 },
   ]) {
-    test(`at ${String(viewport.width)}×${String(viewport.height)}, the camera follows the journey and the mouse without errors`, async ({
+    test(`at ${String(viewport.width)}×${String(viewport.height)}, the camera moves through every chapter with the mouse in and out, without errors`, async ({
       page,
     }) => {
       const errors = collectErrors(page);
@@ -360,6 +411,8 @@ test.describe('the scene with WebGL', () => {
         await nextFrames(page);
       }
       await page.mouse.move(-10, -10);
+      // Un par de frames con el ratón fuera: la rama que vuelve al centro llega a correr.
+      await nextFrames(page);
       await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
       expect(errors).toEqual([]);
       expect(glWarnings).toEqual([]);

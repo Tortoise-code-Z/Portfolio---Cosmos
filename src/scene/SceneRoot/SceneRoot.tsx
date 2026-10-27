@@ -7,7 +7,7 @@ import { LEVEL_SETTINGS, type RenderLevel } from '~/lib/device/sceneLevel/sceneL
 import { damp } from '~/lib/math/damp/damp';
 import { sceneStore } from '~/stores/sceneStore/sceneStore';
 
-import { BackgroundStars } from '../BackgroundStars';
+import { BackgroundStars } from '../BackgroundStars/BackgroundStars';
 import { CameraRig } from '../CameraRig/CameraRig';
 import { CAMERA_LENS, M_SMOOTHING, WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
 import { watchContextLoss } from '../contextLoss/contextLoss';

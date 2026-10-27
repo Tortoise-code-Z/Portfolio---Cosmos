@@ -19,8 +19,9 @@
 ```
             ┌───────────────────────── hilo principal ──────────────────────────┐
 scroll ───► │ scroll/mapM (puro) ──► sceneStore (mutable, sin re-render de React) │
-puntero ──► │                            │ mTarget                                │
+            │                            │ mTarget                                │
             │  frameLoop (cada frame) ◄──┘ suaviza m y rellena SceneFrame         │
+puntero ──► │ scene/pointer ──► SceneFrame.pointer (lo escribe cada evento)      │
             │       useFrame de cada pieza (R3F) ◄── leen SceneFrame              │
             │        ├─ uniforms de partículas (uM, uTime, uCharge, uPlate…)      │
             │        ├─ cámara (keyframes + encuadre + paralaje)                  │
@@ -36,9 +37,10 @@ puntero ──► │                            │ mTarget                    
 
 1. **Un solo `THREE.Points`** con todas las formas como atributos: la transición es una mezcla en la GPU, sin
    crear ni destruir objetos.
-2. **El estado que cambia cada frame no pasa por React.** `m`, la carga, el puntero y los resaltados viven en un
-   store mutable; el bucle de la escena (`scene/frameLoop`) lo copia cada frame a un `SceneFrame` compartido,
-   que leen los `useFrame`. React solo renderiza cuando cambia algo estructural (idioma, nivel de
+2. **El estado que cambia cada frame no pasa por React.** El destino del scroll (`mTarget`) vive en un store
+   mutable; el bucle de la escena (`scene/frameLoop`) lo lee cada frame y deja su `m` suavizada, el reloj y lo
+   demás en un `SceneFrame` compartido, que leen los `useFrame`. El ratón y si es escritorio los escriben sus
+   observadores (`scene/pointer`, `watchMediaQuery`) directamente en el `SceneFrame`. React solo renderiza cuando cambia algo estructural (idioma, nivel de
    rendimiento, ruta).
 3. **Lógica pura separada del render.** Mapeo de scroll, interpolación de cámara, generadores, proyección y
    formato del HUD son funciones puras en TypeScript, testeadas con Vitest sin WebGL.
@@ -58,7 +60,7 @@ src/scene/
                              la tabla de niveles, la elección y la detección de WebGL2: lib/device/)
   Particles/               ← monta los Points de las partículas; useParticles se prueba sin WebGL (F3.3)
   voidColour/              ← el color de fondo del lienzo, de --color-void con sus números tal cual (ADR-027)
-  BackgroundStars.tsx      ← estrellas de fondo (F3.3)
+  BackgroundStars/         ← estrellas de fondo; useBackgroundStars se prueba sin WebGL (F3.3)
   particleGeometry/ · sceneMaterials/   ← atributos · uniforms y materiales (F3.3)
   frameLoop/ · sceneClock/ ← bucle de frames propio y reloj de animación (F3.3, ADR-027)
   Constellations.tsx

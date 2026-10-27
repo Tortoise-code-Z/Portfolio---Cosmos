@@ -35,8 +35,15 @@ describe('stripGlslComments', () => {
     expect(stripGlslComments(code)).toBe(code);
   });
 
+  it('a one-line block comment counts as a space: it never glues two words together', () => {
+    expect(stripGlslComments('a/**/b\n')).toBe('a b\n');
+    expect(stripGlslComments('float/* scale */k = 1.0;\n')).toBe('float k = 1.0;\n');
+    // Al final de la línea, el espacio se va con los demás.
+    expect(stripGlslComments('float k; /* scale */\n')).toBe('float k;\n');
+  });
+
   it('does not let a comment marker inside a block comment open another comment', () => {
-    expect(stripGlslComments('/* a // b */float x;\n')).toBe('float x;\n');
+    expect(stripGlslComments('/* a // b */float x;\n')).toBe(' float x;\n');
     expect(stripGlslComments('// a /* b\nfloat x;\n// */\n')).toBe('\nfloat x;\n\n');
   });
 

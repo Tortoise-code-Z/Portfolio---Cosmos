@@ -9,7 +9,7 @@
   en F3.2, con el lienzo vacío y las formas pedidas, 241,6 KB; en F3.3, con las partículas, sus shaders y las
   estrellas, 248,2 KB. Desde justo antes de F3.4 los shaders llegan sin comentarios (el plugin `cosmos:glsl-without-comments`
   de `vite.config.ts`, que conserva los saltos de línea para que la línea de un error siga siendo la del archivo):
-  247,0 KB; en F3.4, con la cámara (`CameraRig`, `math/camera`, el ratón), 247,9 KB; con el color de fondo leído sin linealizar y
+  247,0 KB; en F3.4, con la cámara (`CameraRig`, `math/camera`, el ratón), 248,0 KB; con el color de fondo leído sin linealizar y
   el reajuste de las partículas y del shader, 248,1 KB; en F3.5, con el suavizado de `m` y la pausa, 248,4 KB. React Three Fiber importa
   Three.js entero, así que lo que añadan las constelaciones (F4) tiene muy poco margen. Los generadores no cuentan ahí: van en el
   worker (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
@@ -104,8 +104,8 @@ las pinta (`Particles`). Solo pide otras si el nivel pide otro `count`.
 
 | Tipo | Herramienta | Qué cubre |
 |---|---|---|
-| Unitarios | Vitest | Generadores (también las estrellas), mapeo de `m`, cámara, proyección, elección de nivel, formato del HUD, geometría y uniforms de las partículas, cabecera GLSL y shaders sin números ni nombres de más, shaders sin comentarios, paleta contra la tabla del design system, bucle de frames, reloj de la escena, color de fondo, paridad TS/GLSL de la posición de los pins (F4.4; el ruido no la necesita, `formas.md`) |
-| Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error (también un frame que lanza), movimiento reducido, color de fondo al crear y al recuperar el contexto, partículas (`useParticles`: aviso en el primer frame, uniforms, memoria liberada) |
-| Extremo a extremo | Playwright | Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado; el fondo por debajo del contenido), formas del worker y del reintento (`data-shapes`), partículas que se ven (fracción de píxeles que no son fondo), movimiento reducido, sin avisos de WebGL del navegador |
+| Unitarios | Vitest | Generadores (también las estrellas), mapeo de `m` y su suavizado (`damp`), pausa (`scene/pause`), cámara (`scene/math/camera`: pose, encuadre, campo de visión, paralaje acotado), ratón (`scene/pointer`, solo `mouse`), `watchMediaQuery`, proyección, elección de nivel, formato del HUD, geometría y uniforms de las partículas, cabecera GLSL y shaders sin números ni nombres de más, shaders sin comentarios, paleta contra la tabla del design system, bucle de frames, reloj de la escena, color de fondo, paridad TS/GLSL de la posición de los pins (F4.4; el ruido no la necesita, `formas.md`) |
+| Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error (también un frame que lanza), movimiento reducido, color de fondo al crear y al recuperar el contexto, partículas y estrellas (`useParticles`, `useBackgroundStars`: aviso en el primer frame, uniforms en cada frame, memoria liberada), `CameraRig` (pose, campo de visión al cambiar el aspecto, paralaje), pausa del bucle (`data-paused`) |
+| Extremo a extremo | Playwright | Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado; el fondo por debajo del contenido), formas del worker y del reintento (`data-shapes`), partículas que se ven (fracción de píxeles que no son fondo, entrando por `/#about`), fondo del color del token (al cargar y tras recuperar el contexto), movimiento reducido, la cámara por los 5 capítulos con el ratón a 1280×720 y 390×844, pausa con la misión rápida, sin avisos de WebGL del navegador |
 | Regresión visual | Playwright (capturas) | Un estado por capítulo en los tamaños de referencia, render por software (SwiftShader) y tolerancia de píxeles |
 | Rendimiento | Lighthouse CI + medida manual | Core Web Vitals y presupuesto de JS; fps medidos a mano en un móvil real antes de cada versión |

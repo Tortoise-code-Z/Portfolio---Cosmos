@@ -126,6 +126,15 @@ describe('SceneMount', () => {
     expect(document.documentElement).not.toHaveClass(NO_GL_CLASS);
   });
 
+  it('unmounted without WebGL, it takes the no-gl class off <html> as well', async () => {
+    vi.mocked(detectWebGL2).mockReturnValue('none');
+    const { unmount } = renderMount();
+    await idle();
+    expect(document.documentElement).toHaveClass(NO_GL_CLASS);
+    unmount();
+    expect(document.documentElement).not.toHaveClass(NO_GL_CLASS);
+  });
+
   it('a mounted scene that has not painted yet leaves the hero dot alone', async () => {
     renderMount();
     await idle();

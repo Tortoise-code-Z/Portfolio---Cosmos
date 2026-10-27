@@ -71,6 +71,15 @@ describe('watchPointer', () => {
     expect(pointer.inside).toBe(false);
   });
 
+  it('a finger or a pen that lifts (pointerout with no target) does not take the mouse out', () => {
+    const pointer = createScenePointer();
+    stop = watchPointer(pointer);
+    window.dispatchEvent(pointerEvent('pointermove', { clientX: 0, clientY: 0 }));
+    window.dispatchEvent(pointerEvent('pointerout', { pointerType: 'touch', relatedTarget: null }));
+    window.dispatchEvent(pointerEvent('pointerout', { pointerType: 'pen', relatedTarget: null }));
+    expect(pointer.inside).toBe(true);
+  });
+
   it('a window with no size yet does not give infinities', () => {
     vi.stubGlobal('innerWidth', 0);
     vi.stubGlobal('innerHeight', 0);
@@ -80,10 +89,13 @@ describe('watchPointer', () => {
     expect(pointer).toEqual({ x: -1, y: 1, inside: true });
   });
 
-  it('stops listening', () => {
+  it('stops listening, to moves and to the mouse leaving', () => {
     const pointer = createScenePointer();
-    watchPointer(pointer)();
+    const stopNow = watchPointer(pointer);
     window.dispatchEvent(pointerEvent('pointermove', { clientX: 0, clientY: 0 }));
-    expect(pointer.inside).toBe(false);
+    stopNow();
+    window.dispatchEvent(pointerEvent('pointermove', { clientX: 500, clientY: 500 }));
+    window.dispatchEvent(pointerEvent('pointerout', { relatedTarget: null }));
+    expect(pointer).toEqual({ x: -1, y: 1, inside: true });
   });
 });

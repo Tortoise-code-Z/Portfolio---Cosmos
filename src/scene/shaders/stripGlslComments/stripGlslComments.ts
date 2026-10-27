@@ -12,11 +12,15 @@ const COMMENT = /\/\*[\s\S]*?\*\/|\/\/[^\n]*/g;
  * lee los archivos tal cual.
  *
  * Conserva los saltos de línea (también los de dentro de un comentario de bloque): la línea de un error de
- * compilación sigue siendo la del archivo, más las de la cabecera (`glslHeader`). Quita también los espacios
- * que quedan al final de cada línea.
+ * compilación sigue siendo la del archivo, más las de la cabecera (`glslHeader`). Un comentario de bloque en una
+ * sola línea cuenta como un espacio (GLSL ES 3.00, §3.4): dos palabras que separa no pueden quedar pegadas. Quita
+ * también los espacios que quedan al final de cada línea. Un `//` no puede acabar en `\` (continuación de
+ * línea): ningún shader lo usa.
  */
 export function stripGlslComments(source: string): string {
   return source
-    .replace(COMMENT, (comment) => comment.replace(/[^\n]/g, ''))
+    .replace(COMMENT, (comment) =>
+      comment.startsWith('/*') && !comment.includes('\n') ? ' ' : comment.replace(/[^\n]/g, ''),
+    )
     .replace(/[ \t]+$/gm, '');
 }

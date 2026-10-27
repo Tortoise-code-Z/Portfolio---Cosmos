@@ -44,6 +44,7 @@
     radial-gradient(55% 45% at 18% 82%, rgb(36 217 224 / 0.05) 0%, transparent 100%);
   /* Pareja del `flash` de `scene/config/scenePalette` (`#fff2d9`): se unifican con el destello (F4). */
   --color-flash: #fff4dc;
+  /* Pareja de `singularityWarm` de `scene/config/scenePalette`: el punto CSS que relevan las partículas. */
   --color-singularity: #fff2d9;
   --gradient-singularity-halo: radial-gradient(
     circle,

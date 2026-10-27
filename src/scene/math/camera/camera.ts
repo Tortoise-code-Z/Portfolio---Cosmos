@@ -112,8 +112,9 @@ export function followParallax(
     parallax.y = 0;
     return;
   }
-  const toX = pointer.inside ? pointer.x : 0;
-  const toY = pointer.inside ? pointer.y : 0;
+  // El tope es del paralaje: arrastrando fuera de la ventana el puntero puede pasar de ±1 (`ScenePointer`).
+  const toX = pointer.inside ? clamp(pointer.x, -1, 1) : 0;
+  const toY = pointer.inside ? clamp(pointer.y, -1, 1) : 0;
   const rate = Math.min(1, Math.max(dt, 0) * PARALLAX.rate);
   parallax.x += (toX - parallax.x) * rate;
   parallax.y += (toY - parallax.y) * rate;

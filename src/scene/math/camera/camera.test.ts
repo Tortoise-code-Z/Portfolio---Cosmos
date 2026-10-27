@@ -117,10 +117,10 @@ describe('cameraFov', () => {
     // Donde empieza el tope: tan(27,5°) · 1,25 / tan(50°) ≈ 0,546.
     expect(cameraFov(0.55)).toBeLessThan(100);
     expect(cameraFov(0.54)).toBe(100);
+    expect(cameraFov(0.3)).toBe(100);
   });
 
   it('a canvas with no size gives the cap, not NaN', () => {
-    expect(cameraFov(0.3)).toBe(100);
     expect(cameraFov(0)).toBe(100);
     expect(cameraFov(-1)).toBe(100);
     expect(cameraFov(Number.NaN)).toBe(100);
@@ -150,6 +150,12 @@ describe('followParallax', () => {
     const parallax = { x: 0.6, y: -0.4 };
     followParallax(parallax, pointer(1, 1), false, 0.016);
     expect(parallax).toEqual({ x: 0, y: 0 });
+  });
+
+  it('a pointer dragged out of the window (beyond ±1) moves it no further than the edge', () => {
+    const parallax = createParallax();
+    followParallax(parallax, pointer(-3, 2), true, 10);
+    expect(parallax).toEqual({ x: -1, y: 1 });
   });
 
   it('a frame without time (the first one) or with negative time does not move it', () => {
