@@ -1,8 +1,8 @@
 # Partículas y shaders
 
 > Código: `src/scene/Particles.tsx` y `BackgroundStars.tsx` (montan), `scene/particleGeometry` (atributos),
-> `scene/sceneMaterials` (uniforms y materiales), `scene/shaders/` (los `.glsl`, importados con `?raw`, y
-> `glslHeader`). Los frames los pide `SceneRoot` con su propio bucle (`rendimiento.md` → «Robustez», ADR-027).
+> `scene/sceneMaterials` (uniforms y materiales), `scene/shaders/` (los `.glsl`, importados con `?raw`, que
+> llegan sin comentarios por el plugin `cosmos:glsl-without-comments` de `vite.config.ts`, y `glslHeader`). Los frames los pide `SceneRoot` con su propio bucle (`rendimiento.md` → «Robustez», ADR-027).
 
 ## Atributos (por partícula)
 
@@ -122,6 +122,7 @@ movimiento reducido) y visibilidad `smoothstep(0.02, 0.4, m)` (`uVisible`): ante
 - Los shaders pasan a archivos `.glsl`. Las etiquetas y los colores llegan desde TypeScript (ver «Etiquetas y
   colores») y el morph, el tamaño y la gravedad tienen constantes con nombre; los coeficientes propios de cada
   forma (velocidades de giro, amplitudes de aletas y estela) van junto a su fórmula, en la función de la forma
-  (cada `const` más en el GLSL es peso en el chunk de la escena, que va justo).
+  (cada `const` más en el GLSL es peso en el chunk de la escena, que va justo; los comentarios no pesan: se
+  quitan al compilar).
 - `uMotion` para el movimiento reducido (el prototipo solo quitaba la gravedad).
 - WebGL2 (Three.js actual ya no soporta WebGL1); sin límite práctico de atributos.

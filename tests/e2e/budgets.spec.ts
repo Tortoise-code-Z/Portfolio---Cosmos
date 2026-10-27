@@ -54,6 +54,11 @@ const SCENE_SATELLITES = [
   { name: 'shapes worker', pattern: /\/assets\/shapes\.worker-[^/]+\.js$/, budget: 10_000 },
   { name: 'main-thread retry', pattern: /\/assets\/generateShapes-[^/]+\.js$/, budget: 10_000 },
 ] as const;
+/** Los shaders de la escena: llegan sin comentarios (F33-6, plugin de vite.config.ts). */
+const SHADERS_DIR = fileURLToPath(new URL('../../src/scene/shaders/', import.meta.url));
+const SHADER_FILES = readdirSync(SHADERS_DIR, { recursive: true, encoding: 'utf8' }).filter(
+  (file) => file.endsWith('.glsl'),
+);
 /** La URL de un worker (o de cualquier recurso) que Vite resuelve con `new URL(…, import.meta.url)`. */
 const ASSET_URL = /new URL\(\s*[`"'](\/assets\/[^`"']+\.js)[`"']/g;
 /** El import dinámico de `SceneMount` que trae la escena (en el chunk de `root`). */
@@ -238,6 +243,29 @@ test.describe('build budgets', () => {
       0,
     );
     expect(bytes).toBeLessThanOrEqual(SCENE_JS_BUDGET_BYTES);
+  });
+
+  test('the shaders reach the scene without their comments (F33-6)', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
+    const code = sceneChunks()
+      .map((chunk) => readFileSync(join(CLIENT_DIR, chunk), 'utf8'))
+      .join('\n');
+    expect(SHADER_FILES.length).toBeGreaterThan(0);
+    for (const shader of SHADER_FILES) {
+      const source = readFileSync(join(SHADERS_DIR, shader), 'utf8');
+      // El código del shader sí llega (si no, el test buscaría en el sitio equivocado)…
+      const firstCodeLine = source.split('\n').find((line) => /^\w/.test(line)) ?? '';
+      expect(code, shader).toContain(firstCodeLine.trim());
+      // …y ningún trozo de texto de sus comentarios (el plugin `cosmos:glsl-without-comments`).
+      const prose = Array.from(source.matchAll(/\/\/(.*)$/gm), ([, text]) =>
+        /[\p{L} ]{12,}/u.exec(text ?? '')?.[0].trim(),
+      ).filter((text): text is string => text !== undefined && text.length >= 12);
+      expect(prose.length, shader).toBeGreaterThan(0);
+      expect(
+        prose.filter((text) => code.includes(text)),
+        shader,
+      ).toEqual([]);
+    }
   });
 
   test('what the scene loads apart is known (the shapes worker, the retry) and within its budget', () => {

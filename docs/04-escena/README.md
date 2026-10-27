@@ -63,6 +63,7 @@ src/scene/
   CameraRig.tsx
   overlay/ProjectedLabels.tsx   ← etiquetas y pins DOM actualizados por refs
   shaders/ particles/ · stars/ (los .glsl) · glslHeader/ (etiquetas y colores desde TS)   (F3.3)
+           stripGlslComments/ (los .glsl sin comentarios al compilar: plugin de vite.config.ts, F33-6)
   useSceneShapes/          ← pide las formas al montar; reintento en el hilo principal (F3.2)
   worker/  shapes.worker.ts · handleShapesRequest/ · protocol/ · loadShapes/   (F3.2)
   shapes/  prng/ · noise/ · sampling/ · hexGrid/ · nebula/ · galaxy/ · turtle/ · earth/ ·

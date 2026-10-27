@@ -7,7 +7,9 @@
 - El código 3D va en un **chunk aparte** que se carga después de la primera pintura: el JS inicial de la interfaz
   no incluye Three.js. Sin WebGL2 ni siquiera se descarga. Pesa ≤ 250 KB gzip (`calidad.md` → «Presupuestos»);
   en F3.2, con el lienzo vacío y las formas pedidas, 241,6 KB; en F3.3, con las partículas, sus shaders y las
-  estrellas, 247,3 KB. React Three Fiber importa Three.js entero, así que lo que añadan la cámara (F3.4) y las
+  estrellas, 248,2 KB. Desde F33-6 los shaders llegan sin comentarios (el plugin `cosmos:glsl-without-comments`
+  de `vite.config.ts`, que conserva los saltos de línea para que la línea de un error siga siendo la del archivo):
+  247,0 KB. React Three Fiber importa Three.js entero, así que lo que añadan la cámara (F3.4) y las
   constelaciones (F4) tiene muy poco margen. Los generadores no cuentan ahí: van en el
   worker (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
 

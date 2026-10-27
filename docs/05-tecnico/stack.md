@@ -46,7 +46,8 @@ solo avisa; comprobado).
 
 **Lo que no se usa, a propósito:** `@react-three/drei` (lo que necesitamos son ~100 líneas propias),
 GSAP y Lenis (el scroll lo resuelve un hook propio), librerías de i18n (diccionarios tipados propios),
-`vite-plugin-glsl` (los shaders se importan con `?raw`), Tailwind (decidido CSS Modules).
+`vite-plugin-glsl` (los shaders se importan con `?raw`; un plugin propio de `vite.config.ts` les quita los
+comentarios), Tailwind (decidido CSS Modules).
 
 ## Build y assets
 
