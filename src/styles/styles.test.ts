@@ -327,6 +327,10 @@ describe('design tokens', () => {
     },
   );
 
+  it('--color-void is an opaque #rrggbb: the scene clears its canvas with it (scene/voidColour)', () => {
+    expect(tokenValue('--color-void')).toMatch(/^#[\da-f]{6}$/i);
+  });
+
   it.each(TEXT_TOKENS)('--color-%s meets WCAG AA contrast on --color-void', (name) => {
     const ratio = contrastRatio(tokenValue(`--color-${name}`), tokenValue('--color-void'));
     expect(ratio).toBeGreaterThanOrEqual(WCAG_AA_TEXT);

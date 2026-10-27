@@ -9,7 +9,8 @@ import {
 } from './particleGeometry';
 
 describe('createParticleGeometry', () => {
-  const shapes = generateShapes({ count: 40, seed: 3, plates: [20] });
+  // Bastantes partículas para llegar a los bordes de cada forma.
+  const shapes = generateShapes({ count: 4000, seed: 3, plates: [20] });
   const geometry = createParticleGeometry(shapes);
 
   it('one attribute per shape, plus aR, using the arrays as they came (no copy)', () => {
@@ -20,7 +21,7 @@ describe('createParticleGeometry', () => {
       const buffer = geometry.getAttribute(attribute);
       expect(buffer.array).toBe(shapes[key]);
       expect(buffer.itemSize).toBe(3);
-      expect(buffer.count).toBe(40);
+      expect(buffer.count).toBe(4000);
     }
     expect(geometry.getAttribute('aR').array).toBe(shapes.rand);
     expect(geometry.getAttribute('aR').itemSize).toBe(4);
@@ -28,10 +29,20 @@ describe('createParticleGeometry', () => {
 
   it('a bounding sphere that covers every shape, so Three does not measure only the nebula', () => {
     expect(geometry.boundingSphere?.radius).toBe(PARTICLES_BOUNDING_RADIUS);
+    expect(geometry.boundingSphere?.center.length()).toBe(0);
+    let farthest = 0;
     for (const key of Object.values(SHAPE_ATTRIBUTES)) {
-      for (const value of shapes[key])
-        expect(Math.abs(value)).toBeLessThan(PARTICLES_BOUNDING_RADIUS);
+      const positions = shapes[key];
+      for (let i = 0; i < shapes.count; i++) {
+        const distance = Math.hypot(
+          positions[i * 3] ?? 0,
+          positions[i * 3 + 1] ?? 0,
+          positions[i * 3 + 2] ?? 0,
+        );
+        farthest = Math.max(farthest, distance);
+      }
     }
+    expect(farthest).toBeLessThan(PARTICLES_BOUNDING_RADIUS);
   });
 });
 

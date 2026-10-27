@@ -37,9 +37,11 @@ describe('generateStars', () => {
     for (const stars of octants) expect(stars / count).toBeGreaterThan(0.1);
   });
 
-  it('the same seed gives the same sky', () => {
+  it('the same seed gives the same sky, twinkle included', () => {
     const again = new Float32Array(count * 3);
-    generateStars(count, mulberry32(7), again, new Float32Array(count));
+    const againRand = new Float32Array(count);
+    generateStars(count, mulberry32(7), again, againRand);
     expect(again).toEqual(positions);
+    expect(againRand).toEqual(rand);
   });
 });

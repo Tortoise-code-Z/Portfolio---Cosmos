@@ -81,11 +81,20 @@ export function SceneMount(): ReactNode {
 
   const off = level === 'off';
   const [painted, setPainted] = useState(false);
+  // Cada clase se quita al desmontar (o antes de volver a decidirla): sin `SceneMount` no hay escena que relevar.
   useEffect(() => {
-    document.documentElement.classList.toggle(NO_GL_CLASS, off);
+    const root = document.documentElement;
+    root.classList.toggle(NO_GL_CLASS, off);
+    return () => {
+      root.classList.remove(NO_GL_CLASS);
+    };
   }, [off]);
   useEffect(() => {
-    document.documentElement.classList.toggle(SCENE_ON_CLASS, painted && !off);
+    const root = document.documentElement;
+    root.classList.toggle(SCENE_ON_CLASS, painted && !off);
+    return () => {
+      root.classList.remove(SCENE_ON_CLASS);
+    };
   }, [painted, off]);
 
   return (

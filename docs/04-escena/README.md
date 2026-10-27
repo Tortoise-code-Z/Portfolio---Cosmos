@@ -19,8 +19,9 @@
 ```
             ┌───────────────────────── hilo principal ──────────────────────────┐
 scroll ───► │ scroll/mapM (puro) ──► sceneStore (mutable, sin re-render de React) │
-puntero ──► │                                │                                  │
-            │       useFrame (R3F, cada frame) ◄┘                                │
+puntero ──► │                            │                                        │
+            │  frameLoop (cada frame) ◄──┘ rellena SceneFrame (m, reloj…)         │
+            │       useFrame de cada pieza (R3F) ◄── leen SceneFrame              │
             │        ├─ uniforms de partículas (uM, uTime, uCharge, uPlate…)      │
             │        ├─ cámara (keyframes + encuadre + paralaje)                  │
             │        └─ etiquetas y pins (proyección 3D→2D por refs, sin estado)  │
@@ -36,7 +37,8 @@ puntero ──► │                                │                        
 1. **Un solo `THREE.Points`** con todas las formas como atributos: la transición es una mezcla en la GPU, sin
    crear ni destruir objetos.
 2. **El estado que cambia cada frame no pasa por React.** `m`, la carga, el puntero y los resaltados viven en un
-   store mutable que `useFrame` lee. React solo renderiza cuando cambia algo estructural (idioma, nivel de
+   store mutable; el bucle de la escena (`scene/frameLoop`) lo copia cada frame a un `SceneFrame` compartido,
+   que leen los `useFrame`. React solo renderiza cuando cambia algo estructural (idioma, nivel de
    rendimiento, ruta).
 3. **Lógica pura separada del render.** Mapeo de scroll, interpolación de cámara, generadores, proyección y
    formato del HUD son funciones puras en TypeScript, testeadas con Vitest sin WebGL.
@@ -54,7 +56,8 @@ src/scene/
   SceneRoot/               ← el <Canvas> (nivel recibido de SceneMount, DPR, onFail) · contextLoss/
                              (la carga diferida y la elección del nivel: features/scene-mount/SceneMount;
                              la tabla de niveles, la elección y la detección de WebGL2: lib/device/)
-  Particles.tsx            ← monta los Points de las partículas (F3.3)
+  Particles/               ← monta los Points de las partículas; useParticles se prueba sin WebGL (F3.3)
+  voidColour/              ← el color de fondo del lienzo, de --color-void con sus números tal cual (ADR-027)
   BackgroundStars.tsx      ← estrellas de fondo (F3.3)
   particleGeometry/ · sceneMaterials/   ← atributos · uniforms y materiales (F3.3)
   frameLoop/ · sceneClock/ ← bucle de frames propio y reloj de animación (F3.3, ADR-027)
@@ -64,7 +67,7 @@ src/scene/
   pointer/                 ← el ratón en NDC, solo `pointerType: mouse` (paralaje en F3.4; gravedad en F4)
   overlay/ProjectedLabels.tsx   ← etiquetas y pins DOM actualizados por refs
   shaders/ particles/ · stars/ (los .glsl) · glslHeader/ (etiquetas y colores desde TS)   (F3.3)
-           stripGlslComments/ (los .glsl sin comentarios al compilar: plugin de vite.config.ts, F33-6)
+           stripGlslComments/ (los .glsl sin comentarios al compilar: plugin de vite.config.ts)
   useSceneShapes/          ← pide las formas al montar; reintento en el hilo principal (F3.2)
   worker/  shapes.worker.ts · handleShapesRequest/ · protocol/ · loadShapes/   (F3.2)
   shapes/  prng/ · noise/ · sampling/ · hexGrid/ · nebula/ · galaxy/ · turtle/ · earth/ ·

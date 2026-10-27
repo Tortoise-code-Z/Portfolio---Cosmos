@@ -27,6 +27,36 @@ function fakeFrames() {
 }
 
 describe('startFrameLoop', () => {
+  it('a frame that slips through after stopping does nothing; stopping twice cancels once', () => {
+    let pending: FrameRequestCallback | null = null;
+    const step = vi.fn();
+    // Un `cancel` que no cancela nada: el frame ya pedido llega igual.
+    const cancel = vi.fn();
+    const stop = startFrameLoop({
+      step,
+      onError: vi.fn(),
+      request: (callback) => {
+        pending = callback;
+        return 1;
+      },
+      cancel,
+    });
+    stop();
+    stop();
+    expect(cancel).toHaveBeenCalledTimes(1);
+    (pending as FrameRequestCallback | null)?.(0);
+    expect(step).not.toHaveBeenCalled();
+  });
+
+  it('asks the browser for frames by default (requestAnimationFrame), and cancels the one pending', () => {
+    const request = vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(7);
+    const cancel = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
+    const stop = startFrameLoop({ step: vi.fn(), onError: vi.fn() });
+    expect(request).toHaveBeenCalledTimes(1);
+    stop();
+    expect(cancel).toHaveBeenCalledExactlyOnceWith(7);
+  });
+
   it('steps every frame with the seconds since it started', () => {
     const frames = fakeFrames();
     const step = vi.fn<(seconds: number) => void>();

@@ -24,6 +24,7 @@ export const SCENE_PALETTE = {
   turtleEdge: '#ffa847',
   turtlePlate: '#f2b861',
   turtlePlateLit: '#ffedc7',
+  turtleEyes: '#ffffff',
   turtleForest: '#52f26b',
   turtleBody: '#38c7a3',
   turtleWake: '#73bfff',

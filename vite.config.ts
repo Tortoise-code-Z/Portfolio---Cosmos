@@ -117,7 +117,7 @@ function projectImages(): Plugin {
 }
 
 /**
- * Los shaders (`*.glsl?raw`) sin sus comentarios (F33-6, docs/04-escena/rendimiento.md → «Presupuesto»): van
+ * Los shaders (`*.glsl?raw`) sin sus comentarios (docs/04-escena/rendimiento.md → «Presupuesto»): van
  * comentados para leerlos, y en el chunk de la escena solo pesan. Se aplica también en desarrollo, para que el
  * navegador compile lo mismo que en el build; los saltos de línea se conservan (`stripGlslComments`). Vitest
  * tiene su propia config y lee los archivos tal cual.

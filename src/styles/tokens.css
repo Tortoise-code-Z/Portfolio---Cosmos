@@ -34,10 +34,15 @@
     var(--color-veil) var(--space-8),
     var(--color-veil) 100%
   );
-  /* Fondo del espacio sin escena (`no-gl`): dos nubes muy tenues con los tonos de la nebulosa. */
+  /*
+   * Fondo del espacio sin escena (`no-gl`): dos nubes muy tenues con los tonos de la nebulosa. Repiten a mano
+   * el violeta y el turquesa de la escena (`nebulaViolet` y `nebulaTeal` de `scene/config/scenePalette`): si
+   * cambian allí, cambiarlos aquí.
+   */
   --gradient-space:
     radial-gradient(60% 50% at 78% 22%, rgb(128 71 255 / 0.09) 0%, transparent 100%),
     radial-gradient(55% 45% at 18% 82%, rgb(36 217 224 / 0.05) 0%, transparent 100%);
+  /* Pareja del `flash` de `scene/config/scenePalette` (`#fff2d9`): se unifican con el destello (F4). */
   --color-flash: #fff4dc;
   --color-singularity: #fff2d9;
   --gradient-singularity-halo: radial-gradient(

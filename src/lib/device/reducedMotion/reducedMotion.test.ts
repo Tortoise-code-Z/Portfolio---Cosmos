@@ -39,20 +39,21 @@ describe('prefersReducedMotion', () => {
 describe('watchReducedMotion', () => {
   it('tells the current preference, then every change, until it stops listening', () => {
     const listeners = new Set<(event: { matches: boolean }) => void>();
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn(() => ({
-        matches: true,
-        addEventListener: (_type: string, listener: (event: { matches: boolean }) => void) => {
-          listeners.add(listener);
-        },
-        removeEventListener: (_type: string, listener: (event: { matches: boolean }) => void) => {
-          listeners.delete(listener);
-        },
-      })),
-    );
+    // Solo casa la consulta exacta y solo avisa de `change`: otra consulta u otro evento dejarían el test en rojo.
+    const matchMedia = vi.fn((query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      addEventListener: (type: string, listener: (event: { matches: boolean }) => void) => {
+        if (type === 'change') listeners.add(listener);
+      },
+      removeEventListener: (type: string, listener: (event: { matches: boolean }) => void) => {
+        if (type === 'change') listeners.delete(listener);
+      },
+    }));
+    vi.stubGlobal('matchMedia', matchMedia);
     const onChange = vi.fn();
     const stop = watchReducedMotion(onChange);
+    expect(matchMedia).toHaveBeenCalledExactlyOnceWith('(prefers-reduced-motion: reduce)');
+    expect(listeners.size).toBe(1);
     expect(onChange).toHaveBeenLastCalledWith(true);
     for (const listener of listeners) listener({ matches: false });
     expect(onChange).toHaveBeenLastCalledWith(false);

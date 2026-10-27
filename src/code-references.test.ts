@@ -17,12 +17,14 @@ const REPO_DIR = fileURLToPath(new URL('..', import.meta.url));
 const CODE_DIRS = ['src', 'tests', '.husky', '.github'] as const;
 const THIS_FILE = 'src/code-references.test.ts';
 const CONFIG_FILE = /\.(?:ts|js)$/;
+/** Imágenes y fuentes: binarios, sin texto que leer (y con bytes que casarían por azar). */
+const BINARY_FILE = /\.(?:png|jpe?g|webp|avif|gif|ico|woff2?|ttf|otf)$/i;
 /**
- * Vivas («viva S5 #1»), encargos («AUD-F2-3-1»), claves de pregunta («F25-1-A») y opciones sueltas
- * («la opción A»), y el buzón.
+ * Vivas («viva S5 #1», «viva #9»), encargos («AUD-F2-3-1»), claves de pregunta («F25-1-A», y sin opción,
+ * «F33-6») y opciones sueltas («la opción A»), y el buzón.
  */
 const OFF_REPO_REFERENCE =
-  /\bvivas? S\d|\b(?:EST|AUD)-F\d|\b[A-Z]+\d+-\d+-[A-Z]\b|\bla opción [A-C]\b|_claude\//;
+  /\bvivas? S\d|\bvivas? #\d|\b(?:EST|AUD)-F\d|\b[A-Z]+\d+-\d+-[A-Z]\b|\b[A-Z]+\d{2,}-\d+\b|\bla opción [A-C]\b|_claude\//;
 
 function listFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -49,16 +51,22 @@ describe('el código no cita notas de fuera del repo', () => {
       { path: 'b.ts', text: '// EST-F2-3-12\n// AUD-F2-3-1\n// _claude/cadena/TABLERO.md' },
       { path: 'c.ts', text: '// ADR-018 · arquitectura.md → «Rutas e idiomas» · F2.7 · STATE.md' },
       { path: 'd.ts', text: '// F25-1-A\n// como dice la opción B' },
-      { path: 'e.ts', text: '// Tamaños: H1-2 · UTF-8 · ES-419 · F2.5-1' },
+      {
+        path: 'e.ts',
+        text: '// Tamaños: H1-2 · UTF-8 · ES-419 · F2.5-1 · ADR-027 · WCAG 2.1 · F3.3',
+      },
+      { path: 'f.ts', text: '// F33-6 (sin opción)\n// lo decidió la viva #9' },
     ]);
-    expect(found).toHaveLength(7);
+    expect(found).toHaveLength(9);
     expect(found.some((line) => line.startsWith('c.ts') || line.startsWith('e.ts'))).toBe(false);
   });
 
   it('src/, tests/, los hooks, el CI y las configs de la raíz no las tienen', () => {
     const rootConfigs = readdirSync(REPO_DIR).filter((name) => CONFIG_FILE.test(name));
     const paths = [
-      ...CODE_DIRS.flatMap((dir) => listFiles(join(REPO_DIR, dir))),
+      ...CODE_DIRS.flatMap((dir) => listFiles(join(REPO_DIR, dir))).filter(
+        (path) => !BINARY_FILE.test(path),
+      ),
       ...rootConfigs.map((name) => join(REPO_DIR, name)),
     ];
     const files = paths

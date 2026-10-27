@@ -52,14 +52,14 @@ Reglas:
 - El ámbar es **el único** acento de estado (activo, foco, hover). El turquesa nunca indica estado.
 - Avisos de las páginas de proyecto: `info` con borde turquesa, `warning` con borde ámbar. Sin rojos.
 
-### Paleta de la escena (referencia; se definen como constantes del shader en `docs/04-escena/`)
+### Paleta de la escena (referencia; en el código, `src/scene/config/scenePalette`, que llega al shader como constantes)
 
 | Escena | Colores principales |
 |---|---|
 | Singularidad / destello | blanco cálido `#fff2d9`, azul hielo `#c7dbff` |
 | Nebulosa | magenta `#ff4291`, violeta `#8047ff`, turquesa `#24d9e0`, ámbar `#ff9947`, núcleo `#ffe6b8` |
 | Galaxia | núcleo `#ffd18c`, brazos `#618cff` con toques `#f273ff` |
-| Tortuga | caparazón `#1a998a`, bordes y placas `#ffa847`, bosque `#52f26b`, cuerpo `#38c7a3`, estela `#73bfff` |
+| Tortuga | caparazón `#1a998a`, bordes `#ffa847`, placas `#f2b861` (iluminada `#ffedc7`), bosque `#52f26b`, cuerpo `#38c7a3`, estela `#73bfff` |
 | Tierra | océano `#1247d9`, tierras `#47b852` / `#c79e5c`, nubes `#f2f7ff`, atmósfera `#599eff`, amanecer `#ff7326` |
 
 ## Tipografía
@@ -188,10 +188,10 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 | Token | Valor | Capa |
 |---|---|---|
 | `--z-scene` | 0 | Lienzo WebGL (y, sin WebGL, el fondo `--gradient-space`) |
-| `--z-glow` | 1 | Halo CSS de la singularidad (dentro de `main`: por debajo del texto del hero y por encima del lienzo, también con escena) |
+| `--z-glow` | 1 | Halo CSS de la singularidad (dentro de `main`: por debajo del texto del hero y por encima del lienzo, también con escena). Su valor cuenta **dentro de `main`**, no frente a `--z-flash` y `--z-labels`, que irán fuera de `main`: leído por números, el orden de esta tabla no es el real. El orden halo / destello / etiquetas se decide con la detonación (F4.1) |
 | `--z-flash` | 3 | Destello |
 | `--z-labels` | 4 | Etiquetas y pins proyectados |
-| `--z-content` | 5 | El `main` de cada página (capítulos, fichas, 404): todo el contenido por encima del lienzo |
+| `--z-content` | 5 | El `main` de cada página (capítulos, fichas, 404 y página de error): todo el contenido por encima del lienzo |
 | `--z-chrome` | 15 | Raíl y HUD |
 | `--z-topbar` | 20 | Barra superior |
 | `--z-skip` | 30 | «Skip to content» al recibir el foco (por encima de la barra) |

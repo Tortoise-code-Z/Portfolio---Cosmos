@@ -1,6 +1,5 @@
 import { Canvas, type RootState } from '@react-three/fiber';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Color } from 'three';
 
 import { watchMediaQuery } from '~/lib/device/mediaQuery/mediaQuery';
 import { watchReducedMotion } from '~/lib/device/reducedMotion/reducedMotion';
@@ -12,11 +11,12 @@ import { CameraRig } from '../CameraRig/CameraRig';
 import { CAMERA_LENS, WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
 import { watchContextLoss } from '../contextLoss/contextLoss';
 import { startFrameLoop } from '../frameLoop/frameLoop';
-import { Particles } from '../Particles';
+import { Particles } from '../Particles/Particles';
 import { watchPointer } from '../pointer/pointer';
 import { createSceneClock } from '../sceneClock/sceneClock';
 import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
 import { useSceneShapes } from '../useSceneShapes/useSceneShapes';
+import { readVoidColour } from '../voidColour/voidColour';
 import styles from './SceneRoot.module.css';
 
 /** Por qué la escena se rinde y pide el modo sin WebGL. */
@@ -35,8 +35,9 @@ export interface SceneRootProps {
   /**
    * La escena no puede seguir: `SceneMount` pasa a sin WebGL y la desmonta. Un error al crear el contexto
    * o al renderizar con React no llega aquí: se lanza y lo recoge el `ErrorBoundary` de la escena. Un error
-   * dentro del bucle de frames (`useFrame`, `gl.render`) no lo recoge ningún boundary: corre en el
-   * `requestAnimationFrame` de R3F (docs/04-escena/rendimiento.md → «Robustez»).
+   * dentro de un frame (`useFrame`, `gl.render`) no lo recoge ningún boundary (corre en el bucle de la escena,
+   * `scene/frameLoop`): el bucle se para y llega aquí como `frame-error` (docs/04-escena/rendimiento.md →
+   * «Robustez»).
    */
   readonly onFail: (reason: SceneFailure) => void;
   /** La escena ha pintado su primer frame con partículas: `SceneMount` funde el punto CSS del hero. */
@@ -51,9 +52,6 @@ const MIN_DPR = 1;
  * taparía los enlaces de debajo. La escena no recibe puntero (el de la gravedad llegará de `window`, F4).
  */
 const NO_POINTER = { pointerEvents: 'none' } as const;
-
-/** El color de fondo del lienzo: el del espacio (`--color-void`), leído del token (ADR-005). */
-const VOID_TOKEN = '--color-void';
 
 /**
  * Raíz de la escena (docs/05-tecnico/arquitectura.md → «Carga de la escena»). Llega en su propio chunk,
@@ -79,6 +77,7 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
   const [frame] = useState(createSceneFrame);
   const levelRef = useRef(level);
   const stopLoopRef = useRef<(() => void) | null>(null);
+  const stopVoidRef = useRef<(() => void) | null>(null);
   const shapes = useSceneShapes(level, (reason) => {
     onFailRef.current(reason);
   });
@@ -111,6 +110,8 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
     () => () => {
       stopLoopRef.current?.();
       stopLoopRef.current = null;
+      stopVoidRef.current?.();
+      stopVoidRef.current = null;
     },
     [],
   );
@@ -118,7 +119,8 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas === null) return undefined;
-    // Al volver el contexto, Three rehace su estado y el bucle (continuo) pinta el frame siguiente.
+    // Al volver el contexto, Three rehace su estado (el fondo lo repone `onCreated`) y el bucle (continuo)
+    // pinta el frame siguiente.
     return watchContextLoss(canvas, {
       onGiveUp: (reason) => {
         console.error('[scene] WebGL context lost for good', reason);
@@ -139,10 +141,22 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
       });
       onFailRef.current('shader-error');
     };
-    const voidColour = getComputedStyle(document.documentElement)
-      .getPropertyValue(VOID_TOKEN)
-      .trim();
-    if (voidColour !== '') gl.setClearColor(new Color(voidColour), 1);
+    // El fondo, del color del espacio (`--color-void`). Al recuperar el contexto, Three rehace su fondo en
+    // negro: se vuelve a poner. Se escucha aquí, en el lienzo y después del oyente de Three (que se registra al
+    // crear el renderer), para ir detrás de él; `watchContextLoss` puede registrarse antes.
+    const voidColour = readVoidColour(document.documentElement);
+    if (voidColour !== null) {
+      const paintVoid = (): void => {
+        gl.setClearColor(voidColour, 1);
+      };
+      paintVoid();
+      const canvas = gl.domElement;
+      stopVoidRef.current?.();
+      canvas.addEventListener('webglcontextrestored', paintVoid);
+      stopVoidRef.current = () => {
+        canvas.removeEventListener('webglcontextrestored', paintVoid);
+      };
+    }
 
     stopLoopRef.current?.();
     stopLoopRef.current = startFrameLoop({

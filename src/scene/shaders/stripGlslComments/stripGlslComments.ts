@@ -6,7 +6,7 @@
 const COMMENT = /\/\*[\s\S]*?\*\/|\/\/[^\n]*/g;
 
 /**
- * Quita los comentarios de un shader GLSL al compilar (F33-6, docs/04-escena/rendimiento.md → «Presupuesto»):
+ * Quita los comentarios de un shader GLSL al compilar (docs/04-escena/rendimiento.md → «Presupuesto»):
  * los `.glsl` van comentados para leerlos, pero el navegador no necesita los comentarios y pesan en el chunk de
  * la escena. Lo usa el plugin `cosmos:glsl-without-comments` de `vite.config.ts` con los imports `?raw`; Vitest
  * lee los archivos tal cual.

@@ -3,7 +3,10 @@
  * El contenido abajo a la izquierda; el punto y su halo, centrados en la primera pantalla.
  */
 
-/* Punto y halo en CSS: el relevo de la escena los dibuja en el mismo sitio (estados-y-accesibilidad.md). */
+/*
+ * Punto y halo en CSS. Con escena, la singularidad de partículas releva solo al punto, en el mismo sitio (se funde
+ * con `scene-on`); el halo se queda (estados-y-accesibilidad.md → «Secuencia de carga»).
+ */
 .singularity {
   position: absolute;
   inset-block-start: 50svh;

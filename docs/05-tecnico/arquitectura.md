@@ -41,12 +41,21 @@ cosmos-portfolio/
 │  │  └─ scene-mount/           ← SceneMount (monta la escena en diferido y el aviso sin WebGL; lo pinta
 │  │                              `root.tsx`) y SceneErrorBoundary (aísla los fallos de la escena)
 │  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido: SceneRoot (el `<Canvas>`),
-│  │                              contextLoss (pérdida del contexto WebGL: un intento de restaurar) y
-│  │                              useSceneShapes (pide las formas; reintento en el hilo principal)
-│  │  ├─ config/                ← lo compartido: sceneConfig (semilla, semiejes del caparazón, hex) y
-│  │  │                           plateSlots (huecos de las placas, assignPlates)
+│  │                              contextLoss (pérdida del contexto WebGL: un intento de restaurar),
+│  │                              useSceneShapes (pide las formas; reintento en el hilo principal),
+│  │                              Particles (useParticles) y BackgroundStars (montan los Points),
+│  │                              particleGeometry (atributos), sceneMaterials (uniforms, materiales y el
+│  │                              `SceneFrame`), frameLoop (el bucle de frames, ADR-027), sceneClock (el reloj de
+│  │                              animación), voidColour (el fondo del lienzo), CameraRig y pointer (la cámara
+│  │                              y el ratón)
+│  │  ├─ shaders/               ← los `.glsl` (particles, stars), glslHeader (etiquetas y colores desde TS) y
+│  │  │                           stripGlslComments (el plugin de vite.config.ts)
+│  │  ├─ math/                  ← código puro: camera (pose por `m`, campo de visión, paralaje)
+│  │  ├─ config/                ← lo compartido: sceneConfig (semilla, semiejes del caparazón, cámara),
+│  │  │                           plateSlots (huecos de las placas, assignPlates) y scenePalette (los colores)
 │  │  ├─ shapes/                ← código puro: prng, noise, sampling, hexGrid, un generador por forma
-│  │  │                           (nebula, galaxy, turtle, earth), shapeContract y generateShapes
+│  │  │                           (nebula, galaxy, turtle, earth), shapeContract, generateShapes y stars
+│  │  │                           (las estrellas de fondo, en el hilo principal)
 │  │  └─ worker/                ← shapes.worker.ts (la entrada), handleShapesRequest, protocol y loadShapes
 │  ├─ ui/                       ← componentes genéricos sin dominio: ButtonOutline, HoldButton, ActionLink,
 │  │                              CopyButton, Notice, Icon, VisuallyHidden, ArrowText (las «→» del texto
@@ -185,7 +194,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
 | `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, en F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); después, grupo de skills activo y proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
-| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; sin escena, `m = mTarget`), y desde F3 carga, puntero, peso de capítulos, flags de pausa | `useFrame` y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
+| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; sin escena, `m = mTarget`), y desde F3 carga, puntero, peso de capítulos, flags de pausa | el bucle de la escena (`scene/frameLoop`, que lo deja en el `SceneFrame` que leen los `useFrame`) y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
 ningún store: se guarda en `localStorage` (`lib/storage`), la lee solo `LanguageNotice` y la escriben el aviso y
@@ -199,7 +208,9 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 2. Un único listener de scroll pasivo calcula `mTarget = mapM(scrollY, layout)` y lo escribe en `sceneStore`
    (`setScrollTarget`; también al montar, para una recarga a mitad del viaje). La ruta del viaje los conecta:
    `lib` no importa `stores`, así que el destino le llega por parámetro.
-3. `useFrame` suaviza `m`, actualiza uniforms, cámara y etiquetas (F3). Hasta entonces, y sin WebGL, `m = mTarget`.
+3. El bucle de la escena lee `m` en cada frame y lo deja en el `SceneFrame` compartido; los `useFrame` de cada
+   pieza (uniforms, cámara y, en F4, etiquetas) lo leen de ahí. Desde F3.5 el bucle suaviza `m` con el tiempo real
+   del frame (`SceneFrame.delta`); hasta entonces, y sin WebGL, `m = mTarget`.
 4. El raíl y el idioma eligen `round(m)` (`selectActiveChapter`); el HUD se suscribe y solo toca el DOM cuando
    cambia su texto (cambios discretos, no por frame).
 
@@ -216,9 +227,9 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
     y hace `lazy(() => import('~/scene/SceneRoot/SceneRoot'))`, dentro de `SceneErrorBoundary`.
 - `SceneErrorBoundary` recoge los errores de la escena al montar y al renderizar con React (el chunk que no
   llega, el contexto que no se crea, un hijo del lienzo que lanza), los registra y pasa a sin WebGL. Lo que
-  lanza dentro del bucle de frames (`useFrame`, `gl.render`) no le llega: corre en el `requestAnimationFrame`
-  de R3F (regla en `docs/04-escena/rendimiento.md` → «Robustez»). `SceneRoot` avisa con `onFail` de lo que no
-  lanza: un shader que no compila (`gl.debug.onShaderError`, que registra el programa y cada shader) o un
+  lanza dentro de un frame (`useFrame`, `gl.render`) no le llega: corre en el bucle de la escena
+  (`scene/frameLoop`, ADR-027), que se para y lo pasa a `onFail` (regla en `docs/04-escena/rendimiento.md` →
+  «Robustez»). `SceneRoot` avisa con `onFail` de lo que no llega a ningún boundary: un shader que no compila (`gl.debug.onShaderError`, que registra el programa y cada shader) o un
   contexto perdido que no vuelve (`contextLoss`: un intento, 3 s con la página a la vista), unas formas que no
   llegan de ninguna manera (`shapes-failed`) o un frame que lanza (`frame-error`, ADR-027). Sin WebGL: clase `no-gl` en `<html>`, el lienzo se desmonta y un aviso, una vez por visita.
   `SceneRoot` marca su envoltorio con `data-ready` cuando existe el renderer, con `data-shapes`
@@ -232,7 +243,9 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   `scene/pointer` y si es escritorio de `watchMediaQuery`. Al montar pide las formas al worker; si falla, las genera una vez en el hilo principal a nivel Bajo, y si
   eso también falla, Apagado (`docs/04-escena/rendimiento.md` → «Worker de las formas»).
 - `scene/{shapes,math,config,worker}` es código puro: lo que corre en el worker o se prueba sin WebGL. ESLint
-  le prohíbe Three, React, Zustand, `stores`, los datos de `content` (solo sus tipos) y cualquier `import()`
+  le prohíbe Three, React, Zustand, `stores`, los módulos de la escena que los usan (por ruta relativa:
+  `SceneRoot`, `CameraRig`, `Particles`, `BackgroundStars`, `sceneMaterials`, `particleGeometry`,
+  `useSceneShapes`, `contextLoss`, `voidColour`), los datos de `content` (solo sus tipos) y cualquier `import()`
   (un import así engordaría el worker sin avisar), y prohíbe `Math.random` en toda la escena, también escrito
   `globalThis.Math.random` (ADR-011: el azar con semilla de `scene/shapes/prng`).
 - Three.js, React Three Fiber y lo que arrastran van en el chunk `scene` (grupo de `vite.config.ts`), que

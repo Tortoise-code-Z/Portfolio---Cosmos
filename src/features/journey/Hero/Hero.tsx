@@ -78,8 +78,8 @@ export function Hero(): ReactNode {
   return (
     <ChapterSection index={0} labelledBy={HERO_TITLE_ID}>
       <div className={styles.singularity} aria-hidden="true">
-        <span className={styles.halo} />
-        <span className={styles.core} />
+        <span className={styles.halo} data-singularity="halo" />
+        <span className={styles.core} data-singularity="core" />
       </div>
       <div ref={areaRef} className={styles.inner}>
         <Eyebrow text={t('hero.kicker')} />

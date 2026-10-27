@@ -33,7 +33,10 @@ function colours(): string[] {
   });
 }
 
-/** La cabecera entera: se antepone al código de cada shader. */
+/**
+ * La cabecera entera: se antepone al código de cada **vertex** shader. Los fragment shaders no la llevan (no la
+ * usan, y así no pesan más): no pueden usar sus nombres (lo comprueba el test).
+ */
 export function glslHeader(): string {
   return [
     ...defines('TURTLE', TURTLE_TAG),

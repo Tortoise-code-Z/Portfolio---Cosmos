@@ -19,14 +19,85 @@ const GENERATOR_CHUNK = /\/assets\/generateShapes-[^/]+\.js$/;
 const SCENE_CHUNK = /\/assets\/(?:scene|SceneRoot)-[^/]+\.js$/;
 const NOTICE = "Your browser can't show the 3D universe, but everything else is here.";
 
-/** El punto y el halo CSS del hero (`[data-chapter="0"]`): primero el halo, después el punto. */
-const heroGlow = (page: Page) => page.locator('[data-chapter="0"] > [aria-hidden="true"] > span');
+/** El halo y el punto CSS del hero (`Hero` → `data-singularity`). */
+const heroHalo = (page: Page) => page.locator('[data-singularity="halo"]');
+const heroCore = (page: Page) => page.locator('[data-singularity="core"]');
 /** La escena ha pintado sus partículas (`SceneRoot` → `data-particles`). */
 const PARTICLES_PAINTED = '[data-particles="painted"]:has(canvas)';
 
 /** Lienzo de la escena (el único `<canvas>` de la página). */
 const sceneCanvas = (page: Page) => page.locator('canvas');
 const noGlNotice = (page: Page) => page.getByRole('status').getByText(NOTICE);
+
+/**
+ * Los avisos de WebGL que escribe el navegador al dibujar (`GL_INVALID_OPERATION…` de un atributo mal
+ * dimensionado, por ejemplo): Chromium los da como *warning*, no como error, y `collectErrors` no los ve. Fuera,
+ * los de rendimiento del driver (SwiftShader avisa al leer píxeles para una captura).
+ */
+function collectGlWarnings(page: Page): string[] {
+  const warnings: string[] = [];
+  page.on('console', (message) => {
+    const text = message.text();
+    if (
+      message.type() === 'warning' &&
+      /WebGL|GL_/.test(text) &&
+      !text.includes('GL Driver Message (OpenGL, Performance,')
+    ) {
+      warnings.push(text);
+    }
+  });
+  return warnings;
+}
+
+/** Espera dos frames de la página (la escena pinta con lo que acaba de cambiar). */
+async function nextFrames(page: Page): Promise<void> {
+  await page.evaluate(
+    () =>
+      new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      }),
+  );
+}
+
+/** El color de `--color-void` (`#04050b`), el del fondo del lienzo. */
+const VOID_RGB = [4, 5, 11] as const;
+
+/**
+ * La parte de una zona de la ventana que no es el fondo del espacio: algo pinta ahí. La captura la descodifica
+ * el propio navegador (en un lienzo 2D), sin dependencias. Un píxel cuenta si se aleja del fondo más que el
+ * ruido de la compresión.
+ */
+async function paintedFraction(
+  page: Page,
+  clip: { x: number; y: number; width: number; height: number },
+): Promise<number> {
+  const png = await page.screenshot({ clip });
+  return page.evaluate(
+    async ({ base64, background }) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${base64}`;
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const context = canvas.getContext('2d');
+      if (context === null) throw new Error('No 2D context');
+      context.drawImage(image, 0, 0);
+      const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+      const [r, g, b] = background;
+      let painted = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        const distance =
+          Math.abs((data[i] ?? 0) - r) +
+          Math.abs((data[i + 1] ?? 0) - g) +
+          Math.abs((data[i + 2] ?? 0) - b);
+        if (distance > 30) painted += 1;
+      }
+      return painted / (data.length / 4);
+    },
+    { base64: png.toString('base64'), background: VOID_RGB },
+  );
+}
 
 /** Pide los chunks de la escena que se descarguen desde ahora. */
 function sceneRequests(page: Page): string[] {
@@ -91,10 +162,11 @@ test.describe('the scene with WebGL', () => {
 
   test('is decorative and lets clicks through to the content underneath', async ({ page }) => {
     await expect(sceneCanvas(page)).toBeAttached();
-    // Con escena, el fondo estático de `no-gl` no está.
-    expect(await page.evaluate(() => getComputedStyle(document.body, '::before').content)).toBe(
-      'none',
-    );
+    // Con escena, el fondo estático de `no-gl` no está (`backgroundImage`: igual en los tres motores, al
+    // contrario que `content`, que sin regla puede ser `none` o `normal`).
+    expect(
+      await page.evaluate(() => getComputedStyle(document.body, '::before').backgroundImage),
+    ).toBe('none');
     const wrapper = page.locator('[aria-hidden="true"]', { has: sceneCanvas(page) });
     await expect(wrapper).toHaveCSS('position', 'fixed');
     // React Three Fiber pone `pointer-events: auto` en línea a su envoltorio: no debe tapar los enlaces.
@@ -186,26 +258,64 @@ test.describe('the scene with WebGL', () => {
     page,
   }) => {
     const errors = collectErrors(page);
+    const glWarnings = collectGlWarnings(page);
     await page.goto('/', { waitUntil: 'networkidle' });
     await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
       timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
     });
     await expect(page.locator('html')).toHaveClass(/\bscene-on\b/);
     // La singularidad de partículas releva al punto; el halo se queda.
-    await expect(heroGlow(page).last()).toHaveCSS('opacity', '0');
-    await expect(heroGlow(page).first()).not.toHaveCSS('opacity', '0');
+    await expect(heroCore(page)).toHaveCSS('opacity', '0');
+    await expect(heroHalo(page)).not.toHaveCSS('opacity', '0');
     // Por los 5 capítulos (las 5 formas, de una en una): ningún error, ningún shader roto.
     for (const id of ['about', 'skills', 'projects', 'contact']) {
       await page.locator(`#${id}`).scrollIntoViewIfNeeded();
-      await page.evaluate(
-        () =>
-          new Promise((resolve) => {
-            requestAnimationFrame(() => requestAnimationFrame(resolve));
-          }),
-      );
+      await nextFrames(page);
+      if (id === 'about') {
+        // Las partículas se ven: a la derecha de los paneles (escritorio), entre ellos y el raíl, buena parte de
+        // los píxeles no es el fondo. Con un tamaño de punto 0, alfa 0 o un atributo vacío, casi ninguno.
+        const { width, height } = page.viewportSize() ?? { width: 0, height: 0 };
+        const clip = {
+          x: width * 0.5,
+          y: height * 0.15,
+          width: width * 0.35,
+          height: height * 0.7,
+        };
+        expect(await paintedFraction(page, clip)).toBeGreaterThan(0.05);
+      }
     }
+    // El recorrido llega de verdad al último capítulo.
+    await expect(
+      page.getByRole('navigation', { name: 'Chapters' }).locator('[aria-current="step"]'),
+    ).toHaveAccessibleName(/^Contact/);
     await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
     expect(errors).toEqual([]);
+    expect(glWarnings).toEqual([]);
+  });
+
+  test.describe('with reduced motion', () => {
+    test.use({ reducedMotion: 'reduce' });
+
+    test('still paints its particles and hands over the hero dot, without errors', async ({
+      page,
+    }) => {
+      const errors = collectErrors(page);
+      const glWarnings = collectGlWarnings(page);
+      await page.goto('/', { waitUntil: 'networkidle' });
+      expect(
+        await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches),
+      ).toBe(true);
+      await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
+        timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+      });
+      await expect(page.locator('html')).toHaveClass(/\bscene-on\b/);
+      await expect(heroCore(page)).toHaveCSS('opacity', '0');
+      await page.locator('#contact').scrollIntoViewIfNeeded();
+      await nextFrames(page);
+      await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
+      expect(errors).toEqual([]);
+      expect(glWarnings).toEqual([]);
+    });
   });
 
   for (const viewport of [
@@ -216,6 +326,7 @@ test.describe('the scene with WebGL', () => {
       page,
     }) => {
       const errors = collectErrors(page);
+      const glWarnings = collectGlWarnings(page);
       await page.setViewportSize(viewport);
       await page.goto('/', { waitUntil: 'networkidle' });
       await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
@@ -227,16 +338,12 @@ test.describe('the scene with WebGL', () => {
         await page.locator(`#${id}`).scrollIntoViewIfNeeded();
         await page.mouse.move(viewport.width * 0.9, viewport.height * 0.2, { steps: 4 });
         await page.mouse.move(viewport.width * 0.1, viewport.height * 0.8, { steps: 4 });
-        await page.evaluate(
-          () =>
-            new Promise((resolve) => {
-              requestAnimationFrame(() => requestAnimationFrame(resolve));
-            }),
-        );
+        await nextFrames(page);
       }
       await page.mouse.move(-10, -10);
       await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
       expect(errors).toEqual([]);
+      expect(glWarnings).toEqual([]);
     });
   }
 
@@ -324,17 +431,30 @@ test.describe('without WebGL', () => {
     await expect(sceneCanvas(page)).toHaveCount(0);
     expect(requests).toEqual([]);
     // Sin escena, el hero se ve completo: el punto CSS y su halo.
-    await expect(heroGlow(page)).toHaveCount(2);
-    for (const glow of await heroGlow(page).all()) await expect(glow).not.toHaveCSS('opacity', '0');
-    // En lugar del lienzo, el fondo estático del espacio, fijo en la capa de la escena.
+    await expect(heroCore(page)).not.toHaveCSS('opacity', '0');
+    await expect(heroHalo(page)).not.toHaveCSS('opacity', '0');
+    // En lugar del lienzo, el fondo estático del espacio, fijo en la capa de la escena: por debajo del
+    // contenido (los dos en el orden de apilado de la raíz). Si lo tapara, los clics pasarían igual
+    // (`pointer-events: none`) y solo se notaría al mirar.
     const backdrop = await page.evaluate(() => {
       const style = getComputedStyle(document.body, '::before');
-      return { position: style.position, image: style.backgroundImage };
+      const main = document.querySelector('main');
+      return {
+        position: style.position,
+        image: style.backgroundImage,
+        zIndex: Number(style.zIndex),
+        mainZIndex: main === null ? null : Number(getComputedStyle(main).zIndex),
+        mainInBody: main?.parentElement === document.body,
+      };
     });
     expect(backdrop).toEqual({
       position: 'fixed',
       image: expect.stringMatching(/^radial-gradient\(/) as unknown,
+      zIndex: expect.any(Number) as unknown,
+      mainZIndex: expect.any(Number) as unknown,
+      mainInBody: true,
     });
+    expect(backdrop.mainZIndex).toBeGreaterThan(backdrop.zIndex);
 
     await page.getByRole('button', { name: 'Got it' }).click();
     await expect(noGlNotice(page)).toHaveCount(0);

@@ -1,10 +1,12 @@
 import { render } from '@testing-library/react';
-import { useEffect, type ReactNode, type Ref } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
+import type { Color } from 'three';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { setScrollTarget, sceneStore } from '~/stores/sceneStore/sceneStore';
+import { setScrollTarget } from '~/stores/sceneStore/sceneStore';
 
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../contextLoss/contextLoss';
+import { MAX_STEP_S } from '../sceneClock/sceneClock';
 import { useSceneShapes } from '../useSceneShapes/useSceneShapes';
 import SceneRoot from './SceneRoot';
 
@@ -23,7 +25,7 @@ vi.mock('../CameraRig/CameraRig', () => ({
     return null;
   },
 }));
-vi.mock('../Particles', async () => {
+vi.mock('../Particles/Particles', async () => {
   const { useEffect } = await import('react');
   return {
     Particles: function FakeParticles({
@@ -65,7 +67,9 @@ type ShaderErrorHandler = (
 /** El renderer falso y el estado de R3F que recibe `onCreated`: solo lo que toca SceneRoot. */
 const renderer = vi.hoisted(() => ({
   debug: { onShaderError: null as ShaderErrorHandler | null },
-  setClearColor: vi.fn<(colour: { getHexString: () => string }, alpha: number) => void>(),
+  setClearColor: vi.fn<(colour: Color, alpha: number) => void>(),
+  /** El lienzo del renderer: lo pone el `<Canvas>` falso antes de `onCreated`. */
+  domElement: null as HTMLCanvasElement | null,
 }));
 const advance = vi.hoisted(() => vi.fn());
 const r3fState = vi.hoisted(() => ({
@@ -87,7 +91,7 @@ vi.mock('@react-three/fiber', () => ({
     onCreated,
     children,
   }: {
-    readonly ref: Ref<HTMLCanvasElement>;
+    readonly ref: RefObject<HTMLCanvasElement | null>;
     readonly dpr: readonly number[];
     readonly frameloop: string;
     readonly flat: boolean;
@@ -97,7 +101,9 @@ vi.mock('@react-three/fiber', () => ({
     readonly onCreated: (state: { gl: typeof renderer; get: () => typeof r3fState }) => void;
     readonly children: ReactNode;
   }): ReactNode {
+    const own = useRef<HTMLCanvasElement | null>(null);
     useEffect(() => {
+      renderer.domElement = own.current;
       onCreated({ gl: renderer, get: () => r3fState });
       // Solo al montar, como el `onCreated` de verdad.
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -105,7 +111,10 @@ vi.mock('@react-three/fiber', () => ({
     return (
       <>
         <canvas
-          ref={ref}
+          ref={(node) => {
+            own.current = node;
+            ref.current = node;
+          }}
           data-dpr={dpr.join(',')}
           data-frameloop={frameloop}
           data-flat={String(flat)}
@@ -119,11 +128,17 @@ vi.mock('@react-three/fiber', () => ({
   },
 }));
 
+beforeEach(() => {
+  // El color del espacio de `tokens.css` (jsdom no carga los estilos).
+  document.documentElement.style.setProperty('--color-void', '#04050b');
+});
+
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
   renderer.debug.onShaderError = null;
   renderer.setClearColor.mockReset();
+  renderer.domElement = null;
   advance.mockReset();
   seen.frame = null;
   seen.stars = [];
@@ -151,6 +166,40 @@ function renderScene(level: 'high' | 'medium' | 'low' = 'high'): {
   if (canvas === null) throw new Error('No canvas');
   return { canvas, onFail, onPainted, unmount };
 }
+
+type MediaListener = (event: { matches: boolean }) => void;
+
+/**
+ * `matchMedia` falso con las consultas que casan en `matching`: guarda los oyentes de `change` de cada consulta
+ * (otro tipo de evento no avisaría nunca) para poder cambiar la respuesta a mano.
+ */
+function stubMatchMedia(matching: readonly string[]) {
+  const listeners = new Map<string, Set<MediaListener>>();
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => {
+      const own = listeners.get(query) ?? new Set<MediaListener>();
+      listeners.set(query, own);
+      return {
+        matches: matching.includes(query),
+        addEventListener: (type: string, listener: MediaListener) => {
+          if (type === 'change') own.add(listener);
+        },
+        removeEventListener: (type: string, listener: MediaListener) => {
+          if (type === 'change') own.delete(listener);
+        },
+      };
+    }),
+  );
+  return {
+    listeners: (query: string): number => listeners.get(query)?.size ?? 0,
+    change(query: string, matches: boolean): void {
+      for (const listener of listeners.get(query) ?? []) listener({ matches });
+    },
+  };
+}
+
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 
 /** `requestAnimationFrame` a mano: cada `tick` da un frame con esa hora (ms). */
 function manualFrames() {
@@ -180,10 +229,12 @@ describe('SceneRoot', () => {
 
   it('caps the pixel ratio and the stars by level; its own frame loop, an opaque canvas, no colour management', () => {
     expect(renderScene('high').canvas).toHaveAttribute('data-dpr', '1,2');
+    expect(seen.stars.at(-1)).toBe(5000);
     expect(renderScene('medium').canvas).toHaveAttribute('data-dpr', '1,1.5');
+    expect(seen.stars.at(-1)).toBe(3500);
     const { canvas } = renderScene('low');
     expect(canvas).toHaveAttribute('data-dpr', '1,1');
-    expect(seen.stars).toEqual(expect.arrayContaining([5000, 3500, 2000]));
+    expect(seen.stars.at(-1)).toBe(2000);
     expect(canvas).toHaveAttribute('data-frameloop', 'never');
     expect(canvas).toHaveAttribute('data-alpha', 'false');
     expect(canvas).toHaveAttribute('data-flat', 'true');
@@ -192,13 +243,33 @@ describe('SceneRoot', () => {
     expect(canvas).toHaveAttribute('data-camera', '55@rig');
   });
 
-  it('clears with the void colour of the tokens', () => {
-    document.documentElement.style.setProperty('--color-void', '#04050b');
-    renderScene();
+  it('clears with the void colour of the tokens, numbers as they are, and again when the context comes back', () => {
+    const { canvas, unmount } = renderScene();
     expect(renderer.setClearColor).toHaveBeenCalledTimes(1);
     const [colour, alpha] = renderer.setClearColor.mock.calls[0] ?? [];
-    expect(colour?.getHexString()).toBe('04050b');
+    // Los números del hex, sin linealizar (con salida lineal, Three los escribe tal cual).
+    expect(colour?.r).toBeCloseTo(4 / 255, 6);
+    expect(colour?.b).toBeCloseTo(11 / 255, 6);
     expect(alpha).toBe(1);
+    // Three rehace su fondo en negro al recuperar el contexto.
+    canvas.dispatchEvent(new Event('webglcontextrestored'));
+    expect(renderer.setClearColor).toHaveBeenCalledTimes(2);
+    expect(renderer.setClearColor).toHaveBeenLastCalledWith(colour, 1);
+    unmount();
+    canvas.dispatchEvent(new Event('webglcontextrestored'));
+    expect(renderer.setClearColor).toHaveBeenCalledTimes(2);
+  });
+
+  it('a void token that is not #rrggbb is logged and leaves the clear colour alone', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    document.documentElement.style.setProperty('--color-void', 'oklch(0.1 0.02 270)');
+    const { canvas } = renderScene();
+    canvas.dispatchEvent(new Event('webglcontextrestored'));
+    expect(renderer.setClearColor).not.toHaveBeenCalled();
+    expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+      '[scene] --color-void is not a #rrggbb colour; the canvas keeps its default',
+      'oklch(0.1 0.02 270)',
+    );
   });
 
   it('with shapes: paints its particles, says so once (data-particles, onPainted) and feeds them each frame', () => {
@@ -218,12 +289,13 @@ describe('SceneRoot', () => {
     expect(onPainted).toHaveBeenCalledTimes(1);
     expect(canvas.closest('[aria-hidden="true"]')).toHaveAttribute('data-particles', 'painted');
     setScrollTarget(2.25);
+    // Un hueco de 1 s (más que el tope): el frame lleva el reloj de la escena, no los segundos del bucle.
     frames.tick(1000);
-    frames.tick(1050);
+    frames.tick(2000);
     expect(seen.frame).toEqual({
-      m: sceneStore.getState().m,
-      time: expect.closeTo(0.05, 10) as unknown,
-      delta: expect.closeTo(0.05, 10) as unknown,
+      m: 2.25,
+      time: MAX_STEP_S,
+      delta: MAX_STEP_S,
       reducedMotion: false,
       pixelRatio: 2,
       aspect: 1.6,
@@ -234,6 +306,28 @@ describe('SceneRoot', () => {
     // La cámara lee el mismo frame.
     expect(seen.cameraFrame).toBe(seen.frame);
     expect(advance).toHaveBeenCalledTimes(2);
+    // R3F avanza con los segundos del bucle (sus `useFrame` leen el reloj del frame compartido).
+    expect(advance).toHaveBeenLastCalledWith(1);
+  });
+
+  it('obeys reduced motion: the clock stands still, goes on without a jump, and it stops listening when unmounted', () => {
+    const media = stubMatchMedia([REDUCED_MOTION]);
+    const frames = manualFrames();
+    const { unmount } = renderScene();
+    const frame = seen.cameraFrame as { time: number; delta: number; reducedMotion: boolean };
+    expect(media.listeners(REDUCED_MOTION)).toBe(1);
+    frames.tick(1000);
+    frames.tick(1050);
+    expect(frame.reducedMotion).toBe(true);
+    expect(frame.time).toBe(0);
+    // El tiempo real sigue para los suavizados.
+    expect(frame.delta).toBeCloseTo(0.05, 10);
+    media.change(REDUCED_MOTION, false);
+    frames.tick(1100);
+    expect(frame.reducedMotion).toBe(false);
+    expect(frame.time).toBeCloseTo(0.05, 10);
+    unmount();
+    expect(media.listeners(REDUCED_MOTION)).toBe(0);
   });
 
   it('a frame that throws stops the loop, is logged and gives up once', () => {
@@ -264,24 +358,15 @@ describe('SceneRoot', () => {
   });
 
   it('tells its camera whether the layout is the desktop one and where the mouse is, until unmounted', () => {
-    const queries: string[] = [];
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn((query: string) => {
-        queries.push(query);
-        return {
-          matches: query === '(width >= 900px)',
-          addEventListener: () => undefined,
-          removeEventListener: () => undefined,
-        };
-      }),
-    );
+    const media = stubMatchMedia(['(width >= 900px)']);
     vi.stubGlobal('innerWidth', 1000);
     vi.stubGlobal('innerHeight', 500);
     const { unmount } = renderScene();
     const frame = seen.cameraFrame as { wide: boolean; pointer: object };
-    expect(queries).toContain('(width >= 900px)');
+    expect(media.listeners('(width >= 900px)')).toBe(1);
     expect(frame.wide).toBe(true);
+    media.change('(width >= 900px)', false);
+    expect(frame.wide).toBe(false);
     const move = (clientX: number): void => {
       const event = new MouseEvent('pointermove', { clientX, clientY: 250 });
       Object.defineProperty(event, 'pointerType', { value: 'mouse' });
@@ -292,6 +377,7 @@ describe('SceneRoot', () => {
     unmount();
     move(0);
     expect(frame.pointer).toEqual({ x: 0.5, y: 0, inside: true });
+    expect(media.listeners('(width >= 900px)')).toBe(0);
   });
 
   it('says when the renderer exists (data-ready), so the e2e know the scene is mounted', () => {
@@ -321,11 +407,16 @@ describe('SceneRoot', () => {
 
   it('a WebGL context that comes back in time keeps the scene (its loop paints the next frame)', () => {
     vi.useFakeTimers();
+    const frames = manualFrames();
     const { canvas, onFail } = renderScene();
+    frames.tick(0);
     canvas.dispatchEvent(new Event('webglcontextlost'));
     canvas.dispatchEvent(new Event('webglcontextrestored'));
     vi.advanceTimersByTime(CONTEXT_RESTORE_TIMEOUT_MS);
     expect(onFail).not.toHaveBeenCalled();
+    advance.mockClear();
+    frames.tick(16);
+    expect(advance).toHaveBeenCalledTimes(1);
   });
 
   it('a WebGL context that does not come back gives up, and is logged', () => {
