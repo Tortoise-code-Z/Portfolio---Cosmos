@@ -55,12 +55,23 @@ export const NARROW_VIEWPORT_PX = 760;
 export const FEW_CORES = 4;
 
 /**
+ * ¿Es un móvil (o una tableta)? Táctil o estrecho, aunque tenga ratón. Lo miran la elección inicial (Bajo) y la
+ * degradación en caliente (su umbral de fps).
+ */
+export function isHandheld({
+  coarsePointer,
+  viewportWidth,
+}: Pick<BrowserSignals, 'coarsePointer' | 'viewportWidth'>): boolean {
+  return coarsePointer || viewportWidth < NARROW_VIEWPORT_PX;
+}
+
+/**
  * Nivel con el que arranca la visita. En orden: pintado por software, ahorro de datos o poca memoria →
  * Bajo; táctil o estrecho → Bajo; pocos núcleos → Medio; si no, Alto. Una señal que el navegador no da no
- * baja el nivel. La degradación en caliente (fps sostenidos bajos) llega con las partículas (F3.6).
+ * baja el nivel. Después solo puede bajar: la degradación en caliente (`nextLowerLevel`).
  */
 export function chooseInitialLevel(signals: BrowserSignals): RenderLevel {
-  const { saveData, deviceMemory, hardwareConcurrency, coarsePointer, viewportWidth } = signals;
+  const { saveData, deviceMemory, hardwareConcurrency } = signals;
   if (
     signals.softwareRendering ||
     saveData === true ||
@@ -68,9 +79,19 @@ export function chooseInitialLevel(signals: BrowserSignals): RenderLevel {
   ) {
     return 'low';
   }
-  if (coarsePointer || viewportWidth < NARROW_VIEWPORT_PX) return 'low';
+  if (isHandheld(signals)) return 'low';
   if (hardwareConcurrency !== undefined && hardwareConcurrency <= FEW_CORES) return 'medium';
   return 'high';
+}
+
+/**
+ * El nivel de debajo, al que lleva la degradación en caliente (docs/04-escena/rendimiento.md → «Degradación en
+ * caliente»). Bajo es el suelo: los fps nunca apagan la escena.
+ */
+export function nextLowerLevel(level: RenderLevel): RenderLevel | null {
+  if (level === 'high') return 'medium';
+  if (level === 'medium') return 'low';
+  return null;
 }
 
 /** Las APIs que no están en todos los navegadores (ni en los tipos del DOM). */
@@ -79,7 +100,8 @@ interface NavigatorExtras {
   readonly deviceMemory?: unknown;
 }
 
-const COARSE_POINTER_QUERY = '(pointer: coarse)';
+/** Puntero principal grueso (táctil). */
+export const COARSE_POINTER_QUERY = '(pointer: coarse)';
 
 function positiveNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : undefined;

@@ -459,6 +459,90 @@ test.describe('the scene with WebGL', () => {
     );
   });
 
+  test.describe('hot degradation (painting too slowly)', () => {
+    /**
+     * Arranca en Alto: la detección cree que hay GPU (sin `failIfMajorPerformanceCaveat`, SwiftShader daría
+     * «software» y Bajo) y hay 8 núcleos. A 1280×720, con 60.000 partículas, SwiftShader no llega a 45 fps.
+     */
+    async function startHigh(page: Page, browserName: string): Promise<void> {
+      test.skip(
+        browserName !== 'chromium',
+        'SwiftShader (painted by the CPU) is what makes it slow',
+      );
+      await page.setViewportSize({ width: 1280, height: 720 });
+      await page.addInitScript(() => {
+        // eslint-disable-next-line @typescript-eslint/unbound-method -- se llama con `.call(this, …)`
+        const getContext = HTMLCanvasElement.prototype.getContext;
+        function withoutCaveat(
+          this: HTMLCanvasElement,
+          type: string,
+          attributes?: WebGLContextAttributes,
+        ): RenderingContext | null {
+          const rest = { ...attributes };
+          delete rest.failIfMajorPerformanceCaveat;
+          return getContext.call(this, type, rest);
+        }
+        HTMLCanvasElement.prototype.getContext = withoutCaveat as typeof getContext;
+        Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', { get: () => 8 });
+      });
+      // El `beforeEach` ya abrió `/`: ir a `/#about` desde ahí solo cambiaría el ancla, sin recargar ni pasar por
+      // el script de arriba.
+      await page.goto('about:blank');
+    }
+
+    test('goes down one level at a time to low, each with its shapes from the worker, without errors', async ({
+      page,
+      browserName,
+    }) => {
+      await startHigh(page, browserName);
+      const errors = collectErrors(page);
+      const generator = generatorRequests(page);
+      await page.goto('/#about');
+      const scene = page.locator(PARTICLES_PAINTED);
+      await expect(scene).toHaveAttribute('data-level', 'high');
+      // Calentamiento (2 s) y 3 ventanas de 2 s por nivel, más lo que tarde el worker.
+      await expect(scene).toHaveAttribute('data-level', 'medium', { timeout: 30_000 });
+      await expect(scene).toHaveAttribute('data-level', 'low', { timeout: 30_000 });
+      await expect(scene).toHaveAttribute('data-shapes', 'worker');
+      expect(generator).toEqual([]);
+      await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
+      expect(errors).toEqual([]);
+    });
+
+    test('the shapes of the lower level do not arrive: the level stays, warned once, the scene goes on', async ({
+      page,
+      browserName,
+    }) => {
+      await startHigh(page, browserName);
+      const errors = collectErrors(page);
+      const warnings: string[] = [];
+      page.on('console', (message) => {
+        if (message.type() === 'warning') warnings.push(message.text());
+      });
+      const generator = generatorRequests(page);
+      await page.goto('/#about');
+      const scene = page.locator(PARTICLES_PAINTED);
+      await expect(scene).toHaveAttribute('data-level', 'high');
+      await expect(scene).toHaveAttribute('data-shapes', 'worker');
+      // Las formas del nivel de debajo ya no llegan.
+      await page.route(SHAPES_WORKER, (route) => route.abort());
+      const kept = '[scene] The shapes for a lower level did not arrive; keeping the current level';
+      await expect
+        .poll(() => warnings.filter((warning) => warning.startsWith(kept)).length, {
+          timeout: 30_000,
+        })
+        .toBe(1);
+      // Sin más intentos: otro ciclo de medida entero y sigue igual.
+      await page.waitForTimeout(10_000);
+      expect(warnings.filter((warning) => warning.startsWith(kept))).toHaveLength(1);
+      await expect(scene).toHaveAttribute('data-level', 'high');
+      await expect(scene).toHaveAttribute('data-shapes', 'worker');
+      expect(generator).toEqual([]);
+      await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
+      expect(errors.filter((error) => !error.startsWith('Failed to load resource'))).toEqual([]);
+    });
+  });
+
   test('a scene chunk that never arrives leaves the whole page, without WebGL', async ({
     page,
   }) => {

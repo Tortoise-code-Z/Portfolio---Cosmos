@@ -12,7 +12,9 @@ import { useSceneShapes } from '../useSceneShapes/useSceneShapes';
 import SceneRoot from './SceneRoot';
 
 // Las formas tienen sus propios tests (worker, reintento): aquí solo se mira cómo las usa SceneRoot.
-vi.mock('../useSceneShapes/useSceneShapes', () => ({ useSceneShapes: vi.fn(() => null) }));
+vi.mock('../useSceneShapes/useSceneShapes', () => ({
+  useSceneShapes: vi.fn(() => ({ shapes: null, lowerTo: () => Promise.resolve('kept') })),
+}));
 
 /** Las piezas de Three necesitan WebGL: aquí solo se mira qué reciben (y las partículas «pintan» al montar). */
 const seen = vi.hoisted((): { frame: unknown; stars: number[]; cameraFrame: unknown } => ({
@@ -150,7 +152,7 @@ afterEach(() => {
   Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
   document.documentElement.style.removeProperty('--color-void');
   // `restoreAllMocks` solo deshace los `spyOn`: lo que un test le haga devolver al simulacro de `vi.mock` se
-  // quedaría para los siguientes (vuelve a `() => null`).
+  // quedaría para los siguientes (vuelve a «sin formas»).
   vi.mocked(useSceneShapes).mockReset();
 });
 
@@ -278,15 +280,18 @@ describe('SceneRoot', () => {
   it('with shapes: paints its particles, says so once (data-particles, onPainted) and feeds them each frame', () => {
     const frames = manualFrames();
     vi.mocked(useSceneShapes).mockReturnValue({
-      source: 'worker',
       shapes: {
-        count: 1,
-        nebula: new Float32Array(3),
-        galaxy: new Float32Array(3),
-        turtle: new Float32Array(3),
-        earth: new Float32Array(3),
-        rand: new Float32Array(4),
+        source: 'worker',
+        shapes: {
+          count: 1,
+          nebula: new Float32Array(3),
+          galaxy: new Float32Array(3),
+          turtle: new Float32Array(3),
+          earth: new Float32Array(3),
+          rand: new Float32Array(4),
+        },
       },
+      lowerTo: () => Promise.resolve('kept'),
     });
     const { canvas, onPainted } = renderScene('low');
     expect(onPainted).toHaveBeenCalledTimes(1);
@@ -502,6 +507,47 @@ describe('SceneRoot', () => {
     );
   });
 
+  it('marks its level (data-level) and, painting too slowly, asks for the level below; a pause in between does not count', () => {
+    const frames = manualFrames();
+    const lowerTo = vi.fn(() => new Promise<'lowered'>(() => undefined));
+    vi.mocked(useSceneShapes).mockReturnValue({
+      shapes: {
+        source: 'worker',
+        shapes: {
+          count: 1,
+          nebula: new Float32Array(3),
+          galaxy: new Float32Array(3),
+          turtle: new Float32Array(3),
+          earth: new Float32Array(3),
+          rand: new Float32Array(4),
+        },
+      },
+      lowerTo,
+    });
+    const { canvas } = renderScene('high');
+    expect(canvas.closest('[aria-hidden="true"]')).toHaveAttribute('data-level', 'high');
+    /** Frames a `fps` desde `from` ms durante `seconds`; devuelve la hora del último. */
+    const run = (from: number, seconds: number, fps: number): number => {
+      const step = 1000 / fps;
+      const count = Math.round(seconds * fps);
+      for (let i = 0; i <= count; i += 1) frames.tick(from + i * step);
+      return from + count * step;
+    };
+    // 7 s lentos (calentamiento y dos ventanas y media), una pausa de un minuto y, al volver, rápido: nada.
+    let at = run(0, 7, 30);
+    act(() => {
+      openQuickMission();
+    });
+    act(() => {
+      closeQuickMission();
+    });
+    at = run(at + 60_000, 10, 60);
+    expect(lowerTo).not.toHaveBeenCalled();
+    // Lento otra vez: tres ventanas de 2 s seguidas.
+    run(at + 1000 / 30, 6.1, 30);
+    expect(lowerTo).toHaveBeenCalledExactlyOnceWith('medium');
+  });
+
   it('asks for the shapes of its level, marks where they came from and gives up without them', () => {
     const { canvas, onFail } = renderScene('medium');
     const wrapper = canvas.closest('[aria-hidden="true"]');
@@ -512,15 +558,18 @@ describe('SceneRoot', () => {
     expect(onFail).toHaveBeenCalledExactlyOnceWith('shapes-failed');
 
     vi.mocked(useSceneShapes).mockReturnValue({
-      source: 'main',
       shapes: {
-        count: 1,
-        nebula: new Float32Array(3),
-        galaxy: new Float32Array(3),
-        turtle: new Float32Array(3),
-        earth: new Float32Array(3),
-        rand: new Float32Array(4),
+        source: 'main',
+        shapes: {
+          count: 1,
+          nebula: new Float32Array(3),
+          galaxy: new Float32Array(3),
+          turtle: new Float32Array(3),
+          earth: new Float32Array(3),
+          rand: new Float32Array(4),
+        },
       },
+      lowerTo: () => Promise.resolve('kept'),
     });
     const again = renderScene('low');
     expect(again.canvas.closest('[aria-hidden="true"]')).toHaveAttribute('data-shapes', 'main');

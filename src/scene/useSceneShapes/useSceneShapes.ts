@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { projectEntries } from '~/content/projects/entries';
 import { LEVEL_SETTINGS, type RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
@@ -11,8 +11,9 @@ import { loadShapes } from '../worker/loadShapes/loadShapes';
 
 /**
  * Las formas de la escena para su nivel (docs/04-escena/rendimiento.md → «Worker de las formas»). Se piden al
- * montar y se guardan; F3.3 las pinta. Si el worker falla, se reintenta **una vez** en el hilo principal con
- * el nivel Bajo, y la escena entera baja a Bajo; si eso también falla, Apagado.
+ * montar y se guardan; `Particles` las pinta. Si el worker falla, se reintenta **una vez** en el hilo principal
+ * con el nivel Bajo, y la escena entera baja a Bajo; si eso también falla, Apagado. La degradación en caliente
+ * (`lowerTo`) pide las del nivel de debajo al worker, sin reintento, y solo baja el nivel si llegan.
  */
 
 /** De dónde llegaron: lo marca `SceneRoot` (`data-shapes`) para que los e2e distingan los dos caminos. */
@@ -68,18 +69,35 @@ export async function obtainShapes(
   }
 }
 
+/** Cómo acabó una bajada en caliente: `kept`, el worker falló y todo sigue como estaba. */
+export type LowerResult = 'lowered' | 'kept' | 'aborted';
+
+export interface SceneShapesState {
+  /** Las formas que se pintan (`null` hasta que llegan las primeras). */
+  readonly shapes: SceneShapes | null;
+  /**
+   * Degradación en caliente: pide al worker las formas de `level` (sin reintento en el hilo principal) y, si
+   * llegan, cambia a ellas y baja el nivel a la vez. Si fallan, ni formas ni nivel cambian (`kept`). Se cancela
+   * al desmontar (`aborted`). Siempre la misma función.
+   */
+  readonly lowerTo: (level: RenderLevel) => Promise<LowerResult>;
+}
+
 /**
  * Pide las formas del nivel al montar, y otras solo si el nivel pide otro `count` (tras el reintento, que ya
- * las hizo para Bajo, no pide nada). `onFail` pasa a Apagado si no hay formas de ninguna manera.
+ * las hizo para Bajo, y tras `lowerTo`, que ya las trajo, no pide nada). `onFail` pasa a Apagado si no hay
+ * formas de ninguna manera.
  */
 export function useSceneShapes(
   level: RenderLevel,
   onFail: (reason: 'shapes-failed') => void,
-): SceneShapes | null {
+): SceneShapesState {
   const count = LEVEL_SETTINGS[level].particles;
   const [loaded, setLoaded] = useState<SceneShapes | null>(null);
   const loadedCount = useRef<number | null>(null);
   const onFailRef = useRef(onFail);
+  /** La bajada en curso, para cancelarla al desmontar. */
+  const lowering = useRef<AbortController | null>(null);
 
   useEffect(() => {
     onFailRef.current = onFail;
@@ -103,5 +121,39 @@ export function useSceneShapes(
     };
   }, [count]);
 
-  return loaded;
+  useEffect(
+    () => () => {
+      lowering.current?.abort();
+      lowering.current = null;
+    },
+    [],
+  );
+
+  const lowerTo = useCallback(async (target: RenderLevel): Promise<LowerResult> => {
+    lowering.current?.abort();
+    const controller = new AbortController();
+    lowering.current = controller;
+    const result = await loadShapes(requestFor(LEVEL_SETTINGS[target].particles), {
+      signal: controller.signal,
+    });
+    if (controller.signal.aborted) return 'aborted';
+    lowering.current = null;
+    if (!result.ok) {
+      if (result.reason === 'aborted') return 'aborted';
+      // Degradación prevista: la escena sigue como estaba (docs/04-escena/rendimiento.md).
+      console.warn(
+        '[scene] The shapes for a lower level did not arrive; keeping the current level',
+        result.reason,
+        result.detail,
+      );
+      return 'kept';
+    }
+    // Primero las formas y después el nivel: al cambiar el nivel, su `count` ya está cargado y no se pide nada.
+    loadedCount.current = result.shapes.count;
+    setLoaded({ shapes: result.shapes, source: 'worker' });
+    lowerSceneLevel(target);
+    return 'lowered';
+  }, []);
+
+  return { shapes: loaded, lowerTo };
 }

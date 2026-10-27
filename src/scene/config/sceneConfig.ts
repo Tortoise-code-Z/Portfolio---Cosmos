@@ -79,3 +79,16 @@ export const STARS_SEED_NAME = 'stars';
  * cuando le falta menos de `epsilon`.
  */
 export const M_SMOOTHING = { rate: 3.4, reducedRate: 12, epsilon: 1e-4 } as const;
+
+/**
+ * Degradación en caliente (docs/04-escena/rendimiento.md → «Degradación en caliente»): la media de fps de cada
+ * ventana de `windowS` segundos; con `slowWindows` ventanas seguidas por debajo de `minFps` (escritorio o móvil),
+ * un nivel menos. Los primeros `warmupS` segundos de cada nivel no cuentan (el primer frame compila el shader y
+ * sube la geometría).
+ */
+export const HOT_DEGRADATION = {
+  windowS: 2,
+  slowWindows: 3,
+  warmupS: 2,
+  minFps: { desktop: 45, handheld: 26 },
+} as const;

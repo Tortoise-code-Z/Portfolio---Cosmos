@@ -17,6 +17,7 @@ import { watchScenePause } from '../pause/pause';
 import { watchPointer } from '../pointer/pointer';
 import { createSceneClock } from '../sceneClock/sceneClock';
 import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
+import { useHotDegradation } from '../useHotDegradation/useHotDegradation';
 import { useSceneShapes } from '../useSceneShapes/useSceneShapes';
 import { readVoidColour } from '../voidColour/voidColour';
 import styles from './SceneRoot.module.css';
@@ -32,7 +33,10 @@ export type SceneFailure =
   | 'shapes-failed';
 
 export interface SceneRootProps {
-  /** Nivel (lo eligió `SceneMount`; puede bajar): fija el DPR máximo y cuántas partículas se generan. */
+  /**
+   * Nivel (lo eligió `SceneMount`; puede bajar: el reintento de las formas y la degradación en caliente): fija el
+   * DPR máximo y cuántas partículas se generan. `data-level` para los e2e.
+   */
   readonly level: RenderLevel;
   /**
    * La escena no puede seguir: `SceneMount` pasa a sin WebGL y la desmonta. Un error al crear el contexto
@@ -67,7 +71,8 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * a sin WebGL. La `m` de la escena es suya: persigue a `mTarget` con un amortiguado (`M_SMOOTHING`, con el tiempo
  * real del frame) y arranca en él (sin repetir la explosión a mitad del viaje); `sceneStore` sigue con
  * `m = mTarget` para la interfaz (ADR-028). Con la página oculta o la misión rápida abierta, el bucle se pausa
- * (`watchScenePause`; `data-paused` para los e2e). El lienzo es opaco, del color del espacio, y sin gestión de color ni mapeo de tonos (`linear`,
+ * (`watchScenePause`; `data-paused` para los e2e). Si los fps se quedan cortos, baja un nivel
+ * (`useHotDegradation`: mide en cada frame y descarta la ventana en curso al pausar). El lienzo es opaco, del color del espacio, y sin gestión de color ni mapeo de tonos (`linear`,
  * `flat`): los shaders suman la luz tal cual, como el prototipo (particulas-y-shaders.md → «Colores»).
  */
 export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps): ReactNode {
@@ -86,9 +91,10 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
   const levelRef = useRef(level);
   const loopRef = useRef<FrameLoop | null>(null);
   const stopVoidRef = useRef<(() => void) | null>(null);
-  const shapes = useSceneShapes(level, (reason) => {
+  const { shapes, lowerTo } = useSceneShapes(level, (reason) => {
     onFailRef.current(reason);
   });
+  const degradation = useHotDegradation({ level, active: painted, lowerTo });
 
   useEffect(() => {
     onFailRef.current = onFail;
@@ -118,10 +124,11 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
     () =>
       watchScenePause((value) => {
         pausedRef.current = value;
+        if (value) degradation.discardWindow();
         loopRef.current?.setPaused(value);
         setPaused(value);
       }),
-    [],
+    [degradation],
   );
 
   useEffect(
@@ -182,6 +189,7 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
     const loop = startFrameLoop({
       step: (seconds) => {
         clock.tick(seconds);
+        degradation.sample(seconds);
         const state = get();
         const { mTarget } = sceneStore.getState();
         frame.m = first
@@ -226,6 +234,7 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
       data-shapes={shapes?.source}
       data-particles={painted ? 'painted' : undefined}
       data-paused={paused ? 'true' : undefined}
+      data-level={level}
     >
       <Canvas
         ref={canvasRef}

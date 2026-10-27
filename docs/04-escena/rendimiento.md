@@ -10,7 +10,7 @@
   estrellas, 248,2 KB. Desde justo antes de F3.4 los shaders llegan sin comentarios (el plugin `cosmos:glsl-without-comments`
   de `vite.config.ts`, que conserva los saltos de línea para que la línea de un error siga siendo la del archivo):
   247,0 KB; en F3.4, con la cámara (`CameraRig`, `math/camera`, el ratón), 248,0 KB; con el color de fondo leído sin linealizar y
-  el reajuste de las partículas y del shader, 248,1 KB; en F3.5, con el suavizado de `m` y la pausa, 248,4 KB. React Three Fiber importa
+  el reajuste de las partículas y del shader, 248,1 KB; en F3.5, con el suavizado de `m` y la pausa, 248,4 KB; en F3.6, con la degradación en caliente, 249,0 KB. React Three Fiber importa
   Three.js entero, así que lo que añadan las constelaciones (F4) tiene muy poco margen. Los generadores no cuentan ahí: van en el
   worker (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
 
@@ -37,17 +37,33 @@ como `deviceMemory` en Firefox y Safari, no baja el nivel):
 En Bajo, la estela de la tortuga la esconde el shader (un uniform) y las luces de ciudad son color del shader:
 el generador de las formas no mira el nivel (las mismas fracciones en todos).
 
-**Degradación en caliente** (F3.6, con partículas que medir): media de fps en ventanas de 2 s; si está por
-debajo de 45 (escritorio) o 26 (móvil) en **3 ventanas seguidas**, se baja un nivel con
-`uiStore.lowerSceneLevel` (solo baja) y se regeneran las formas en el worker con el nuevo `count`
-(`loadShapes`, sin reintento en el hilo principal). Nunca se sube durante la visita. Un fallo al regenerar
-deja el nivel actual.
+**Degradación en caliente** (F3.6): media de fps en ventanas de 2 s; si está por debajo de 45 (escritorio) o 26
+(móvil: puntero grueso o < 760 px, el criterio de la elección inicial, `isHandheld`) en **3 ventanas seguidas**, se
+baja **un** nivel (Alto → Medio → Bajo; `nextLowerLevel`). Las cifras, en `HOT_DEGRADATION` de
+`scene/config/sceneConfig`.
+
+- **Qué se mide:** cada frame del bucle de la escena (`scene/fpsMeter`, puro y sin asignaciones; lo alimenta el
+  `step` de `SceneRoot` a través de `useHotDegradation`). Solo con partículas pintadas y con un nivel por debajo:
+  en Bajo no se mide (los fps nunca llevan a Apagado). Hoy todo móvil arranca en Bajo, así que el umbral de 26 solo
+  contaría si la elección inicial cambiara.
+- **Qué no cuenta:** los primeros 2 s de cada nivel (el primer frame compila el shader y sube la geometría) y la
+  ventana en curso al pausar (pestaña oculta, misión rápida: su hueco no es un frame lento). Las ventanas lentas ya
+  cerradas antes de la pausa siguen contando.
+- **Orden:** primero se piden al worker las formas del nivel de debajo (`useSceneShapes` → `lowerTo`: `loadShapes`
+  con el nuevo `count`, **sin reintento** en el hilo principal) y, cuando llegan, se cambian las formas y se baja el
+  nivel a la vez (`uiStore.lowerSceneLevel`, que solo baja: DPR, estrellas y extras del nivel nuevo). Mientras
+  llegan no se mide; con el nivel nuevo, el medidor empieza de cero.
+- **Si las formas no llegan:** `console.warn` (degradación prevista), nivel y formas siguen como estaban y no se
+  mide más en esa visita (sin bucle de intentos). Nunca se sube durante la visita.
+- **Límite conocido:** un navegador que limita los frames a 30 (ahorro de batería de Chrome, modo de bajo consumo
+  de Safari) baja hasta Bajo en escritorio. Se acepta: en ese modo, gastar menos es lo que se pide.
 
 ## Worker de las formas
 
 `src/scene/worker/` (generadores: `formas.md`). `SceneRoot` las pide al montar (`useSceneShapes`) con las
 partículas de su nivel, la semilla del proyecto y las placas con proyecto (`assignPlates(projectEntries)`), y
-las pinta (`Particles`). Solo pide otras si el nivel pide otro `count`.
+las pinta (`Particles`). Solo pide otras si el nivel pide otro `count` que no tenga ya (tras el reintento o tras
+una degradación en caliente, que las trajo antes de bajar el nivel).
 
 - **Un worker por encargo** (`loadShapes`): se crea, responde y se cierra (`terminate`); también al vencer el
   plazo o al desmontar, y una respuesta tardía se ignora. Las 5 matrices vuelven **transferidas** (sin
@@ -64,7 +80,7 @@ las pinta (`Particles`). Solo pide otras si el nivel pide otro `count`.
   descargan si hace falta). La escena entera baja a Bajo (`lowerSceneLevel('low')`: DPR, estrellas, extras) y
   `SceneRoot` no vuelve a pedir formas. Si el reintento también falla: `console.error` y Apagado
   (`onFail('shapes-failed')`), con su aviso.
-- `SceneRoot` marca de dónde llegaron (`data-shapes="worker" | "main"`) para los e2e.
+- `SceneRoot` marca de dónde llegaron (`data-shapes="worker" | "main"`) y su nivel (`data-level`) para los e2e.
 
 ## Ahorro de trabajo
 
@@ -104,8 +120,8 @@ las pinta (`Particles`). Solo pide otras si el nivel pide otro `count`.
 
 | Tipo | Herramienta | Qué cubre |
 |---|---|---|
-| Unitarios | Vitest | Generadores (también las estrellas), mapeo de `m` y su suavizado (`damp`), pausa (`scene/pause`), cámara (`scene/math/camera`: pose, encuadre, campo de visión, paralaje acotado), ratón (`scene/pointer`, solo `mouse`), `watchMediaQuery`, proyección, elección de nivel, formato del HUD, geometría y uniforms de las partículas, cabecera GLSL y shaders sin números ni nombres de más, shaders sin comentarios, paleta contra la tabla del design system, bucle de frames, reloj de la escena, color de fondo, paridad TS/GLSL de la posición de los pins (F4.4; el ruido no la necesita, `formas.md`) |
-| Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error (también un frame que lanza), movimiento reducido, color de fondo al crear y al recuperar el contexto, partículas y estrellas (`useParticles`, `useBackgroundStars`: aviso en el primer frame, uniforms en cada frame, memoria liberada), `CameraRig` (pose, campo de visión al cambiar el aspecto, paralaje), pausa del bucle (`data-paused`) |
-| Extremo a extremo | Playwright | Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado; el fondo por debajo del contenido), formas del worker y del reintento (`data-shapes`), partículas que se ven (fracción de píxeles que no son fondo, entrando por `/#about`), fondo del color del token (al cargar y tras recuperar el contexto), movimiento reducido, la cámara por los 5 capítulos con el ratón a 1280×720 y 390×844, pausa con la misión rápida, sin avisos de WebGL del navegador |
+| Unitarios | Vitest | Generadores (también las estrellas), mapeo de `m` y su suavizado (`damp`), pausa (`scene/pause`), medidor de fps (`scene/fpsMeter`: calentamiento, ventanas seguidas, pausa), nivel de debajo y móvil (`nextLowerLevel`, `isHandheld`), cámara (`scene/math/camera`: pose, encuadre, campo de visión, paralaje acotado), ratón (`scene/pointer`, solo `mouse`), `watchMediaQuery`, proyección, elección de nivel, formato del HUD, geometría y uniforms de las partículas, cabecera GLSL y shaders sin números ni nombres de más, shaders sin comentarios, paleta contra la tabla del design system, bucle de frames, reloj de la escena, color de fondo, paridad TS/GLSL de la posición de los pins (F4.4; el ruido no la necesita, `formas.md`) |
+| Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error (también un frame que lanza), movimiento reducido, color de fondo al crear y al recuperar el contexto, partículas y estrellas (`useParticles`, `useBackgroundStars`: aviso en el primer frame, uniforms en cada frame, memoria liberada), `CameraRig` (pose, campo de visión al cambiar el aspecto, paralaje), pausa del bucle (`data-paused`), degradación en caliente (`useHotDegradation`: un nivel cada vez, no mide sin partículas ni mientras llegan las formas, deja de medir si no llegan; `useSceneShapes` → `lowerTo`: sin reintento, formas y nivel a la vez; en `SceneRoot`, `data-level` y una pausa que no cuenta como frame lento) |
+| Extremo a extremo | Playwright | Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado; el fondo por debajo del contenido), formas del worker y del reintento (`data-shapes`), partículas que se ven (fracción de píxeles que no son fondo, entrando por `/#about`), fondo del color del token (al cargar y tras recuperar el contexto), movimiento reducido, la cámara por los 5 capítulos con el ratón a 1280×720 y 390×844, pausa con la misión rápida, degradación en caliente en Chromium (arrancando en Alto con SwiftShader, que no llega a 45 fps: Alto → Medio → Bajo con las formas del worker; y si las formas no llegan, el nivel se queda y avisa una vez), sin avisos de WebGL del navegador |
 | Regresión visual | Playwright (capturas) | Un estado por capítulo en los tamaños de referencia, render por software (SwiftShader) y tolerancia de píxeles |
 | Rendimiento | Lighthouse CI + medida manual | Core Web Vitals y presupuesto de JS; fps medidos a mano en un móvil real antes de cada versión |
