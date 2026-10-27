@@ -89,10 +89,11 @@ cosmos-portfolio/
 │                                  se generan en el build)
 ├─ tests/
 │  ├─ e2e/                      ← Playwright: recorridos
-│  └─ visual/                   ← Playwright: capturas por capítulo y tamaño
+│  └─ visual/                   ← Playwright: capturas por capítulo y tamaño (referencias en __screenshots__/)
+├─ scripts/                     ← visual.ts y visual-in-docker.sh (las capturas en Docker: calidad.md)
 ├─ docs/                        ← esta documentación
 ├─ .github/workflows/ci.yml
-└─ (configs) react-router.config.ts · vite.config.ts · vitest.config.ts · playwright.config.ts ·
+└─ (configs) react-router.config.ts · vite.config.ts · vitest.config.ts · playwright.config.ts · playwright.visual.config.ts ·
              eslint.config.js · .prettierrc · tsconfig.json · .nvmrc · .gitattributes · .env.example · lighthouserc.json
 ```
 

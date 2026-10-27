@@ -130,6 +130,11 @@
 - Decisión: `npm run visual` / `visual:update` y el job de CI corren en `mcr.microsoft.com/playwright:v1.64.0-noble`.
 - Alternativas descartadas: generar capturas en cada máquina (difieren entre Windows y Linux).
 - Consecuencias: Docker Desktop con WSL 2 en local. `@playwright/test` y la imagen se suben siempre juntos.
+  - Desde F3.6: `scripts/visual.ts` (en Node, porque en Windows npm lanza los scripts con `cmd`) toma la versión
+    de la imagen de `package.json` e instala dentro con un volumen propio para `node_modules`; las referencias, sin
+    el sistema en el nombre. Las capturas se hacen con movimiento reducido: la escena queda quieta sin reloj falso,
+    a cambio de no vigilar lo que solo se ve en movimiento. Un check propio, `Visual regression`, obligatorio en
+    `main`. Subir Playwright obliga a rehacer las capturas.
 - Detalle: `docs/05-tecnico/calidad.md`, `docs/05-tecnico/git-y-despliegue.md`, `docs/05-tecnico/stack.md`.
 
 ## ADR-011 · Universo determinista (PRNG con semilla)
