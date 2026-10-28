@@ -89,7 +89,8 @@ cosmos-portfolio/
 ├─ public/                      ← favicon.svg, apple-touch-icon.png, og/, cv/ (robots.txt y sitemap.xml
 │                                  se generan en el build)
 ├─ tests/
-│  ├─ e2e/                      ← Playwright: recorridos
+│  ├─ e2e/                      ← Playwright: recorridos (support/: ayudas y el `test` de los specs, que en
+│  │                              Chromium arranca la escena en Bajo)
 │  └─ visual/                   ← Playwright: capturas por capítulo y tamaño (referencias en __screenshots__/)
 ├─ scripts/                     ← visual.ts y visual-in-docker.sh (las capturas en Docker: calidad.md)
 ├─ docs/                        ← esta documentación
