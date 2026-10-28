@@ -1,4 +1,6 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+
+import { test } from './support/test.ts';
 
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../../src/scene/contextLoss/contextLoss.ts';
 import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
@@ -216,6 +218,17 @@ test.describe('the scene with WebGL', () => {
     await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
     await expect(noGlNotice(page)).toHaveCount(0);
     expect(errors).toEqual([]);
+  });
+
+  test('in Chromium the e2e start the scene in low, whatever the machine (support/test.ts)', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== 'chromium', 'Only Chromium is forced to low');
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-level', 'low', {
+      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+    });
   });
 
   test('is decorative and lets clicks through to the content underneath', async ({ page }) => {
@@ -469,7 +482,9 @@ test.describe('the scene with WebGL', () => {
      * Arranca en Alto: la detección cree que hay GPU (sin `failIfMajorPerformanceCaveat`; fuera de la imagen de
      * Playwright, SwiftShader daría «software» y Bajo) y hay 8 núcleos. Los fps bajos los pone el test, no la
      * máquina: cada frame llega 50 ms tarde (~20 fps, por debajo de los 45 de escritorio también con GPU). El bucle
-     * de la escena lee `requestAnimationFrame` en cada frame, así que recoge el cambio.
+     * de la escena lee `requestAnimationFrame` en cada frame, así que recoge el cambio. El `test` de
+     * `support/test.ts` ya puso Bajo (`forceSoftwareWebGL`): este script va después y gana (quita la opción antes de
+     * llegar a esa comprobación).
      */
     async function startHigh(page: Page, browserName: string): Promise<void> {
       test.skip(

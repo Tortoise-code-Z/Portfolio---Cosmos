@@ -1,4 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+
+import { test } from './support/test.ts';
 
 /**
  * Modo misión rápida (F2 · paso 6): docs/02-experiencia/navegacion.md → «Modo misión rápida» y

@@ -4,6 +4,14 @@
 
 - **60 fps** (16,6 ms por frame) en escritorio; **≥ 30 fps** en móvil de gama media.
 - De esos 16,6 ms, la escena puede usar ~8 ms en GPU y ~2 ms en CPU (proyección de etiquetas, store, uniforms).
+- **Medido en F3.6c** en un equipo real (Windows, 6 núcleos, DPR 1,5, nivel Alto; `calidad.md` → «Mediciones»):
+  60 fps estables en los 5 capítulos y en el viaje con scroll continuo, p95 de 16,8 ms, sin bajar de nivel. El
+  tope es el refresco de la pantalla, así que no dice cuánto margen queda.
+- **Ajustes del shader que se dejan como están** (medido y aceptado en F3.6c: ninguno se nota en esa medida): el
+  tope del tamaño de punto en píxeles del dispositivo (`SIZE_MAX_PX = 48`), el tope de 0,1 s por frame
+  (`MAX_STEP_S`: por debajo de 10 fps la animación va más lenta que el reloj), la estela con alfa 0 en Bajo (no se
+  salta con `gl_PointSize = 0.0`) y la compilación del shader en el primer frame. Se vuelven a mirar si un móvil
+  real o F4 (constelaciones, Sol) bajan de los presupuestos.
 - El código 3D va en un **chunk aparte** que se carga después de la primera pintura: el JS inicial de la interfaz no
   incluye Three.js. Sin WebGL2 ni siquiera se descarga. Pesa ≤ 250 KB gzip (`calidad.md` → «Presupuestos»); en F3.2,
   con el lienzo vacío y las formas pedidas, 241,6 KB; en F3.3, con las partículas, sus shaders y las estrellas,
@@ -30,8 +38,9 @@ como `deviceMemory` en Firefox y Safari, no baja el nivel):
 - WebGL2 pintado por software (`detectWebGL2` → `software`: solo da contexto sin
   `failIfMajorPerformanceCaveat`; SwiftShader, llvmpipe, un escritorio remoto) → Bajo. No todo SwiftShader lo
   dice: en la imagen de Playwright (la de los e2e del CI y las capturas), Chromium da contexto incluso con esa
-  opción y en escritorio arranca en Alto. Las capturas lo fuerzan a «software» (`calidad.md` → «Regresión
-  visual»); los e2e de Chromium del CI, no (ver `STATE.md`).
+  opción y en escritorio arrancaría en Alto o Medio según los núcleos de la máquina (en Docker Desktop, Alto). Las
+  capturas y los e2e de Chromium lo fuerzan a «software», así que arrancan siempre en Bajo (`forceSoftwareWebGL`,
+  `tests/e2e/support`; `calidad.md` → «Regresión visual» y «Pirámide de tests»).
 - `navigator.connection.saveData` o `deviceMemory ≤ 2` → Bajo.
 - Puntero grueso (táctil) o ancho < 760 px → Bajo.
 - `hardwareConcurrency ≤ 4` → Medio.

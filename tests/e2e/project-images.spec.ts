@@ -1,7 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+
+import { test } from './support/test.ts';
 
 import { PROJECT_IMAGE_WIDTHS, SHARE_IMAGE_WIDTH } from '../../src/content/imageWidths.ts';
 import { projectEntries } from '../../src/content/projects/entries.ts';
