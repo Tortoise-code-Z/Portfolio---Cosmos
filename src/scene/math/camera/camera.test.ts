@@ -45,7 +45,7 @@ describe('cameraPose', () => {
   it('between two chapters, eases with smoothstep of the fraction (not linearly)', () => {
     const [, nebula, galaxy] = CAMERA_KEYFRAMES;
     // A mitad, el punto medio; a un cuarto, smoothstep(0,25) = 0,15625 del camino.
-    expect(pose(1.5).position).toEqual(point([0, 5.75, 13.25]));
+    expect(pose(1.5).position).toEqual(point([0, 7.35, 16.3]));
     const t = 0.15625;
     expect(pose(1.25).position).toEqual(
       point(nebula.position.map((from, axis) => from + ((galaxy.position[axis] ?? 0) - from) * t)),
@@ -68,8 +68,8 @@ describe('cameraPose', () => {
       expect(wide.target.x).toBeCloseTo(key.target[0] + key.shiftX, 10);
       expect(pose(m).position.x).toBeCloseTo(key.position[0], 10);
     });
-    // Entre la nebulosa (−3,4) y la galaxia (−3,0), a mitad: −3,2.
-    expect(pose(1.5, true).target.x).toBeCloseTo(-3.2, 10);
+    // Entre la nebulosa (−3,4) y la galaxia (−4,1), a mitad: −3,75.
+    expect(pose(1.5, true).target.x).toBeCloseTo(-3.75, 10);
     // La singularidad, centrada también en escritorio.
     expect(pose(0, true)).toEqual(pose(0));
   });
