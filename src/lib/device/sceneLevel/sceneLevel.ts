@@ -1,8 +1,9 @@
 /**
  * Niveles de rendimiento de la escena (docs/04-escena/rendimiento.md → «Niveles»). Viven en `lib` porque
  * los usan la interfaz (`uiStore` guarda el nivel elegido) y la escena (cuántas partículas genera, el DPR
- * del lienzo). Sin Three: la tabla, la elección inicial (pura) y `readBrowserSignals`, que lee las señales
- * en el cliente.
+ * del lienzo). Sin Three: la tabla, la elección inicial (pura), el nivel de debajo y si es un móvil (para la
+ * degradación en caliente: `nextLowerLevel`, `isHandheld`), y `readBrowserSignals` / `readHandheldSignals`, que
+ * leen las señales en el cliente.
  */
 
 /** `off` es el modo sin WebGL: no hay lienzo. */
@@ -86,12 +87,18 @@ export function chooseInitialLevel(signals: BrowserSignals): RenderLevel {
 
 /**
  * El nivel de debajo, al que lleva la degradación en caliente (docs/04-escena/rendimiento.md → «Degradación en
- * caliente»). Bajo es el suelo: los fps nunca apagan la escena.
+ * caliente»). Bajo es el suelo: los fps nunca apagan la escena. El `switch` cubre todos los niveles sin `default`:
+ * uno nuevo no compila hasta tener su caso (la función se quedaría sin `return`).
  */
 export function nextLowerLevel(level: RenderLevel): RenderLevel | null {
-  if (level === 'high') return 'medium';
-  if (level === 'medium') return 'low';
-  return null;
+  switch (level) {
+    case 'high':
+      return 'medium';
+    case 'medium':
+      return 'low';
+    case 'low':
+      return null;
+  }
 }
 
 /** Las APIs que no están en todos los navegadores (ni en los tipos del DOM). */
@@ -101,10 +108,22 @@ interface NavigatorExtras {
 }
 
 /** Puntero principal grueso (táctil). */
-export const COARSE_POINTER_QUERY = '(pointer: coarse)';
+const COARSE_POINTER_QUERY = '(pointer: coarse)';
 
 function positiveNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
+/**
+ * Las señales de «¿es un móvil?» (`isHandheld`), leídas ahora (solo en cliente): las comparten la elección inicial
+ * y la degradación en caliente, así que las dos usan el mismo criterio. Sin `matchMedia`, el puntero no es grueso.
+ */
+export function readHandheldSignals(): Pick<BrowserSignals, 'coarsePointer' | 'viewportWidth'> {
+  return {
+    coarsePointer:
+      typeof window.matchMedia === 'function' && window.matchMedia(COARSE_POINTER_QUERY).matches,
+    viewportWidth: window.innerWidth,
+  };
 }
 
 /**
@@ -120,9 +139,7 @@ export function readBrowserSignals({
     saveData: typeof saveData === 'boolean' ? saveData : undefined,
     deviceMemory: positiveNumber(extras.deviceMemory),
     hardwareConcurrency: positiveNumber(navigator.hardwareConcurrency),
-    coarsePointer:
-      typeof window.matchMedia === 'function' && window.matchMedia(COARSE_POINTER_QUERY).matches,
-    viewportWidth: window.innerWidth,
+    ...readHandheldSignals(),
     softwareRendering,
   };
 }

@@ -124,7 +124,7 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
-  # El check obligatorio de la protección de `main` (git-y-despliegue.md): resume los tres navegadores con el
+  # Uno de los checks obligatorios de `main` (git-y-despliegue.md): resume los tres navegadores con el
   # nombre de siempre, así la regla no cambia aunque los e2e vayan en paralelo.
   e2e-result:
     name: E2E (Chromium · Firefox · WebKit)

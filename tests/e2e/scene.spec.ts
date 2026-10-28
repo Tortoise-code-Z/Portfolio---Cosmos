@@ -462,9 +462,14 @@ test.describe('the scene with WebGL', () => {
   });
 
   test.describe('hot degradation (painting too slowly)', () => {
+    // Por nivel: 2 s de calentamiento y 3 ventanas de 2 s, más el worker; dos niveles no caben en los 30 s de un test.
+    test.describe.configure({ timeout: 90_000 });
+
     /**
-     * Arranca en Alto: la detección cree que hay GPU (sin `failIfMajorPerformanceCaveat`, SwiftShader daría
-     * «software» y Bajo) y hay 8 núcleos. A 1280×720, con 60.000 partículas, SwiftShader no llega a 45 fps.
+     * Arranca en Alto: la detección cree que hay GPU (sin `failIfMajorPerformanceCaveat`; fuera de la imagen de
+     * Playwright, SwiftShader daría «software» y Bajo) y hay 8 núcleos. Los fps bajos los pone el test, no la
+     * máquina: cada frame llega 50 ms tarde (~20 fps, por debajo de los 45 de escritorio también con GPU). El bucle
+     * de la escena lee `requestAnimationFrame` en cada frame, así que recoge el cambio.
      */
     async function startHigh(page: Page, browserName: string): Promise<void> {
       test.skip(
@@ -486,6 +491,14 @@ test.describe('the scene with WebGL', () => {
         }
         HTMLCanvasElement.prototype.getContext = withoutCaveat as typeof getContext;
         Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', { get: () => 8 });
+        const SLOW_FRAME_MS = 50;
+        window.requestAnimationFrame = (callback) =>
+          window.setTimeout(() => {
+            callback(performance.now());
+          }, SLOW_FRAME_MS);
+        window.cancelAnimationFrame = (handle) => {
+          window.clearTimeout(handle);
+        };
       });
       // El `beforeEach` ya abrió `/`: ir a `/#about` desde ahí solo cambiaría el ancla, sin recargar ni pasar por
       // el script de arriba.
@@ -501,7 +514,9 @@ test.describe('the scene with WebGL', () => {
       const generator = generatorRequests(page);
       await page.goto('/#about');
       const scene = page.locator(PARTICLES_PAINTED);
-      await expect(scene).toHaveAttribute('data-level', 'high');
+      await expect(scene).toHaveAttribute('data-level', 'high', {
+        timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+      });
       // Calentamiento (2 s) y 3 ventanas de 2 s por nivel, más lo que tarde el worker.
       await expect(scene).toHaveAttribute('data-level', 'medium', { timeout: 30_000 });
       await expect(scene).toHaveAttribute('data-level', 'low', { timeout: 30_000 });
@@ -524,7 +539,9 @@ test.describe('the scene with WebGL', () => {
       const generator = generatorRequests(page);
       await page.goto('/#about');
       const scene = page.locator(PARTICLES_PAINTED);
-      await expect(scene).toHaveAttribute('data-level', 'high');
+      await expect(scene).toHaveAttribute('data-level', 'high', {
+        timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+      });
       await expect(scene).toHaveAttribute('data-shapes', 'worker');
       // Las formas del nivel de debajo ya no llegan.
       await page.route(SHAPES_WORKER, (route) => route.abort());
@@ -534,8 +551,9 @@ test.describe('the scene with WebGL', () => {
           timeout: 30_000,
         })
         .toBe(1);
-      // Sin más intentos: otro ciclo de medida entero y sigue igual.
-      await page.waitForTimeout(10_000);
+      // Un rato más, por si llegara un segundo aviso. Que deje de medir (sin más intentos) lo fija el unitario de
+      // `useHotDegradation`: aquí el medidor ya no existe y esperar un ciclo entero no probaría nada más.
+      await page.waitForTimeout(3000);
       expect(warnings.filter((warning) => warning.startsWith(kept))).toHaveLength(1);
       await expect(scene).toHaveAttribute('data-level', 'high');
       await expect(scene).toHaveAttribute('data-shapes', 'worker');

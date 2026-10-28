@@ -46,12 +46,16 @@ describe('createFpsMeter', () => {
     expect(lowered[1]).toBeCloseTo(19);
   });
 
-  it('the warm-up does not count, however slow (the shader compiles on the first frame)', () => {
+  it('the warm-up does not count, however slow', () => {
     const meter = createFpsMeter(OPTIONS);
     // El segundo frame llega 1,9 s después del primero: dentro del calentamiento, no cuenta.
     expect(meter.sample(0)).toBe(false);
     expect(meter.sample(1.9)).toBe(false);
-    expect(run(meter, { from: 1.9 + 1 / 60, seconds: 20, fps: 60 }).lowered).toEqual([]);
+    // Después, 4,2 s lentos: tras el calentamiento son dos ventanas lentas, no tres (sin él, ese hueco sería la
+    // primera y aquí bajaría).
+    const slow = run(meter, { from: 1.9 + 1 / 30, seconds: 4.2, fps: 30 });
+    expect(slow.lowered).toEqual([]);
+    expect(run(meter, { from: slow.end + 1 / 60, seconds: 20, fps: 60 }).lowered).toEqual([]);
   });
 
   it('a fast window breaks the run: it needs three slow ones in a row again', () => {

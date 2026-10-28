@@ -54,8 +54,8 @@ install (npm ci)
   └─ build ─┬─ e2e · chromium ─┐  (contenedor mcr.microsoft.com/playwright:v1.64.0-noble;
             ├─ e2e · firefox  ─┼─ E2E (Chromium · Firefox · WebKit)   un job por navegador, ADR-024)
             ├─ e2e · webkit   ─┘
-            ├─ Visual regression (contenedor mcr.microsoft.com/playwright:v1.64.0-noble)
-            └─ lhci (presupuestos)
+            ├─ visual         ─── Visual regression  (el mismo contenedor)
+            └─ lhci (presupuestos, F6)
 ```
 
 - El job `Build` guarda la caché de `vite-imagetools` (`node_modules/.cache/imagetools`, `actions/cache@v6`) con

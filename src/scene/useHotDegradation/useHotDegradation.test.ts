@@ -129,7 +129,8 @@ describe('useHotDegradation', () => {
   it('a pause throws away the window in progress: the gap is not a slow frame', () => {
     const { lowerTo } = manualLowerTo();
     const { result } = render({ level: 'high', active: true }, lowerTo);
-    const at = feed(result.current, { from: 0, seconds: 7, fps: 60 });
+    // Calentamiento y dos ventanas lentas ya cerradas: con el hueco como tercera, bajaría.
+    const at = feed(result.current, { from: 0, seconds: 6.5, fps: 30 });
     result.current.discardWindow();
     feed(result.current, { from: at + 120, seconds: 30, fps: 60 });
     expect(lowerTo).not.toHaveBeenCalled();

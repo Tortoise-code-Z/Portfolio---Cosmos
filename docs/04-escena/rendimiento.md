@@ -4,15 +4,16 @@
 
 - **60 fps** (16,6 ms por frame) en escritorio; **≥ 30 fps** en móvil de gama media.
 - De esos 16,6 ms, la escena puede usar ~8 ms en GPU y ~2 ms en CPU (proyección de etiquetas, store, uniforms).
-- El código 3D va en un **chunk aparte** que se carga después de la primera pintura: el JS inicial de la interfaz
-  no incluye Three.js. Sin WebGL2 ni siquiera se descarga. Pesa ≤ 250 KB gzip (`calidad.md` → «Presupuestos»);
-  en F3.2, con el lienzo vacío y las formas pedidas, 241,6 KB; en F3.3, con las partículas, sus shaders y las
-  estrellas, 248,2 KB. Desde justo antes de F3.4 los shaders llegan sin comentarios (el plugin `cosmos:glsl-without-comments`
+- El código 3D va en un **chunk aparte** que se carga después de la primera pintura: el JS inicial de la interfaz no
+  incluye Three.js. Sin WebGL2 ni siquiera se descarga. Pesa ≤ 250 KB gzip (`calidad.md` → «Presupuestos»); en F3.2,
+  con el lienzo vacío y las formas pedidas, 241,6 KB; en F3.3, con las partículas, sus shaders y las estrellas,
+  248,2 KB. Desde justo antes de F3.4 los shaders llegan sin comentarios (el plugin `cosmos:glsl-without-comments`
   de `vite.config.ts`, que conserva los saltos de línea para que la línea de un error siga siendo la del archivo):
-  247,0 KB; en F3.4, con la cámara (`CameraRig`, `math/camera`, el ratón), 248,0 KB; con el color de fondo leído sin linealizar y
-  el reajuste de las partículas y del shader, 248,1 KB; en F3.5, con el suavizado de `m` y la pausa, 248,4 KB; en F3.6, con la degradación en caliente, 249,0 KB. React Three Fiber importa
-  Three.js entero, así que lo que añadan las constelaciones (F4) tiene muy poco margen. Los generadores no cuentan ahí: van en el
-  worker (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
+  247,0 KB; en F3.4, con la cámara (`CameraRig`, `math/camera`, el ratón), 248,0 KB; con el color de fondo leído sin
+  linealizar y el reajuste de las partículas y del shader, 248,1 KB; en F3.5, con el suavizado de `m` y la pausa,
+  248,4 KB; en F3.6, con la degradación en caliente, 249,0 KB. React Three Fiber importa Three.js entero, así que lo
+  que añadan las constelaciones (F4) tiene muy poco margen. Los generadores no cuentan ahí: van en el worker
+  (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
 
 ## Niveles
 
@@ -47,14 +48,17 @@ baja **un** nivel (Alto → Medio → Bajo; `nextLowerLevel`). Las cifras, en `H
 - **Qué se mide:** cada frame del bucle de la escena (`scene/fpsMeter`, puro y sin asignaciones; lo alimenta el
   `step` de `SceneRoot` a través de `useHotDegradation`). Solo con partículas pintadas y con un nivel por debajo:
   en Bajo no se mide (los fps nunca llevan a Apagado). Hoy todo móvil arranca en Bajo, así que el umbral de 26 solo
-  contaría si la elección inicial cambiara.
-- **Qué no cuenta:** los primeros 2 s de cada nivel (el primer frame compila el shader y sube la geometría) y la
+  contaría si la elección inicial cambiara, o en un escritorio cuya ventana sea más estrecha que 760 px al empezar a
+  medir un nivel (se lee entonces, con `readHandheldSignals`, el mismo criterio de la elección inicial).
+- **Qué no cuenta:** los primeros 2 s de cada nivel (la geometría nueva, el DPR y lo que tarde el driver; el frame
+  que compila el shader ya queda fuera porque solo se mide con partículas pintadas) y la
   ventana en curso al pausar (pestaña oculta, misión rápida: su hueco no es un frame lento). Las ventanas lentas ya
   cerradas antes de la pausa siguen contando.
 - **Orden:** primero se piden al worker las formas del nivel de debajo (`useSceneShapes` → `lowerTo`: `loadShapes`
-  con el nuevo `count`, **sin reintento** en el hilo principal) y, cuando llegan, se cambian las formas y se baja el
-  nivel a la vez (`uiStore.lowerSceneLevel`, que solo baja: DPR, estrellas y extras del nivel nuevo). Mientras
-  llegan no se mide; con el nivel nuevo, el medidor empieza de cero.
+  con el nuevo `count`, **sin reintento** en el hilo principal) y, cuando llegan, se apunta su `count` y se cambian
+  las formas y el nivel en el mismo turno (`uiStore.lowerSceneLevel`, que solo baja: DPR, estrellas y extras del
+  nivel nuevo); puede haber un render entre los dos, sin efecto visible. Mientras llegan no se mide; con el nivel
+  nuevo, el medidor empieza de cero.
 - **Si las formas no llegan:** `console.warn` (degradación prevista), nivel y formas siguen como estaban y no se
   mide más en esa visita (sin bucle de intentos). Nunca se sube durante la visita.
 - **Límite conocido:** un navegador que limita los frames a 30 (ahorro de batería de Chrome, modo de bajo consumo
@@ -125,7 +129,7 @@ una degradación en caliente, que las trajo antes de bajar el nivel).
 | Tipo | Herramienta | Qué cubre |
 |---|---|---|
 | Unitarios | Vitest | Generadores (también las estrellas), mapeo de `m` y su suavizado (`damp`), pausa (`scene/pause`), medidor de fps (`scene/fpsMeter`: calentamiento, ventanas seguidas, pausa), nivel de debajo y móvil (`nextLowerLevel`, `isHandheld`), cámara (`scene/math/camera`: pose, encuadre, campo de visión, paralaje acotado), ratón (`scene/pointer`, solo `mouse`), `watchMediaQuery`, proyección, elección de nivel, formato del HUD, geometría y uniforms de las partículas, cabecera GLSL y shaders sin números ni nombres de más, shaders sin comentarios, paleta contra la tabla del design system, bucle de frames, reloj de la escena, color de fondo, paridad TS/GLSL de la posición de los pins (F4.4; el ruido no la necesita, `formas.md`) |
-| Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error (también un frame que lanza), movimiento reducido, color de fondo al crear y al recuperar el contexto, partículas y estrellas (`useParticles`, `useBackgroundStars`: aviso en el primer frame (partículas), uniforms en cada frame, memoria liberada), `CameraRig` (pose, campo de visión al cambiar el aspecto, paralaje), pausa del bucle (`data-paused`), degradación en caliente (`useHotDegradation`: un nivel cada vez, no mide sin partículas ni mientras llegan las formas, deja de medir si no llegan; `useSceneShapes` → `lowerTo`: sin reintento, formas y nivel a la vez; en `SceneRoot`, `data-level` y una pausa que no cuenta como frame lento) |
-| Extremo a extremo | Playwright | Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado; el fondo por debajo del contenido), formas del worker y del reintento (`data-shapes`), partículas que se ven (fracción de píxeles que no son fondo, entrando por `/#about`), fondo del color del token (al cargar y tras recuperar el contexto), movimiento reducido, la cámara por los 5 capítulos con el ratón a 1280×720 y 390×844, pausa con la misión rápida, degradación en caliente en Chromium (arrancando en Alto con SwiftShader, que no llega a 45 fps: Alto → Medio → Bajo con las formas del worker; y si las formas no llegan, el nivel se queda y avisa una vez), sin avisos de WebGL del navegador |
-| Regresión visual | Playwright (capturas, Docker) | Un estado por capítulo a 1440×900 y 390×844, con movimiento reducido, render por software (SwiftShader, nivel Bajo) y una tolerancia del 0,1 % de los píxeles (`calidad.md` → «Regresión visual») |
+| Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error (también un frame que lanza), movimiento reducido, color de fondo al crear y al recuperar el contexto, partículas y estrellas (`useParticles`, `useBackgroundStars`: aviso en el primer frame (partículas), uniforms en cada frame, memoria liberada), `CameraRig` (pose, campo de visión al cambiar el aspecto, paralaje), pausa del bucle (`data-paused`), degradación en caliente (`useHotDegradation`: un nivel cada vez, no mide sin partículas ni mientras llegan las formas, deja de medir si no llegan; `useSceneShapes` → `lowerTo`: sin reintento, formas y nivel en el mismo turno; en `SceneRoot`, `data-level` y una pausa que no cuenta como frame lento) |
+| Extremo a extremo | Playwright | Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado; el fondo por debajo del contenido), formas del worker y del reintento (`data-shapes`), partículas que se ven (fracción de píxeles que no son fondo, entrando por `/#about`), fondo del color del token (al cargar y tras recuperar el contexto), movimiento reducido, la cámara por los 5 capítulos con el ratón a 1280×720 y 390×844, pausa con la misión rápida, degradación en caliente en Chromium (arrancando en Alto con cada frame retrasado 50 ms por el test, ~20 fps en cualquier máquina: Alto → Medio → Bajo con las formas del worker; y si las formas no llegan, el nivel se queda y avisa una vez), sin avisos de WebGL del navegador |
+| Regresión visual | Playwright (capturas, Docker) | Un estado por capítulo a 1440×900 y 390×844, con movimiento reducido, render por software (SwiftShader, nivel Bajo) y una tolerancia estrecha: un 5 % de color por píxel y 50 píxeles distintos por captura (`calidad.md` → «Regresión visual») |
 | Rendimiento | Lighthouse CI + medida manual | Core Web Vitals y presupuesto de JS; fps medidos a mano en un móvil real antes de cada versión |

@@ -10,6 +10,7 @@ import {
   NARROW_VIEWPORT_PX,
   nextLowerLevel,
   readBrowserSignals,
+  readHandheldSignals,
 } from './sceneLevel';
 
 /** Un escritorio potente: Alto. Cada test cambia una señal. */
@@ -160,5 +161,13 @@ describe('readBrowserSignals', () => {
   it('answers fine pointer without matchMedia', () => {
     vi.stubGlobal('matchMedia', undefined);
     expect(readBrowserSignals({ softwareRendering: false }).coarsePointer).toBe(false);
+  });
+
+  it('reads the handheld signals with readHandheldSignals, the same ones the hot degradation uses', () => {
+    stubMatchMedia(true);
+    vi.stubGlobal('innerWidth', 1440);
+    expect(readHandheldSignals()).toEqual({ coarsePointer: true, viewportWidth: 1440 });
+    vi.stubGlobal('matchMedia', undefined);
+    expect(readHandheldSignals()).toEqual({ coarsePointer: false, viewportWidth: 1440 });
   });
 });

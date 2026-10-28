@@ -14,6 +14,7 @@ Versiones exactas y conflictos → `docs/05-tecnico/stack.md`.
   (`content`, `lib`, `stores`, `ui`, `features`, `scene`). Alias `~/` → `src/`.
 - `tests/e2e/` (Playwright; ayudas comunes en `tests/e2e/support/`) · `tests/visual/` (capturas, en Docker:
   `npm run visual`) · `tests/setup.ts` (Vitest) · tests unitarios junto al archivo (`*.test.ts(x)`).
+- `scripts/` (las capturas en Docker: `visual.ts` y `visual-in-docker.sh`).
 - Archivos con el mismo nombre (`x.ts` + `x.test.ts`…) van juntos en su carpeta `x/` (ADR-018).
 - `public/` estáticos · `build/client/` salida que se despliega · `.github/workflows/ci.yml`.
 - Capas y lo que puede importar cada una → `docs/05-tecnico/arquitectura.md` (las vigila ESLint).

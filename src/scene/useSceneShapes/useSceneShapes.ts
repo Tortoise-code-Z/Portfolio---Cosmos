@@ -77,7 +77,8 @@ export interface SceneShapesState {
   readonly shapes: SceneShapes | null;
   /**
    * Degradación en caliente: pide al worker las formas de `level` (sin reintento en el hilo principal) y, si
-   * llegan, cambia a ellas y baja el nivel a la vez. Si fallan, ni formas ni nivel cambian (`kept`). Se cancela
+   * llegan, cambia a ellas y baja el nivel en el mismo turno (puede haber un render entre los dos: el nivel avisa
+   * por Zustand y las formas por el estado de React). Si fallan, ni formas ni nivel cambian (`kept`). Se cancela
    * al desmontar (`aborted`). Siempre la misma función.
    */
   readonly lowerTo: (level: RenderLevel) => Promise<LowerResult>;
@@ -148,7 +149,9 @@ export function useSceneShapes(
       );
       return 'kept';
     }
-    // Primero las formas y después el nivel: al cambiar el nivel, su `count` ya está cargado y no se pide nada.
+    // El `count` nuevo se apunta antes: al cambiar el nivel, sus formas ya están cargadas y no se pide nada.
+    // Formas y nivel cambian en el mismo turno; puede haber un render con el nivel nuevo y las formas viejas
+    // (`Particles` solo depende de las formas, y el medidor nuevo está en su calentamiento).
     loadedCount.current = result.shapes.count;
     setLoaded({ shapes: result.shapes, source: 'worker' });
     lowerSceneLevel(target);

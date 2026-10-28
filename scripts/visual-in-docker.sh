@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Corre dentro de la imagen oficial de Playwright: lo lanza `scripts/visual.ts` (`npm run visual`,
-# docs/05-tecnico/calidad.md → «Regresión visual»). Los argumentos van a Playwright (`--update-snapshots`).
+# docs/05-tecnico/calidad.md → «Regresión visual»). Los argumentos van a Playwright (`--update-snapshots`, `--grep`…).
 set -euo pipefail
 
 want="$(cut -d. -f1 .nvmrc)"
@@ -18,4 +18,19 @@ export NODE_OPTIONS="--dns-result-order=ipv4first${NODE_OPTIONS:+ $NODE_OPTIONS}
 
 npm ci --no-audit --no-fund
 npm run build
+
+# Al regenerar todas, se borran antes: una referencia sin test (un capítulo que cambia de nombre) no se queda.
+# Con un filtro (`--grep`) solo se rehacen las que casan y las demás se dejan.
+updating=false
+filtered=false
+for arg in "$@"; do
+  case "$arg" in
+    --update-snapshots | --update-snapshots=* | -u) updating=true ;;
+    --grep | --grep=* | -g | --grep-invert | --grep-invert=* | --project | --project=*) filtered=true ;;
+  esac
+done
+if [ "$updating" = true ] && [ "$filtered" = false ]; then
+  rm -rf tests/visual/__screenshots__
+fi
+
 npm run visual:run -- "$@"
