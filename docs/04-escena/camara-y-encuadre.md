@@ -10,10 +10,10 @@
 | Capítulo | Posición | Objetivo | Encuadre X en escritorio (`shiftX`) |
 |---|---|---|---|
 | 0 · Singularidad | (0, 0, 14) | (0, 0, 0) | 0 (centrado) |
-| 1 · Nebulosa | (0, 1,5, 15,5) | (0, 0, 0) | −3,4 |
-| 2 · Galaxia | (0, 10, 11) | (0, 0, 0) | −3,0 |
-| 3 · Tortuga | (4,6, 5,4, 9,4) | (0, 0,6, 0) | −2,2 |
-| 4 · Tierra | (0, 1, 10,5) | (0, 0, 0) | −3,2 |
+| 1 · Nebulosa | (0, 1,8, 18,4) | (0, 0, 0) | −3,4 |
+| 2 · Galaxia | (0, 12,9, 14,2) | (0, 0, 0) | −4,1 |
+| 3 · Tortuga | (4,8, 5,6, 9,9) | (0, 0,6, 0) | −2,6 |
+| 4 · Tierra | (0, 1,2, 12,1) | (0, 0, 0) | −3,2 |
 
 - Entre keyframes: interpolación lineal de posición y objetivo con `t = smoothstep(fract(m))`. En `m = 4`, el
   keyframe 4 exacto (sin el `3,999` del prototipo); fuera de 0–4, el capítulo del borde.
@@ -28,8 +28,11 @@
   ratón sale de la ventana (su `pointerout` sin destino; el de un dedo o un lápiz que se levanta no cuenta),
   vuelve al centro al mismo ritmo. Con movimiento reducido, al
   centro de golpe (un corte, no un movimiento) y quieto.
-- Todas las cifras viven en `scene/config/sceneConfig.ts`; se ajustan con capturas reales en los tamaños de
-  referencia (F3.6).
+- Todas las cifras viven en `scene/config/sceneConfig.ts`. Las del prototipo se ajustaron en F3.6c con capturas
+  en los tamaños de referencia (ver abajo): las cámaras de los capítulos 1–4 se alejan de su objetivo con el mismo
+  ángulo (nebulosa ×1,19, galaxia ×1,29, tortuga ×1,05, Tierra ×1,15) y `shiftX` centra cada forma en el hueco
+  entre el panel y el raíl. En móvil, como la cámara es la misma y no hay `shiftX`, las formas quedan algo más
+  pequeñas y ya no pasan por el raíl (el campo de visión sigue en su tope).
 
 ## Campo de visión
 
@@ -55,4 +58,12 @@
 
 1280×720 · 1440×900 · 1920×1080 · 768×1024 · 390×844 · 360×740.
 En todos: nada importante bajo el raíl, la tortuga entera, la galaxia legible y la Tierra sin cortar por arriba.
-Se comprueban con capturas automáticas de Playwright (ver `rendimiento.md`).
+
+- **Cómo se ajustó (F3.6c):** capturas de trabajo de los 5 capítulos en los 6 tamaños, en nivel Bajo y con
+  movimiento reducido, cada una dos veces: con la interfaz y sin ella (solo el lienzo), para medir la caja de las
+  partículas frente a la del panel y la del raíl. Resultado: en escritorio, ninguna forma bajo el raíl; la galaxia
+  aún pasa un poco bajo el panel a 1280 y 1440 (sus brazos tenues, un 3–5 % de lo que se ve), aceptado para que
+  siga siendo grande. En móvil, la galaxia roza el raíl (~3 %).
+- **Lo que vigila el CI:** las capturas de regresión de dos de esos tamaños, 1440×900 y 390×844
+  (`docs/05-tecnico/calidad.md` → «Regresión visual»). Cada cambio de encuadre se acompaña de `npm run
+  visual:update` (en Docker) y sus PNG.
