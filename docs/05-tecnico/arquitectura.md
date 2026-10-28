@@ -75,8 +75,9 @@ cosmos-portfolio/
 │  │  ├─ device/                ← señales del dispositivo: mediaQuery (watchMediaQuery: una media query ahora y
 │  │  │                           cada vez que cambie), reducedMotion (prefersReducedMotion, jumpBehavior,
 │  │  │                           watchReducedMotion),
-│  │  │                           sceneLevel (niveles de la escena, su tabla, la elección inicial, pura, y
-│  │  │                           readBrowserSignals, que lee las señales en cliente) y webgl2 (detectWebGL2:
+│  │  │                           sceneLevel (niveles de la escena, su tabla, la elección inicial, pura,
+│  │  │                           nextLowerLevel e isHandheld, y readBrowserSignals / readHandheldSignals, que
+│  │  │                           leen las señales en cliente) y webgl2 (detectWebGL2:
 │  │  │                           con GPU, por software o sin WebGL2); después usePointerType
 │  │  ├─ hold/                  ← carga de «mantén pulsado»: charge (puro) y useHoldCharge (rAF + variable CSS)
 │  │  ├─ css/                   ← cx (unir clases) y useHeightVar (altura de un elemento como variable CSS)
@@ -94,7 +95,8 @@ cosmos-portfolio/
 ├─ docs/                        ← esta documentación
 ├─ .github/workflows/ci.yml
 └─ (configs) react-router.config.ts · vite.config.ts · vitest.config.ts · playwright.config.ts · playwright.visual.config.ts ·
-             eslint.config.js · .prettierrc · tsconfig.json · .nvmrc · .gitattributes · .env.example · lighthouserc.json
+             eslint.config.js · .prettierrc.json · tsconfig.json · .nvmrc · .gitattributes · .env.example ·
+             lighthouserc.json (F6)
 ```
 
 Alias de importación: `~/` → `src/`.
@@ -119,13 +121,15 @@ content  ◄── lib ◄── stores ◄── ui ◄── features ◄─�
                          └──── scene ◄─────┘ (solo a través de un import dinámico)
 ```
 
+El diagrama es orientativo; manda la tabla.
+
 | Capa | Puede importar | No puede importar |
 |---|---|---|
 | `content` | nada salvo sus tipos y, en `projects/media.ts`, las capturas de `src/assets/` (ADR-023) | React, Three, cualquier otra capa |
 | `lib` | `content/types` (tipos y constantes de idioma) y `content/texts` (para `useT`) (ADR-017) | Los datos de `content` (perfil, proyectos, skills: le llegan por parámetro), `stores`, `ui`, `features`, `scene`, `routes`, Three |
 | `stores` | `lib`, `content` | `ui`, `features`, `scene`, `routes`, Three |
-| `ui` | `lib` | `features`, `scene`, `content` (recibe datos por props) |
-| `features` | `ui`, `lib`, `stores`, `content` | `three`, `@react-three/*`, `scene` (salvo el punto de montaje diferido) |
+| `ui` | `lib` | `stores`, `features`, `scene`, `routes`, `content` (recibe datos por props), Three |
+| `features` | `ui`, `lib`, `stores`, `content` | `three`, `@react-three/*`, `scene` (salvo el punto de montaje diferido), `routes` |
 | `scene` | `lib`, `stores`, `content` (solo ids y orden) | `features`, `ui`, `routes` |
 | `scene/{shapes,math,config,worker}` (código puro: va en el worker) | `lib`, `content/types` (los datos, por parámetro; sus tests sí usan el contenido real) y los módulos de `scene/` fuera de `IMPURE_SCENE_MODULES` (hoy `pointer`, `frameLoop`, `sceneClock`, `fpsMeter`, `shaders`; `math/camera` usa el tipo de `scene/pointer`) | Three, React, Zustand, `stores`, `features`, `ui`, `routes`, los módulos de la escena con Three, React o un store, y `contextLoss` (`IMPURE_SCENE_MODULES` de `eslint.config.js`), los datos de `content` y cualquier `import()` |
 | `routes` (y `root.tsx`) | todo lo anterior menos la escena | `scene`, `three`, `@react-three/*` (la escena solo llega por `SceneMount`) |

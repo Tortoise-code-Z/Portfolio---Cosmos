@@ -8,13 +8,25 @@ import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 4173;
 const isCI = Boolean(process.env.CI);
+/** La pone `scripts/visual.ts` al lanzar la imagen de Playwright (el mismo nombre allí). */
+const VISUAL_DOCKER_ENV = 'COSMOS_VISUAL_DOCKER';
+if (!isCI && process.env[VISUAL_DOCKER_ENV] !== '1') {
+  // Fuera de la imagen, las letras, las fuentes y WebGL pintan distinto: unas referencias de Windows con el mismo
+  // nombre harían fallar el CI sin pista clara.
+  throw new Error(
+    'The visual regression captures run inside the Playwright Docker image: use `npm run visual` (or `npm run visual:update`).',
+  );
+}
 /** Lo que puede tardar en quedar quieta una captura (SwiftShader pinta la escena con la CPU). */
 const SCREENSHOT_TIMEOUT_MS = 15_000;
 /**
- * Píxeles que pueden cambiar sin que cuente como diferencia: la misma imagen y el mismo build pintan igual, así
- * que es casi cero (un margen por si SwiftShader redondea distinto algún borde).
+ * Cuánto puede cambiar el color de un píxel sin que cuente como distinto (0–1, en el espacio YIQ de Playwright; su
+ * valor por defecto, 0,2, deja pasar ~20 % de brillo). La misma imagen y el mismo build pintan igual y la escena es
+ * oscura y tenue: un retoque del shader (alfa, brillo, color) tiene que verse.
  */
-const MAX_DIFF_PIXEL_RATIO = 0.001;
+const PIXEL_COLOUR_THRESHOLD = 0.05;
+/** Píxeles distintos que se toleran en toda la captura: alguno suelto de borde si SwiftShader redondea distinto. */
+const MAX_DIFF_PIXELS = 50;
 
 export default defineConfig({
   testDir: './tests/visual',
@@ -27,7 +39,8 @@ export default defineConfig({
   expect: {
     timeout: SCREENSHOT_TIMEOUT_MS,
     toHaveScreenshot: {
-      maxDiffPixelRatio: MAX_DIFF_PIXEL_RATIO,
+      threshold: PIXEL_COLOUR_THRESHOLD,
+      maxDiffPixels: MAX_DIFF_PIXELS,
       animations: 'disabled',
       caret: 'hide',
     },

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 
 import {
-  COARSE_POINTER_QUERY,
   isHandheld,
   nextLowerLevel,
+  readHandheldSignals,
   type RenderLevel,
 } from '~/lib/device/sceneLevel/sceneLevel';
 
@@ -28,19 +28,10 @@ export interface HotDegradationOptions {
   readonly lowerTo: (level: RenderLevel) => Promise<LowerResult>;
 }
 
-/** ¿Móvil? El mismo criterio que la elección inicial, leído al empezar a medir cada nivel. */
-function readHandheld(): boolean {
-  return isHandheld({
-    coarsePointer:
-      typeof window.matchMedia === 'function' && window.matchMedia(COARSE_POINTER_QUERY).matches,
-    viewportWidth: window.innerWidth,
-  });
-}
-
 /**
  * Degradación en caliente (docs/04-escena/rendimiento.md → «Degradación en caliente»): con partículas pintadas y
- * un nivel por debajo, mide los fps de cada frame (`scene/fpsMeter`); con 3 ventanas de 2 s seguidas por debajo
- * de 45 (escritorio) o 26 (móvil), pide el nivel de debajo. Mientras llegan sus formas no mide; con el nivel
+ * un nivel por debajo, mide los fps de cada frame (`scene/fpsMeter`); con `slowWindows` ventanas de `windowS`
+ * seguidas por debajo de `minFps` (escritorio o móvil; las cifras, en `HOT_DEGRADATION`), pide el nivel de debajo. Mientras llegan sus formas no mide; con el nivel
  * nuevo, empieza de cero (con su calentamiento). Si las formas no llegan, deja de medir el resto de la visita.
  * Nunca sube.
  */
@@ -64,7 +55,8 @@ export function useHotDegradation({
     meter.current =
       active && !gaveUp.current && nextLowerLevel(level) !== null
         ? createFpsMeter({
-            minFps: readHandheld()
+            // ¿Móvil? El mismo criterio que la elección inicial, leído al empezar a medir cada nivel.
+            minFps: isHandheld(readHandheldSignals())
               ? HOT_DEGRADATION.minFps.handheld
               : HOT_DEGRADATION.minFps.desktop,
             windowS: HOT_DEGRADATION.windowS,

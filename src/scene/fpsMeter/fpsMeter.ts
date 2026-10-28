@@ -2,7 +2,8 @@
  * El medidor de fps de la degradación en caliente (docs/04-escena/rendimiento.md → «Degradación en caliente»).
  * Puro y sin asignaciones: el bucle de frames le pasa la hora de cada frame y contesta si toca bajar un nivel.
  *
- * - Los primeros `warmupS` segundos no cuentan (el primer frame compila el shader y sube la geometría).
+ * - Los primeros `warmupS` segundos no cuentan (la geometría nueva, el DPR y lo que tarde el driver en asentarse;
+ *   el frame que compila el shader ya queda fuera: solo se mide con partículas pintadas).
  * - Mide en ventanas de `windowS` segundos: frames pintados entre el tiempo transcurrido.
  * - Con `slowWindows` ventanas **seguidas** por debajo de `minFps`, contesta `true` una vez y empieza de cero.
  * - `discardWindow` tira la ventana en curso (la pausa: pestaña oculta o misión rápida). Las ventanas lentas

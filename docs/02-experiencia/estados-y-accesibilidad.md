@@ -62,7 +62,7 @@ Valores en `docs/04-escena/`.
 |---|---|---|
 | Alto | Escritorio con GPU dedicada o integrada moderna | Todas las partículas, DPR hasta 2 |
 | Medio | Portátil modesto o fps bajos sostenidos | Menos partículas, DPR hasta 1,5 |
-| Bajo | Móvil, `saveData`, poca memoria | Partículas mínimas, DPR 1, sin estela ni luces de ciudad |
+| Bajo | Móvil, `saveData`, poca memoria, WebGL por software o fps bajos sostenidos en Medio | Partículas mínimas, DPR 1, sin estela ni luces de ciudad |
 | Apagado | Sin WebGL o fallo | Modo sin WebGL |
 
 ## Pestaña oculta y modo misión rápida

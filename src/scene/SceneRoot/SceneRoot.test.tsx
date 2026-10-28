@@ -628,6 +628,16 @@ describe('SceneRoot', () => {
     expect(lowerTo).toHaveBeenCalledExactlyOnceWith('medium');
   });
 
+  it('does not measure its fps before the particles are painted (while the shapes arrive)', () => {
+    const frames = manualFrames();
+    const lowerTo = vi.fn(() => new Promise<'lowered'>(() => undefined));
+    vi.mocked(useSceneShapes).mockReturnValue({ shapes: null, lowerTo });
+    renderScene('high');
+    // 10 s a 10 fps: con medidor, bajaría a los 8 s.
+    for (let t = 0; t <= 10_000; t += 100) frames.tick(t);
+    expect(lowerTo).not.toHaveBeenCalled();
+  });
+
   it('asks for the shapes of its level, marks where they came from and gives up without them', () => {
     const { canvas, onFail } = renderScene('medium');
     const wrapper = canvas.closest('[aria-hidden="true"]');

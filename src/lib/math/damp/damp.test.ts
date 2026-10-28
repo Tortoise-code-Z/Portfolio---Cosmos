@@ -25,6 +25,11 @@ describe('damp', () => {
     expect(damp(1, 3, -0.1, -3.4)).toBe(1);
   });
 
+  it('a NaN time or rate does not move it (nor turn it into NaN)', () => {
+    expect(damp(1, 3, Number.NaN, 3.4)).toBe(1);
+    expect(damp(1, 3, 0.1, Number.NaN)).toBe(1);
+  });
+
   it('an infinite rate lands on the target; without time it stays (no 0 · ∞)', () => {
     expect(damp(1, 3, 0.1, Infinity)).toBe(3);
     expect(damp(1, 3, 0, Infinity)).toBe(1);

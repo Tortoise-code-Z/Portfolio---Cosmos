@@ -84,8 +84,8 @@ export const M_SMOOTHING = { rate: 3.4, reducedRate: 12, epsilon: 1e-4 } as cons
 /**
  * Degradación en caliente (docs/04-escena/rendimiento.md → «Degradación en caliente»): la media de fps de cada
  * ventana de `windowS` segundos; con `slowWindows` ventanas seguidas por debajo de `minFps` (escritorio o móvil),
- * un nivel menos. Los primeros `warmupS` segundos de cada nivel no cuentan (el primer frame compila el shader y
- * sube la geometría).
+ * un nivel menos. Los primeros `warmupS` segundos de cada nivel no cuentan (la geometría nueva, el DPR y lo que
+ * tarde el driver; el frame que compila el shader ya queda fuera: solo se mide con partículas pintadas).
  */
 export const HOT_DEGRADATION = {
   windowS: 2,

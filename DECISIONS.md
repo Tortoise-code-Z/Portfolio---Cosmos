@@ -125,7 +125,7 @@
 - Detalle: `docs/05-tecnico/stack.md`, `docs/05-tecnico/git-y-despliegue.md`.
 
 ## ADR-010 · Capturas de regresión visual en Docker (imagen oficial de Playwright)
-- Estado: Aceptada
+- Estado: Aceptada · matizada en F3.6 (ver Consecuencias)
 - Fecha: 2026-10-22
 - Contexto: el render difiere entre Windows (local) y Linux (CI); las capturas deben ser comparables.
 - Decisión: `npm run visual` / `visual:update` y el job de CI corren en `mcr.microsoft.com/playwright:v1.64.0-noble`.
@@ -459,7 +459,8 @@
 - Detalle: `docs/05-tecnico/git-y-despliegue.md` («Despliegue»).
 
 ## ADR-026 · Formas de la escena en un worker por encargo, con un reintento en el hilo principal
-- Estado: Aceptada
+- Estado: Aceptada · la regeneración a media visita la concreta la degradación en caliente (`rendimiento.md` →
+  «Degradación en caliente»): sin reintento y, si falla, nivel y formas se quedan
 - Fecha: 2026-10-26
 - Contexto: F3.2 genera las cuatro formas (hasta 60.000 partículas, ~0,4 s en una CPU modesta) y no puede
   congelar la página. `rendimiento.md` pedía un worker y un reintento en el hilo principal, sin decir qué es
@@ -482,7 +483,7 @@
   el margen de la escena en código que casi nunca se usa); confiar en los tipos a través de `postMessage`.
 - Consecuencias: si el protocolo o el cliente importan los generadores, el `import()` del reintento deja de
   servir (Rolldown avisa con `INEFFECTIVE_DYNAMIC_IMPORT`). F3.6 reutiliza `loadShapes` y `lowerSceneLevel`,
-  pero regenerar a media visita no debe reintentar ni apagar la escena (deuda anotada en `STATE.md`).
+  pero regenerar a media visita no debe reintentar ni apagar la escena (lo hace así la degradación en caliente).
 - Detalle: `docs/04-escena/rendimiento.md` («Worker de las formas»), `docs/04-escena/formas.md` («Contrato y
   tests»), `docs/05-tecnico/calidad.md` («Presupuestos»).
 

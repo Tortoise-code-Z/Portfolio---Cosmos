@@ -14,7 +14,7 @@ import { describe, expect, it } from 'vitest';
  */
 
 const REPO_DIR = fileURLToPath(new URL('..', import.meta.url));
-const CODE_DIRS = ['src', 'tests', '.husky', '.github', 'public'] as const;
+const CODE_DIRS = ['src', 'tests', 'scripts', '.husky', '.github', 'public'] as const;
 const THIS_FILE = 'src/code-references.test.ts';
 const CONFIG_FILE = /\.(?:ts|js|json)$/;
 /** Imágenes y fuentes: binarios, sin texto que leer (y con bytes que casarían por azar). */
@@ -96,7 +96,7 @@ describe('el código no cita notas de fuera del repo', () => {
     expect(unmatched).toEqual([]);
   });
 
-  it('src/, tests/, public/, los hooks, el CI y las configs y JSON de la raíz no las tienen', () => {
+  it('src/, tests/, scripts/, public/, los hooks, el CI y las configs y JSON de la raíz no las tienen', () => {
     // `package-lock.json` lo genera npm (licencias como «BSD-2-Clause» casarían): no lo escribe nadie.
     const rootConfigs = readdirSync(REPO_DIR).filter(
       (name) => CONFIG_FILE.test(name) && name !== 'package-lock.json',
