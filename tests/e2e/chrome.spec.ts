@@ -1,4 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+
+import { test } from './support/test.ts';
 
 /**
  * La interfaz fija del viaje (F2 · paso 5): HUD, raíl y barra superior conectados al scroll.

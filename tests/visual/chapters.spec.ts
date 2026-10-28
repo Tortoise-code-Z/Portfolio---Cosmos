@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { CHAPTER_ANCHORS, CHAPTER_INDICES } from '../../src/content/chapters.ts';
+import { forceSoftwareWebGL } from '../e2e/support/helpers.ts';
 
 /**
  * Un estado por capítulo (docs/05-tecnico/calidad.md → «Regresión visual»): se entra por su ancla, así que la
@@ -10,26 +11,11 @@ import { CHAPTER_ANCHORS, CHAPTER_INDICES } from '../../src/content/chapters.ts'
 const PARTICLES_PAINTED = '[data-particles="painted"]:has(canvas)';
 
 /**
- * En la imagen de Playwright, Chromium da contexto incluso con `failIfMajorPerformanceCaveat` (la detección cree
- * que hay GPU) y en escritorio arrancaría en Alto; SwiftShader no llega a 45 fps y la degradación en caliente
- * bajaría el nivel a mitad de la foto. Se le niega ese contexto: la detección dice «por software» y arranca en
- * Bajo, que ya es el suelo.
+ * Siempre en Bajo (`forceSoftwareWebGL`): en la imagen, en escritorio arrancaría en Alto, SwiftShader no llega a
+ * 45 fps y la degradación en caliente bajaría el nivel a mitad de la foto.
  */
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    // eslint-disable-next-line @typescript-eslint/unbound-method -- se llama con `.call(this, …)`
-    const getContext = HTMLCanvasElement.prototype.getContext;
-    function asSoftware(
-      this: HTMLCanvasElement,
-      type: string,
-      attributes?: WebGLContextAttributes,
-    ): RenderingContext | null {
-      return attributes?.failIfMajorPerformanceCaveat === true
-        ? null
-        : getContext.call(this, type, attributes);
-    }
-    HTMLCanvasElement.prototype.getContext = asSoftware as typeof getContext;
-  });
+  await forceSoftwareWebGL(page);
 });
 
 for (const index of CHAPTER_INDICES) {

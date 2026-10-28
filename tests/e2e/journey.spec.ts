@@ -1,4 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+
+import { test } from './support/test.ts';
 
 import { collectErrors, settleScene } from './support/helpers.ts';
 

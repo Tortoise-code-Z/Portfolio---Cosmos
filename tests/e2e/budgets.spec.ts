@@ -3,7 +3,9 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+
+import { test } from './support/test.ts';
 
 import { PROJECT_IMAGE_WIDTHS } from '../../src/content/imageWidths.ts';
 

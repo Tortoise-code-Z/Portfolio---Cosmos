@@ -47,3 +47,26 @@ export async function settleScene(page: Page): Promise<void> {
   const gotIt = page.getByRole('button', { name: /^(?:Got it|Entendido)$/ });
   if (await gotIt.isVisible()) await gotIt.click();
 }
+
+/**
+ * WebGL «por software» para la detección (`detectWebGL2` → `software`, nivel Bajo): se le niega el contexto que pide
+ * con `failIfMajorPerformanceCaveat`. En la imagen de Playwright, Chromium lo da aunque pinte SwiftShader (la
+ * detección creería que hay GPU) y la escena arrancaría en Alto o Medio según los núcleos, así que la degradación
+ * en caliente podría cambiar el nivel a mitad de un test. Va antes de cargar la página (`addInitScript`).
+ */
+export async function forceSoftwareWebGL(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- se llama con `.call(this, …)`
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    function asSoftware(
+      this: HTMLCanvasElement,
+      type: string,
+      attributes?: WebGLContextAttributes,
+    ): RenderingContext | null {
+      return attributes?.failIfMajorPerformanceCaveat === true
+        ? null
+        : getContext.call(this, type, attributes);
+    }
+    HTMLCanvasElement.prototype.getContext = asSoftware as typeof getContext;
+  });
+}

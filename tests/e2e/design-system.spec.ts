@@ -1,4 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+
+import { test } from './support/test.ts';
 
 /**
  * Cimientos visuales (F2 · paso 1): tokens, estilos globales y fuentes autoalojadas.
