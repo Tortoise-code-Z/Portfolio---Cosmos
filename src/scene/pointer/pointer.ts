@@ -1,8 +1,8 @@
 /**
- * El ratón sobre la escena, en coordenadas normalizadas (NDC: de −1 a 1 dentro de la ventana, `y` hacia arriba;
- * al arrastrar fuera de ella con el botón pulsado puede salirse de ±1: quien lo use pone su tope). Lo usa el paralaje
- * de la cámara (F3.4) y lo usará la gravedad del cursor (F4, `uMouse`). Un solo objeto para toda la visita: los
- * eventos lo escriben y la escena lo lee en cada frame (cero objetos nuevos por frame, ADR-004).
+ * El ratón sobre la escena, en coordenadas normalizadas (NDC: de −1 a 1 dentro de la ventana, `y` hacia
+ * arriba; al arrastrar fuera de ella con el botón pulsado puede salirse de ±1: quien lo use pone su tope). Lo usa
+ * el paralaje de la cámara (F3.4) y lo usará la gravedad del cursor (F4, `uMouse`). Un solo objeto para toda la
+ * visita: los eventos lo escriben y la escena lo lee en cada frame (cero objetos nuevos por frame, ADR-004).
  */
 export interface ScenePointer {
   x: number;

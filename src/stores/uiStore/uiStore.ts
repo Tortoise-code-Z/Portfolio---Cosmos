@@ -5,7 +5,7 @@ import type { RenderLevel, SceneLevel } from '~/lib/device/sceneLevel/sceneLevel
 /**
  * Estado de interfaz que comparten varias piezas de React (docs/05-tecnico/arquitectura.md → «Estado»,
  * ADR-004). Se lee con selectores finos (`useUiStore(selectQuickMissionOpen)`): cada componente solo se
- * repinta cuando cambia lo que elige. Lo que cambia en cada frame no vive aquí, sino en `sceneStore`.
+ * repinta cuando cambia lo que elige. Lo que cambia en cada frame no vive aquí, sino en el `SceneFrame` de la escena.
  */
 export interface UiState {
   /**

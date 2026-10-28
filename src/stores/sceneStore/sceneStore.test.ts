@@ -11,7 +11,7 @@ describe('sceneStore', () => {
     expect(sceneStore.getState()).toEqual({ mTarget: 0, m: 0 });
   });
 
-  it('without a scene, m follows the scroll target as is', () => {
+  it('m follows the scroll target as is (the scene smooths its own)', () => {
     setScrollTarget(2.4);
     expect(sceneStore.getState()).toEqual({ mTarget: 2.4, m: 2.4 });
   });

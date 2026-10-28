@@ -75,6 +75,10 @@ export function createStarUniforms(): StarUniforms {
  * cada `advance()` y las piezas lo leen en su `useFrame` (cero objetos nuevos por frame, ADR-004).
  */
 export interface SceneFrame {
+  /**
+   * La `m` de la escena, suavizada desde `mTarget` (ADR-028). Toda pieza de la escena lee esta, nunca
+   * `sceneStore.m`.
+   */
   m: number;
   time: number;
   /** Segundos reales desde el frame anterior (`sceneClock.delta`): para suavizar, no para animar. */

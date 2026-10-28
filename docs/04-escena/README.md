@@ -17,16 +17,16 @@
 ## Piezas y flujo
 
 ```
-            ┌───────────────────────── hilo principal ──────────────────────────┐
+            ┌───────────────────────── hilo principal ────────────────────────────┐
 scroll ───► │ scroll/mapM (puro) ──► sceneStore (mutable, sin re-render de React) │
             │                            │ mTarget                                │
-            │  frameLoop (cada frame) ◄──┘ suaviza m y rellena SceneFrame         │
-puntero ──► │ scene/pointer ──► SceneFrame.pointer (lo escribe cada evento)      │
+            │  SceneRoot (su step) ◄─────┘ suaviza m y rellena SceneFrame         │
+puntero ──► │ scene/pointer ──► SceneFrame.pointer (lo escribe cada evento)       │
             │       useFrame de cada pieza (R3F) ◄── leen SceneFrame              │
             │        ├─ uniforms de partículas (uM, uTime, uCharge, uPlate…)      │
             │        ├─ cámara (keyframes + encuadre + paralaje)                  │
             │        └─ etiquetas y pins (proyección 3D→2D por refs, sin estado)  │
-            └────────────────────────────────────────────────────────────────────┘
+            └─────────────────────────────────────────────────────────────────────┘
             ┌──────── Web Worker ────────┐
             │ generadores de formas      │──► Float32Array transferibles ──► BufferGeometry
             │ (PRNG con semilla fija)    │
@@ -38,10 +38,10 @@ puntero ──► │ scene/pointer ──► SceneFrame.pointer (lo escribe cad
 1. **Un solo `THREE.Points`** con todas las formas como atributos: la transición es una mezcla en la GPU, sin
    crear ni destruir objetos.
 2. **El estado que cambia cada frame no pasa por React.** El destino del scroll (`mTarget`) vive en un store
-   mutable; el bucle de la escena (`scene/frameLoop`) lo lee cada frame y deja su `m` suavizada, el reloj y lo
-   demás en un `SceneFrame` compartido, que leen los `useFrame`. El ratón y si es escritorio los escriben sus
-   observadores (`scene/pointer`, `watchMediaQuery`) directamente en el `SceneFrame`. React solo renderiza cuando cambia algo estructural (idioma, nivel de
-   rendimiento, ruta).
+   mutable; el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`) lo lee cada frame y deja su `m`
+   suavizada, el reloj y lo demás en un `SceneFrame` compartido, que leen los `useFrame`. El ratón y si es
+   escritorio los escriben sus observadores (`scene/pointer`, `watchMediaQuery`) directamente en el
+   `SceneFrame`. React solo renderiza cuando cambia algo estructural (idioma, nivel de rendimiento, ruta).
 3. **Lógica pura separada del render.** Mapeo de scroll, interpolación de cámara, generadores, proyección y
    formato del HUD son funciones puras en TypeScript, testeadas con Vitest sin WebGL.
 4. **Universo determinista.** Los generadores usan un PRNG con semilla fija: el universo es idéntico en cada

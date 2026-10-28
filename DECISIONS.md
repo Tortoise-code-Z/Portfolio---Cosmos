@@ -58,8 +58,9 @@
 - Detalle: `docs/04-escena/particulas-y-shaders.md`, `docs/04-escena/formas.md`.
 
 ## ADR-004 · Zustand para el estado de UI y un store mutable para la escena
-- Estado: Aceptada · quién lee qué lo matizan ADR-027 y ADR-028: el ratón no va en `sceneStore` (lo escribe
-  `scene/pointer` en el `SceneFrame`) y `useFrame` no lee el store (lo lee el bucle de la escena)
+- Estado: Aceptada · quién lee qué lo matizan ADR-027 (los `useFrame` leen el `SceneFrame` que rellena el bucle,
+  no el store) y ADR-028 (la `m` por frame es la de la escena, en `SceneFrame`); el ratón tampoco va en
+  `sceneStore`: lo escribe `scene/pointer` en el `SceneFrame` (`arquitectura.md` → «Estado»)
 - Fecha: 2026-10-22
 - Contexto: hay estado de interfaz (React) y estado que cambia en cada frame (`m`, puntero, carga).
 - Decisión: `uiStore` (Zustand con selectores finos) y `sceneStore` (Zustand *vanilla*, mutable) que `useFrame` y
@@ -327,7 +328,8 @@
 - Detalle: `docs/05-tecnico/calidad.md` → «Presupuestos».
 
 ## ADR-021 · Interfaz fija sin escena: `m` sin suavizar y lectura bajo una barra de altura fija
-- Estado: Aceptada · la consecuencia «la escena dejará de escribir `m`» la sustituye ADR-028
+- Estado: Aceptada · la consecuencia de que la escena de F3 dejaría de escribir `m` en `setScrollTarget` la
+  sustituye ADR-028
 - Fecha: 2026-10-23
 - Contexto: F2 · paso 5 conecta el scroll con el raíl, el HUD y la barra superior antes de que exista la escena
   (F3), que es quien suaviza `m` por frame. La barra es fija y tapa la parte de arriba de la ventana: un ancla
@@ -485,7 +487,7 @@
   tests»), `docs/05-tecnico/calidad.md` («Presupuestos»).
 
 ## ADR-027 · Bucle de frames propio para la escena y lienzo sin gestión de color
-- Estado: Aceptada
+- Estado: Aceptada · la pausa la concreta ADR-028
 - Fecha: 2026-10-26
 - Contexto: F3.3 pinta las partículas y la escena pasa a animarse en cada frame. Lo que lanza en un `useFrame` o
   en `gl.render` corre en el `requestAnimationFrame` de React Three Fiber, fuera de React: ningún *error
@@ -496,8 +498,8 @@
   - **`frameloop="never"` y un bucle propio** (`scene/frameLoop`): pide cada frame y, dentro de un único `try`,
     rellena el frame compartido (`m`, el reloj de animación, densidad de píxeles, aspecto, extras del nivel) y
     llama a `advance()` de R3F (todos los `useFrame` y `gl.render`). El primer error para el bucle, se registra
-    (`[scene] A frame failed…`) y pasa a sin WebGL (`frame-error`). La pausa de F3.5 será no pedir el frame
-    siguiente.
+    (`[scene] A frame failed…`) y pasa a sin WebGL (`frame-error`). La pausa (F3.5, ADR-028) es no pedir el
+    frame siguiente.
   - **Un solo objeto de frame** para toda la visita (`SceneFrame`): las piezas lo leen en su `useFrame`, sin
     crear objetos por frame (ADR-004).
   - **Reloj de animación propio** (`scene/sceneClock`): se congela con movimiento reducido y no salta más de
@@ -509,8 +511,8 @@
 - Alternativas descartadas: envolver cada `useFrame` en su propio `try` (no cubre `gl.render`, y cada pieza
   nueva tendría que acordarse); seguir pintando bajo demanda (la escena se anima de forma continua); lienzo
   transparente (la mezcla aditiva deja un alfa que el navegador compone de forma distinta según el motor).
-- Consecuencias: la escena pinta siempre que está montada, también sin cambios en pantalla, hasta la pausa de
-  F3.5; R3F ya no pide frames por su cuenta, así que tras recuperar el contexto basta con el frame siguiente del
+- Consecuencias: la escena pinta siempre que está montada, también sin cambios en pantalla, salvo en pausa
+  (ADR-028); R3F ya no pide frames por su cuenta, así que tras recuperar el contexto basta con el frame siguiente del
   bucle y volver a poner el color de fondo (Three rehace su fondo en negro; `SceneRoot` lo repone escuchando
   `webglcontextrestored` después de Three). Una pieza nueva solo necesita su `useFrame`: queda dentro del `try`.
   - El primer error de un frame apaga la escena el resto de la visita (no hay reintento).

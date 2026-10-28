@@ -19,9 +19,10 @@ export interface ContextLossHandlers {
   /** El contexto no va a volver: hay que pasar a sin WebGL. Se llama como mucho una vez. */
   readonly onGiveUp: (reason: GiveUpReason) => void;
   /**
-   * El contexto ha vuelto. Three rehace su estado; con el bucle de frames de la escena (continuo, ADR-027) no
-   * hace falta pedir un frame (un lienzo que pintara bajo demanda tendría que pedirlo aquí). Ojo: este oyente
-   * puede ir antes que el de Three; lo que deba ir después (el color de fondo) se escucha en `onCreated`.
+   * El contexto ha vuelto. Three rehace su estado; con el bucle de frames de la escena (ADR-027) no hace falta
+   * pedir un frame: pinta el siguiente, o el primero al salir de la pausa (un lienzo que pintara bajo demanda
+   * tendría que pedirlo aquí). Ojo: este oyente puede ir antes que el de Three; lo que deba ir después (el color
+   * de fondo) se escucha en `onCreated`.
    */
   readonly onRestored?: () => void;
   readonly timeoutMs?: number;

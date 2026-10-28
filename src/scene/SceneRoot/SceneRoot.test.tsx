@@ -75,6 +75,12 @@ const renderer = vi.hoisted(() => ({
   domElement: null as HTMLCanvasElement | null,
 }));
 const advance = vi.hoisted(() => vi.fn());
+/**
+ * Cuándo llama el `<Canvas>` falso a `onCreated`. Por defecto, en su propio efecto (antes que los del padre). Con
+ * `defer`, lo guarda en `create` para llamarlo después del render, como R3F en la app: crea el renderer tras medir
+ * el lienzo, cuando los efectos de `SceneRoot` ya han corrido.
+ */
+const canvasCreation = vi.hoisted(() => ({ defer: false, create: null as (() => void) | null }));
 const r3fState = vi.hoisted(() => ({
   viewport: { dpr: 2 },
   size: { width: 1600, height: 1000 },
@@ -107,7 +113,11 @@ vi.mock('@react-three/fiber', () => ({
     const own = useRef<HTMLCanvasElement | null>(null);
     useEffect(() => {
       renderer.domElement = own.current;
-      onCreated({ gl: renderer, get: () => r3fState });
+      const create = (): void => {
+        onCreated({ gl: renderer, get: () => r3fState });
+      };
+      if (canvasCreation.defer) canvasCreation.create = create;
+      else create();
       // Solo al montar, como el `onCreated` de verdad.
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -143,6 +153,8 @@ afterEach(() => {
   renderer.setClearColor.mockReset();
   renderer.domElement = null;
   advance.mockReset();
+  canvasCreation.defer = false;
+  canvasCreation.create = null;
   seen.frame = null;
   seen.stars = [];
   seen.cameraFrame = null;
@@ -326,14 +338,47 @@ describe('SceneRoot', () => {
     // Quien llega a mitad del viaje no ve la explosión otra vez.
     frames.tick(1000);
     expect(frame.m).toBe(3);
-    setScrollTarget(1);
+    // Un frame de relleno: desde aquí, los segundos del bucle (0,1) y el `delta` del reloj (0,05) ya no coinciden.
     frames.tick(1050);
-    // 0,05 s a ritmo 3,4: el 17 % del camino.
+    setScrollTarget(1);
+    frames.tick(1100);
+    // 0,05 s (el `delta`, no los segundos del bucle) a ritmo 3,4: el 17 % del camino.
     expect(frame.m).toBeCloseTo(3 - 2 * 0.05 * 3.4, 10);
     expect(sceneStore.getState().m).toBe(1);
-    // Un frame largo (tope 0,1 s del reloj) no se pasa; al final llega y se queda.
-    for (let t = 1100; t < 5000; t += 100) frames.tick(t);
+    // Al final llega y se queda.
+    for (let t = 1200; t < 5000; t += 100) frames.tick(t);
     expect(frame.m).toBe(1);
+  });
+
+  it('after a pause its m goes on from where it was, with the clock capped (no jump to the target)', () => {
+    const frames = manualFrames();
+    setScrollTarget(3);
+    renderScene();
+    const frame = seen.cameraFrame as { m: number };
+    frames.tick(1000);
+    expect(frame.m).toBe(3);
+    act(() => {
+      openQuickMission();
+    });
+    setScrollTarget(1);
+    act(() => {
+      closeQuickMission();
+    });
+    // 10 s después: el reloj da como mucho 0,1 s, así que avanza 0,1 · 3,4 del camino (no arranca de nuevo).
+    frames.tick(11_000);
+    expect(frame.m).toBeCloseTo(3 - 2 * MAX_STEP_S * 3.4, 10);
+  });
+
+  it('an m that is not finite starts again from the scroll target instead of staying broken', () => {
+    const frames = manualFrames();
+    renderScene();
+    const frame = seen.cameraFrame as { m: number };
+    setScrollTarget(Number.NaN);
+    frames.tick(1000);
+    expect(frame.m).toBeNaN();
+    setScrollTarget(2);
+    frames.tick(1050);
+    expect(frame.m).toBe(2);
   });
 
   it('with reduced motion its m follows faster (almost no inertia)', () => {
@@ -376,13 +421,48 @@ describe('SceneRoot', () => {
     expect(advance).toHaveBeenCalledTimes(2);
   });
 
-  it('a page that is hidden when the renderer is created starts paused', () => {
+  it('a page hidden at mount pauses the loop that already exists (renderer created first)', () => {
     Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
     const frames = manualFrames();
     const { canvas } = renderScene();
     expect(canvas.closest('[aria-hidden="true"]')).toHaveAttribute('data-paused', 'true');
     frames.tick(0);
     expect(advance).not.toHaveBeenCalled();
+  });
+
+  it('a page hidden before the renderer exists starts its loop paused, and paints once it is shown', () => {
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    canvasCreation.defer = true;
+    const frames = manualFrames();
+    renderScene();
+    act(() => {
+      canvasCreation.create?.();
+    });
+    frames.tick(0);
+    expect(advance).not.toHaveBeenCalled();
+    act(() => {
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    frames.tick(16);
+    expect(advance).toHaveBeenCalledTimes(1);
+  });
+
+  it('a quick mission open before the renderer exists (entering by #quick) starts its loop paused', () => {
+    openQuickMission();
+    canvasCreation.defer = true;
+    const frames = manualFrames();
+    renderScene();
+    act(() => {
+      canvasCreation.create?.();
+    });
+    frames.tick(0);
+    expect(advance).not.toHaveBeenCalled();
+    act(() => {
+      closeQuickMission();
+    });
+    frames.tick(16);
+    expect(advance).toHaveBeenCalledTimes(1);
   });
 
   it('obeys reduced motion: the clock stands still, goes on without a jump, and it stops listening when unmounted', () => {

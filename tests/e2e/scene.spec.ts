@@ -129,11 +129,13 @@ function emptyClip(page: Page): Clip {
 }
 
 /**
- * Las partículas se ven en el capítulo 1: se entra por su ancla (un ancla da su `m` exacto y la escena arranca en
- * él, sin suavizado), se espera a que el raíl lo marque y, junto a los paneles, buena parte de los píxeles no es el
- * fondo. Con un tamaño de punto 0, alfa 0 o un atributo vacío, casi ninguno.
+ * Las partículas se ven en el capítulo 1: se entra por su ancla en una carga nueva (un ancla da su `m` exacto y la
+ * escena arranca en él, sin suavizado), se espera a que el raíl lo marque y, junto a los paneles, buena parte de los
+ * píxeles no es el fondo. Con un tamaño de punto 0, alfa 0 o un atributo vacío, casi ninguno. Desde otra página del
+ * sitio, ir a `/#about` solo cambiaría el ancla (sin recargar): antes se pasa por `about:blank`.
  */
 async function expectParticlesSeenInAbout(page: Page): Promise<void> {
+  await page.goto('about:blank');
   await page.goto('/#about', { waitUntil: 'networkidle' });
   await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
     timeout: SHAPES_WORKER_TIMEOUT_MS * 2,

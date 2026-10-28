@@ -123,11 +123,11 @@ content  ◄── lib ◄── stores ◄── ui ◄── features ◄─�
 |---|---|---|
 | `content` | nada salvo sus tipos y, en `projects/media.ts`, las capturas de `src/assets/` (ADR-023) | React, Three, cualquier otra capa |
 | `lib` | `content/types` (tipos y constantes de idioma) y `content/texts` (para `useT`) (ADR-017) | Los datos de `content` (perfil, proyectos, skills: le llegan por parámetro), `stores`, `ui`, `features`, `scene`, `routes`, Three |
-| `stores` | `lib`, `content` | `features`, `scene` |
+| `stores` | `lib`, `content` | `ui`, `features`, `scene`, `routes`, Three |
 | `ui` | `lib` | `features`, `scene`, `content` (recibe datos por props) |
 | `features` | `ui`, `lib`, `stores`, `content` | `three`, `@react-three/*`, `scene` (salvo el punto de montaje diferido) |
-| `scene` | `lib`, `stores`, `content` (solo ids y orden) | `features`, `ui` |
-| `scene/{shapes,math,config,worker}` (código puro: va en el worker) | `lib`, `content/types` (los datos, por parámetro; sus tests sí usan el contenido real) y el tipo de `scene/pointer` (`math/camera`) | Three, React, Zustand, `stores`, `features`, `ui`, `routes`, los módulos de la escena con Three, React o un store (`IMPURE_SCENE_MODULES` de `eslint.config.js`), los datos de `content` y cualquier `import()` |
+| `scene` | `lib`, `stores`, `content` (solo ids y orden) | `features`, `ui`, `routes` |
+| `scene/{shapes,math,config,worker}` (código puro: va en el worker) | `lib`, `content/types` (los datos, por parámetro; sus tests sí usan el contenido real) y los módulos de `scene/` fuera de `IMPURE_SCENE_MODULES` (hoy `pointer`, `frameLoop`, `sceneClock`, `fpsMeter`, `shaders`; `math/camera` usa el tipo de `scene/pointer`) | Three, React, Zustand, `stores`, `features`, `ui`, `routes`, los módulos de la escena con Three, React o un store, y `contextLoss` (`IMPURE_SCENE_MODULES` de `eslint.config.js`), los datos de `content` y cualquier `import()` |
 | `routes` (y `root.tsx`) | todo lo anterior menos la escena | `scene`, `three`, `@react-three/*` (la escena solo llega por `SceneMount`) |
 
 Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import prohibido rompe el lint. Los
@@ -196,7 +196,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
 | `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); después, grupo de skills activo y proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
-| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028), y desde F4 carga y peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el bucle de la escena (`scene/frameLoop`, que lo deja en el `SceneFrame` que leen los `useFrame`) y el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
+| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028), y desde F4 carga y peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget` y deja su `m` suavizada en el `SceneFrame` que leen los `useFrame`; el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
 ningún store: se guarda en `localStorage` (`lib/storage`), la lee solo `LanguageNotice` y la escriben el aviso y
@@ -228,31 +228,33 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   - sin WebGL2 (`detectWebGL2` → `none`) → modo sin WebGL, **sin descargar** Three.js;
   - con WebGL2 → elige el nivel (`chooseInitialLevel`, `uiStore.sceneLevel`; Bajo si solo pinta por software)
     y hace `lazy(() => import('~/scene/SceneRoot/SceneRoot'))`, dentro de `SceneErrorBoundary`.
-- `SceneErrorBoundary` recoge los errores de la escena al montar y al renderizar con React (el chunk que no
-  llega, el contexto que no se crea, un hijo del lienzo que lanza), los registra y pasa a sin WebGL. Lo que
-  lanza dentro de un frame (`useFrame`, `gl.render`) no le llega: corre en el bucle de la escena
-  (`scene/frameLoop`, ADR-027), que se para y lo pasa a `onFail` (regla en `docs/04-escena/rendimiento.md` →
-  «Robustez»). `SceneRoot` avisa con `onFail` de lo que no llega a ningún boundary: un shader que no compila (`gl.debug.onShaderError`, que registra el programa y cada shader) o un
-  contexto perdido que no vuelve (`contextLoss`: un intento, 3 s con la página a la vista), unas formas que no
-  llegan de ninguna manera (`shapes-failed`) o un frame que lanza (`frame-error`, ADR-027). Sin WebGL: clase `no-gl` en `<html>`, el lienzo se desmonta y un aviso, una vez por visita.
-  `SceneRoot` marca su envoltorio con `data-ready` cuando existe el renderer, con `data-level` (su nivel), con
-  `data-shapes` (`worker` | `main`) cuando tiene las formas y con `data-particles="painted"` tras su primer frame
-  con partículas: lo esperan los e2e. Entonces `SceneMount` pone `scene-on` en `<html>` (el punto CSS del hero se
-  funde).
-- `SceneRoot` monta el `<Canvas>` fijo detrás del contenido (`--z-scene`), `aria-hidden`, sin puntero (R3F
-  pone `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. Pinta con su propio bucle
-  (`frameloop="never"` + `scene/frameLoop`, ADR-027) las partículas (`Particles`) y las estrellas de fondo
+- `SceneErrorBoundary` recoge los errores de la escena al montar y al renderizar con React (el chunk que no llega,
+  el contexto que no se crea, un hijo del lienzo que lanza), los registra y pasa a sin WebGL. Lo que lanza dentro de
+  un frame (`useFrame`, `gl.render`) no le llega: corre en el bucle de la escena (`scene/frameLoop`, ADR-027), que
+  se para y lo pasa a `onFail` (regla en `docs/04-escena/rendimiento.md` → «Robustez»). `SceneRoot` avisa con
+  `onFail` de lo que no llega a ningún boundary: un shader que no compila (`gl.debug.onShaderError`, que registra el
+  programa y cada shader) o un contexto perdido que no vuelve (`contextLoss`: un intento, 3 s con la página a la
+  vista), unas formas que no llegan de ninguna manera (`shapes-failed`) o un frame que lanza (`frame-error`,
+  ADR-027). Sin WebGL: clase `no-gl` en `<html>`, el lienzo se desmonta y un aviso, una vez por visita. `SceneRoot`
+  marca su envoltorio con `data-ready` cuando existe el renderer, con `data-level` (su nivel), con `data-shapes`
+  (`worker` | `main`) cuando tiene las formas, con `data-particles="painted"` tras su primer frame con partículas y
+  con `data-paused="true"` mientras el bucle está en pausa (`scene/pause`): lo esperan los e2e. Entonces
+  `SceneMount` pone `scene-on` en `<html>` (el punto CSS del hero se funde).
+- `SceneRoot` monta el `<Canvas>` fijo detrás del contenido (`--z-scene`), `aria-hidden`, sin puntero (R3F pone
+  `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. Pinta con su propio
+  bucle (`frameloop="never"` + `scene/frameLoop`, ADR-027) las partículas (`Particles`) y las estrellas de fondo
   (`BackgroundStars`); la cámara la mueve `CameraRig` (`docs/04-escena/camara-y-encuadre.md`), con el ratón de
-  `scene/pointer` y si es escritorio de `watchMediaQuery`. Al montar pide las formas al worker; si falla, las genera una vez en el hilo principal a nivel Bajo, y si
-  eso también falla, Apagado (`docs/04-escena/rendimiento.md` → «Worker de las formas»). Si después pinta por
-  debajo de los fps del presupuesto, baja un nivel (`useHotDegradation`: rendimiento.md → «Degradación en
-  caliente»).
+  `scene/pointer` y si es escritorio de `watchMediaQuery`. Al montar pide las formas al worker; si falla, las genera
+  una vez en el hilo principal a nivel Bajo, y si eso también falla, Apagado (`docs/04-escena/rendimiento.md` →
+  «Worker de las formas»). Si después pinta por debajo de los fps del presupuesto, baja un nivel
+  (`useHotDegradation`: rendimiento.md → «Degradación en caliente»).
 - `scene/{shapes,math,config,worker}` es código puro: lo que corre en el worker o se prueba sin WebGL. ESLint
   le prohíbe Three, React, Zustand, `stores`, los módulos de la escena que usan Three, React o un store, más
   `contextLoss`, que vive con el lienzo (por ruta relativa: `SceneRoot`, `CameraRig`, `Particles`,
   `BackgroundStars`, `sceneMaterials`, `particleGeometry`, `useSceneShapes`, `useHotDegradation`, `contextLoss`,
-  `voidColour`, `pause`; `pointer`, `frameLoop` y `fpsMeter` no, son DOM o cálculo sin dependencias), los datos de `content` (solo sus tipos) y cualquier `import()`
-  (un import así engordaría el worker sin avisar), y prohíbe `Math.random` en toda la escena, también escrito
+  `voidColour`, `pause`; `pointer`, `frameLoop`, `sceneClock`, `fpsMeter` y `shaders` no, son DOM o cálculo sin
+  dependencias), los datos de `content` (solo sus tipos) y cualquier `import()` (un import así engordaría el
+  worker sin avisar), y prohíbe `Math.random` en toda la escena, también escrito
   `globalThis.Math.random` (ADR-011: el azar con semilla de `scene/shapes/prng`). **Un módulo nuevo de `scene/`
   con Three, React o un store se añade a `IMPURE_SCENE_MODULES`** (`eslint.config.js`): la lista es a mano.
 - Three.js, React Three Fiber y lo que arrastran van en el chunk `scene` (grupo de `vite.config.ts`), que

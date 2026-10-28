@@ -1,4 +1,5 @@
 import { clamp } from '~/lib/math/clamp/clamp';
+import { damp } from '~/lib/math/damp/damp';
 import { lerp } from '~/lib/math/lerp/lerp';
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
 
@@ -97,7 +98,7 @@ export function cameraFov(aspect: number): number {
 }
 
 /**
- * El paralaje sigue al ratón con un suavizado de ritmo `PARALLAX.rate` (`min(1, dt · rate)`); sin ratón dentro,
+ * El paralaje sigue al ratón con el suavizado de `damp` a ritmo `PARALLAX.rate`; sin ratón dentro,
  * vuelve al centro igual. Apagado (movimiento reducido) va al centro de golpe: un corte en vez de un movimiento.
  * `dt` en segundos (`sceneClock.delta`, ya limitado).
  */
@@ -115,7 +116,6 @@ export function followParallax(
   // El tope es del paralaje: arrastrando fuera de la ventana el puntero puede pasar de ±1 (`ScenePointer`).
   const toX = pointer.inside ? clamp(pointer.x, -1, 1) : 0;
   const toY = pointer.inside ? clamp(pointer.y, -1, 1) : 0;
-  const rate = Math.min(1, Math.max(dt, 0) * PARALLAX.rate);
-  parallax.x += (toX - parallax.x) * rate;
-  parallax.y += (toY - parallax.y) * rate;
+  parallax.x = damp(parallax.x, toX, dt, PARALLAX.rate);
+  parallax.y = damp(parallax.y, toY, dt, PARALLAX.rate);
 }
