@@ -88,8 +88,10 @@ una degradación en caliente, que las trajo antes de bajar el nivel).
 
 - **Pausa** del render con la pestaña oculta (`visibilitychange`) o el modo misión rápida abierto (que la tapa):
   `scene/pause` (`watchScenePause`) avisa y el bucle deja de pedir frames (`FrameLoop.setPaused`); al volver, el
-  reloj limita el salto a 0,1 s. `SceneRoot` lo marca con `data-paused` (e2e). «Lienzo fuera de vista» no se
-  da mientras el lienzo sea fijo a toda la ventana.
+  reloj limita el salto a 0,1 s. `SceneRoot` lo marca con `data-paused` (e2e). Con la misión rápida, la escena se
+  congela al abrirse, bajo el fundido de entrada del diálogo (400 ms; 150 ms con movimiento reducido) hacia un velo
+  casi opaco: casi no se nota, y esperar al fundido metería el DOM del diálogo (una feature) en la escena. «Lienzo
+  fuera de vista» no se da mientras el lienzo sea fijo a toda la ventana.
 - Las etiquetas solo se proyectan si el peso de su capítulo es > 0,01.
 - El HUD solo toca el DOM cuando su texto cambia.
 - Cero asignaciones por frame en `useFrame` (vectores reutilizados) para no provocar recolección de basura.
@@ -103,7 +105,7 @@ una degradación en caliente, que las trajo antes de bajar el nivel).
   (`src/scene/contextLoss`). Con la página oculta el plazo no corre (un móvil libera la GPU al cambiar de app
   y no la devuelve hasta volver): arranca entero al volver a la vista y esa pérdida no gasta el intento. Al
   volver el contexto, Three rehace su estado (y su fondo, en negro: `SceneRoot` vuelve a poner `--color-void`)
-  y el bucle de frames (continuo) pinta el siguiente.
+  y el bucle de frames pinta el siguiente (o el primero al salir de la pausa).
 - Un shader que no compila no lanza (Three.js solo lo registra, y con un `onShaderError` propio ni eso):
   `gl.debug.onShaderError` registra lo que Three habría escrito (el registro del programa y el de cada shader,
   con sus líneas) y pasa a Apagado.
@@ -123,7 +125,7 @@ una degradación en caliente, que las trajo antes de bajar el nivel).
 | Tipo | Herramienta | Qué cubre |
 |---|---|---|
 | Unitarios | Vitest | Generadores (también las estrellas), mapeo de `m` y su suavizado (`damp`), pausa (`scene/pause`), medidor de fps (`scene/fpsMeter`: calentamiento, ventanas seguidas, pausa), nivel de debajo y móvil (`nextLowerLevel`, `isHandheld`), cámara (`scene/math/camera`: pose, encuadre, campo de visión, paralaje acotado), ratón (`scene/pointer`, solo `mouse`), `watchMediaQuery`, proyección, elección de nivel, formato del HUD, geometría y uniforms de las partículas, cabecera GLSL y shaders sin números ni nombres de más, shaders sin comentarios, paleta contra la tabla del design system, bucle de frames, reloj de la escena, color de fondo, paridad TS/GLSL de la posición de los pins (F4.4; el ruido no la necesita, `formas.md`) |
-| Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error (también un frame que lanza), movimiento reducido, color de fondo al crear y al recuperar el contexto, partículas y estrellas (`useParticles`, `useBackgroundStars`: aviso en el primer frame, uniforms en cada frame, memoria liberada), `CameraRig` (pose, campo de visión al cambiar el aspecto, paralaje), pausa del bucle (`data-paused`), degradación en caliente (`useHotDegradation`: un nivel cada vez, no mide sin partículas ni mientras llegan las formas, deja de medir si no llegan; `useSceneShapes` → `lowerTo`: sin reintento, formas y nivel a la vez; en `SceneRoot`, `data-level` y una pausa que no cuenta como frame lento) |
+| Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error (también un frame que lanza), movimiento reducido, color de fondo al crear y al recuperar el contexto, partículas y estrellas (`useParticles`, `useBackgroundStars`: aviso en el primer frame (partículas), uniforms en cada frame, memoria liberada), `CameraRig` (pose, campo de visión al cambiar el aspecto, paralaje), pausa del bucle (`data-paused`), degradación en caliente (`useHotDegradation`: un nivel cada vez, no mide sin partículas ni mientras llegan las formas, deja de medir si no llegan; `useSceneShapes` → `lowerTo`: sin reintento, formas y nivel a la vez; en `SceneRoot`, `data-level` y una pausa que no cuenta como frame lento) |
 | Extremo a extremo | Playwright | Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado; el fondo por debajo del contenido), formas del worker y del reintento (`data-shapes`), partículas que se ven (fracción de píxeles que no son fondo, entrando por `/#about`), fondo del color del token (al cargar y tras recuperar el contexto), movimiento reducido, la cámara por los 5 capítulos con el ratón a 1280×720 y 390×844, pausa con la misión rápida, degradación en caliente en Chromium (arrancando en Alto con SwiftShader, que no llega a 45 fps: Alto → Medio → Bajo con las formas del worker; y si las formas no llegan, el nivel se queda y avisa una vez), sin avisos de WebGL del navegador |
 | Regresión visual | Playwright (capturas, Docker) | Un estado por capítulo a 1440×900 y 390×844, con movimiento reducido, render por software (SwiftShader, nivel Bajo) y una tolerancia del 0,1 % de los píxeles (`calidad.md` → «Regresión visual») |
 | Rendimiento | Lighthouse CI + medida manual | Core Web Vitals y presupuesto de JS; fps medidos a mano en un móvil real antes de cada versión |

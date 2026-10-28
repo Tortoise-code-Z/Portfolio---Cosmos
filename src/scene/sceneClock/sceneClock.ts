@@ -8,7 +8,8 @@ export interface SceneClock {
   readonly time: number;
   /**
    * Segundos reales del último frame, limitados a `MAX_STEP_S` (0 en el primero). Avanzan también con movimiento
-   * reducido: son para los suavizados que dependen del tiempo (el paralaje de la cámara), no para animar.
+   * reducido: son para los suavizados que dependen del tiempo (el paralaje de la cámara y la `m` de la escena),
+   * no para animar.
    */
   readonly delta: number;
   /** Movimiento reducido: el reloj no avanza y las oscilaciones se anulan (`uMotion = 0`). */

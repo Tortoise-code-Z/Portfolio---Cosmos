@@ -54,8 +54,9 @@ Víctor decide el Visto Bueno entendiendo el paso, no solo leyéndolo.
 - **Separación de responsabilidades y capas:** se respetan las reglas de dependencia entre `content`, `lib`,
   `stores`, `ui`, `features`, `scene` y `routes` de `docs/05-tecnico/arquitectura.md`; `no-restricted-imports`
   las hace cumplir.
-- **Simple y explícito** sobre ingenioso. Sin duplicación, sin números mágicos (constantes con nombre en
-  `scene/config/` en la escena y tokens en la interfaz), sin configuración hardcodeada.
+- **Simple y explícito** sobre ingenioso. Sin duplicación, sin números mágicos (constantes con nombre: las cifras
+  de ajuste de la escena en `scene/config/`, las de estilo en tokens y las demás junto a su módulo), sin
+  configuración hardcodeada.
 
 ### Reglas propias de este proyecto
 

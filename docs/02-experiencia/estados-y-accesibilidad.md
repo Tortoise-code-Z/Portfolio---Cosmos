@@ -68,7 +68,8 @@ Valores en `docs/04-escena/`.
 ## Pestaña oculta y modo misión rápida
 
 - Con la pestaña oculta o el modo misión rápida abierto, la escena **no renderiza** (ahorro de batería). Desde
-  F2.6, `uiStore` sabe si el modo está abierto (`quickMissionOpen`); la escena lo leerá en F3.
+  F2.6, `uiStore` sabe si el modo está abierto (`quickMissionOpen`); la escena lo lee desde F3.5 (`scene/pause`) y
+  deja de pintar.
 - El modo es un `<dialog>` modal: el resto de la página queda inerte (ni Tab ni lector), el foco entra en «Close
   quick mission» y vuelve al botón de la barra al cerrar, y el fondo no se desplaza.
 - El visor de la galería de una página de proyecto es otro `<dialog>` modal: el foco entra en «Close», vuelve a la

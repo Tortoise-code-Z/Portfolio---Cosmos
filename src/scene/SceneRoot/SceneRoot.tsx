@@ -72,8 +72,9 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * real del frame) y arranca en él (sin repetir la explosión a mitad del viaje); `sceneStore` sigue con
  * `m = mTarget` para la interfaz (ADR-028). Con la página oculta o la misión rápida abierta, el bucle se pausa
  * (`watchScenePause`; `data-paused` para los e2e). Si los fps se quedan cortos, baja un nivel
- * (`useHotDegradation`: mide en cada frame y descarta la ventana en curso al pausar). El lienzo es opaco, del color del espacio, y sin gestión de color ni mapeo de tonos (`linear`,
- * `flat`): los shaders suman la luz tal cual, como el prototipo (particulas-y-shaders.md → «Colores»).
+ * (`useHotDegradation`: mide en cada frame y descarta la ventana en curso al pausar). El lienzo es opaco, del
+ * color del espacio, y sin gestión de color ni mapeo de tonos (`linear`, `flat`): los shaders suman la luz tal
+ * cual, como el prototipo (particulas-y-shaders.md → «Colores»).
  */
 export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps): ReactNode {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -144,8 +145,8 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas === null) return undefined;
-    // Al volver el contexto, Three rehace su estado (el fondo lo repone `onCreated`) y el bucle (continuo)
-    // pinta el frame siguiente.
+    // Al volver el contexto, Three rehace su estado (el fondo lo repone `onCreated`) y el bucle pinta el frame
+    // siguiente (o el primero al salir de la pausa).
     return watchContextLoss(canvas, {
       onGiveUp: (reason) => {
         console.error('[scene] WebGL context lost for good', reason);
@@ -184,7 +185,8 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
     }
 
     loopRef.current?.stop();
-    // El primer frame arranca en `mTarget`: quien llega a mitad del viaje no ve la explosión otra vez.
+    // El primer frame arranca en `mTarget`: quien llega a mitad del viaje no ve la explosión otra vez. Una `m`
+    // que no es finita (un `mTarget` roto) vuelve a empezar igual en el frame siguiente, en vez de quedarse así.
     let first = true;
     const loop = startFrameLoop({
       step: (seconds) => {
@@ -192,15 +194,16 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
         degradation.sample(seconds);
         const state = get();
         const { mTarget } = sceneStore.getState();
-        frame.m = first
-          ? mTarget
-          : damp(
-              frame.m,
-              mTarget,
-              clock.delta,
-              clock.reduced ? M_SMOOTHING.reducedRate : M_SMOOTHING.rate,
-              M_SMOOTHING.epsilon,
-            );
+        frame.m =
+          first || !Number.isFinite(frame.m)
+            ? mTarget
+            : damp(
+                frame.m,
+                mTarget,
+                clock.delta,
+                clock.reduced ? M_SMOOTHING.reducedRate : M_SMOOTHING.rate,
+                M_SMOOTHING.epsilon,
+              );
         first = false;
         frame.time = clock.time;
         frame.delta = clock.delta;

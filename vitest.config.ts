@@ -53,8 +53,9 @@ function projectImagesStub(): Plugin {
   };
 }
 
-// Los umbrales salen de docs/05-tecnico/calidad.md: el CI falla por debajo.
-const STRICT = { lines: 90, functions: 90, branches: 90, statements: 90 };
+// Los umbrales salen de docs/05-tecnico/calidad.md: el CI falla por debajo. El 90 % se mide archivo a archivo
+// (`perFile`): sobre el conjunto de un glob, uno flojo se escondería detrás de los demás.
+const STRICT = { lines: 90, functions: 90, branches: 90, statements: 90, perFile: true };
 
 export default defineConfig({
   plugins: [projectImagesStub(), react()],

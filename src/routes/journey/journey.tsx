@@ -53,8 +53,8 @@ export default function Journey(): ReactNode {
 /**
  * El viaje: los cinco capítulos en orden (docs/02-experiencia/README.md), sin escena, con la interfaz
  * fija en el orden del Tab (Skip → barra → contenido → raíl → sugerencia de idioma, si sale; el HUD es
- * decorativo) y el modo misión rápida (un diálogo modal: fuera del orden hasta que se abre). Su scroll fija el
- * `m` de `sceneStore`, que leen el raíl, el HUD y el idioma (y, desde F3, la escena).
+ * decorativo) y el modo misión rápida (un diálogo modal: fuera del orden hasta que se abre). Su scroll fija
+ * `mTarget` en `sceneStore` (y `m = mTarget`): el raíl, el HUD y el idioma leen `m`; la escena, `mTarget`.
  */
 function JourneyPage(): ReactNode {
   const mainRef = useRef<HTMLElement>(null);

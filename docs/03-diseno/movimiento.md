@@ -38,7 +38,7 @@ ese evento para terminar de cerrarse se quedaría colgado con movimiento reducid
 
 | Constante | Valor | Dónde |
 |---|---|---|
-| Suavizado del scroll `k` | 3,4 (12 con movimiento reducido) | `scroll-y-escena.md` |
+| Suavizado de `m` en la escena `k` (`M_SMOOTHING`) | 3,4 (12 con movimiento reducido) | `scroll-y-escena.md` |
 | Carga de detonación | 1,5 s para llenar; descarga 1,8/s | Capítulo 0 |
 | Destello | pico en `m` 0–0,2, opacidad máx. 0,75 (0,95 al detonar) | Capítulo 0 |
 | Temblor | hasta 9 px con el destello + 3 px por carga | Capítulo 0 |

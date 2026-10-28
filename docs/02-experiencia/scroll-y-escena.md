@@ -46,8 +46,8 @@ arriba del todo, `m` sigue siendo 0 (la barra no adelanta la explosión). Códig
   `m += (objetivo − m) · min(1, dt · k)`, con `k = 3,4` (y `k = 12` con movimiento reducido, que equivale a casi
   sin inercia). En su primer frame arranca en el objetivo: si el usuario ya había hecho scroll, no se repite la
   explosión. Código: `src/lib/math/damp` y el bucle de `SceneRoot` (`M_SMOOTHING` en `scene/config/sceneConfig`).
-- El suavizado es **independiente de los fps** (usa `dt`). Por debajo de un umbral (`|objetivo − m| < 1e-4`)
-  se iguala para no recalcular sin fin.
+- El suavizado es **casi independiente de los fps** (usa `dt`; `min(1, dt · k)` es la aproximación por pasos de la
+  curva exacta). Por debajo de un umbral (`|objetivo − m| < 1e-4`) se iguala para llegar exacta al objetivo.
 - **La interfaz no se suaviza:** `sceneStore.m` es el objetivo tal cual, con y sin escena. Quienes lo leen (raíl,
   HUD, idioma) cambian a saltos, así que no lo necesitan; durante la inercia van un instante por delante de la
   escena. Sin escena (WebGL desactivado) no hay suavizado en ningún sitio.
@@ -76,7 +76,8 @@ arriba del todo, `m` sigue siendo 0 (la barra no adelanta la explosión). Códig
 
 ## Criterios de aceptación
 
-1. Con el scroll quieto, la escena se estabiliza en < 1 s y no consume CPU de más (sin recalcular si `m` no cambia).
+1. Con el scroll quieto, la escena se asienta a la vista en ~1 s y llega exacta al objetivo; el bucle sigue pintando
+   (ADR-027) salvo en pausa (pestaña oculta o misión rápida abierta).
 2. Saltar con el raíl a un capítulo lejano produce un viaje rápido y continuo, nunca un salto brusco de formas.
 3. Recargar la página a mitad del viaje muestra la escena correcta para esa posición, sin repetir la explosión.
 4. La función de `m` tiene tests con los bordes: inicio, final, cambio de capítulo, alturas cambiadas por resize.

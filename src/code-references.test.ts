@@ -24,19 +24,19 @@ const BINARY_FILE = /\.(?:png|jpe?g|webp|avif|gif|ico|woff2?|ttf|otf)$/i;
  * sin opción «F33-6», y de letras «CAM-1-B», «FIX-1»; no «ADR-027» ni «UTF-8»), opciones sueltas («la opción A»,
  * también en mayúscula) y el buzón (`_claude/`, el archivo de las vivas).
  */
-const OFF_REPO_REFERENCE = new RegExp(
-  [
-    String.raw`\b[Vv]ivas?[ -]S\d`,
-    String.raw`\b[Vv]ivas? #\d`,
-    String.raw`\bS\d{1,3} #\d`,
-    String.raw`\b(?:EST|AUD)-F\d`,
-    String.raw`\b[A-Z]+\d+-\d+-[A-Z]\b`,
-    String.raw`\b[A-Z]+\d{2,}-\d+\b`,
-    String.raw`\b(?!ADR-|UTF-)[A-Z]{3,}-\d+(?:-[A-Z])?\b`,
-    String.raw`\b[Ll]a opción [A-C]\b`,
-    String.raw`_claude\/|decisiones-vivas`,
-  ].join('|'),
-);
+const OFF_REPO_ALTERNATIVES = [
+  String.raw`\b[Vv]ivas?[ -]S\d`,
+  String.raw`\b[Vv]ivas? #\d`,
+  String.raw`\bS\d{1,3} #\d`,
+  String.raw`\b(?:EST|AUD)-F\d`,
+  String.raw`\b[A-Z]+\d+-\d+-[A-Z]\b`,
+  String.raw`\b[A-Z]+\d{2,}-\d+\b`,
+  String.raw`\b(?!ADR-|UTF-)[A-Z]{3,}-\d+(?:-[A-Z])?\b`,
+  String.raw`\b[Ll]a opción [A-C]\b`,
+  String.raw`_claude\/`,
+  String.raw`decisiones-vivas`,
+] as const;
+const OFF_REPO_REFERENCE = new RegExp(OFF_REPO_ALTERNATIVES.join('|'));
 
 function listFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -56,25 +56,44 @@ function offRepoReferences(files: readonly { path: string; text: string }[]): st
   );
 }
 
+/** Citas al buzón, una por línea: entre todas, cada alternativa de la regex tiene alguna que solo casa ella. */
+const OFF_REPO_EXAMPLES = [
+  { path: 'a.ts', text: '// (viva S5 #1)\n// (vivas S4 #16–#31)' },
+  { path: 'b.ts', text: '// EST-F2-3-12\n// AUD-F2-3-1\n// _claude/cadena/TABLERO.md' },
+  { path: 'd.ts', text: '// F25-1-A\n// como dice la opción B' },
+  { path: 'f.ts', text: '// F33-6 (sin opción)\n// lo decidió la viva #9' },
+  {
+    path: 'g.ts',
+    text: '// CAM-1-B\n// FIX-1\n// Viva S5 #1\n// La opción A\n// (S22 #20)\n// decisiones-vivas-S22.md',
+  },
+  { path: 'h.ts', text: '// viva S5\n// Viva-S5\n// decisiones-vivas.md\n// F3-1-A' },
+] as const;
+
 describe('el código no cita notas de fuera del repo', () => {
   it('reconoce las citas al buzón y deja pasar las del repo', () => {
     const found = offRepoReferences([
-      { path: 'a.ts', text: '// (viva S5 #1)\n// (vivas S4 #16–#31)' },
-      { path: 'b.ts', text: '// EST-F2-3-12\n// AUD-F2-3-1\n// _claude/cadena/TABLERO.md' },
+      ...OFF_REPO_EXAMPLES,
       { path: 'c.ts', text: '// ADR-018 · arquitectura.md → «Rutas e idiomas» · F2.7 · STATE.md' },
-      { path: 'd.ts', text: '// F25-1-A\n// como dice la opción B' },
       {
         path: 'e.ts',
         text: '// Tamaños: H1-2 · UTF-8 · ES-419 · F2.5-1 · ADR-027 · WCAG 2.1 · F3.3 · S22 · #20 · AB-1',
       },
-      { path: 'f.ts', text: '// F33-6 (sin opción)\n// lo decidió la viva #9' },
-      {
-        path: 'g.ts',
-        text: '// CAM-1-B\n// FIX-1\n// Viva S5 #1\n// La opción A\n// (S22 #20)\n// decisiones-vivas-S22.md',
-      },
     ]);
-    expect(found).toHaveLength(15);
+    expect(found).toHaveLength(19);
     expect(found.some((line) => line.startsWith('c.ts') || line.startsWith('e.ts'))).toBe(false);
+  });
+
+  it('cada alternativa de la regex tiene un ejemplo que solo casa ella (quitarla haría fallar el test anterior)', () => {
+    const lines = OFF_REPO_EXAMPLES.flatMap(({ text }) => text.split('\n'));
+    const patterns = OFF_REPO_ALTERNATIVES.map((source) => new RegExp(source));
+    const unmatched = OFF_REPO_ALTERNATIVES.filter((_source, index) =>
+      lines.every(
+        (line) =>
+          !patterns[index]?.test(line) ||
+          patterns.some((other, otherIndex) => otherIndex !== index && other.test(line)),
+      ),
+    );
+    expect(unmatched).toEqual([]);
   });
 
   it('src/, tests/, public/, los hooks, el CI y las configs y JSON de la raíz no las tienen', () => {
