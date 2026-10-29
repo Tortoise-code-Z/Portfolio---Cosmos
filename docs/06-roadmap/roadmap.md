@@ -77,8 +77,9 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
 6. Primeras capturas de regresión visual (Docker) y medición de fps; degradación en caliente de nivel (media de
    fps en ventanas de 2 s, `docs/04-escena/rendimiento.md` → «Degradación en caliente»).
    *(Degradación en caliente hecha en F3.6a: un nivel cada vez; pide las formas del worker y, si llegan, formas y
-   nivel cambian en el mismo turno; si no llegan, se queda como está. En F3.6b, las capturas: un estado por capítulo en 1440×900 y 390×844, con
-   movimiento reducido, en Docker y en el CI (`calidad.md` → «Regresión visual»). En F3.6c, el encuadre: cámaras
+   nivel cambian en el mismo turno; si no llegan, se queda como está. En F3.6b, las capturas: un estado por
+   capítulo en 1440×900 y 390×844, con movimiento reducido, en Docker y en el CI (`calidad.md` → «Regresión
+   visual»). En F3.6c, el encuadre: cámaras
    algo más lejos y cada forma centrada entre panel y raíl, medido con capturas en los 6 tamaños de referencia
    (`camara-y-encuadre.md`); en su segunda parte, los fps medidos en un equipo real (60 estables en Alto, el
    shader no se toca: `calidad.md` → «Mediciones») y los e2e de Chromium en Bajo, como las capturas.)*
@@ -86,9 +87,14 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
    (en lugar de «Readable without JavaScript…») y Three.js / React Three Fiber / GLSL en el stack
    (`docs/01-contenido/proyectos/cosmos.md`).
    *(Hecho en F3.7: la ficha y su fila del viaje ya cuentan la escena; las constelaciones y placas, en F4.)*
+8. WebGL pintado por software → sin escena (ADR-029): la detección mira también el `renderer`, y los e2e y las
+   capturas piden Bajo sin fingir «software».
+9. Fotos fijas de las formas en el modo sin WebGL (ADR-029): un script en Docker las saca de la escena real
+   (escritorio y móvil) y el CSS de `no-gl` pinta la del capítulo activo.
 
 **Hecho cuando:** el viaje se ve de punta a punta con las 5 formas, 60 fps en escritorio y sin errores con WebGL
-desactivado. Etiqueta `v0.2.0`.
+desactivado. Versión 0.2.0, auditoría de cierre y etiqueta `v0.2.0` sobre el último commit del cierre
+(`git-y-despliegue.md`).
 
 ## F4 · Capítulos (uno por PR, en este orden)
 
