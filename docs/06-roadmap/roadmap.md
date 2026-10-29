@@ -89,6 +89,8 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
    *(Hecho en F3.7: la ficha y su fila del viaje ya cuentan la escena; las constelaciones y placas, en F4.)*
 8. WebGL pintado por software → sin escena (ADR-029): la detección mira también el `renderer`, y los e2e y las
    capturas piden Bajo sin fingir «software».
+   *(Hecho en F3.8: `isSoftwareRenderer` y «software» → Apagado; los e2e y las capturas se presentan como GPU con
+   poca memoria —Bajo en los tres motores— con `forceLowScene`.)*
 9. Fotos fijas de las formas en el modo sin WebGL (ADR-029): un script en Docker las saca de la escena real
    (escritorio y móvil) y el CSS de `no-gl` pinta la del capítulo activo.
 

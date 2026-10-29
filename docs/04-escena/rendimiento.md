@@ -36,13 +36,17 @@
 **Elección inicial** (función pura testeable a partir de señales del navegador: `chooseInitialLevel` en
 `src/lib/device/sceneLevel`, con la tabla de arriba en `LEVEL_SETTINGS`; una señal que el navegador no da,
 como `deviceMemory` en Firefox y Safari, no baja el nivel):
-- WebGL2 pintado por software (`detectWebGL2` → `software`: solo da contexto sin
-  `failIfMajorPerformanceCaveat`; SwiftShader, llvmpipe, un escritorio remoto) → Bajo. No todo SwiftShader lo
-  dice: en la imagen de Playwright (la de los e2e del CI y las capturas), Chromium da contexto incluso con esa
-  opción y en escritorio arrancaría en Alto o Medio según los núcleos de la máquina (en Docker Desktop, Alto). Las
-  capturas y los e2e de Chromium lo fuerzan a «software», así que arrancan en Bajo (`forceSoftwareWebGL`,
-  `tests/e2e/support`; `calidad.md` → «Regresión visual» y «Pirámide de tests»), salvo los dos de la degradación
-  en caliente, que fuerzan Alto.
+- Antes de elegir, WebGL2 pintado por software (`detectWebGL2` → `software`) → **Apagado**, el modo sin WebGL con
+  su aviso, sin descargar Three.js (ADR-029): a tirones en el hilo principal, la escena estropea el scroll (P1).
+  Es «software» si su `renderer` lo dice (`isSoftwareRenderer`: SwiftShader, llvmpipe, softpipe, lavapipe,
+  «Software», Microsoft Basic Render Driver) o si solo da contexto sin `failIfMajorPerformanceCaveat`. El
+  `renderer` sale de `RENDERER` y, si es el genérico (`WebKit WebGL` en Chromium y Safari), de
+  `WEBGL_debug_renderer_info` (Firefox da el nombre en `RENDERER` y avisa si se pide la extensión). Si no se puede
+  leer, cuenta como GPU (la degradación en caliente sigue ahí). Chromium sin GPU (la imagen de Playwright,
+  PageSpeed) da contexto incluso con esa opción: solo el `renderer` lo delata («… SwiftShader driver»). Las
+  capturas y los e2e se presentan como GPU con poca memoria, así que arrancan en Bajo en los tres motores
+  (`forceLowScene`, `tests/e2e/support`; `calidad.md` → «Regresión visual» y «Pirámide de tests»), salvo los dos
+  de la degradación en caliente, que fuerzan Alto, y el de «por software», que dice ser SwiftShader.
 - `navigator.connection.saveData` o `deviceMemory ≤ 2` → Bajo.
 - Puntero grueso (táctil) o ancho < 760 px → Bajo.
 - `hardwareConcurrency ≤ 4` → Medio.
@@ -141,6 +145,6 @@ una degradación en caliente, que las trajo antes de bajar el nivel).
 |---|---|---|
 | Unitarios | Vitest | Generadores (también las estrellas), mapeo de `m` y su suavizado (`damp`), pausa (`scene/pause`), medidor de fps (`scene/fpsMeter`: calentamiento, ventanas seguidas, pausa), nivel de debajo y móvil (`nextLowerLevel`, `isHandheld`), cámara (`scene/math/camera`: pose, encuadre, campo de visión, paralaje acotado), ratón (`scene/pointer`, solo `mouse`), `watchMediaQuery`, proyección, elección de nivel, formato del HUD, geometría y uniforms de las partículas, cabecera GLSL y shaders sin números ni nombres de más, shaders sin comentarios, paleta contra la tabla del design system, bucle de frames, reloj de la escena, color de fondo, paridad TS/GLSL de la posición de los pins (F4.4; el ruido no la necesita, `formas.md`) |
 | Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error (también un frame que lanza), movimiento reducido, color de fondo al crear y al recuperar el contexto, partículas y estrellas (`useParticles`, `useBackgroundStars`: aviso en el primer frame (partículas), uniforms en cada frame, memoria liberada), `CameraRig` (pose, campo de visión al cambiar el aspecto, paralaje), pausa del bucle (`data-paused`), degradación en caliente (`useHotDegradation`: un nivel cada vez, no mide sin partículas ni mientras llegan las formas, deja de medir si no llegan; `useSceneShapes` → `lowerTo`: sin reintento, formas y nivel en el mismo turno; en `SceneRoot`, `data-level` y una pausa que no cuenta como frame lento) |
-| Extremo a extremo | Playwright | En Chromium, en Bajo (el `test` de `tests/e2e/support`) salvo la degradación. Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado; el fondo por debajo del contenido), formas del worker y del reintento (`data-shapes`), partículas que se ven (fracción de píxeles que no son fondo, entrando por `/#about`), fondo del color del token (al cargar y tras recuperar el contexto), movimiento reducido, la cámara por los 5 capítulos con el ratón a 1280×720 y 390×844, pausa con la misión rápida, degradación en caliente en Chromium (arrancando en Alto con cada frame retrasado 50 ms por el test, ~20 fps en cualquier máquina: Alto → Medio → Bajo con las formas del worker y sin avisos de WebGL; y si las formas no llegan, el nivel se queda y avisa una vez), sin avisos de WebGL del navegador |
-| Regresión visual | Playwright (capturas, Docker) | Un estado por capítulo a 1440×900 y 390×844, con movimiento reducido, render por software (SwiftShader, nivel Bajo) y una tolerancia estrecha: un 5 % de color por píxel y 50 píxeles distintos por captura (`calidad.md` → «Regresión visual») |
+| Extremo a extremo | Playwright | En Bajo en los tres motores (el `test` de `tests/e2e/support`) salvo la degradación. Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado; el fondo por debajo del contenido), WebGL por software (`renderer` de SwiftShader: modo sin WebGL), formas del worker y del reintento (`data-shapes`), partículas que se ven (fracción de píxeles que no son fondo, entrando por `/#about`), fondo del color del token (al cargar y tras recuperar el contexto), movimiento reducido, la cámara por los 5 capítulos con el ratón a 1280×720 y 390×844, pausa con la misión rápida, degradación en caliente en Chromium (arrancando en Alto con cada frame retrasado 50 ms por el test, ~20 fps en cualquier máquina: Alto → Medio → Bajo con las formas del worker y sin avisos de WebGL; y si las formas no llegan, el nivel se queda y avisa una vez), sin avisos de WebGL del navegador |
+| Regresión visual | Playwright (capturas, Docker) | Un estado por capítulo a 1440×900 y 390×844, con movimiento reducido, pintado por SwiftShader presentado como GPU con poca memoria (nivel Bajo) y una tolerancia estrecha: un 5 % de color por píxel y 50 píxeles distintos por captura (`calidad.md` → «Regresión visual») |
 | Rendimiento | Lighthouse CI + medida manual | Core Web Vitals y presupuesto de JS; fps medidos a mano en un móvil real antes de cada versión |

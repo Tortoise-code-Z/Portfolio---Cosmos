@@ -4,7 +4,13 @@ import { test } from './support/test.ts';
 
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../../src/scene/contextLoss/contextLoss.ts';
 import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
-import { collectErrors, SCENE_READY } from './support/helpers.ts';
+import {
+  collectErrors,
+  presentWebGLAsHardware,
+  presentWebGLAsRenderer,
+  SCENE_READY,
+  SWIFTSHADER_RENDERER,
+} from './support/helpers.ts';
 
 /**
  * Carga de la escena y modo sin WebGL (docs/05-tecnico/arquitectura.md → «Carga de la escena»,
@@ -220,11 +226,9 @@ test.describe('the scene with WebGL', () => {
     expect(errors).toEqual([]);
   });
 
-  test('in Chromium the e2e start the scene in low, whatever the machine (support/test.ts)', async ({
+  test('the e2e start the scene in low, whatever the machine and the engine (support/test.ts)', async ({
     page,
-    browserName,
   }) => {
-    test.skip(browserName !== 'chromium', 'Only Chromium is forced to low');
     await page.goto('/', { waitUntil: 'networkidle' });
     const scene = page.locator(PARTICLES_PAINTED);
     await expect(scene).toBeAttached({ timeout: SHAPES_WORKER_TIMEOUT_MS * 2 });
@@ -484,28 +488,17 @@ test.describe('the scene with WebGL', () => {
     test.use({ sceneInLow: false });
 
     /**
-     * Arranca en Alto: la detección cree que hay GPU (sin `failIfMajorPerformanceCaveat`; fuera de la imagen de
-     * Playwright, SwiftShader daría «software» y Bajo) y hay 8 núcleos. Los fps bajos los pone el test, no la
-     * máquina: cada frame llega 50 ms tarde (~20 fps, por debajo de los 45 de escritorio también con GPU). El bucle
-     * de la escena lee `requestAnimationFrame` en cada frame, así que recoge el cambio. Este `describe` apaga el Bajo
-     * de `support/test.ts` (`sceneInLow: false`): no hay otro script de WebGL que pisar.
+     * Arranca en Alto: la detección cree que hay GPU (`presentWebGLAsHardware`; en la imagen de Playwright,
+     * SwiftShader llevaría al modo sin WebGL) y hay 8 núcleos. Los fps bajos los pone el test, no la máquina: cada
+     * frame llega 50 ms tarde (~20 fps, por debajo de los 45 de escritorio también con GPU). El bucle de la escena
+     * lee `requestAnimationFrame` en cada frame, así que recoge el cambio. Este `describe` apaga el Bajo de
+     * `support/test.ts` (`sceneInLow: false`): no hay otra memoria ni otro `renderer` que pisar.
      */
     async function startHigh(page: Page, browserName: string): Promise<void> {
       test.skip(browserName !== 'chromium', 'Only Chromium is forced and slowed down here');
       await page.setViewportSize({ width: 1280, height: 720 });
+      await presentWebGLAsHardware(page);
       await page.addInitScript(() => {
-        // eslint-disable-next-line @typescript-eslint/unbound-method -- se llama con `.call(this, …)`
-        const getContext = HTMLCanvasElement.prototype.getContext;
-        function withoutCaveat(
-          this: HTMLCanvasElement,
-          type: string,
-          attributes?: WebGLContextAttributes,
-        ): RenderingContext | null {
-          const rest = { ...attributes };
-          delete rest.failIfMajorPerformanceCaveat;
-          return getContext.call(this, type, rest);
-        }
-        HTMLCanvasElement.prototype.getContext = withoutCaveat as typeof getContext;
         Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', { get: () => 8 });
         const SLOW_FRAME_MS = 50;
         window.requestAnimationFrame = (callback) =>
@@ -608,6 +601,27 @@ test.describe('the scene with WebGL', () => {
       .click();
     await expect(page).toHaveURL(/\/projects\//);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  });
+});
+
+test.describe('WebGL2 painted by software (ADR-029)', () => {
+  // Sin el Bajo de `support/test.ts`: aquí el navegador dice pintar con SwiftShader, como Chromium sin GPU.
+  test.use({ sceneInLow: false });
+
+  test('goes to the no-WebGL mode with its notice, without downloading the scene', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    test.skip(!(await browserHasWebGL2(page)), 'This browser has no WebGL2 here');
+    await presentWebGLAsRenderer(page, SWIFTSHADER_RENDERER);
+    const errors = collectErrors(page);
+    const requests = sceneRequests(page);
+    await page.reload({ waitUntil: 'networkidle' });
+    await expect(noGlNotice(page)).toBeVisible();
+    await expect(page.locator('html')).toHaveClass(/\bno-gl\b/);
+    await expect(sceneCanvas(page)).toHaveCount(0);
+    expect(requests).toEqual([]);
+    expect(errors).toEqual([]);
   });
 });
 

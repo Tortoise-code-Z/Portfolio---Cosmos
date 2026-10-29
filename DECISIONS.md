@@ -125,7 +125,7 @@
 - Detalle: `docs/05-tecnico/stack.md`, `docs/05-tecnico/git-y-despliegue.md`.
 
 ## ADR-010 · Capturas de regresión visual en Docker (imagen oficial de Playwright)
-- Estado: Aceptada · matizada en F3.6 (ver Consecuencias)
+- Estado: Aceptada · matizada en F3.6 y en F3.8 (ver Consecuencias)
 - Fecha: 2026-10-22
 - Contexto: el render difiere entre Windows (local) y Linux (CI); las capturas deben ser comparables.
 - Decisión: `npm run visual` / `visual:update` y el job de CI corren en `mcr.microsoft.com/playwright:v1.64.0-noble`.
@@ -136,6 +136,8 @@
     el sistema en el nombre. Las capturas se hacen con movimiento reducido: la escena queda quieta sin reloj falso,
     a cambio de no vigilar lo que solo se ve en movimiento. Un check propio, `Visual regression`, obligatorio en
     `main`. Subir Playwright obliga a rehacer las capturas.
+  - Desde F3.8 (ADR-029): en la imagen Chromium pinta con SwiftShader y el sitio iría al modo sin WebGL, así que
+    las capturas se presentan como GPU con poca memoria (`forceLowScene`) y la escena arranca en Bajo.
 - Detalle: `docs/05-tecnico/calidad.md`, `docs/05-tecnico/git-y-despliegue.md`, `docs/05-tecnico/stack.md`.
 
 ## ADR-011 · Universo determinista (PRNG con semilla)
@@ -409,8 +411,8 @@
   reglas de dependencia» y «Rutas e idiomas»).
 
 ## ADR-024 · E2E del CI en la imagen de Playwright, un job por navegador
-- Estado: Aceptada · matizada en F3.6c: en Chromium la escena arranca en Bajo salvo en los e2e que piden otro nivel
-  (ver Consecuencias)
+- Estado: Aceptada · matizada en F3.6c y en F3.8: la escena arranca en Bajo, desde F3.8 en los tres motores,
+  salvo en los e2e que piden otra cosa (ver Consecuencias)
 - Fecha: 2026-10-26
 - Contexto: el job de e2e del CI instalaba en cada ejecución Chromium, Firefox y WebKit con sus dependencias del
   sistema (`npx playwright install --with-deps`) y pasaba después los tres navegadores seguidos en una sola
@@ -443,6 +445,9 @@
     `tests/e2e/support/test.ts`, que en Chromium la fuerza a Bajo en todas las páginas del contexto del test (como
     las capturas), y ESLint lo exige. Los e2e que necesitan otro nivel apagan esa opción (`sceneInLow`) y lo
     fuerzan ellos (`calidad.md` → «Pirámide de tests»).
+  - Desde F3.8 (ADR-029), ese `test` ya no finge «software» (llevaría al modo sin WebGL): en los tres motores se
+    presenta como GPU con poca memoria (`forceLowScene`), así que tampoco dependen del `renderer` que dé cada
+    motor del CI.
 - Detalle: `docs/05-tecnico/git-y-despliegue.md` («CI») y `docs/05-tecnico/stack.md` («Conflictos»).
 
 ## ADR-025 · Dominio propio: `tortoisecode.dev`
@@ -556,7 +561,7 @@
   «Puente scroll → escena»), `docs/04-escena/rendimiento.md` («Ahorro de trabajo»).
 
 ## ADR-029 · WebGL pintado por software → sin escena, con fotos fijas de las formas
-- Estado: Aceptada · por implementar en F3 (pasos 8 y 9 del roadmap), antes de `v0.2.0`
+- Estado: Aceptada · la detección, hecha en F3.8; las fotos fijas, por implementar en F3.9, antes de `v0.2.0`
 - Fecha: 2026-10-29
 - Contexto: al cerrar F3, PageSpeed Insights (Lighthouse 13.6.0, Chromium headless sin GPU) pinta la escena con
   SwiftShader: la home baja de 97 a 88 de Performance con 450 ms de TBT y la ficha de Cosmos a 83 con 660 ms

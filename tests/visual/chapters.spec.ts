@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { CHAPTER_ANCHORS, CHAPTER_INDICES } from '../../src/content/chapters.ts';
-import { forceSoftwareWebGL } from '../e2e/support/helpers.ts';
+import { forceLowScene } from '../e2e/support/helpers.ts';
 
 /**
  * Un estado por capítulo (docs/05-tecnico/calidad.md → «Regresión visual»): se entra por su ancla, así que la
@@ -11,11 +11,13 @@ import { forceSoftwareWebGL } from '../e2e/support/helpers.ts';
 const PARTICLES_PAINTED = '[data-particles="painted"]:has(canvas)';
 
 /**
- * Siempre en Bajo (`forceSoftwareWebGL`): en la imagen, en escritorio arrancaría en Alto o Medio según los núcleos,
- * SwiftShader no llega a 45 fps y la degradación en caliente bajaría el nivel a mitad de la foto.
+ * Siempre en Bajo (`forceLowScene`: se presenta como GPU con poca memoria). En la imagen, Chromium pinta con
+ * SwiftShader y lo dice en su `renderer`: sin presentarse como GPU, el sitio iría al modo sin WebGL (ADR-029); y
+ * sin la poca memoria, en escritorio arrancaría en Alto o Medio según los núcleos, SwiftShader no llega a 45 fps y
+ * la degradación en caliente bajaría el nivel a mitad de la foto.
  */
 test.beforeEach(async ({ page }) => {
-  await forceSoftwareWebGL(page);
+  await forceLowScene(page);
 });
 
 for (const index of CHAPTER_INDICES) {

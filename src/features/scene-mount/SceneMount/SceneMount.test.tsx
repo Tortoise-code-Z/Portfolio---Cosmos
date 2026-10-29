@@ -142,13 +142,14 @@ describe('SceneMount', () => {
     expect(document.documentElement).not.toHaveClass(SCENE_ON_CLASS);
   });
 
-  it('WebGL2 painted by the CPU (software rendering) starts at the low level', async () => {
+  it('WebGL2 painted by the CPU (software rendering): no scene, the no-gl class and the notice (ADR-029)', async () => {
     vi.mocked(detectWebGL2).mockReturnValue('software');
     renderMount();
     await idle();
-    expect(await screen.findByTestId('scene')).toHaveTextContent('low');
-    expect(sceneLevel()).toBe('low');
-    expect(document.documentElement).not.toHaveClass(NO_GL_CLASS);
+    expect(screen.queryByTestId('scene')).not.toBeInTheDocument();
+    expect(sceneLevel()).toBe('off');
+    expect(document.documentElement).toHaveClass(NO_GL_CLASS);
+    expect(screen.getByRole('status')).toHaveTextContent(NOTICE_TEXT);
   });
 
   it('a narrow window starts at the low level', async () => {
