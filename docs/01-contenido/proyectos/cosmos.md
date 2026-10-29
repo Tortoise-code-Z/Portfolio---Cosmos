@@ -1,8 +1,8 @@
 # Proyecto · Cosmos (este portfolio)
 
-> Ficha nueva. Lo marcado con ⏳ se completa con datos reales a medida que se construye
-> (proceso, retos resueltos, capturas). No se publica nada que no esté hecho: el resumen, las funcionalidades y el
-> stack van **sin la escena 3D** hasta que exista (F3–F4); su texto final se guarda aquí, marcado con ⏳.
+> Lo marcado con ⏳ se completa con datos reales a medida que se construye (proceso, retos resueltos, capturas). No
+> se publica nada que no esté hecho: la escena 3D entró en el resumen, las funcionalidades y el stack al cerrar F3
+> (F3.7); las constelaciones y placas entran con F4. Lo que espera se guarda aquí, marcado con ⏳.
 
 ## Ficha
 
@@ -26,17 +26,10 @@
 
 ## Summary
 
-Hoy (sin escena):
-
-- EN: The site you are on: a scroll journey through the history of the universe, from the Big Bang to Earth.
-  Built with React and TypeScript, pre-rendered, bilingual and readable without JavaScript.
-- ES: La web en la que estás: un viaje por scroll a través de la historia del universo, del Big Bang a la Tierra.
-  Hecha con React y TypeScript, pre-renderizada, bilingüe y legible sin JavaScript.
-
-⏳ Final (cuando el viaje se vea de punta a punta con las 5 formas, F3):
+Con la escena (desde F3.7):
 
 - EN: The site you are on. Tens of thousands of particles morph from a singularity into a nebula, a galaxy, a
-  cosmic turtle and Earth as you scroll, built with React, TypeScript and WebGL, and still readable without any
+  cosmic turtle and Earth as you scroll. Built with React, TypeScript and WebGL, and still readable without any
   of it.
 - ES: La web en la que estás. Decenas de miles de partículas pasan de una singularidad a una nebulosa, una
   galaxia, una tortuga cósmica y la Tierra mientras haces scroll. Hecha con React, TypeScript y WebGL, y
@@ -62,22 +55,22 @@ En el contenido, en este orden; las marcadas con ⏳ entran cuando estén hechas
 
 | EN | ES | Desde |
 |---|---|---|
-| ⏳ Scroll-driven particle morphing across five scenes | Morph de partículas guiado por el scroll en cinco escenas | F3 |
+| Scroll-driven particle morphing across five scenes | Morph de partículas guiado por el scroll en cinco escenas | F3 |
 | ⏳ Interactive constellations and project plates | Constelaciones y placas de proyecto interactivas | F4 (pasos 3 y 4) |
 | Bilingual site (English / Spanish) | Web bilingüe (inglés / español) | F2 |
 | Quick-mission mode with all the content on one page | Modo misión rápida con todo el contenido en una página | F2 |
-| Readable without JavaScript and with reduced motion | Legible sin JavaScript y con movimiento reducido | F2 |
+| Works without WebGL and with reduced motion | Funciona sin WebGL y con movimiento reducido | F3 |
 | A page per project, pre-rendered for search engines | Una página por proyecto, pre-renderizada para buscadores | F2 |
 
-Con la escena (F3), «Readable without JavaScript and with reduced motion» pasa a ⏳ «Works without WebGL and with
-reduced motion» (ES: «Funciona sin WebGL y con movimiento reducido»).
+Con la escena (F3.7), «Works without WebGL and with reduced motion» sustituye a la de F2, «Readable without
+JavaScript and with reduced motion» (ES: «Legible sin JavaScript y con movimiento reducido»).
 
 ## Stack
 
 Selección de `docs/05-tecnico/stack.md`, sin versiones: lo que reconoce quien revisa un CV de frontend (no salen
 piezas internas como Testing Library, Husky, vite-imagetools, Docker o Lighthouse CI).
 
-- core: React, TypeScript (⏳ Three.js, React Three Fiber y GLSL entran con la escena, F3)
+- core: React, TypeScript, Three.js, React Three Fiber, GLSL (los tres últimos, con la escena: F3.7)
 - libraries: React Router, Zustand
 - design: CSS Modules, responsive design (EN: Responsive design · ES: Diseño responsive)
 - tooling: Vite, Vitest, Playwright, ESLint, Prettier, GitHub Actions, Vercel, Git, npm

@@ -84,7 +84,8 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
    shader no se toca: `calidad.md` → «Mediciones») y los e2e de Chromium en Bajo, como las capturas.)*
 7. Ficha de **Cosmos** con la escena: el resumen final, «Scroll-driven particle morphing…», «Works without WebGL…»
    (en lugar de «Readable without JavaScript…») y Three.js / React Three Fiber / GLSL en el stack
-   (`docs/01-contenido/proyectos/cosmos.md`, ⏳).
+   (`docs/01-contenido/proyectos/cosmos.md`).
+   *(Hecho en F3.7: la ficha y su fila del viaje ya cuentan la escena; las constelaciones y placas, en F4.)*
 
 **Hecho cuando:** el viaje se ve de punta a punta con las 5 formas, 60 fps en escritorio y sin errores con WebGL
 desactivado. Etiqueta `v0.2.0`.
