@@ -23,7 +23,8 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 
 ## Sin WebGL (o si falla)
 
-- Se detecta al iniciar; ante cualquier error de contexto o de shader, un frame que lanza (en un `useFrame` o al
+- Se detecta al iniciar: sin WebGL2, o con WebGL2 pintado por software (sin tarjeta gráfica usable: SwiftShader,
+  llvmpipe… en su `renderer`; ADR-029), no se monta la escena. Ante cualquier error de contexto o de shader, un frame que lanza (en un `useFrame` o al
   pintar: el bucle se para) o si las formas no llegan de ninguna manera (ni del worker ni del reintento), se
   desmonta la escena y se marca el documento con una clase (`no-gl`).
 - Fondo: degradado estático del espacio en CSS (`--gradient-space`, fijo en la capa de la escena, por debajo del
@@ -31,7 +32,7 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 - Aviso discreto, una vez por visita: «Your browser can't show the 3D universe, but everything else is here.» con
   «Got it» para descartarlo (navegar dentro del sitio no lo repite; recargar sí, porque sigue siendo verdad). Si
   la sugerencia de idioma está a la vista, espera a que se conteste: los dos flotan en el mismo sitio y nunca se
-  tapan. Sin WebGL2 no se descarga la escena.
+  tapan. Sin WebGL2, o pintado por software, no se descarga la escena.
 - Todo lo demás funciona igual (raíl, HUD, misión rápida, páginas de proyecto).
 - Pérdida de contexto WebGL en caliente (`webglcontextlost`): se intenta restaurar una vez; si no, modo sin WebGL.
 
@@ -62,8 +63,8 @@ Valores en `docs/04-escena/`.
 |---|---|---|
 | Alto | Escritorio con GPU dedicada o integrada moderna | Todas las partículas, DPR hasta 2 |
 | Medio | Portátil modesto o fps bajos sostenidos | Menos partículas, DPR hasta 1,5 |
-| Bajo | Móvil, `saveData`, poca memoria, WebGL por software o fps bajos sostenidos en Medio | Partículas mínimas, DPR 1, sin estela ni luces de ciudad |
-| Apagado | Sin WebGL o fallo | Modo sin WebGL |
+| Bajo | Móvil, `saveData`, poca memoria o fps bajos sostenidos en Medio | Partículas mínimas, DPR 1, sin estela ni luces de ciudad |
+| Apagado | Sin WebGL, WebGL por software (ADR-029) o fallo | Modo sin WebGL |
 
 ## Pestaña oculta y modo misión rápida
 

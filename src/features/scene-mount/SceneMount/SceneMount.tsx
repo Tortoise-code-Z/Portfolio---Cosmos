@@ -55,8 +55,8 @@ function whenIdle(task: () => void): () => void {
  * Monta la escena 3D (docs/05-tecnico/arquitectura.md → «Carga de la escena»). `root.tsx` lo pinta una
  * sola vez, en `Layout` detrás de las rutas, para que el lienzo no se recree al navegar. En el pre-render y al hidratar
  * no pinta nada (solo la región del aviso, vacía); después, con el navegador libre:
- * - sin WebGL2 → modo sin WebGL, sin descargar Three.js;
- * - con WebGL2 → elige el nivel (Bajo si pinta por software) y carga la escena en diferido, dentro de su
+ * - sin WebGL2, o con WebGL2 pintado por software (ADR-029) → modo sin WebGL, sin descargar Three.js;
+ * - con WebGL2 en la tarjeta gráfica → elige el nivel y carga la escena en diferido, dentro de su
  *   `ErrorBoundary`.
  * Cualquier fallo de la escena pasa a sin WebGL para el resto de la visita: clase `no-gl` en `<html>` y un
  * aviso, una vez por visita, que espera su turno si la sugerencia de idioma se está viendo.
@@ -67,14 +67,12 @@ export function SceneMount(): ReactNode {
   useEffect(
     () =>
       whenIdle(() => {
-        const support = detectWebGL2();
-        if (support === 'none') {
+        // Pintada por la CPU, la escena va a tirones en el hilo principal y estropea el scroll: mejor sin ella (P1).
+        if (detectWebGL2() !== 'hardware') {
           turnSceneOff();
           return;
         }
-        // Pintado por la CPU (sin GPU usable): arranca en Bajo.
-        const softwareRendering = support === 'software';
-        setSceneLevel(chooseInitialLevel(readBrowserSignals({ softwareRendering })));
+        setSceneLevel(chooseInitialLevel(readBrowserSignals()));
       }),
     [],
   );

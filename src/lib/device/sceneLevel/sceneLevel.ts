@@ -41,11 +41,6 @@ export interface BrowserSignals {
   readonly coarsePointer: boolean;
   /** Ancho de la ventana en px CSS. */
   readonly viewportWidth: number;
-  /**
-   * WebGL2 solo sin `failIfMajorPerformanceCaveat`: pinta con la CPU, sin tarjeta gráfica usable
-   * (`detectWebGL2` → `software`, en `lib/device/webgl2`).
-   */
-  readonly softwareRendering: boolean;
 }
 
 /** Con esta memoria o menos (GB), Bajo. */
@@ -67,17 +62,14 @@ export function isHandheld({
 }
 
 /**
- * Nivel con el que arranca la visita. En orden: pintado por software, ahorro de datos o poca memoria →
- * Bajo; táctil o estrecho → Bajo; pocos núcleos → Medio; si no, Alto. Una señal que el navegador no da no
- * baja el nivel. Después solo puede bajar: la degradación en caliente (`nextLowerLevel`).
+ * Nivel con el que arranca la visita (con WebGL2 en la tarjeta gráfica: pintado por software no hay escena,
+ * ADR-029). En orden: ahorro de datos o poca memoria → Bajo; táctil o estrecho → Bajo; pocos núcleos → Medio;
+ * si no, Alto. Una señal que el navegador no da no baja el nivel. Después solo puede bajar: la degradación en
+ * caliente (`nextLowerLevel`).
  */
 export function chooseInitialLevel(signals: BrowserSignals): RenderLevel {
   const { saveData, deviceMemory, hardwareConcurrency } = signals;
-  if (
-    signals.softwareRendering ||
-    saveData === true ||
-    (deviceMemory !== undefined && deviceMemory <= LOW_MEMORY_GB)
-  ) {
+  if (saveData === true || (deviceMemory !== undefined && deviceMemory <= LOW_MEMORY_GB)) {
     return 'low';
   }
   if (isHandheld(signals)) return 'low';
@@ -126,13 +118,8 @@ export function readHandheldSignals(): Pick<BrowserSignals, 'coarsePointer' | 'v
   };
 }
 
-/**
- * Lee las señales del navegador en el momento de elegir (solo en cliente). Si pinta por software lo dice
- * quien detectó WebGL2 (`detectWebGL2`): se pregunta una sola vez, antes de elegir.
- */
-export function readBrowserSignals({
-  softwareRendering,
-}: Pick<BrowserSignals, 'softwareRendering'>): BrowserSignals {
+/** Lee las señales del navegador en el momento de elegir (solo en cliente). */
+export function readBrowserSignals(): BrowserSignals {
   const extras = navigator as Navigator & NavigatorExtras;
   const saveData = extras.connection?.saveData;
   return {
@@ -140,6 +127,5 @@ export function readBrowserSignals({
     deviceMemory: positiveNumber(extras.deviceMemory),
     hardwareConcurrency: positiveNumber(navigator.hardwareConcurrency),
     ...readHandheldSignals(),
-    softwareRendering,
   };
 }

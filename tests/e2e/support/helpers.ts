@@ -2,6 +2,7 @@ import type { BrowserContext, Page } from '@playwright/test';
 
 import { projectEntries } from '../../../src/content/projects/entries.ts';
 import type { ProjectEntry } from '../../../src/content/types.ts';
+import { LOW_MEMORY_GB } from '../../../src/lib/device/sceneLevel/sceneLevel.ts';
 
 /**
  * Ayudas compartidas por los e2e (una sola copia: DEVELOPMENT_RULES.md §5, «sin duplicación»).
@@ -49,25 +50,81 @@ export async function settleScene(page: Page): Promise<void> {
 }
 
 /**
- * WebGL «por software» para la detección (`detectWebGL2` → `software`, nivel Bajo): se le niega el contexto que pide
- * con `failIfMajorPerformanceCaveat`. En la imagen de Playwright, Chromium lo da aunque pinte SwiftShader (la
- * detección creería que hay GPU) y la escena arrancaría en Alto o Medio según los núcleos, así que la degradación
- * en caliente podría cambiar el nivel a mitad de un test. Va antes de cargar la página (`addInitScript`): en una
- * página, solo para ella; en un contexto, para todas las suyas.
+ * El `renderer` que dicen tener los navegadores de los tests que se presentan como GPU (`presentWebGLAsHardware`):
+ * un nombre de ANGLE inventado, sin nada de los de software (`isSoftwareRenderer`).
  */
-export async function forceSoftwareWebGL(target: Page | BrowserContext): Promise<void> {
-  await target.addInitScript(() => {
+export const FAKE_GPU_RENDERER = 'ANGLE (e2e, Fake GPU for the tests, Direct3D11)';
+
+/**
+ * El `renderer` de Chromium sin GPU, tal cual (el de la imagen de Playwright y el de PageSpeed): para fingir WebGL
+ * pintado por software (`presentWebGLAsRenderer`).
+ */
+export const SWIFTSHADER_RENDERER =
+  'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)';
+
+/**
+ * WebGL que dice pintar con `renderer` para la detección (`detectWebGL2`, ADR-029): `RENDERER` y
+ * `UNMASKED_RENDERER_WEBGL` devuelven ese nombre y el contexto se da aunque se pida `failIfMajorPerformanceCaveat`
+ * (como Chromium sin GPU). Solo cambia lo que se lee: se sigue pintando con lo que haya (SwiftShader en la imagen).
+ * Va antes de cargar la página (`addInitScript`): en una página, solo para ella; en un contexto, para todas las suyas.
+ */
+export async function presentWebGLAsRenderer(
+  target: Page | BrowserContext,
+  renderer: string,
+): Promise<void> {
+  await target.addInitScript((name) => {
     // eslint-disable-next-line @typescript-eslint/unbound-method -- se llama con `.call(this, …)`
     const getContext = HTMLCanvasElement.prototype.getContext;
-    function asSoftware(
+    function withoutCaveat(
       this: HTMLCanvasElement,
       type: string,
       attributes?: WebGLContextAttributes,
     ): RenderingContext | null {
-      return attributes?.failIfMajorPerformanceCaveat === true
-        ? null
-        : getContext.call(this, type, attributes);
+      const rest = { ...attributes };
+      delete rest.failIfMajorPerformanceCaveat;
+      return getContext.call(this, type, rest);
     }
-    HTMLCanvasElement.prototype.getContext = asSoftware as typeof getContext;
-  });
+    HTMLCanvasElement.prototype.getContext = withoutCaveat as typeof getContext;
+    // `RENDERER` y `WEBGL_debug_renderer_info.UNMASKED_RENDERER_WEBGL` (los números del estándar).
+    const RENDERER_PARAMETERS: readonly number[] = [0x1f01, 0x9246];
+    const prototypes = [
+      window.WebGLRenderingContext as typeof WebGLRenderingContext | undefined,
+      window.WebGL2RenderingContext as typeof WebGL2RenderingContext | undefined,
+    ].flatMap((kind) => (kind === undefined ? [] : [kind.prototype]));
+    for (const prototype of prototypes) {
+      // eslint-disable-next-line @typescript-eslint/unbound-method -- se llama con `.call(this, …)`
+      const getParameter = prototype.getParameter;
+      prototype.getParameter = function named(this: WebGLRenderingContext, parameter: number) {
+        return RENDERER_PARAMETERS.includes(parameter)
+          ? name
+          : (getParameter.call(this, parameter) as unknown);
+      } as typeof getParameter;
+    }
+  }, renderer);
+}
+
+/**
+ * WebGL «en la tarjeta gráfica» para la detección (`detectWebGL2` → `hardware`): en la imagen de Playwright y en
+ * PageSpeed, Chromium pinta con SwiftShader y lo dice en su `renderer`, así que sin esto el sitio iría al modo sin
+ * WebGL (ADR-029). Los motores del CI sin GPU que sí tengan WebGL2 también: los tests con escena no dependen de qué
+ * `renderer` dé cada uno.
+ */
+export async function presentWebGLAsHardware(target: Page | BrowserContext): Promise<void> {
+  await presentWebGLAsRenderer(target, FAKE_GPU_RENDERER);
+}
+
+/**
+ * La escena arranca en Bajo, sea cual sea la máquina: WebGL en la tarjeta gráfica (`presentWebGLAsHardware`) y
+ * poca memoria (`navigator.deviceMemory`, que el resto del sitio no lee; se define también donde el navegador no
+ * lo tiene). Sin esto, en escritorio arrancaría en Alto o Medio según los núcleos y la degradación en caliente
+ * (SwiftShader no llega a 45 fps) podría cambiar el nivel a mitad de un test o de una captura.
+ */
+export async function forceLowScene(target: Page | BrowserContext): Promise<void> {
+  await presentWebGLAsHardware(target);
+  await target.addInitScript((memory) => {
+    Object.defineProperty(Navigator.prototype, 'deviceMemory', {
+      configurable: true,
+      get: () => memory,
+    });
+  }, LOW_MEMORY_GB);
 }

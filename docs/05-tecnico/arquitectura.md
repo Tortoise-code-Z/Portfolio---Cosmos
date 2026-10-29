@@ -78,7 +78,7 @@ cosmos-portfolio/
 │  │  │                           sceneLevel (niveles de la escena, su tabla, la elección inicial, pura,
 │  │  │                           nextLowerLevel e isHandheld, y readBrowserSignals / readHandheldSignals, que
 │  │  │                           leen las señales en cliente) y webgl2 (detectWebGL2:
-│  │  │                           con GPU, por software o sin WebGL2); después usePointerType
+│  │  │                           con GPU, por software —por su renderer— o sin WebGL2); después usePointerType
 │  │  ├─ hold/                  ← carga de «mantén pulsado»: charge (puro) y useHoldCharge (rAF + variable CSS)
 │  │  ├─ css/                   ← cx (unir clases) y useHeightVar (altura de un elemento como variable CSS)
 │  │  └─ math/                  ← clamp, smoothstep, lerp, damp (el amortiguado de `m`; después, easing)
@@ -230,8 +230,9 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   la 404 incluida, lleva una sola región de aviso. En el pre-render y al hidratar no pinta nada (solo la
   región vacía del aviso). Después, cuando el navegador está libre (`requestIdleCallback` con 2 s de plazo;
   en Safari, la vuelta siguiente del bucle de eventos):
-  - sin WebGL2 (`detectWebGL2` → `none`) → modo sin WebGL, **sin descargar** Three.js;
-  - con WebGL2 → elige el nivel (`chooseInitialLevel`, `uiStore.sceneLevel`; Bajo si solo pinta por software)
+  - sin WebGL2 o pintado por software (`detectWebGL2` → `none` o `software`, ADR-029) → modo sin WebGL, **sin
+    descargar** Three.js;
+  - con WebGL2 en la tarjeta gráfica → elige el nivel (`chooseInitialLevel`, `uiStore.sceneLevel`)
     y hace `lazy(() => import('~/scene/SceneRoot/SceneRoot'))`, dentro de `SceneErrorBoundary`.
 - `SceneErrorBoundary` recoge los errores de la escena al montar y al renderizar con React (el chunk que no llega,
   el contexto que no se crea, un hijo del lienzo que lanza), los registra y pasa a sin WebGL. Lo que lanza dentro de
