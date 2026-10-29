@@ -1,6 +1,7 @@
 // @vitest-environment node
 // Lee archivos del disco: no necesita DOM.
 
+import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +16,13 @@ import { describe, expect, it } from 'vitest';
 
 const REPO_DIR = fileURLToPath(new URL('..', import.meta.url));
 const CODE_DIRS = ['src', 'tests', 'scripts', '.husky', '.github', 'public'] as const;
+/**
+ * Las carpetas de la raíz que no están en `CODE_DIRS`, con su motivo. Las que git no sigue (`node_modules`,
+ * `build`, los informes…) ni aparecen: el último caso las lista con git, que respeta `.gitignore`.
+ */
+const NOT_CODE_DIRS: Readonly<Record<string, string>> = {
+  docs: 'Tiene su propio caso: solo los .md, sin el historial de cierres.',
+};
 const THIS_FILE = 'src/code-references.test.ts';
 const CONFIG_FILE = /\.(?:ts|js|json)$/;
 /** Imágenes y fuentes: binarios, sin texto que leer (y con bytes que casarían por azar). */
@@ -116,6 +124,24 @@ describe('el código no cita notas de fuera del repo', () => {
       .filter(({ path }) => path !== THIS_FILE);
     expect(files.length).toBeGreaterThan(0);
     expect(offRepoReferences(files)).toEqual([]);
+  });
+
+  it('cada carpeta de la raíz que sigue git se lee arriba o tiene su motivo (una nueva no se escapa)', () => {
+    // Las seguidas y las nuevas aún sin añadir; sin `--no-optional-locks`, git podría escribir en el índice.
+    const listed = execFileSync(
+      'git',
+      ['--no-optional-locks', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
+      { cwd: REPO_DIR, encoding: 'utf8' },
+    );
+    const rootDirs = new Set(
+      listed
+        .split('\0')
+        .filter((path) => path.includes('/'))
+        .map((path) => path.slice(0, path.indexOf('/'))),
+    );
+    const known = new Set<string>([...CODE_DIRS, ...Object.keys(NOT_CODE_DIRS)]);
+    expect(rootDirs.size).toBeGreaterThan(1);
+    expect([...rootDirs].filter((dir) => !known.has(dir)).sort()).toEqual([]);
   });
 
   it('DECISIONS.md y docs/ tampoco (salvo el historial de cierres, que es diario de trabajo)', () => {

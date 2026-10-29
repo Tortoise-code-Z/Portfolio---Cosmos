@@ -409,7 +409,8 @@
   reglas de dependencia» y «Rutas e idiomas»).
 
 ## ADR-024 · E2E del CI en la imagen de Playwright, un job por navegador
-- Estado: Aceptada · matizada en F3.6c: en Chromium la escena arranca siempre en Bajo (ver Consecuencias)
+- Estado: Aceptada · matizada en F3.6c: en Chromium la escena arranca en Bajo salvo en los e2e que piden otro nivel
+  (ver Consecuencias)
 - Fecha: 2026-10-26
 - Contexto: el job de e2e del CI instalaba en cada ejecución Chromium, Firefox y WebKit con sus dependencias del
   sistema (`npx playwright install --with-deps`) y pasaba después los tres navegadores seguidos en una sola
@@ -439,8 +440,9 @@
     pueden renombrar sin tocarla.
   - Desde F3.6c, en la imagen Chromium da contexto WebGL incluso con `failIfMajorPerformanceCaveat` y la escena
     arrancaría en Alto o Medio según los núcleos del runner: los specs usan el `test` de
-    `tests/e2e/support/test.ts`, que en Chromium la fuerza a Bajo (como las capturas), y ESLint lo exige. Los e2e
-    que necesitan otro nivel lo fuerzan ellos (`calidad.md` → «Pirámide de tests»).
+    `tests/e2e/support/test.ts`, que en Chromium la fuerza a Bajo en todas las páginas del contexto del test (como
+    las capturas), y ESLint lo exige. Los e2e que necesitan otro nivel apagan esa opción (`sceneInLow`) y lo
+    fuerzan ellos (`calidad.md` → «Pirámide de tests»).
 - Detalle: `docs/05-tecnico/git-y-despliegue.md` («CI») y `docs/05-tecnico/stack.md` («Conflictos»).
 
 ## ADR-025 · Dominio propio: `tortoisecode.dev`

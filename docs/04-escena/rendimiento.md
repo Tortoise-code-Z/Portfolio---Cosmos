@@ -7,10 +7,11 @@
 - **Medido en F3.6c** en un equipo real (Windows, 6 núcleos, DPR 1,5, nivel Alto; `calidad.md` → «Mediciones»):
   60 fps estables en los 5 capítulos y en el viaje con scroll continuo, p95 de 16,8 ms, sin bajar de nivel. El
   tope es el refresco de la pantalla, así que no dice cuánto margen queda.
-- **Ajustes del shader que se dejan como están** (medido y aceptado en F3.6c: ninguno se nota en esa medida): el
-  tope del tamaño de punto en píxeles del dispositivo (`SIZE_MAX_PX = 48`), el tope de 0,1 s por frame
-  (`MAX_STEP_S`: por debajo de 10 fps la animación va más lenta que el reloj), la estela con alfa 0 en Bajo (no se
-  salta con `gl_PointSize = 0.0`) y la compilación del shader en el primer frame. Se vuelven a mirar si un móvil
+- **Ajustes del shader que se dejan como están** (F3.6c): el tope del tamaño de punto en píxeles del dispositivo
+  (`SIZE_MAX_PX = 48`), el tope de 0,1 s por frame (`MAX_STEP_S`: por debajo de 10 fps la animación va más lenta
+  que el reloj), la estela con alfa 0 en Bajo (no se salta con `gl_PointSize = 0.0`) y la compilación del shader
+  en el primer frame. Con 60 fps estables en Alto no hay nada que ganar, pero esa medida solo ve el primero: la
+  estela en Bajo, `MAX_STEP_S` y la compilación del primer frame no entran en ella. Se vuelven a mirar si un móvil
   real o F4 (constelaciones, Sol) bajan de los presupuestos.
 - El código 3D va en un **chunk aparte** que se carga después de la primera pintura: el JS inicial de la interfaz no
   incluye Three.js. Sin WebGL2 ni siquiera se descarga. Pesa ≤ 250 KB gzip (`calidad.md` → «Presupuestos»); en F3.2,
@@ -39,8 +40,9 @@ como `deviceMemory` en Firefox y Safari, no baja el nivel):
   `failIfMajorPerformanceCaveat`; SwiftShader, llvmpipe, un escritorio remoto) → Bajo. No todo SwiftShader lo
   dice: en la imagen de Playwright (la de los e2e del CI y las capturas), Chromium da contexto incluso con esa
   opción y en escritorio arrancaría en Alto o Medio según los núcleos de la máquina (en Docker Desktop, Alto). Las
-  capturas y los e2e de Chromium lo fuerzan a «software», así que arrancan siempre en Bajo (`forceSoftwareWebGL`,
-  `tests/e2e/support`; `calidad.md` → «Regresión visual» y «Pirámide de tests»).
+  capturas y los e2e de Chromium lo fuerzan a «software», así que arrancan en Bajo (`forceSoftwareWebGL`,
+  `tests/e2e/support`; `calidad.md` → «Regresión visual» y «Pirámide de tests»), salvo los dos de la degradación
+  en caliente, que fuerzan Alto.
 - `navigator.connection.saveData` o `deviceMemory ≤ 2` → Bajo.
 - Puntero grueso (táctil) o ancho < 760 px → Bajo.
 - `hardwareConcurrency ≤ 4` → Medio.
@@ -139,6 +141,6 @@ una degradación en caliente, que las trajo antes de bajar el nivel).
 |---|---|---|
 | Unitarios | Vitest | Generadores (también las estrellas), mapeo de `m` y su suavizado (`damp`), pausa (`scene/pause`), medidor de fps (`scene/fpsMeter`: calentamiento, ventanas seguidas, pausa), nivel de debajo y móvil (`nextLowerLevel`, `isHandheld`), cámara (`scene/math/camera`: pose, encuadre, campo de visión, paralaje acotado), ratón (`scene/pointer`, solo `mouse`), `watchMediaQuery`, proyección, elección de nivel, formato del HUD, geometría y uniforms de las partículas, cabecera GLSL y shaders sin números ni nombres de más, shaders sin comentarios, paleta contra la tabla del design system, bucle de frames, reloj de la escena, color de fondo, paridad TS/GLSL de la posición de los pins (F4.4; el ruido no la necesita, `formas.md`) |
 | Componentes | Vitest + Testing Library | Montaje con WebGL simulado, paso a Apagado ante error (también un frame que lanza), movimiento reducido, color de fondo al crear y al recuperar el contexto, partículas y estrellas (`useParticles`, `useBackgroundStars`: aviso en el primer frame (partículas), uniforms en cada frame, memoria liberada), `CameraRig` (pose, campo de visión al cambiar el aspecto, paralaje), pausa del bucle (`data-paused`), degradación en caliente (`useHotDegradation`: un nivel cada vez, no mide sin partículas ni mientras llegan las formas, deja de medir si no llegan; `useSceneShapes` → `lowerTo`: sin reintento, formas y nivel en el mismo turno; en `SceneRoot`, `data-level` y una pausa que no cuenta como frame lento) |
-| Extremo a extremo | Playwright | Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado; el fondo por debajo del contenido), formas del worker y del reintento (`data-shapes`), partículas que se ven (fracción de píxeles que no son fondo, entrando por `/#about`), fondo del color del token (al cargar y tras recuperar el contexto), movimiento reducido, la cámara por los 5 capítulos con el ratón a 1280×720 y 390×844, pausa con la misión rápida, degradación en caliente en Chromium (arrancando en Alto con cada frame retrasado 50 ms por el test, ~20 fps en cualquier máquina: Alto → Medio → Bajo con las formas del worker; y si las formas no llegan, el nivel se queda y avisa una vez), sin avisos de WebGL del navegador |
+| Extremo a extremo | Playwright | En Chromium, en Bajo (el `test` de `tests/e2e/support`) salvo la degradación. Recorrido completo, raíl, detonación, misión rápida, idioma, sin WebGL (WebGL desactivado; el fondo por debajo del contenido), formas del worker y del reintento (`data-shapes`), partículas que se ven (fracción de píxeles que no son fondo, entrando por `/#about`), fondo del color del token (al cargar y tras recuperar el contexto), movimiento reducido, la cámara por los 5 capítulos con el ratón a 1280×720 y 390×844, pausa con la misión rápida, degradación en caliente en Chromium (arrancando en Alto con cada frame retrasado 50 ms por el test, ~20 fps en cualquier máquina: Alto → Medio → Bajo con las formas del worker y sin avisos de WebGL; y si las formas no llegan, el nivel se queda y avisa una vez), sin avisos de WebGL del navegador |
 | Regresión visual | Playwright (capturas, Docker) | Un estado por capítulo a 1440×900 y 390×844, con movimiento reducido, render por software (SwiftShader, nivel Bajo) y una tolerancia estrecha: un 5 % de color por píxel y 50 píxeles distintos por captura (`calidad.md` → «Regresión visual») |
 | Rendimiento | Lighthouse CI + medida manual | Core Web Vitals y presupuesto de JS; fps medidos a mano en un móvil real antes de cada versión |

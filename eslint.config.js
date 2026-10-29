@@ -254,20 +254,20 @@ export default defineConfig(
   },
   {
     // Los e2e usan el `test` de `tests/e2e/support/test.ts`: en Chromium arranca la escena en Bajo (calidad.md →
-    // «Pirámide de tests»). Con el de Playwright, un spec nuevo dependería del nivel que elija la máquina.
+    // «Pirámide de tests»). Con el de Playwright, un spec nuevo dependería del nivel que elija la máquina. El glob
+    // es el `testMatch` de `playwright.config.ts`, y se cierran las dos puertas del módulo (`@playwright/test`
+    // reexporta `playwright/test`) y el import por defecto, que también es `test`.
     files: ['tests/e2e/**/*.spec.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
-          paths: [
-            {
-              name: '@playwright/test',
-              importNames: ['test'],
-              message:
-                "Import `test` from './support/test.ts' (the scene starts in Low in Chromium).",
-            },
-          ],
+          paths: ['@playwright/test', 'playwright/test'].map((name) => ({
+            name,
+            importNames: ['test', 'default'],
+            message:
+              "Import `test` from './support/test.ts' (the scene starts in Low in Chromium).",
+          })),
         },
       ],
     },

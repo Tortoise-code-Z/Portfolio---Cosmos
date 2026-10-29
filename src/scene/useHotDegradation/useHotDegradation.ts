@@ -24,16 +24,16 @@ export interface HotDegradationOptions {
   readonly level: RenderLevel;
   /** Hay partículas pintadas: sin ellas, los fps no dicen nada de la escena. */
   readonly active: boolean;
-  /** Baja un nivel (`useSceneShapes`): primero las formas, después el nivel. */
+  /** Baja un nivel (`useSceneShapes`): pide las formas y, si llegan, formas y nivel cambian en el mismo turno. */
   readonly lowerTo: (level: RenderLevel) => Promise<LowerResult>;
 }
 
 /**
  * Degradación en caliente (docs/04-escena/rendimiento.md → «Degradación en caliente»): con partículas pintadas y
  * un nivel por debajo, mide los fps de cada frame (`scene/fpsMeter`); con `slowWindows` ventanas de `windowS`
- * seguidas por debajo de `minFps` (escritorio o móvil; las cifras, en `HOT_DEGRADATION`), pide el nivel de debajo. Mientras llegan sus formas no mide; con el nivel
- * nuevo, empieza de cero (con su calentamiento). Si las formas no llegan, deja de medir el resto de la visita.
- * Nunca sube.
+ * seguidas por debajo de `minFps` (escritorio o móvil; las cifras, en `HOT_DEGRADATION`), pide el nivel de debajo.
+ * Mientras llegan sus formas no mide; con el nivel nuevo, empieza de cero (con su calentamiento). Si las formas no
+ * llegan, deja de medir el resto de la visita. Nunca sube.
  */
 export function useHotDegradation({
   level,

@@ -10,6 +10,8 @@ const CI_GLOBAL_TIMEOUT_MS = 10 * 60 * 1000;
 // Prueba el build de producción: ejecutar `npm run build` antes de `npm run e2e`.
 export default defineConfig({
   testDir: './tests/e2e',
+  // Un solo nombre de spec: es el glob con el que ESLint obliga a usar el `test` de `tests/e2e/support/test.ts`.
+  testMatch: '**/*.spec.ts',
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? CI_RETRIES : 0,
