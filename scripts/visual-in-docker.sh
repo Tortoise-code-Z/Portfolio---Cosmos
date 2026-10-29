@@ -19,18 +19,13 @@ export NODE_OPTIONS="--dns-result-order=ipv4first${NODE_OPTIONS:+ $NODE_OPTIONS}
 npm ci --no-audit --no-fund
 npm run build
 
-# Al regenerar todas, se borran antes: una referencia sin test (un capítulo que cambia de nombre) no se queda.
-# Con un filtro (`--grep`) solo se rehacen las que casan y las demás se dejan.
-updating=false
-filtered=false
-for arg in "$@"; do
-  case "$arg" in
-    --update-snapshots | --update-snapshots=* | -u) updating=true ;;
-    --grep | --grep=* | -g | --grep-invert | --grep-invert=* | --project | --project=*) filtered=true ;;
+# Al regenerar todas, se borran antes: una referencia sin test (un capítulo que cambia de nombre) no se queda. Solo
+# cuando no llega nada más que la marca de actualizar: con cualquier otro argumento (un filtro, un archivo, `--shard`…)
+# Playwright rehace solo una parte y las demás se dejan como están.
+if [ "$#" -eq 1 ]; then
+  case "$1" in
+    --update-snapshots | --update-snapshots=* | -u) rm -rf tests/visual/__screenshots__ ;;
   esac
-done
-if [ "$updating" = true ] && [ "$filtered" = false ]; then
-  rm -rf tests/visual/__screenshots__
 fi
 
 npm run visual:run -- "$@"

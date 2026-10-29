@@ -226,9 +226,11 @@ test.describe('the scene with WebGL', () => {
   }) => {
     test.skip(browserName !== 'chromium', 'Only Chromium is forced to low');
     await page.goto('/', { waitUntil: 'networkidle' });
-    await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-level', 'low', {
-      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
-    });
+    const scene = page.locator(PARTICLES_PAINTED);
+    await expect(scene).toBeAttached({ timeout: SHAPES_WORKER_TIMEOUT_MS * 2 });
+    // Una sola lectura, nada más pintar: la degradación en caliente solo mide con partículas pintadas y empieza
+    // con su calentamiento, así que aún no ha podido bajar el nivel. Esperar a `low` la dejaría llegar sola.
+    expect(await scene.getAttribute('data-level')).toBe('low');
   });
 
   test('is decorative and lets clicks through to the content underneath', async ({ page }) => {
@@ -475,22 +477,21 @@ test.describe('the scene with WebGL', () => {
   });
 
   test.describe('hot degradation (painting too slowly)', () => {
-    // Por nivel: 2 s de calentamiento y 3 ventanas de 2 s, más el worker; dos niveles no caben en los 30 s de un test.
+    // Por nivel: 2 s de calentamiento y 3 ventanas de 2 s, más el worker. Las esperas de los dos niveles (hasta
+    // 66 s) no caben en los 30 s de un test.
     test.describe.configure({ timeout: 90_000 });
+    // Sin el Bajo del `test` de `support/test.ts`: el nivel lo fuerza `startHigh`.
+    test.use({ sceneInLow: false });
 
     /**
      * Arranca en Alto: la detección cree que hay GPU (sin `failIfMajorPerformanceCaveat`; fuera de la imagen de
      * Playwright, SwiftShader daría «software» y Bajo) y hay 8 núcleos. Los fps bajos los pone el test, no la
      * máquina: cada frame llega 50 ms tarde (~20 fps, por debajo de los 45 de escritorio también con GPU). El bucle
-     * de la escena lee `requestAnimationFrame` en cada frame, así que recoge el cambio. El `test` de
-     * `support/test.ts` ya puso Bajo (`forceSoftwareWebGL`): este script va después y gana (quita la opción antes de
-     * llegar a esa comprobación).
+     * de la escena lee `requestAnimationFrame` en cada frame, así que recoge el cambio. Este `describe` apaga el Bajo
+     * de `support/test.ts` (`sceneInLow: false`): no hay otro script de WebGL que pisar.
      */
     async function startHigh(page: Page, browserName: string): Promise<void> {
-      test.skip(
-        browserName !== 'chromium',
-        'SwiftShader (painted by the CPU) is what makes it slow',
-      );
+      test.skip(browserName !== 'chromium', 'Only Chromium is forced and slowed down here');
       await page.setViewportSize({ width: 1280, height: 720 });
       await page.addInitScript(() => {
         // eslint-disable-next-line @typescript-eslint/unbound-method -- se llama con `.call(this, …)`
@@ -526,6 +527,8 @@ test.describe('the scene with WebGL', () => {
     }) => {
       await startHigh(page, browserName);
       const errors = collectErrors(page);
+      // Los únicos e2e de Chromium que pasan por Alto y Medio (los demás van en Bajo, sin estela ni luces).
+      const glWarnings = collectGlWarnings(page);
       const generator = generatorRequests(page);
       await page.goto('/#about');
       const scene = page.locator(PARTICLES_PAINTED);
@@ -539,6 +542,7 @@ test.describe('the scene with WebGL', () => {
       expect(generator).toEqual([]);
       await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
       expect(errors).toEqual([]);
+      expect(glWarnings).toEqual([]);
     });
 
     test('the shapes of the lower level do not arrive: the level stays, warned once, the scene goes on', async ({

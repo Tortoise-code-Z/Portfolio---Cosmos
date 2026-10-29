@@ -69,15 +69,15 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
 4. `CameraRig` con keyframes, encuadre por capítulo, FOV para móvil y paralaje.
    *(Hecho en F3.4: la cámara sigue a `m` por los 5 keyframes, se aparta a un lado en escritorio con la misma
    media query que los paneles, abre el campo de visión en pantallas estrechas y se mueve un poco con el ratón;
-   las cifras del prototipo, a ajustar con capturas en F3.6.)*
+   las cifras del prototipo, ajustadas con capturas en F3.6c.)*
 5. Puente `sceneStore` ↔ scroll (el scroll ya escribe `mTarget` desde F2.5, ADR-021: la escena pasa a suavizar `m`);
    pausa con pestaña oculta y en misión rápida (`quickMissionOpen` de `uiStore`, desde F2.6).
    *(Hecho en F3.5: la escena suaviza su propia `m` desde `mTarget` y arranca en él; la interfaz sigue a saltos
    (ADR-028). El bucle se pausa con la pestaña oculta o la misión rápida abierta.)*
 6. Primeras capturas de regresión visual (Docker) y medición de fps; degradación en caliente de nivel (media de
    fps en ventanas de 2 s, `docs/04-escena/rendimiento.md` → «Degradación en caliente»).
-   *(Degradación en caliente hecha en F3.6a: un nivel cada vez, primero las formas del worker y después el nivel, y
-   si no llegan se queda como está. En F3.6b, las capturas: un estado por capítulo en 1440×900 y 390×844, con
+   *(Degradación en caliente hecha en F3.6a: un nivel cada vez; pide las formas del worker y, si llegan, formas y
+   nivel cambian en el mismo turno; si no llegan, se queda como está. En F3.6b, las capturas: un estado por capítulo en 1440×900 y 390×844, con
    movimiento reducido, en Docker y en el CI (`calidad.md` → «Regresión visual»). En F3.6c, el encuadre: cámaras
    algo más lejos y cada forma centrada entre panel y raíl, medido con capturas en los 6 tamaños de referencia
    (`camara-y-encuadre.md`); en su segunda parte, los fps medidos en un equipo real (60 estables en Alto, el

@@ -158,8 +158,8 @@ Método general en las skills `taller` y `mesa`; aquí, solo lo propio del proye
 - **Git:** lo ejecuta Víctor. Claude solo lee, con `--no-optional-locks` y sin `git status`.
 - **Comprobaciones antes de cada commit:** `npm run check` y build; `npm run e2e:chromium` si toca interfaz o estilos
   (el CI lo repite en los tres navegadores); `npm run visual` (Docker) si cambia algo visible y, si es a propósito,
-  `npm run visual:update` y sus PNG (`Visual regression` es un check obligatorio de `main`). El hook de pre-commit genera antes los tipos de las rutas
-  (`react-router typegen`): sin ellos, ESLint rechaza las rutas nuevas. Si el cambio toca la config de Vite o
+  `npm run visual:update` y sus PNG (`Visual regression` es un check obligatorio de `main`). El hook de pre-commit
+  genera antes los tipos de las rutas (`react-router typegen`): sin ellos, ESLint rechaza las rutas nuevas. Si el cambio toca la config de Vite o
   imports especiales (`?project`, `?share`…), abrir también las páginas afectadas con `npm run dev`, sin errores
   en consola: los e2e prueban el build y Vitest sustituye esos imports (F2.8).
 - **Zonas calientes:** por fase, en el tablero. F2: `src/styles/tokens.css`, `src/root.tsx`, `src/content/**`,

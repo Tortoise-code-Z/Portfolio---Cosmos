@@ -32,7 +32,7 @@
   en los tamaños de referencia (ver abajo): las cámaras de los capítulos 1–4 se alejan de su objetivo con el mismo
   ángulo (nebulosa ×1,19, galaxia ×1,29, tortuga ×1,05, Tierra ×1,15) y `shiftX` centra cada forma en el hueco
   entre el panel y el raíl. En móvil, como la cámara es la misma y no hay `shiftX`, las formas quedan algo más
-  pequeñas y ya no pasan por el raíl (el campo de visión sigue en su tope).
+  pequeñas: la nebulosa ya no pasa por el raíl y la galaxia lo roza (~3 %; el campo de visión sigue en su tope).
 
 ## Campo de visión
 

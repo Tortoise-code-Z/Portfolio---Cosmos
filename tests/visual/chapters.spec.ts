@@ -11,8 +11,8 @@ import { forceSoftwareWebGL } from '../e2e/support/helpers.ts';
 const PARTICLES_PAINTED = '[data-particles="painted"]:has(canvas)';
 
 /**
- * Siempre en Bajo (`forceSoftwareWebGL`): en la imagen, en escritorio arrancaría en Alto, SwiftShader no llega a
- * 45 fps y la degradación en caliente bajaría el nivel a mitad de la foto.
+ * Siempre en Bajo (`forceSoftwareWebGL`): en la imagen, en escritorio arrancaría en Alto o Medio según los núcleos,
+ * SwiftShader no llega a 45 fps y la degradación en caliente bajaría el nivel a mitad de la foto.
  */
 test.beforeEach(async ({ page }) => {
   await forceSoftwareWebGL(page);
