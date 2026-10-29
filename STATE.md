@@ -3,51 +3,46 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F3 · paso 6 hecho** (`main` en `efdac6a`: AUD-F3-5 corregida en PR #65, encuadre en PR #66,
-AUD-F3-6 corregida en PR #67, e2e de Chromium en Bajo y fps medidos en PR #68) · **AUD-F3-6C** lanzada a la Mesa ·
-siguiente: decidirla y **F3.7** (ficha de Cosmos) para cerrar F3 con `v0.2.0`.
+**Dónde estamos:** **F3 · paso 7 hecho** (`main` en `d5ee0a9`: AUD-F3-6C corregida en PR #70, F3.7 en PR #71) ·
+**ADR-029 decidido**: siguiente, F3.8 (WebGL por software → sin escena) y F3.9 (fotos fijas en el modo sin WebGL);
+después la versión 0.2.0, la Mesa de cierre y la etiqueta.
 
-_Última actualización: 2026-10-28 (**CIERRE DE SESIÓN · 25**) · dos auditorías corregidas y F3.6c en tres PR: la
-cámara deja cada forma entre el panel y el raíl, las capturas detectan cambios pequeños, los e2e de Chromium arrancan
-en Bajo y la escena va a 60 fps estables en Alto en el equipo de Víctor. 1145 unitarios y 199 e2e en Chromium._
+_Última actualización: 2026-10-29 (**CIERRE DE SESIÓN · 26**) · AUD-F3-6C corregida, la ficha de Cosmos ya cuenta
+la escena y, al medir el cierre de F3, PageSpeed pinta la escena por software (Performance 83–88, TBT 450–660 ms,
+por debajo del brief): se decide apagarla en ese caso y vestir el modo sin WebGL con fotos fijas. 1146 unitarios y
+199 e2e en Chromium._
 
-**Hecho esta sesión** (vivas S25 en `_claude/cadena/hecho/2026-10-28/decisiones-vivas-S25.md`):
-1. **AUD-F3-5 corregida** (PR #65, `de1ec17`; vivas #1–#5): el e2e de About entra por una carga nueva
-   (`about:blank`), el `<Canvas>` falso puede crear el renderer después (prueba la pausa al montar), `damp` con
-   factor 0 si `dt` o `rate` no son positivos, una `m` no finita vuelve a `mTarget`, el paralaje usa `damp`,
-   cobertura del 90 % **archivo a archivo** (`perFile` en `STRICT`), el guardián de citas exige un ejemplo propio por
-   alternativa, y docs (quién lee `m` tras ADR-028, la pausa ya no en futuro, ADR-004/021/027, capas). P1-A: la
-   escena se congela al abrir la misión rápida, bajo el fundido (`rendimiento.md` → «Ahorro de trabajo»).
-2. **F3.6c · encuadre** (PR #66, `9634291`; vivas #9–#13, F36-12-A): `CAMERA_KEYFRAMES` 1–4 algo más lejos con el
-   mismo ángulo y `shiftX` centrando cada forma entre panel y raíl, medido con capturas sin interfaz en los 6 tamaños
-   (`camara-y-encuadre.md`). 8 referencias visuales nuevas, generadas por Víctor en Docker.
-3. **AUD-F3-6 corregida** (PR #67, `97a7967`; vivas #14–#16): tolerancia de las capturas `threshold` 0,05 + 50
-   píxeles (con la de antes, bajar un 15 % el alfa pasaba 10/10; ahora caen 8), la config se niega fuera de Docker
-   (`COSMOS_VISUAL_DOCKER`), `scripts/visual.ts` reenvía argumentos y `visual:update` sin filtro limpia las viejas;
-   e2e de la degradación con 90 s y ~20 fps puestos por el test; cuatro tests que no fallaban con su mutación;
-   `readHandheldSignals` único y `nextLowerLevel` exhaustivo; el guardián lee `scripts/`; docs y ADR-010/026.
-4. **F3.6c · e2e en Bajo y medición** (PR #68, `efdac6a`; vivas #8, #17–#19; F36-8-A, F36-9-A, F36-10-A):
-   `tests/e2e/support/test.ts` fuerza Bajo en Chromium (`forceSoftwareWebGL`, compartido con las capturas) y ESLint
-   lo exige en los specs; fps medidos por Víctor en producción: 60 en los 5 capítulos y en el viaje (p95 16,8 ms), así
-   que el shader no se toca (`calidad.md` → «Mediciones»). ADR-024 matizado en el cierre.
-5. **AUD-F3-6C lanzada** (base `de1ec17` · hasta `efdac6a`): audita los PR #66–#68.
+**Hecho esta sesión** (vivas S26 en `_claude/cadena/hecho/2026-10-29/decisiones-vivas-S26.md`):
+1. **AUD-F3-6C corregida entera** (PR #70, `099c27a`; vivas #1–#4): la regla de ESLint del `test` de los e2e cierra
+   el import por defecto y `playwright/test`, y `testMatch: '**/*.spec.ts'`; opción `sceneInLow` del fixture sobre
+   el contexto (cubre `context.newPage()` y popups; la degradación la apaga con `test.use`); el e2e «en Chromium,
+   Bajo» lee el nivel una vez; avisos de WebGL en la degradación; `visual:update` solo borra sin más argumentos;
+   el guardián de citas exige cada carpeta de la raíz que sigue git (`NOT_CODE_DIRS`); docs, comentarios y
+   ADR-024.
+2. **F3.7 · ficha de Cosmos con la escena** (PR #71, `d5ee0a9`; vivas #5–#8, F37-1-A): resumen final en tres
+   frases en EN y ES, «Scroll-driven particle morphing across five scenes», «Works without WebGL and with reduced
+   motion» y Three.js / React Three Fiber / GLSL en el stack principal. Referencia de escritorio de
+   `chapter-3-projects` rehecha (la de móvil no cambió).
+3. **Mediciones del cierre de F3** (vivas #9–#13): Lighthouse local 63–64 (TBT 4,8–7,4 s; con WebGL apagado, 94 y
+   0 ms) y PageSpeed en producción `/` 88 · TBT 450 ms y `/projects/cosmos` 83 · TBT 660 ms (A11y, BP y SEO 100;
+   CLS 0). `npm audit`: 0. En `calidad.md` → «Mediciones».
+4. **Decisiones para cerrar F3** (vivas #10, #14–#17): ADR-029 (por software → sin escena, detección por
+   `renderer`; fotos fijas de la escena real en el modo sin WebGL; pasos 8 y 9 del roadmap). La etiqueta va al
+   final del cierre, ya auditada (`git-y-despliegue.md`).
 
 **Incidencias y lecciones:**
-- **`--coverage.thresholds.perFile=true` por la línea de comandos solo cambia el umbral global**, no los de cada glob:
-  el `perFile` de un glob va en su propio objeto. El comando que propuso la Mesa no comprobaba lo que decía: mirar
-  el código de la herramienta cuando una verificación dependa de cómo se aplica una opción.
-- **`Object.assign` copia un getter como valor fijo**: para un documento falso con `visibilityState` cambiante,
-  `Object.defineProperty`.
-- **El umbral por píxel de `toHaveScreenshot` es 0,2 por defecto** (~20 % de brillo): con escenas oscuras hay que
-  fijarlo.
-- **Medir el encuadre:** capturas con todo en `visibility: hidden` salvo el `<canvas>`, más las cajas del panel y el
-  raíl del DOM, dan cifras (qué fracción de partículas cae bajo cada uno) en vez de solo opinión.
-- **`pkill -f` volvió a matar la propia shell** del contenedor: usar `pgrep` y excluir `$$` (ya estaba anotado).
-- **Un `switch` sin `default` sobre una unión**, con tipo de retorno, ya no compila si falta un caso (sin rama muerta
-  que baje la cobertura).
-- **Método del contenedor** (sin cambios): Node 24 con `npm pack`, navegadores enlazados, árbol por `tar` desde el
-  equipo, vuelta con `tar --overwrite` tras el md5 de la base y de cada archivo. El aviso de «cambios sin commit» se
-  refiere a esa copia: `git stash -u`, nunca commit ni push desde ahí.
+- **Chromium sin GPU da contexto WebGL2 con `failIfMajorPerformanceCaveat`** (headless 156 en el contenedor;
+  PageSpeed con HeadlessChromium 153 pintó la escena): la única pista fiable es el `renderer` («… SwiftShader
+  driver»). PageSpeed **sí ejecuta WebGL**: cuenta cada frame como trabajo del hilo principal.
+- **Medir en local no basta para Performance:** el contenedor (2 núcleos, CPU ×4) exagera el TBT (5 s frente a
+  450 ms en PageSpeed). Sirve para comparar con y sin escena (`--disable-3d-apis`), no como cifra.
+- **El guardián de carpetas lista con git:** la copia del contenedor debe llevar `.git` (y `safe.directory`), o el
+  test falla.
+- **Leer PageSpeed:** los informes se leen bien desde el navegador de la app con `javascript_tool` (filas de
+  `long-tasks` y `mainthread-work-breakdown`); `pagespeed.web.dev` quedó permitido en el navegador de la app.
+- **Método del contenedor** (sin cambios): Node 24 con `npm pack node-linux-x64@<versión>`, navegadores enlazados
+  (`chromium-<revisión pedida>` → la instalada), árbol por `tar` desde el equipo con `.git`, `.env` desde
+  `.env.example`; tras un PR, `git stash -u` en la copia, nunca commit ni push desde ahí.
 
 **Deuda anotada:**
 - **Peso de la escena:** 248,97 KB de 250 (F3.6a 249,0; encuadre +7 B; corrección de AUD-F3-6 −51 B).
@@ -97,8 +92,8 @@ en Bajo y la escena va a 60 fps estables en Alto en el equipo de Víctor. 1145 u
   decidirlo con NVDA y alto contraste a mano.
 - **Generación de 60.000 partículas:** ~0,4 s en el contenedor (casi todo la nube de la nebulosa; algoritmo del
   prototipo). Pasa el límite de 1 s; si en el CI o en un móvil real pesa, mirarlo allí antes de tocar nada.
-- **CI · Firefox y WebKit:** no sabemos si tienen WebGL2 ni si solo por software (desde P1-B arrancarían en Bajo);
-  los e2e con WebGL se omiten si no lo hay. Mirarlo en el log de un PR.
+- **CI · Firefox y WebKit:** no sabemos si tienen WebGL2 ni si solo por software (desde P1-B arrancarían en Bajo;
+  con ADR-029, sin escena); los e2e con WebGL se omiten si no lo hay. Mirarlo en el log de un PR.
 - **R3F 9.8.1 + three 0.186:** `console.warn` «THREE.Clock: This module has been deprecated» al montar el lienzo.
   Se va cuando R3F use `THREE.Timer`: mirarlo al subir R3F.
 - **F6 · NVDA:** el aviso sin WebGL se descarta con «Got it» y el foco cae al `body` (igual que «No, gracias»).
@@ -111,6 +106,11 @@ en Bajo y la escena va a 60 fps estables en Alto en el equipo de Víctor. 1145 u
   es «English», decidido en `componentes.md`): revisarlo con NVDA y control por voz. Hasta F6, Lighthouse se pasa
   a mano al cerrar cada fase y se apunta en `calidad.md` → «Mediciones» (en local y, con PageSpeed Insights, en
   producción).
+- **ADR-029 al implementarlo:** «Elección inicial» de `rendimiento.md` y «Sin WebGL» de
+  `estados-y-accesibilidad.md` aún dicen «por software → Bajo» y no cuentan las fotos fijas; `forceSoftwareWebGL`,
+  el `test` de `tests/e2e/support` (opción `sceneInLow`), `calidad.md`, ADR-010/024 y `chapters.spec.ts` se apoyan
+  en fingir «software». Las e2e de la degradación en caliente fuerzan Alto quitando la opción: revisar que sigan
+  teniendo sentido con la detección por `renderer` (en la imagen, el `renderer` es SwiftShader).
 - **F3–F4 · móvil:** a 390 px el raíl (y cualquier ancla) cae en el capítulo con la escena primero
   (`03-tortuga.md` → «Móvil»); en F2 son ~700 px vacíos. La escena los llena; `recruiter.spec.ts` fija que las filas
   quedan a **un** deslizamiento y avisará si el hueco crece.
@@ -161,31 +161,31 @@ en Bajo y la escena va a 60 fps estables en Alto en el equipo de Víctor. 1145 u
 - Si alguna ruta lanza un 404 desde un `loader` (`throw data(null, { status: 404 })`), choca con
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
 **Siguiente paso (próxima sesión, conversación nueva):**
-1. Arrancar con `session-start` (y la skill `taller`). Si la Mesa ya entregó **AUD-F3-6C**
-   (`_claude/cadena/aud-f3-6c/auditoria.md`; sello `efdac6a` + vivas S25 hasta #20), decidirla y corregir lo elegido
-   en su propio PR (con `npm run visual` si cambia algo visible).
-2. **F3.7** (esquema → VB): ficha de Cosmos con la escena (`docs/01-contenido/proyectos/cosmos.md`: el resumen final,
-   «Scroll-driven particle morphing…», «Works without WebGL…» y Three.js / React Three Fiber / GLSL en el stack).
-3. **Cierre de F3 y `v0.2.0`:** comprobar el «Hecho cuando» del roadmap (las 5 formas, 60 fps en escritorio, sin
-   errores sin WebGL), Lighthouse a mano y su apunte en `calidad.md` → «Mediciones», y ofrecer la Mesa de cierre de
-   fase.
+1. Arrancar con `session-start` (y la skill `taller`). Cola vacía de auditorías.
+2. **F3.8 · ADR-029, detección por software** (esquema → VB): `detectWebGL2` mira el `renderer` (lista de nombres
+   por software, con tests), «por software» → Apagado con su aviso; los e2e y las capturas consiguen Bajo sin
+   fingir «software» (p. ej. `navigator.connection.saveData` o `deviceMemory` simulados y el `renderer` de GPU);
+   revisar `forceSoftwareWebGL`, `sceneInLow`, la degradación en caliente (fuerza Alto), `chapters.spec.ts`,
+   ADR-010/024, `rendimiento.md` y `estados-y-accesibilidad.md`. `npm run visual` (no debería cambiar).
+3. **F3.9 · fotos fijas** (esquema → VB): script en Docker (lienzo solo, fondo transparente, capítulos 1–4 en
+   escritorio y móvil, AVIF/WebP; las herramientas de `_claude/cadena/hecho/2026-10-28/encuadre/` sirven de
+   punto de partida), CSS de `no-gl` con la del capítulo activo y fundido, presupuesto de imágenes, captura nueva
+   del modo sin WebGL si conviene.
+4. **Versión 0.2.0:** repetir Lighthouse local y PageSpeed (`/` y `/projects/cosmos`, lo pasa Víctor) tras
+   desplegar, `npm audit`, PR con la versión; después la Mesa AUD-F3-CIERRE, sus correcciones y la etiqueta
+   `v0.2.0` sobre el último commit del cierre.
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»), CV en PDF EN/ES.
 **Limpieza manual del usuario:**
-- Ramas locales ya fusionadas (todas menos `main`): `chore/ci-e2e-docker`, `chore/domain-tortoisecode`,
-  `chore/f33-6-glsl-comments`, `chore/release-0.1.0`, todas las `docs/session-close-*` (de `2026-10-23-4` a
-  `2026-10-27-3`, y la de este cierre, `docs/session-close-2026-10-28`, cuando se fusione), `feat/f3-1-scene-mount`,
-  `feat/f3-2-shapes`, `feat/f3-3-layers`, `feat/f3-3-particles`, `feat/f3-4-camera-rig`, `feat/f3-5-smoothing-pause`,
-  `feat/f3-6-hot-degradation`, `feat/f3-6c-framing`, `feat/project-images`, `feat/project-page`,
-  `feat/quick-mission`, `feat/scroll-nav-hud`, `fix/aud-f2-5`, `fix/aud-f2-6`, `fix/aud-f2-7`, `fix/aud-f2-8`,
-  `fix/aud-f2-cierre`, `fix/aud-f3-1` a `fix/aud-f3-6`, `fix/cosmos-entry-f2`, `fix/mono-fallback-cls`,
-  `perf/f3-6c-measure`, `test/f3-6-visual` y `test/recruiter-journeys` (`git branch -D <rama>`: con squash, `-d` no
-  las reconoce como fusionadas).
+- Ramas locales ya fusionadas (todas menos `main`): las de la lista del cierre 25 (en `docs/_historial/estado/2026-10.md`) que sigan, más
+  `docs/session-close-2026-10-28`, `fix/aud-f3-6c`, `feat/f3-7-cosmos-entry` y la de este cierre,
+  `docs/session-close-2026-10-29`, cuando se fusione (`git branch -D <rama>`: con squash, `-d` no las reconoce
+  como fusionadas). Para verlas: `git branch`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js` ni
   `hecho/2026-10-28/encuadre/`, que se reutilizan).
-- Si alguna vez falla `npm ci` dentro de Docker: `docker volume rm cosmos-portfolio-visual-node-modules`. La carpeta
-  `build\` quedó construida desde Linux: `npm run build` la rehace en Windows si hace falta.
+- Perfiles temporales de las pruebas sin WebGL: `$env:TEMP\cosmos-sin-webgl` y `$env:TEMP\cosmos-swiftshader`.
+- Si alguna vez falla `npm ci` dentro de Docker: `docker volume rm cosmos-portfolio-visual-node-modules`.
 
 **Bloqueos:** ninguno.

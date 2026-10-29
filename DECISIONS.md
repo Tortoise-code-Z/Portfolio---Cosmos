@@ -554,3 +554,38 @@
   sigue desde donde estaba.
 - Detalle: `docs/02-experiencia/scroll-y-escena.md` («Suavizado»), `docs/05-tecnico/arquitectura.md` («Estado»,
   «Puente scroll → escena»), `docs/04-escena/rendimiento.md` («Ahorro de trabajo»).
+
+## ADR-029 · WebGL pintado por software → sin escena, con fotos fijas de las formas
+- Estado: Aceptada · por implementar en F3 (pasos 8 y 9 del roadmap), antes de `v0.2.0`
+- Fecha: 2026-10-29
+- Contexto: al cerrar F3, PageSpeed Insights (Lighthouse 13.6.0, Chromium headless sin GPU) pinta la escena con
+  SwiftShader: la home baja de 97 a 88 de Performance con 450 ms de TBT y la ficha de Cosmos a 83 con 660 ms
+  (el brief pide ≥ 85 y < 200 ms; `calidad.md` → «Mediciones»). Montar la escena cuesta ~1 s de hilo principal y
+  cada frame 60–180 ms. Chromium sin GPU da contexto WebGL2 incluso con `failIfMajorPerformanceCaveat`, así que
+  `detectWebGL2` no lo ve como «software»; su `renderer` sí lo dice («… SwiftShader driver»). Lo mismo le pasa a
+  un visitante sin aceleración (máquina virtual, escritorio remoto, GPU bloqueada): en escritorio arrancaría en
+  Alto o Medio, y la degradación en caliente baja de nivel pero nunca apaga. Sin WebGL, el sitio queda con el
+  degradado del espacio: correcto, pero pobre.
+- Decisión:
+  - La detección mira también el `renderer` (`WEBGL_debug_renderer_info` o `RENDERER`): SwiftShader, llvmpipe,
+    «Software», Microsoft Basic Render Driver… Con WebGL pintado por software, el sitio va al modo sin WebGL (el
+    mismo de siempre, con su aviso). Primero la web útil (P1): una escena a tirones en el hilo principal estropea
+    el scroll.
+  - Los e2e y las capturas dejan de fingir «software» para conseguir Bajo: se presentan como GPU y piden Bajo por
+    otra señal del navegador.
+  - En el modo sin WebGL, encima del degradado, una foto fija de la forma del capítulo activo (nebulosa, galaxia,
+    tortuga, Tierra; el inicio ya tiene el punto CSS), sacada de la escena real con un script en Docker (solo el
+    lienzo, fondo transparente, encuadre de escritorio y de móvil, AVIF/WebP). Cambia con un fundido al cambiar de
+    capítulo (instantáneo con movimiento reducido). Son fondo CSS de `no-gl`: decorativas y solo las descarga
+    quien no ve la escena.
+- Alternativas descartadas: aceptar las notas y revisarlo en F6 (la nota pública se quedaría por debajo del brief,
+  F4 añade carga y más tests apoyados en «software = Bajo»); una escena más ligera por software (el coste de
+  montar seguiría y no hay medida de cuánto bajaría el TBT); dibujar las formas en SVG o CSS a mano (se parecen
+  menos, la tortuga sobre todo); pintar las partículas en un canvas 2D (habría que pasar a TypeScript las cuentas
+  del shader y también cuesta sin GPU).
+- Consecuencias: quien no tenga aceleración ve el modo sin WebGL con las fotos en lugar de las partículas.
+  `forceSoftwareWebGL` y el `test` de los e2e cambian de truco (ADR-010, ADR-024). Las fotos se rehacen con el
+  script cuando cambien las formas o la cámara (F4). Se repiten las mediciones de Lighthouse y PageSpeed tras
+  desplegarlo, antes de la etiqueta.
+- Detalle (al implementarlo): `docs/04-escena/rendimiento.md` («Elección inicial»),
+  `docs/02-experiencia/estados-y-accesibilidad.md` («Sin WebGL»), `docs/05-tecnico/calidad.md` («Mediciones»).

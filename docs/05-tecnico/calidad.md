@@ -139,6 +139,21 @@ defecto, sobre `npm run build` + `npm run preview`) y se apunta aquí; en F6 lo 
 - Aviso sin peso en la nota: `label-content-name-mismatch` en EN / ES (se ve «EN», el nombre es «English»,
   `componentes.md`). Se revisa con NVDA y control por voz en F6.
 
+**Antes del cierre de F3 · 2026-10-29 · con la escena pintada por software** (motivo de ADR-029; se repite al
+implementarlo)
+
+| Medida | Página | Performance | Accessibility | Best Practices | SEO | LCP | CLS | TBT |
+|---|---|---|---|---|---|---|---|---|
+| PageSpeed (Lighthouse 13.6.0, Moto G Power, 4G lenta), producción | `/` | 88 | 100 | 100 | 100 | 0,9 s | 0 | 450 ms |
+| PageSpeed, producción | `/projects/cosmos` | 83 | 100 | 100 | 100 | 0,8 s | 0 | 660 ms |
+| Lighthouse 13.5.0, móvil simulado, build local (contenedor Linux, sin GPU) | 5 indexables | 63–64 | 100 | 100 | 100 | 2,6–2,8 s | 0 | 4,8–7,4 s |
+| Lo mismo con WebGL desactivado (`--disable-3d-apis`) | `/` | 94 | 100 | 100 | 100 | 2,7 s | 0 | 0 ms |
+
+- Las tareas largas son de `SceneRoot`: ~1 s al montar la escena y 60–180 ms por frame (SwiftShader en el hilo
+  principal). Chromium sin GPU da contexto con `failIfMajorPerformanceCaveat`, así que la escena no se ve como
+  «por software» y arranca (en Bajo, por la pantalla de móvil). La 404 local: 67 y SEO 54 (`noindex`, a propósito).
+- `npm audit`: 0 vulnerabilidades.
+
 **F3.6c · fps de la escena · 2026-10-28** (fragmento de consola fuera del repo: frames del navegador con
 `requestAnimationFrame`, 5 s quieto en cada capítulo tras 2,5 s de asentarse y el viaje entero con scroll continuo
 en 12 s; producción, `tortoisecode.dev`)
