@@ -1,6 +1,6 @@
 // Fuente: docs/01-contenido/proyectos/cosmos.md. Stack desde docs/05-tecnico/stack.md.
-// Solo se publica lo que está hecho: la escena 3D (resumen, funcionalidades y stack) vuelve a la ficha en F3–F4,
-// y process, highlights y la nota del README esperan a F6 (roadmap).
+// Solo se publica lo que está hecho: la escena 3D entra con F3 (resumen, funcionalidades y stack); las
+// constelaciones y placas, con F4; y process, highlights y la nota del README esperan a F6 (roadmap).
 
 import type { ProjectEntry } from '../types';
 import { RESPONSIVE_DESIGN } from './labels';
@@ -18,8 +18,8 @@ export const cosmos: ProjectEntry = {
   role: 'frontend',
   context: 'personal',
   summary: {
-    en: 'The site you are on: a scroll journey through the history of the universe, from the Big Bang to Earth. Built with React and TypeScript, pre-rendered, bilingual and readable without JavaScript.',
-    es: 'La web en la que estás: un viaje por scroll a través de la historia del universo, del Big Bang a la Tierra. Hecha con React y TypeScript, pre-renderizada, bilingüe y legible sin JavaScript.',
+    en: 'The site you are on. Tens of thousands of particles morph from a singularity into a nebula, a galaxy, a cosmic turtle and Earth as you scroll. Built with React, TypeScript and WebGL, and still readable without any of it.',
+    es: 'La web en la que estás. Decenas de miles de partículas pasan de una singularidad a una nebulosa, una galaxia, una tortuga cósmica y la Tierra mientras haces scroll. Hecha con React, TypeScript y WebGL, y legible sin nada de eso.',
   },
   about: {
     en: [
@@ -32,14 +32,18 @@ export const cosmos: ProjectEntry = {
     ],
   },
   features: [
+    {
+      en: 'Scroll-driven particle morphing across five scenes',
+      es: 'Morph de partículas guiado por el scroll en cinco escenas',
+    },
     { en: 'Bilingual site (English / Spanish)', es: 'Web bilingüe (inglés / español)' },
     {
       en: 'Quick-mission mode with all the content on one page',
       es: 'Modo misión rápida con todo el contenido en una página',
     },
     {
-      en: 'Readable without JavaScript and with reduced motion',
-      es: 'Legible sin JavaScript y con movimiento reducido',
+      en: 'Works without WebGL and with reduced motion',
+      es: 'Funciona sin WebGL y con movimiento reducido',
     },
     {
       en: 'A page per project, pre-rendered for search engines',
@@ -47,7 +51,7 @@ export const cosmos: ProjectEntry = {
     },
   ],
   stack: {
-    core: ['React', 'TypeScript'],
+    core: ['React', 'TypeScript', 'Three.js', 'React Three Fiber', 'GLSL'],
     libraries: ['React Router', 'Zustand'],
     design: ['CSS Modules', RESPONSIVE_DESIGN],
     tooling: [
