@@ -146,8 +146,8 @@ defecto, sobre `npm run build` + `npm run preview`) y se apunta aquí; en F6 lo 
 - Aviso sin peso en la nota: `label-content-name-mismatch` en EN / ES (se ve «EN», el nombre es «English»,
   `componentes.md`). Se revisa con NVDA y control por voz en F6.
 
-**Antes del cierre de F3 · 2026-10-29 · con la escena pintada por software** (motivo de ADR-029; se repite al
-implementarlo)
+**Antes del cierre de F3 · 2026-10-29 · con la escena pintada por software** (motivo de ADR-029; repetida
+al implementarlo: «Cierre de F3», abajo)
 
 | Medida | Página | Performance | Accessibility | Best Practices | SEO | LCP | CLS | TBT |
 |---|---|---|---|---|---|---|---|---|
@@ -172,6 +172,33 @@ en 12 s; producción, `tortoisecode.dev`)
 - Sin bajar de nivel en ningún tramo (la degradación en caliente no saltó). 60 es el refresco de la pantalla: la
   medida no dice cuánto margen queda. Brave no da el nombre de la GPU (protección contra huellas).
 - Queda por medir (F6): un móvil real (≥ 30 fps en Bajo), una ventana maximizada y Firefox/Safari.
+
+**Cierre de F3 (`v0.2.0`) · 2026-10-30 · Lighthouse 13.6.0** (con ADR-029: el WebGL pintado por software apaga la
+escena)
+
+| Medida | Página | Performance | Accessibility | Best Practices | SEO | LCP | CLS | TBT |
+|---|---|---|---|---|---|---|---|---|
+| PageSpeed (Moto G Power, 4G lenta), producción | `/` | 100 | 100 | 100 | 100 | 0,9 s | 0 | 0 ms |
+| PageSpeed (Moto G Power, 4G lenta), producción | `/projects/cosmos` | 100 | 100 | 100 | 100 | 0,8 s | 0 | 0 ms |
+| PageSpeed (escritorio), producción | `/` y `/projects/cosmos` | 100 | 100 | 100 | 100 | 0,2 s | 0 | 0 ms |
+| Móvil simulado, build local (contenedor Linux, sin GPU) | `/` | 99 | 100 | 100 | 100 | 0,8 s | 0 | 90 ms |
+| Lo mismo | `/es` | 99 | 100 | 100 | 100 | 0,8 s | 0 | 80 ms |
+| Lo mismo | `/projects/chessmate` | 96 | 100 | 100 | 100 | 2,8 s | 0 | 50 ms |
+| Lo mismo | `/es/projects/astrohub` | 95 | 100 | 100 | 100 | 2,8 s | 0 | 70 ms |
+| Lo mismo | `/projects/cosmos` | 100 | 100 | 100 | 100 | 0,8 s | 0 | 30 ms |
+| Lo mismo | `/404` | 100 | 100 | 100 | 54 | 0,8 s | 0 | 10 ms |
+
+- PageSpeed y el contenedor no tienen GPU: la escena se apaga sin descargar Three.js ni las fotos fijas (de la
+  escena solo se carga `sceneLevel`, el módulo de la detección). Por eso vuelve a las cifras de F2 o mejores (el
+  2026-10-29, con la escena pintada por software: 88 y 83 en PageSpeed y 63–64 en local). Estas medidas son del
+  modo sin WebGL; la escena con GPU se mide en fps («F3.6c · fps de la escena»).
+- Build local: mediana de tres pasadas por página. La primera tras arrancar `npm run preview` sale en frío (`/` 80,
+  TBT 700 ms) y no se apunta.
+- LCP: Lighthouse 13.6.0 da 0,8 s en `/` y la 13.5.0, con el mismo build y el mismo elemento (el párrafo de entrada
+  del hero), 2,4–2,7 s. La bajada frente a F2 es del cambio de versión de Lighthouse, no del código. Las fichas de
+  Chessmate y AstroHub siguen algo por encima de 2,5 s en local (la portada), como en F2; en producción, dentro.
+- PageSpeed trae una categoría nueva, «Navegación agéntica» (en desarrollo): 2/2 en las dos páginas.
+- `npm audit` (completo y con `--omit=dev`): 0 vulnerabilidades.
 
 ## Definición de «hecho» (por tarea)
 
