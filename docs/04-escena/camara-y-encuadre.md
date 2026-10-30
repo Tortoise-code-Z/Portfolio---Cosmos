@@ -54,12 +54,18 @@ ancho de una ventana de 1,25. La de móvil (461 × 844, en el tope) se ajusta al
 él y 1,25 y, apaisada, a 1,25 · 844 / 461 veces el alto. Sin paralaje (la foto es la pose del capítulo con el ratón
 fuera). Lo vigilan `stillFrames.test.ts` y `camera.test.ts`.
 
-- **Al tocar la cámara** (keyframes, `shiftX`, campo de visión) o las formas: `npm run stills`. Si no, el e2e de la
-  huella de las fotos falla (`budgets.spec.ts`).
-- **Dónde no cuadra** (aceptado): un móvil apaisado más ancho que 1,25 deja franjas sin estrellas a los lados, y una
-  ventana de escritorio (≥ 900 px) más estrecha que 1,25 (una tableta grande en vertical), arriba y abajo; las
-  formas sí caen en su sitio. Las consultas de aspecto miden la ventana con la barra de scroll y el lienzo sin ella
-  (~1 % en escritorio).
+- **Al tocar la cámara** (keyframes, `shiftX`, campo de visión), las formas o los proyectos (una placa por
+  proyecto en la tortuga): `npm run stills`. Si no, el e2e de la huella de las fotos falla (`budgets.spec.ts`).
+- El aspecto lo mide la propia capa de las fotos (`@container`), que ocupa lo mismo que el lienzo: no la ventana,
+  que en un móvil cambia de alto con la barra de direcciones, ni la barra de scroll. Qué foto se usa (escritorio o
+  móvil) lo decide el ancho de la ventana, como el `<picture>`.
+- **Dónde no cuadra** (aceptado, límites de una foto fija):
+  - Un móvil apaisado más ancho que 1,25 deja franjas sin estrellas a los lados, y una ventana de escritorio
+    (≥ 900 px) más estrecha que 1,25 (una tableta grande en vertical), arriba y abajo; una ventana más ancha que 2,4
+    (ultrapanorámica, o con las herramientas del navegador abiertas abajo), a los lados. Las formas sí caen en su
+    sitio.
+  - Las partículas del lienzo miden lo mismo en px CSS a cualquier tamaño; las de la foto se escalan con ella: en un
+    móvil apaisado (×2,29) o en una tableta en vertical (×1,7) los puntos se ven más gordos y más blandos.
 
 ## Página de proyecto
 

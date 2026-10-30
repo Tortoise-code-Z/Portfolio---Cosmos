@@ -112,6 +112,10 @@ desactivado. Versión 0.2.0, auditoría de cierre y etiqueta `v0.2.0` sobre el �
 Con la galaxia y la tortuga hechas (pasos 3 y 4), la ficha de **Cosmos** suma «Interactive constellations and
 project plates» (`docs/01-contenido/proyectos/cosmos.md`, ⏳).
 
+En cada paso que cambie lo que se ve de la escena (formas, shaders, cámara, placas, el Sol): `npm run stills` y las
+fotos nuevas en el mismo PR (ADR-029; el e2e de su huella lo recuerda). Si el paso crea una carpeta nueva en
+`scene/` que cambie las fotos, se añade a `STILLS_SOURCES` (`tests/stills/fingerprint.ts`).
+
 **Hecho cuando:** cada capítulo cumple sus criterios de aceptación de `docs/02-experiencia/capitulos/`.
 Etiqueta `v0.3.0`.
 

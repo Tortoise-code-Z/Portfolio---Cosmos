@@ -36,12 +36,14 @@
   - **Móvil:** 461 × 844 px a densidad 1, en Bajo (lo que pinta un móvil), en el tope del campo de visión.
 - **Destino:** `src/assets/scene-stills/<formato>/scene-still-<encuadre>-<capítulo>.<formato>`, **AVIF** (calidad
   45, color sin submuestrear: los puntos no pierden el tono) y **WebP** (calidad 70), codificadas con `sharp`. Se
-  commitean tal cual: el build las copia sin tocar.
+  commitean tal cual: el build las copia sin tocar, como archivos (`budgets.spec.ts` comprueba que ninguna acaba en
+  base64 dentro del JS: Vite lo hace con lo que pesa menos de 4 KB).
 - **Presupuesto:** cada archivo ≤ 200 KB (`budgets.spec.ts`; en F3.9, la mayor la WebP de la galaxia de escritorio,
   ~160 KB; las de móvil, ≤ 15 KB).
-- **Cuándo se rehacen:** al cambiar las formas, los shaders, la paleta, la cámara, los niveles o el propio script.
-  `stills.json` guarda la huella de esos archivos (`tests/stills/fingerprint.ts`) y `budgets.spec.ts` falla si no
-  coincide: `npm run stills`, mirar las fotos y commitearlas con el cambio (y `npm run visual:update` si cambia la
+- **Cuándo se rehacen:** al cambiar las formas, los shaders, la paleta, la cámara, los niveles, las cuentas que
+  comparten (`lib/math`), cómo se piden las formas, los proyectos (las placas de la tortuga) o el propio script.
+  `stills.json` guarda la huella de todo eso (`tests/stills/fingerprint.ts`; de los proyectos, solo sus placas) y
+  `budgets.spec.ts` falla si no coincide. La huella solo se escribe si en esa pasada se han rehecho las 16 fotos: `npm run stills`, mirar las fotos y commitearlas con el cambio (y `npm run visual:update` si cambia la
   captura del modo sin WebGL).
 
 ## Tipografías

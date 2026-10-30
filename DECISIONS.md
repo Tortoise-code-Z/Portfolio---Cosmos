@@ -138,6 +138,9 @@
     `main`. Subir Playwright obliga a rehacer las capturas.
   - Desde F3.8 (ADR-029): en la imagen Chromium pinta con SwiftShader y el sitio iría al modo sin WebGL, así que
     las capturas se presentan como GPU con poca memoria (`forceLowScene`) y la escena arranca en Bajo.
+  - Desde F3.9: el arranque de Docker vive en `scripts/playwrightImage.ts`, que comparte con `npm run stills` (las
+    fotos fijas del modo sin WebGL). Subir Playwright no obliga a rehacer las fotos (su huella mira las fuentes de
+    la escena, no la imagen), pero sí la captura del modo sin WebGL, como las demás.
 - Detalle: `docs/05-tecnico/calidad.md`, `docs/05-tecnico/git-y-despliegue.md`, `docs/05-tecnico/stack.md`.
 
 ## ADR-011 · Universo determinista (PRNG con semilla)

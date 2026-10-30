@@ -193,6 +193,10 @@ test.describe('project images', () => {
 
   test('the home does not load the project images', () => {
     test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
+    // La regex casa una variante de captura y no una foto fija: si dejara de casar nada, este test pasaría en vacío.
+    expect(IMAGE_URL.test('/assets/01-home-CVb3_ZdX.avif')).toBe(true);
+    expect(IMAGE_URL.test('`/assets/02-games-B1x-9aQ.webp`')).toBe(true);
+    expect(IMAGE_URL.test('/assets/scene-still-desktop-2-Z6ot9Ddn.avif')).toBe(false);
     // El viaje y la misión rápida usan los textos (`projectEntries`), no las imágenes (`media.ts`).
     const client = fileURLToPath(new URL('../../build/client/', import.meta.url));
     for (const page of ['index.html', 'es/index.html']) {

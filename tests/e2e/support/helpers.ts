@@ -103,6 +103,27 @@ export async function presentWebGLAsHardware(target: Page | BrowserContext): Pro
 }
 
 /**
+ * Una máquina capaz, sea cual sea la del test: WebGL en la tarjeta gráfica (`presentWebGLAsHardware`), 8 núcleos y
+ * 8 GB (`navigator.deviceMemory`, que se define también donde el navegador no lo tiene). En escritorio, la elección
+ * inicial da Alto; en una pantalla estrecha, Bajo (por ser un móvil). La usan la degradación en caliente
+ * (`scene.spec.ts`, que arranca en Alto) y las fotos fijas (`tests/stills`).
+ */
+export async function presentCapableMachine(target: Page | BrowserContext): Promise<void> {
+  await presentWebGLAsHardware(target);
+  await target.addInitScript(() => {
+    const CAPABLE = { hardwareConcurrency: 8, deviceMemory: 8 } as const;
+    Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', {
+      configurable: true,
+      get: () => CAPABLE.hardwareConcurrency,
+    });
+    Object.defineProperty(Navigator.prototype, 'deviceMemory', {
+      configurable: true,
+      get: () => CAPABLE.deviceMemory,
+    });
+  });
+}
+
+/**
  * La escena arranca en Bajo, sea cual sea la máquina: WebGL en la tarjeta gráfica (`presentWebGLAsHardware`) y
  * poca memoria (`navigator.deviceMemory`, que el resto del sitio no lee; se define también donde el navegador no
  * lo tiene). Sin esto, en escritorio arrancaría en Alto o Medio según los núcleos y la degradación en caliente
