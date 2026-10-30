@@ -23,6 +23,27 @@
 - Las ilustraciones tipo caricatura del sitio antiguo (`*-Caricatura*.webp`) **no se usan** en la v1: la estética
   nueva es la escena de partículas. Se pueden recuperar más adelante si encajan.
 
+## Fotos fijas de la escena
+
+- **Para qué:** el modo sin WebGL del viaje (ADR-029; `docs/02-experiencia/estados-y-accesibilidad.md` → «Sin
+  WebGL»): la forma del capítulo activo sobre el degradado del espacio. ✔ F3.9
+- **Origen:** la escena real, fotografiada por `npm run stills` dentro de la imagen de Playwright (Docker, como las
+  capturas; `tests/stills/stills.spec.ts`, `playwright.stills.config.ts`): entra por el ancla de cada capítulo 1–4
+  con movimiento reducido y fotografía solo el lienzo, sobre negro (`--color-void` a `#000`).
+- **Encuadres** (`src/features/scene-mount/stillFrames` → `STILL_FRAMES`):
+  - **Escritorio:** 2160 × 900 px a densidad 2, en Alto, con `shiftX`. Ajustada al alto cubre cualquier pantalla de
+    aspecto 1,25–2,4.
+  - **Móvil:** 461 × 844 px a densidad 1, en Bajo (lo que pinta un móvil), en el tope del campo de visión.
+- **Destino:** `src/assets/scene-stills/<formato>/scene-still-<encuadre>-<capítulo>.<formato>`, **AVIF** (calidad
+  45, color sin submuestrear: los puntos no pierden el tono) y **WebP** (calidad 70), codificadas con `sharp`. Se
+  commitean tal cual: el build las copia sin tocar.
+- **Presupuesto:** cada archivo ≤ 200 KB (`budgets.spec.ts`; en F3.9, la mayor la WebP de la galaxia de escritorio,
+  ~160 KB; las de móvil, ≤ 15 KB).
+- **Cuándo se rehacen:** al cambiar las formas, los shaders, la paleta, la cámara, los niveles o el propio script.
+  `stills.json` guarda la huella de esos archivos (`tests/stills/fingerprint.ts`) y `budgets.spec.ts` falla si no
+  coincide: `npm run stills`, mirar las fotos y commitearlas con el cambio (y `npm run visual:update` si cambia la
+  captura del modo sin WebGL).
+
 ## Tipografías
 
 | Rol | Familia | Ejes / pesos | Licencia |

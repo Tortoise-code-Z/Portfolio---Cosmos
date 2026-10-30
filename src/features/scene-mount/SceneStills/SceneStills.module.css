@@ -1,0 +1,61 @@
+/*
+ * Fotos fijas de la escena en el modo sin WebGL (ADR-029; estados-y-accesibilidad.md → «Sin WebGL»). En la capa
+ * de la escena, encima del degradado del espacio (`no-gl` en global.css, el mismo `z-index` y antes en el DOM) y
+ * por debajo del contenido. Las fotos son la escena sobre negro: con `screen` el negro no cambia lo de debajo y las
+ * partículas se suman como luz, igual que en el lienzo.
+ *
+ * Encaje (`stillFrames` → `STILL_FRAMES`; la regla del campo de visión, camara-y-encuadre.md): la cámara usa
+ * perspectiva, así que la foto escalada cae donde caería la escena si se escala por el lado cuyo campo de visión es
+ * fijo, centrada (`shiftX` va dentro de la foto). Por defecto, ajustada al alto: escritorio con aspecto ≥ 1,25
+ * (campo vertical de 55°) y móvil por debajo de 461 / 844 (el tope de 100°). Las demás, abajo. Las cifras las
+ * vigilan stillFrames.test.ts (con `STILL_FRAMES`) y camera.test.ts (con la cámara).
+ */
+.stills {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-scene);
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.still {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: auto;
+  max-width: none;
+  height: 100%;
+  translate: -50% -50%;
+  opacity: 0;
+  /* Con movimiento reducido, el fundido se queda en 150 ms (movimiento.md: los fundidos de opacidad no se quitan). */
+  transition: opacity var(--dur-fade-slow) var(--ease-out);
+}
+
+.still[data-visible='true'] {
+  opacity: 1;
+}
+
+/* Escritorio estrecho (< 1,25): conserva el campo horizontal que tendría a 1,25. La foto mide 2160 / 900. */
+@media (width >= 900px) and (aspect-ratio < 5 / 4) {
+  .still {
+    width: calc(100% * 2160 / 900 / 1.25);
+    height: auto;
+  }
+}
+
+/* Móvil y tableta entre el tope y 1,25: conservan el campo horizontal, el mismo que la foto (461 / 844). */
+@media (width < 900px) and (aspect-ratio > 461 / 844) and (aspect-ratio < 5 / 4) {
+  .still {
+    width: 100%;
+    height: auto;
+  }
+}
+
+/* Móvil apaisado (≥ 1,25): campo vertical de 55°; la foto tiene el del tope, 1,25 · 844 / 461 veces más alto. */
+@media (width < 900px) and (aspect-ratio >= 5 / 4) {
+  .still {
+    width: auto;
+    height: calc(100% * 1.25 * 844 / 461);
+  }
+}

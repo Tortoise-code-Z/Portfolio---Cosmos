@@ -561,7 +561,8 @@
   «Puente scroll → escena»), `docs/04-escena/rendimiento.md` («Ahorro de trabajo»).
 
 ## ADR-029 · WebGL pintado por software → sin escena, con fotos fijas de las formas
-- Estado: Aceptada · la detección, hecha en F3.8; las fotos fijas, por implementar en F3.9, antes de `v0.2.0`
+- Estado: Aceptada · hecha: la detección en F3.8 y las fotos fijas en F3.9, matizadas al hacerlas (ver
+  Consecuencias)
 - Fecha: 2026-10-29
 - Contexto: al cerrar F3, PageSpeed Insights (Lighthouse 13.6.0, Chromium headless sin GPU) pinta la escena con
   SwiftShader: la home baja de 97 a 88 de Performance con 450 ms de TBT y la ficha de Cosmos a 83 con 660 ms
@@ -592,5 +593,13 @@
   `forceSoftwareWebGL` y el `test` de los e2e cambian de truco (ADR-010, ADR-024). Las fotos se rehacen con el
   script cuando cambien las formas o la cámara (F4). Se repiten las mediciones de Lighthouse y PageSpeed tras
   desplegarlo, antes de la etiqueta.
-- Detalle (al implementarlo): `docs/04-escena/rendimiento.md` («Elección inicial»),
-  `docs/02-experiencia/estados-y-accesibilidad.md` («Sin WebGL»), `docs/05-tecnico/calidad.md` («Mediciones»).
+  - En F3.9, las fotos: sobre **negro** fundido con `screen`, no con fondo transparente (las partículas se suman
+    como luz: el alfa saldría raro en los bordes de los puntos y pesarían más); en un `<picture>` (AVIF o WebP),
+    no como fondo CSS, y **solo la del capítulo activo** (y las ya vistas), que entra con un fundido cuando ha
+    llegado; **solo en el viaje** (las fichas y la 404 se quedan con el degradado: la cámara de las fichas cambia en
+    F5); de escritorio en Alto a densidad 2 y de móvil en Bajo a densidad 1 (lo que ve un visitante con GPU). Con
+    movimiento reducido, el fundido se queda en 150 ms (`movimiento.md`). Las saca `npm run stills` y su huella
+    (`stills.json`) hace fallar los e2e si cambia la escena sin rehacerlas.
+- Detalle: `docs/04-escena/rendimiento.md` («Elección inicial»), `docs/02-experiencia/estados-y-accesibilidad.md`
+  («Sin WebGL»), `docs/01-contenido/assets.md` («Fotos fijas de la escena»), `docs/04-escena/camara-y-encuadre.md`
+  («Fotos fijas del modo sin WebGL»), `docs/05-tecnico/calidad.md` («Mediciones»).

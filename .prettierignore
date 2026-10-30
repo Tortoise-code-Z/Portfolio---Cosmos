@@ -11,3 +11,6 @@ package-lock.json
 **/*.md
 docs/
 Claude outputs/
+
+# El buzón de la cadena de auditorías: fuera de git (.git/info/exclude), con herramientas sueltas de trabajo
+_claude

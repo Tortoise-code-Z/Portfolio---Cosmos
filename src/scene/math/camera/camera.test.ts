@@ -6,7 +6,12 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { CAMERA_KEYFRAMES, PARALLAX, WIDE_LAYOUT_QUERY } from '../../config/sceneConfig';
+import {
+  CAMERA_FIT,
+  CAMERA_KEYFRAMES,
+  PARALLAX,
+  WIDE_LAYOUT_QUERY,
+} from '../../config/sceneConfig';
 import { createScenePointer, type ScenePointer } from '../../pointer/pointer';
 import {
   cameraFov,
@@ -175,5 +180,40 @@ describe('WIDE_LAYOUT_QUERY', () => {
       'utf8',
     );
     expect(panelCss).toContain(`@media ${WIDE_LAYOUT_QUERY} {`);
+  });
+});
+
+describe('the scene stills of the no-WebGL mode (features/scene-mount/SceneStills, ADR-029)', () => {
+  // Las fotos se encajan con CSS siguiendo la regla de `cameraFov`: si la cámara cambia de regla, el CSS también.
+  const stillsCss = readFileSync(
+    fileURLToPath(
+      new URL('../../../features/scene-mount/SceneStills/SceneStills.module.css', import.meta.url),
+    ),
+    'utf8',
+  );
+  const ratio = (pattern: RegExp): number => {
+    const [, a = '', b = ''] = pattern.exec(stillsCss) ?? [];
+    return Number(a) / Number(b);
+  };
+
+  it('change fit where the field of view changes rule (CAMERA_FIT.minAspect, 5 / 4)', () => {
+    expect(5 / 4).toBe(CAMERA_FIT.minAspect);
+    expect(stillsCss).toContain('(aspect-ratio < 5 / 4)');
+    expect(stillsCss).toContain('(aspect-ratio >= 5 / 4)');
+    expect(stillsCss).toContain(`/ ${String(CAMERA_FIT.minAspect)});`);
+    expect(stillsCss).toContain(`calc(100% * ${String(CAMERA_FIT.minAspect)} *`);
+  });
+
+  it('take the desktop still with the vertical field fixed, and the handheld one at the cap (within 0.05°)', () => {
+    const desktop = ratio(/calc\(100% \* (\d+) \/ (\d+) \/ /);
+    const handheld = ratio(/\(aspect-ratio > (\d+) \/ (\d+)\)/);
+    expect(desktop).toBeGreaterThanOrEqual(CAMERA_FIT.minAspect);
+    // Por encima del tope (conserva el campo horizontal: ajustada al ancho, exacta) y casi en él (ajustada al alto).
+    expect(cameraFov(handheld)).toBeLessThan(CAMERA_FIT.maxFov);
+    expect(cameraFov(handheld)).toBeGreaterThan(CAMERA_FIT.maxFov - 0.05);
+  });
+
+  it('switch to the desktop still at the same width as the camera moves aside (WIDE_LAYOUT_QUERY)', () => {
+    expect(stillsCss).toContain(`@media ${WIDE_LAYOUT_QUERY} and`);
   });
 });

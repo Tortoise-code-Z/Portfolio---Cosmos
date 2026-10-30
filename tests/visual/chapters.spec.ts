@@ -33,3 +33,27 @@ for (const index of CHAPTER_INDICES) {
     await expect(page).toHaveScreenshot(`${name}.png`);
   });
 }
+
+/**
+ * El modo sin WebGL con su foto fija (ADR-029): el degradado del espacio, la foto de la galaxia encima (fundida con
+ * `screen`) y el aviso. Una sola, en el capítulo 2, en los dos tamaños: la foto de escritorio y la de móvil.
+ */
+test.describe('without WebGL', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      HTMLCanvasElement.prototype.getContext = () => null;
+    });
+  });
+
+  test('chapter 2 (skills) shows its still over the backdrop', async ({ page }) => {
+    await page.goto('/#skills');
+    await expect(page.locator('[data-scene-stills] img[data-chapter="2"]')).toHaveAttribute(
+      'data-visible',
+      'true',
+    );
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+    });
+    await expect(page).toHaveScreenshot('no-webgl-chapter-2-skills.png');
+  });
+});

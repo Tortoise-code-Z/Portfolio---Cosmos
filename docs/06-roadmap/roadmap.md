@@ -93,6 +93,8 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
    poca memoria —Bajo en los tres motores— con `forceLowScene`.)*
 9. Fotos fijas de las formas en el modo sin WebGL (ADR-029): un script en Docker las saca de la escena real
    (escritorio y móvil) y el CSS de `no-gl` pinta la del capítulo activo.
+   *(Hecho en F3.9: `npm run stills` y `SceneStills` en el viaje, con la foto del capítulo activo fundida con
+   `screen` y su huella vigilada por los e2e; `assets.md` → «Fotos fijas de la escena».)*
 
 **Hecho cuando:** el viaje se ve de punta a punta con las 5 formas, 60 fps en escritorio y sin errores con WebGL
 desactivado. Versión 0.2.0, auditoría de cierre y etiqueta `v0.2.0` sobre el último commit del cierre

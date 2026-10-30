@@ -8,6 +8,11 @@ import { expect } from '@playwright/test';
 import { test } from './support/test.ts';
 
 import { PROJECT_IMAGE_WIDTHS } from '../../src/content/imageWidths.ts';
+import {
+  STILL_CHAPTERS,
+  STILL_FRAMES,
+} from '../../src/features/scene-mount/stillFrames/stillFrames.ts';
+import { stillsFingerprint } from '../stills/fingerprint.ts';
 
 /**
  * Presupuestos que se pueden medir sobre el build antes de Lighthouse CI (F6).
@@ -40,6 +45,8 @@ const FRAMEWORK_CHUNK = /\/assets\/(?:entry\.client|framework)-[^/]+\.js$/;
  */
 const IMAGE_BUDGET_BYTES = 200_000;
 const IMAGE_FILE = /\/assets\/[^"' ,]+\.(?:avif|webp|jpe?g|png)/g;
+/** Las fotos fijas del modo sin WebGL (ADR-029), tal cual las deja `npm run stills`: el build las copia sin tocar. */
+const STILLS_DIR = fileURLToPath(new URL('../../src/assets/scene-stills/', import.meta.url));
 /**
  * JS de la escena (Three.js, React Three Fiber, lo que arrastran y `SceneRoot`), gzip: se pide en diferido
  * y ningún HTML lo nombra (ADR-020). Medido en F3.1, con el lienzo vacío: 241,6 KB, casi todo Three.js
@@ -225,6 +232,33 @@ test.describe('build budgets', () => {
       .map((image) => ({ image, bytes: statSync(join(CLIENT_DIR, image)).size }))
       .filter(({ bytes }) => bytes > IMAGE_BUDGET_BYTES);
     expect(over).toEqual([]);
+  });
+
+  test('the scene stills of the no-WebGL mode stay within the image budget, and no page asks for them', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
+    const stills = ['avif', 'webp'].flatMap((format) =>
+      readdirSync(join(STILLS_DIR, format)).map((name) => join(format, name)),
+    );
+    // Cada capítulo con foto, en los dos encuadres y los dos formatos. Ningún HTML las nombra (las pinta el
+    // cliente sin WebGL): si alguna saliera en una página, la cuenta exacta de imágenes de arriba fallaría.
+    expect(stills).toHaveLength(STILL_CHAPTERS.length * Object.keys(STILL_FRAMES).length * 2);
+    const over = stills
+      .map((still) => ({ still, bytes: statSync(join(STILLS_DIR, still)).size }))
+      .filter(({ bytes }) => bytes > IMAGE_BUDGET_BYTES);
+    expect(over).toEqual([]);
+  });
+
+  test('the scene stills show the current scene (npm run stills after changing shapes, shaders or camera)', () => {
+    test.skip(
+      test.info().project.name !== 'chromium',
+      'Reads the sources from disk: once is enough',
+    );
+    const manifest: unknown = JSON.parse(readFileSync(join(STILLS_DIR, 'stills.json'), 'utf8'));
+    const { fingerprint } = manifest as { fingerprint?: unknown };
+    expect(
+      fingerprint,
+      'The scene changed since the stills were taken: run `npm run stills` (Docker) and commit them',
+    ).toBe(stillsFingerprint(fileURLToPath(new URL('../..', import.meta.url))));
   });
 
   test('the scene JS is deferred: no page asks for it, and it stays within its budget', () => {

@@ -152,6 +152,8 @@ export default defineConfig(
     'test-results/',
     'docs/',
     'Claude outputs/',
+    // El buzón de la cadena de auditorías: fuera de git (.git/info/exclude), con herramientas sueltas de trabajo.
+    '_claude',
   ]),
 
   js.configs.recommended,

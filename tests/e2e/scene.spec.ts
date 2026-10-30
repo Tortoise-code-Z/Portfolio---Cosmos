@@ -174,6 +174,27 @@ function sceneRequests(page: Page): string[] {
   return urls;
 }
 
+/** Las fotos fijas del modo sin WebGL (ADR-029): `scene-still-<encuadre>-<capítulo>`. */
+const STILL_FILE = /\/assets\/scene-still-[^/]+\.(?:avif|webp)$/;
+
+/** Las peticiones de fotos fijas desde ahora. */
+function stillRequests(page: Page): string[] {
+  const urls: string[] = [];
+  page.on('request', (request) => {
+    if (STILL_FILE.test(new URL(request.url()).pathname)) urls.push(request.url());
+  });
+  return urls;
+}
+
+/** La foto fija del capítulo `chapter` (`SceneStills`). */
+const stillOf = (page: Page, chapter: number) =>
+  page.locator(`[data-scene-stills] img[data-chapter="${String(chapter)}"]`);
+/** Los capítulos cuya foto se ve ahora. */
+const shownStills = (page: Page) =>
+  page
+    .locator('[data-scene-stills] img[data-visible="true"]')
+    .evaluateAll((images) => images.map((image) => (image as HTMLImageElement).dataset.chapter));
+
 /** Las peticiones del chunk de los generadores desde ahora. */
 function generatorRequests(page: Page): string[] {
   const urls: string[] = [];
@@ -235,6 +256,14 @@ test.describe('the scene with WebGL', () => {
     // Una sola lectura, nada más pintar: la degradación en caliente solo mide con partículas pintadas y empieza
     // con su calentamiento, así que aún no ha podido bajar el nivel. Esperar a `low` la dejaría llegar sola.
     expect(await scene.getAttribute('data-level')).toBe('low');
+  });
+
+  test('never downloads the stills of the no-WebGL mode (ADR-029)', async ({ page }) => {
+    const requests = stillRequests(page);
+    await page.goto('/#skills', { waitUntil: 'networkidle' });
+    await expect(page.locator(SCENE_READY)).toBeAttached();
+    await expect(page.locator('[data-scene-stills]')).toHaveCount(0);
+    expect(requests).toEqual([]);
   });
 
   test('is decorative and lets clicks through to the content underneath', async ({ page }) => {
@@ -679,6 +708,72 @@ test.describe('without WebGL', () => {
     await page.reload({ waitUntil: 'networkidle' });
     await expect(noGlNotice(page)).toBeVisible();
     expect(errors).toEqual([]);
+  });
+
+  test('shows the still of the active chapter over the backdrop, and none at the singularity (ADR-029)', async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    const requests = stillRequests(page);
+    await page.goto('/#skills', { waitUntil: 'networkidle' });
+    await expect(page.locator('html')).toHaveClass(/\bno-gl\b/);
+    const galaxy = stillOf(page, 2);
+    await expect(galaxy).toHaveAttribute('data-visible', 'true');
+    // La de escritorio (desde 900 px), ya descargada; decorativa y en la capa de la escena, fundida con `screen`.
+    expect(await galaxy.evaluate((image: HTMLImageElement) => image.currentSrc)).toMatch(
+      /scene-still-desktop-2-/,
+    );
+    expect(await galaxy.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(
+      0,
+    );
+    const layer = page.locator('[data-scene-stills]');
+    await expect(layer).toHaveAttribute('aria-hidden', 'true');
+    await expect(layer).toHaveCSS('mix-blend-mode', 'screen');
+    await expect(layer).toHaveCSS('position', 'fixed');
+    // Ajustada al alto y centrada (aspecto ≥ 1,25: el campo vertical de la cámara es fijo).
+    const [box, frame] = await Promise.all([galaxy.boundingBox(), layer.boundingBox()]);
+    expect(box?.height).toBeCloseTo(frame?.height ?? 0, 0);
+    expect((box?.x ?? 0) + (box?.width ?? 0) / 2).toBeCloseTo((frame?.width ?? 0) / 2, 0);
+
+    // Al pasar a Proyectos, la tortuga releva a la galaxia; al volver arriba, ninguna.
+    await page.evaluate(() => {
+      document.getElementById('projects')?.scrollIntoView();
+    });
+    await expect(stillOf(page, 3)).toHaveAttribute('data-visible', 'true');
+    expect(await shownStills(page)).toEqual(['3']);
+    await page.evaluate(() => {
+      window.scrollTo(0, 0);
+    });
+    await expect.poll(() => shownStills(page)).toEqual([]);
+    // Solo las de los capítulos por los que ha pasado: Habilidades y Proyectos (y los que cruzó el scroll).
+    expect(requests.length).toBeGreaterThanOrEqual(2);
+    expect(requests.every((url) => url.includes('scene-still-desktop-'))).toBe(true);
+    expect(errors).toEqual([]);
+  });
+
+  test('on a phone, the handheld still, fitted to the height (the field of view at its cap)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/#contact');
+    const earth = stillOf(page, 4);
+    await expect(earth).toHaveAttribute('data-visible', 'true');
+    expect(await earth.evaluate((image: HTMLImageElement) => image.currentSrc)).toMatch(
+      /scene-still-handheld-4-/,
+    );
+    const [box, frame] = await Promise.all([
+      earth.boundingBox(),
+      page.locator('[data-scene-stills]').boundingBox(),
+    ]);
+    expect(box?.height).toBeCloseTo(frame?.height ?? 0, 0);
+  });
+
+  test('a project page keeps the backdrop alone: no stills', async ({ page }) => {
+    const requests = stillRequests(page);
+    await page.goto('/projects/chessmate', { waitUntil: 'networkidle' });
+    await expect(page.locator('html')).toHaveClass(/\bno-gl\b/);
+    await expect(page.locator('[data-scene-stills]')).toHaveCount(0);
+    expect(requests).toEqual([]);
   });
 
   test('speaks the page language', async ({ page }) => {

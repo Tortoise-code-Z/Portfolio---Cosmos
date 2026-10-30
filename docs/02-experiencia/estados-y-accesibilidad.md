@@ -29,6 +29,15 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
   desmonta la escena y se marca el documento con una clase (`no-gl`).
 - Fondo: degradado estático del espacio en CSS (`--gradient-space`, fijo en la capa de la escena, por debajo del
   contenido), que entra con el mismo fundido que el lienzo; hero con el punto CSS.
+- **Fotos fijas de la escena** (solo en el viaje, `/` y `/es`; ADR-029): encima del degradado, la foto de la forma
+  del capítulo activo (nebulosa, galaxia, tortuga, Tierra; en la singularidad, ninguna: ya está el punto CSS),
+  sacada de la escena real (`npm run stills`; `docs/01-contenido/assets.md` → «Fotos fijas de la escena»). Son la
+  escena sobre negro, fundidas con `screen` (el negro no se ve y las partículas se suman como luz) y encajadas con
+  la regla del campo de visión de la cámara, así que caen donde caería la escena. Al cambiar de capítulo, la nueva
+  entra con un fundido (`--dur-fade-slow`; con movimiento reducido, 150 ms, como todos los fundidos) cuando ha
+  llegado; hasta entonces sigue la anterior. Solo se descargan las de los capítulos por los que pasa la visita
+  (`<picture>`: AVIF o WebP, de escritorio desde 900 px y de móvil por debajo); con escena, ninguna. Decorativas
+  (`aria-hidden`, `alt=""`). Las fichas y la 404 se quedan con el degradado (la cámara de las fichas cambia en F5).
 - Aviso discreto, una vez por visita: «Your browser can't show the 3D universe, but everything else is here.» con
   «Got it» para descartarlo (navegar dentro del sitio no lo repite; recargar sí, porque sigue siendo verdad). Si
   la sugerencia de idioma está a la vista, espera a que se conteste: los dos flotan en el mismo sitio y nunca se
