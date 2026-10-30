@@ -573,7 +573,8 @@
   Alto o Medio, y la degradación en caliente baja de nivel pero nunca apaga. Sin WebGL, el sitio queda con el
   degradado del espacio: correcto, pero pobre.
 - Decisión:
-  - La detección mira también el `renderer` (`WEBGL_debug_renderer_info` o `RENDERER`): SwiftShader, llvmpipe,
+  - La detección mira también el `renderer` (primero `RENDERER`; si es el genérico, `WEBGL_debug_renderer_info`):
+    SwiftShader, llvmpipe,
     «Software», Microsoft Basic Render Driver… Con WebGL pintado por software, el sitio va al modo sin WebGL (el
     mismo de siempre, con su aviso). Primero la web útil (P1): una escena a tirones en el hilo principal estropea
     el scroll.
@@ -590,7 +591,8 @@
   menos, la tortuga sobre todo); pintar las partículas en un canvas 2D (habría que pasar a TypeScript las cuentas
   del shader y también cuesta sin GPU).
 - Consecuencias: quien no tenga aceleración ve el modo sin WebGL con las fotos en lugar de las partículas.
-  `forceSoftwareWebGL` y el `test` de los e2e cambian de truco (ADR-010, ADR-024). Las fotos se rehacen con el
+  El `test` de los e2e y las capturas cambian de truco (`forceLowScene` en lugar de fingir «software»; ADR-010,
+  ADR-024). Las fotos se rehacen con el
   script cuando cambien las formas o la cámara (F4). Se repiten las mediciones de Lighthouse y PageSpeed tras
   desplegarlo, antes de la etiqueta.
   - En F3.9, las fotos: sobre **negro** fundido con `screen`, no con fondo transparente (las partículas se suman
@@ -602,4 +604,5 @@
     (`stills.json`) hace fallar los e2e si cambia la escena sin rehacerlas.
 - Detalle: `docs/04-escena/rendimiento.md` («Elección inicial»), `docs/02-experiencia/estados-y-accesibilidad.md`
   («Sin WebGL»), `docs/01-contenido/assets.md` («Fotos fijas de la escena»), `docs/04-escena/camara-y-encuadre.md`
-  («Fotos fijas del modo sin WebGL»), `docs/05-tecnico/calidad.md` («Mediciones»).
+  («Fotos fijas del modo sin WebGL»), `docs/05-tecnico/calidad.md` («Pirámide de tests», «Regresión visual» y
+  «Mediciones»), `docs/05-tecnico/arquitectura.md` («Carga de la escena»).

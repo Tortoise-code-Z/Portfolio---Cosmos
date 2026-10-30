@@ -24,9 +24,9 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 ## Sin WebGL (o si falla)
 
 - Se detecta al iniciar: sin WebGL2, o con WebGL2 pintado por software (sin tarjeta gráfica usable: SwiftShader,
-  llvmpipe… en su `renderer`; ADR-029), no se monta la escena. Ante cualquier error de contexto o de shader, un frame que lanza (en un `useFrame` o al
-  pintar: el bucle se para) o si las formas no llegan de ninguna manera (ni del worker ni del reintento), se
-  desmonta la escena y se marca el documento con una clase (`no-gl`).
+  llvmpipe… en su `renderer`; ADR-029), no se monta la escena. Ante cualquier error de contexto o de shader, un
+  frame que lanza (en un `useFrame` o al pintar: el bucle se para) o si las formas no llegan de ninguna manera (ni
+  del worker ni del reintento), se desmonta la escena y se marca el documento con una clase (`no-gl`).
 - Fondo: degradado estático del espacio en CSS (`--gradient-space`, fijo en la capa de la escena, por debajo del
   contenido), que entra con el mismo fundido que el lienzo; hero con el punto CSS.
 - **Fotos fijas de la escena** (solo en el viaje, `/` y `/es`; ADR-029): encima del degradado, la foto de la forma
