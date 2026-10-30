@@ -39,7 +39,9 @@ cosmos-portfolio/
 │  │  │                           (proyecto anterior y siguiente, puro)
 │  │  ├─ errors/                ← NotFoundPage (la 404 del idioma; la usan las rutas y `root.tsx`)
 │  │  └─ scene-mount/           ← SceneMount (monta la escena en diferido y el aviso sin WebGL; lo pinta
-│  │                              `root.tsx`) y SceneErrorBoundary (aísla los fallos de la escena)
+│  │                              `root.tsx`), SceneErrorBoundary (aísla los fallos de la escena) y
+│  │                              SceneStills (las fotos fijas del modo sin WebGL, solo en el viaje; las pinta
+│  │                              su ruta) con stillFrames (sus encuadres; ADR-029)
 │  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido: SceneRoot (el `<Canvas>`),
 │  │                              contextLoss (pérdida del contexto WebGL: un intento de restaurar),
 │  │                              useSceneShapes (pide las formas; reintento en el hilo principal),
@@ -90,12 +92,16 @@ cosmos-portfolio/
 │                                  se generan en el build)
 ├─ tests/
 │  ├─ e2e/                      ← Playwright: recorridos (support/: ayudas y el `test` de los specs, que en
-│  │                              Chromium arranca la escena en Bajo)
-│  └─ visual/                   ← Playwright: capturas por capítulo y tamaño (referencias en __screenshots__/)
-├─ scripts/                     ← visual.ts y visual-in-docker.sh (las capturas en Docker: calidad.md)
+│  │                              los tres motores arranca la escena en Bajo)
+│  ├─ visual/                   ← Playwright: capturas por capítulo y tamaño (referencias en __screenshots__/)
+│  └─ stills/                   ← Playwright: saca las fotos fijas del modo sin WebGL (`npm run stills`) y su
+│                                 huella (fingerprint.ts)
+├─ scripts/                     ← lo que corre en Docker (calidad.md): playwrightImage.ts (lanza la imagen),
+│                                 visual.ts y stills.ts, y dentro prepare-in-docker.sh, visual-in-docker.sh y
+│                                 stills-in-docker.sh
 ├─ docs/                        ← esta documentación
 ├─ .github/workflows/ci.yml
-└─ (configs) react-router.config.ts · vite.config.ts · vitest.config.ts · playwright.config.ts · playwright.visual.config.ts ·
+└─ (configs) react-router.config.ts · vite.config.ts · vitest.config.ts · playwright.config.ts · playwright.visual.config.ts · playwright.stills.config.ts ·
              eslint.config.js · .prettierrc.json · tsconfig.json · .nvmrc · .gitattributes · .env.example ·
              lighthouserc.json (F6)
 ```

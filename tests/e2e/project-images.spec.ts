@@ -62,8 +62,11 @@ async function expectVariant(image: Locator, width: number): Promise<void> {
   expect(chosen).toBe(variantOf(await srcsetOf(image, format), width));
 }
 
-/** Una URL de variante de captura (el JPEG para compartir solo lo llevan las fichas). */
-const IMAGE_URL = /\.(?:avif|webp)\b/;
+/**
+ * Una URL de variante de captura (el JPEG para compartir solo lo llevan las fichas). Las fotos fijas del modo sin
+ * WebGL (`scene-still-*`, ADR-029) no son de proyectos: el viaje las nombra y solo las pide sin escena.
+ */
+const IMAGE_URL = /\/assets\/(?!scene-still-)[^"'`\s]+\.(?:avif|webp)\b/;
 
 /** Cuántos archivos distintos ofrece una ficha: cada captura en 2 formatos × sus anchos, y el JPEG. */
 const offeredFiles = (screenshots: number): number =>

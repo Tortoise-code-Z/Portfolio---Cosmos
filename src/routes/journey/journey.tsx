@@ -17,6 +17,7 @@ import { LanguageNotice } from '~/features/navigation/LanguageNotice/LanguageNot
 import { QuickMissionDialog } from '~/features/navigation/QuickMissionDialog/QuickMissionDialog';
 import { SkipLink } from '~/features/navigation/SkipLink/SkipLink';
 import { TopBar } from '~/features/navigation/TopBar/TopBar';
+import { SceneStills } from '~/features/scene-mount/SceneStills/SceneStills';
 import { SITE_ORIGIN } from '~/lib/env/site/site';
 import { localeFromPathname } from '~/lib/i18n/locale/locale';
 import { isLowerCasePathname } from '~/lib/i18n/paths/paths';
@@ -54,7 +55,9 @@ export default function Journey(): ReactNode {
  * El viaje: los cinco capítulos en orden (docs/02-experiencia/README.md), sin escena, con la interfaz
  * fija en el orden del Tab (Skip → barra → contenido → raíl → sugerencia de idioma, si sale; el HUD es
  * decorativo) y el modo misión rápida (un diálogo modal: fuera del orden hasta que se abre). Su scroll fija
- * `mTarget` en `sceneStore` (y `m = mTarget`): el raíl, el HUD y el idioma leen `m`; la escena, `mTarget`.
+ * `mTarget` en `sceneStore` (y `m = mTarget`): el raíl, el HUD, el idioma y las fotos fijas leen `m`; la escena,
+ * `mTarget`. Las fotos fijas de la escena (solo en el modo sin WebGL, ADR-029) son solo del viaje: las fichas y la
+ * 404 se quedan con el degradado del espacio.
  */
 function JourneyPage(): ReactNode {
   const mainRef = useRef<HTMLElement>(null);
@@ -62,6 +65,7 @@ function JourneyPage(): ReactNode {
 
   return (
     <>
+      <SceneStills />
       <SkipLink />
       <TopBar />
       <main ref={mainRef}>

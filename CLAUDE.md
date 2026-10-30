@@ -12,10 +12,11 @@ Versiones exactas y conflictos → `docs/05-tecnico/stack.md`.
 - **El código vive en la raíz del repo** (no hay subcarpeta de app): `package.json` y configs en la raíz.
 - `src/` = `appDirectory` de React Router: `root.tsx`, `routes.ts`, `routes/` y las capas
   (`content`, `lib`, `stores`, `ui`, `features`, `scene`). Alias `~/` → `src/`.
-- `tests/e2e/` (Playwright; en `tests/e2e/support/`, las ayudas comunes y el `test` de los specs, que en Chromium
-  arranca la escena en Bajo) · `tests/visual/` (capturas, en Docker: `npm run visual`) · `tests/setup.ts` (Vitest) ·
-  tests unitarios junto al archivo (`*.test.ts(x)`).
-- `scripts/` (las capturas en Docker: `visual.ts` y `visual-in-docker.sh`).
+- `tests/e2e/` (Playwright; en `tests/e2e/support/`, las ayudas comunes y el `test` de los specs, que en los tres
+  motores arranca la escena en Bajo) · `tests/visual/` (capturas, en Docker: `npm run visual`) · `tests/stills/`
+  (fotos fijas del modo sin WebGL, en Docker: `npm run stills`) · `tests/setup.ts` (Vitest) · tests unitarios junto
+  al archivo (`*.test.ts(x)`).
+- `scripts/` (lo que corre en Docker: `playwrightImage.ts`, `visual.ts`, `stills.ts` y sus `*-in-docker.sh`).
 - Archivos con el mismo nombre (`x.ts` + `x.test.ts`…) van juntos en su carpeta `x/` (ADR-018).
 - `public/` estáticos · `build/client/` salida que se despliega · `.github/workflows/ci.yml`.
 - Capas y lo que puede importar cada una → `docs/05-tecnico/arquitectura.md` (las vigila ESLint).

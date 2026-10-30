@@ -1,0 +1,28 @@
+{
+  "fingerprint": "61fed5b2779232fd92cb420bdfa3bf4bacbd3da3f7d3092b86869de4fe8bbbfd",
+  "frames": {
+    "desktop": {
+      "width": 2160,
+      "height": 900,
+      "deviceScaleFactor": 2,
+      "level": "high"
+    },
+    "handheld": {
+      "width": 461,
+      "height": 844,
+      "deviceScaleFactor": 1,
+      "level": "low"
+    }
+  },
+  "encoding": {
+    "avif": {
+      "quality": 45,
+      "chromaSubsampling": "4:4:4",
+      "effort": 6
+    },
+    "webp": {
+      "quality": 70,
+      "effort": 6
+    }
+  }
+}

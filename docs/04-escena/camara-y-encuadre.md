@@ -44,6 +44,23 @@
 - El campo de visión solo se recalcula cuando cambia el aspecto (`updateProjectionMatrix` no se llama cada frame).
 - `near 0,1`, `far 400`.
 
+## Fotos fijas del modo sin WebGL
+
+Las fotos de la escena que ve quien no tiene WebGL (ADR-029; `docs/01-contenido/assets.md` → «Fotos fijas de la
+escena») se encajan con CSS siguiendo la regla del campo de visión (`SceneStills.module.css`): con perspectiva, la
+foto escalada cae donde caería la escena si se escala por el lado cuyo campo es fijo, centrada (el `shiftX` va
+dentro de la foto). La de escritorio (2160 × 900, aspecto 2,4) se ajusta al alto desde 1,25 y, por debajo, al
+ancho de una ventana de 1,25. La de móvil (461 × 844, en el tope) se ajusta al alto hasta su aspecto, al ancho entre
+él y 1,25 y, apaisada, a 1,25 · 844 / 461 veces el alto. Sin paralaje (la foto es la pose del capítulo con el ratón
+fuera). Lo vigilan `stillFrames.test.ts` y `camera.test.ts`.
+
+- **Al tocar la cámara** (keyframes, `shiftX`, campo de visión) o las formas: `npm run stills`. Si no, el e2e de la
+  huella de las fotos falla (`budgets.spec.ts`).
+- **Dónde no cuadra** (aceptado): un móvil apaisado más ancho que 1,25 deja franjas sin estrellas a los lados, y una
+  ventana de escritorio (≥ 900 px) más estrecha que 1,25 (una tableta grande en vertical), arriba y abajo; las
+  formas sí caen en su sitio. Las consultas de aspecto miden la ventana con la barra de scroll y el lienzo sin ella
+  (~1 % en escritorio).
+
 ## Página de proyecto
 
 - Cámara cenital sobre la tortuga, centrada en la placa del proyecto: posición `placa + (0, 3,2, 2,4)`,
