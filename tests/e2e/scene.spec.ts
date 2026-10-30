@@ -5,19 +5,25 @@ import { test } from './support/test.ts';
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../../src/scene/contextLoss/contextLoss.ts';
 import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
 import { isSoftwareRenderer } from '../../src/lib/device/webgl2/webgl2.ts';
+import { CAMERA_FIT } from '../../src/scene/config/sceneConfig.ts';
+import { STILL_FRAMES } from '../../src/features/scene-mount/stillFrames/stillFrames.ts';
 import {
   collectErrors,
+  PARTICLES_PAINTED,
   presentCapableMachine,
   presentWebGLAsRenderer,
   SCENE_READY,
+  withoutWebGL,
 } from './support/helpers.ts';
 import { SWIFTSHADER_RENDERER } from './support/renderers.ts';
 
 /**
  * Carga de la escena y modo sin WebGL (docs/05-tecnico/arquitectura.md → «Carga de la escena»,
- * docs/02-experiencia/estados-y-accesibilidad.md → «Sin WebGL»). F3.1: el lienzo aún está vacío; aquí se
- * prueba que llega en diferido, en sus chunks, que sobrevive a la navegación y que cualquier fallo (el
- * contexto que se pierde, el chunk que no llega) deja la página entera con su aviso.
+ * docs/02-experiencia/estados-y-accesibilidad.md → «Sin WebGL»): que llega en diferido, en sus chunks, y
+ * sobrevive a la navegación; que las partículas se pintan y se ven, con el fondo del token; la pausa, la cámara,
+ * el worker de las formas y la degradación en caliente; el modo sin WebGL (también «por software», ADR-029) con
+ * sus fotos fijas, y que cualquier fallo (el contexto que se pierde, el chunk que no llega) deja la página entera
+ * con su aviso.
  */
 
 /** El worker de las formas (su propio archivo, que pide la escena al montar). */
@@ -31,8 +37,6 @@ const NOTICE = "Your browser can't show the 3D universe, but everything else is 
 /** El halo y el punto CSS del hero (`Hero` → `data-singularity`). */
 const heroHalo = (page: Page) => page.locator('[data-singularity="halo"]');
 const heroCore = (page: Page) => page.locator('[data-singularity="core"]');
-/** La escena ha pintado sus partículas (`SceneRoot` → `data-particles`). */
-const PARTICLES_PAINTED = '[data-particles="painted"]:has(canvas)';
 
 /** Lienzo de la escena (el único `<canvas>` de la página). */
 const sceneCanvas = (page: Page) => page.locator('canvas');
@@ -218,16 +222,6 @@ async function browserHasWebGL2(page: Page): Promise<boolean> {
   return page.evaluate(() => document.createElement('canvas').getContext('webgl2') !== null);
 }
 
-/**
- * Este navegador dice no a WebGL (como uno sin GPU o con WebGL desactivado). El sitio solo usa `<canvas>`
- * para la escena, así que basta con que ningún lienzo dé contexto.
- */
-async function withoutWebGL(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    HTMLCanvasElement.prototype.getContext = () => null;
-  });
-}
-
 test.describe('the scene with WebGL', () => {
   test.beforeEach(async ({ page, browserName }) => {
     await page.goto('/');
@@ -401,7 +395,8 @@ test.describe('the scene with WebGL', () => {
     await expect(heroHalo(page)).not.toHaveCSS('opacity', '0');
     // El fondo es el color del espacio, no negro.
     await expectVoidBackground(page);
-    // Por los 5 capítulos (las 5 formas, de una en una): ningún error, ningún shader roto.
+    // Por los 5 capítulos hasta Contacto: el programa (uno solo, con todas las formas) compila y el raíl llega al
+    // final sin errores. Con la `m` suavizada (ADR-028) no se para a pintar cada forma.
     for (const id of ['about', 'skills', 'projects', 'contact']) {
       await page.locator(`#${id}`).scrollIntoViewIfNeeded();
       await nextFrames(page);
@@ -837,7 +832,12 @@ test.describe('without WebGL', () => {
     {
       name: 'a narrow desktop window (< 1.25): the width of a 1.25 window',
       viewport: { width: 1000, height: 1000 },
-      fit: (frame: Box) => ({ width: (frame.width * 2160) / 900 / 1.25 }),
+      fit: (frame: Box) => ({
+        width:
+          (frame.width * STILL_FRAMES.desktop.width) /
+          STILL_FRAMES.desktop.height /
+          CAMERA_FIT.minAspect,
+      }),
     },
     {
       name: 'a tablet in portrait (between the cap and 1.25): the width of the layer',
@@ -847,7 +847,11 @@ test.describe('without WebGL', () => {
     {
       name: 'a phone in landscape (≥ 1.25): taller by the ratio of the half-field tangents',
       viewport: { width: 844, height: 390 },
-      fit: (frame: Box) => ({ height: (frame.height * 1.25 * 844) / 461 }),
+      fit: (frame: Box) => ({
+        height:
+          (frame.height * CAMERA_FIT.minAspect * STILL_FRAMES.handheld.height) /
+          STILL_FRAMES.handheld.width,
+      }),
     },
   ]) {
     test(`fits the still on ${name}`, async ({ page }) => {

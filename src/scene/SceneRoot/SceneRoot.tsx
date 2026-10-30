@@ -55,7 +55,8 @@ const MIN_DPR = 1;
 
 /**
  * React Three Fiber pone `pointer-events: auto` en línea al envoltorio del lienzo (para sus eventos):
- * taparía los enlaces de debajo. La escena no recibe puntero (el de la gravedad llegará de `window`, F4).
+ * taparía los enlaces de debajo. Sin eventos de puntero en el lienzo: el ratón se lee de `window` (`watchPointer`:
+ * el paralaje y, en F4, la gravedad).
  */
 const NO_POINTER = { pointerEvents: 'none' } as const;
 

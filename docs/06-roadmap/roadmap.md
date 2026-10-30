@@ -123,7 +123,10 @@ Etiqueta `v0.3.0`.
 
 ## F5 · Transiciones a proyectos
 
-- Lienzo persistente entre rutas, vuelo de cámara a la placa, escena atenuada en la página de proyecto,
+- Lienzo persistente entre rutas, vuelo de cámara a la placa, escena atenuada en la página de proyecto (y en la
+  404, la nebulosa atenuada y a la deriva de `estados-y-accesibilidad.md`; hasta entonces la 404 enseña la
+  singularidad, que cae bajo el título a 1440×900 y entre el título y la frase a 390×844: con la nebulosa, un e2e
+  de que no tapa el texto, como el del hero),
   anterior/siguiente, vuelta con la posición restaurada, carga directa sin Big Bang. La placa que se ilumina al
   volver es la de `uiStore.visitedProject` (el mismo dato que ya deja el foco en su fila desde F2.7).
 
@@ -134,6 +137,8 @@ Etiqueta `v0.3.0`.
 - Movimiento reducido completo, táctil, encuadre en los 6 tamaños de referencia, degradación de nivel en caliente.
 - Presupuestos de Lighthouse CI activados en CI; revisión con NVDA; pruebas en un móvil real.
 - Ficha de **Cosmos** con datos reales (proceso, retos, capturas; revisar el stack); imágenes Open Graph EN/ES; favicon.
+- SEO de las fichas: la meta description es el `summary` tal cual y la de Cosmos pasa de 220 (EN) y 228 (ES)
+  caracteres (los buscadores cortan hacia 155–160); decidir si se acorta o se añade un `metaDescription`.
 - README del repo en inglés con capturas y arquitectura; con él, la nota de la ficha de Cosmos vuelve a citarlo
   (`docs/01-contenido/proyectos/cosmos.md` → Notes, ⏳).
 

@@ -17,7 +17,8 @@ import { SceneErrorBoundary } from '../SceneErrorBoundary';
 
 /**
  * El único punto por el que la interfaz llega a la escena: un import dinámico. Three.js y React Three
- * Fiber van en ese chunk aparte, que solo se pide si hay WebGL2 (ADR-002, ADR-020).
+ * Fiber van en ese chunk aparte, que solo se pide si hay WebGL2 pintado por la tarjeta gráfica (ADR-002, ADR-020,
+ * ADR-029).
  */
 const SceneRoot = lazy(() => import('~/scene/SceneRoot/SceneRoot'));
 

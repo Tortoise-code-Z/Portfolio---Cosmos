@@ -1,15 +1,13 @@
 import { expect, test } from '@playwright/test';
 
 import { CHAPTER_ANCHORS, CHAPTER_INDICES } from '../../src/content/chapters.ts';
-import { forceLowScene } from '../e2e/support/helpers.ts';
+import { forceLowScene, PARTICLES_PAINTED, withoutWebGL } from '../e2e/support/helpers.ts';
 
 /**
  * Un estado por capítulo (docs/05-tecnico/calidad.md → «Regresión visual»): se entra por su ancla, así que la
  * escena arranca en su `m` exacto (ADR-028), y se espera a que haya partículas pintadas y a que lleguen las
  * fuentes. Siempre en nivel Bajo (ver `beforeEach`).
  */
-const PARTICLES_PAINTED = '[data-particles="painted"]:has(canvas)';
-
 /**
  * Las de los capítulos, siempre en Bajo (`forceLowScene`: se presenta como GPU con poca memoria; la del modo sin
  * WebGL, abajo, no tiene escena). En la imagen, Chromium pinta con
@@ -41,9 +39,7 @@ for (const index of CHAPTER_INDICES) {
  */
 test.describe('without WebGL', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      HTMLCanvasElement.prototype.getContext = () => null;
-    });
+    await withoutWebGL(page);
   });
 
   test('chapter 2 (skills) shows its still over the backdrop', async ({ page }) => {

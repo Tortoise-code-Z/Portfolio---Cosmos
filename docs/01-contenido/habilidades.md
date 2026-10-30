@@ -22,8 +22,8 @@ Son **4 constelaciones**: la escena reserva sitio para las cuatro.
 |---|---|---|
 | `react-ts` | React + TypeScript | Chessmate, Cosmos |
 | `react-query` | React Query | Chessmate |
-| `zustand` | Zustand | Chessmate |
-| `react-router` | React Router | Chessmate |
+| `zustand` | Zustand | Chessmate, Cosmos |
+| `react-router` | React Router | Chessmate, Cosmos |
 | `react-hook-form` | React Hook Form | Chessmate |
 | `zod` | Zod | Chessmate |
 | `css-modules` | CSS Modules | Chessmate, Cosmos |
@@ -62,5 +62,5 @@ ChatGPT), después de las prácticas. Son 6 estrellas en esta constelación (F4.
 
 ## Regla
 
-No se añaden habilidades que no se usen de verdad. Las de Cosmos (`r3f`, `vitest`, `playwright`) quedan
-respaldadas por este mismo proyecto cuando esté construido.
+No se añaden habilidades que no se usen de verdad. Las de Cosmos: `r3f`, respaldada por su
+ficha desde F3.7; `vitest` y `playwright`, por el repo público.

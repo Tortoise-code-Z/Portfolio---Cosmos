@@ -184,11 +184,16 @@ export default defineConfig(
     },
   },
 
+  // `caseSensitive`: por defecto los grupos no distinguen mayúsculas, y `**/Particles/**` cerraría también
+  // `shaders/particles/`, que el código puro sí puede importar.
   ...LAYER_RULES.map(({ files, ignores, forbidden, message, extra = [] }) => ({
     files,
     ...(ignores === undefined ? {} : { ignores }),
     rules: {
-      'no-restricted-imports': ['error', { patterns: [{ group: forbidden, message }, ...extra] }],
+      'no-restricted-imports': [
+        'error',
+        { patterns: [{ group: forbidden, message, caseSensitive: true }, ...extra] },
+      ],
     },
   })),
 

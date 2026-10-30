@@ -32,6 +32,11 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run test:coverage
+      # Aviso, no bloqueo (docs/05-tecnico/git-y-despliegue.md → «Seguridad»): las dependencias que van al sitio, con
+      # vulnerabilidades altas o críticas. Sin `--omit=dev`, las herramientas (Lighthouse CI en F6) avisarían siempre.
+      - name: npm audit (warning)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
 
   build:
     name: Build

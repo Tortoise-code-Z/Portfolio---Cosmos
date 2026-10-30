@@ -11,7 +11,8 @@ import styles from './NotFoundPage.module.css';
  * «404»): título, frase y vuelta al inicio, centrados en la pantalla. La pintan la ruta `*`, las de
  * página con un slug desconocido o con mayúsculas, y en `root.tsx` el `ErrorBoundary` (con un 404) y el
  * `HydrateFallback`: el mismo HTML que el 404 pre-renderizado, así que hidrata sin errores. Sin barra
- * ni raíl: solo hay un camino, volver. La nebulosa a la deriva llega con la escena (F3).
+ * ni raíl: solo hay un camino, volver. La nebulosa atenuada y a la deriva llega en F5, con la
+ * escena atenuada de las páginas de proyecto (roadmap).
  */
 export function NotFoundPage(): ReactNode {
   const t = useT();

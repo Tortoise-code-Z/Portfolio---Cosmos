@@ -10,7 +10,7 @@ escena. Metáfora: según el mito, una tortuga carga con el mundo; la tuya carga
 - Eyebrow: «Projects · cosmic turtle · t = mythic time».
 - Título: «What I carry on my shell». Frase del mito.
 - Una **fila por proyecto**, en orden (`order`): nombre grande, año, etiqueta «Featured» si aplica, rol,
-  contexto, stack corto, resumen de una línea y acciones: **View project** (página propia), **Live demo** y
+  contexto, stack principal (`stack.core`), resumen (2–3 frases, `modelo-de-datos.md`) y acciones: **View project** (página propia), **Live demo** y
   **Code** (si existen).
 
 ## Escena en reposo (`m = 3`)

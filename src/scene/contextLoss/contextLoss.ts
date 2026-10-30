@@ -3,7 +3,9 @@
  * docs/04-escena/rendimiento.md → «Robustez»): se intenta restaurar **una vez**. Three.js ya pide la
  * restauración (`preventDefault` en `webglcontextlost`) y rehace su estado al volver; aquí solo se decide
  * cuándo rendirse: si el contexto no vuelve en `timeoutMs` **con la página a la vista**, o si se pierde una
- * segunda vez con la página a la vista, se llama a `onGiveUp` (modo sin WebGL).
+ * segunda vez con la página a la vista, se llama a `onGiveUp` (modo sin WebGL). Cuando vuelve no hay nada que
+ * hacer aquí: con el bucle de frames de la escena (ADR-027) se pinta el siguiente frame, o el primero al salir de
+ * la pausa, y el color de fondo se repone en `onCreated` (este oyente puede ir antes que el de Three).
  *
  * Con la página oculta el plazo no corre: un móvil libera la GPU al pasar a otra app y no la devuelve hasta
  * que la página se vuelve a ver. Esa pérdida no gasta el intento; el plazo arranca (entero) al volver a la
@@ -18,20 +20,13 @@ export type GiveUpReason = 'context-lost-twice' | 'context-not-restored';
 export interface ContextLossHandlers {
   /** El contexto no va a volver: hay que pasar a sin WebGL. Se llama como mucho una vez. */
   readonly onGiveUp: (reason: GiveUpReason) => void;
-  /**
-   * El contexto ha vuelto. Three rehace su estado; con el bucle de frames de la escena (ADR-027) no hace falta
-   * pedir un frame: pinta el siguiente, o el primero al salir de la pausa (un lienzo que pintara bajo demanda
-   * tendría que pedirlo aquí). Ojo: este oyente puede ir antes que el de Three; lo que deba ir después (el color
-   * de fondo) se escucha en `onCreated`.
-   */
-  readonly onRestored?: () => void;
   readonly timeoutMs?: number;
 }
 
 /** Vigila el lienzo y devuelve la función que deja de vigilarlo. */
 export function watchContextLoss(
   canvas: HTMLCanvasElement,
-  { onGiveUp, onRestored, timeoutMs = CONTEXT_RESTORE_TIMEOUT_MS }: ContextLossHandlers,
+  { onGiveUp, timeoutMs = CONTEXT_RESTORE_TIMEOUT_MS }: ContextLossHandlers,
 ): () => void {
   const doc = canvas.ownerDocument;
   /** Pérdidas con la página a la vista: la segunda agota el intento. */
@@ -78,7 +73,6 @@ export function watchContextLoss(
   function onContextRestored(): void {
     lost = false;
     stopClock();
-    if (!gaveUp) onRestored?.();
   }
 
   function onVisibilityChange(): void {

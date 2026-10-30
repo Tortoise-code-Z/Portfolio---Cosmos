@@ -148,7 +148,7 @@ test.describe('the journey (home)', () => {
       await page.evaluate(() => document.fonts.ready);
       const layout = await page.evaluate(() => {
         const hero = document.querySelector('section[data-chapter="0"]');
-        const core = hero?.querySelector('[aria-hidden="true"] > span:last-child');
+        const core = hero?.querySelector('[data-singularity="core"]');
         const title = hero?.querySelector('h1');
         const kicker = title?.previousElementSibling;
         const textBox = (element: Element): DOMRect => {

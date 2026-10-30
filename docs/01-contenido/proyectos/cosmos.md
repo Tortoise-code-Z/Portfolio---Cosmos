@@ -1,8 +1,8 @@
 # Proyecto · Cosmos (este portfolio)
 
 > Lo marcado con ⏳ se completa con datos reales a medida que se construye (proceso, retos resueltos, capturas). No
-> se publica nada que no esté hecho: la escena 3D entró en el resumen, las funcionalidades y el stack al cerrar F3
-> (F3.7); las constelaciones y placas entran con F4. Lo que espera se guarda aquí, marcado con ⏳.
+> se publica nada que no esté hecho: la escena 3D entró en el resumen, las funcionalidades y el stack en F3.7; las
+> constelaciones y placas entran con F4. Lo que espera se guarda aquí, marcado con ⏳.
 
 ## Ficha
 
