@@ -5,7 +5,6 @@ import { CONTEXT_RESTORE_TIMEOUT_MS, watchContextLoss } from './contextLoss';
 let canvas: HTMLCanvasElement;
 let visibility: DocumentVisibilityState = 'visible';
 const onGiveUp = vi.fn();
-const onRestored = vi.fn();
 
 const lose = (): boolean => canvas.dispatchEvent(new Event('webglcontextlost'));
 const restore = (): boolean => canvas.dispatchEvent(new Event('webglcontextrestored'));
@@ -26,18 +25,16 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   onGiveUp.mockReset();
-  onRestored.mockReset();
 });
 
 describe('watchContextLoss', () => {
-  it('waits for the context to come back: restored in time, it says so and nothing else happens', () => {
-    watchContextLoss(canvas, { onGiveUp, onRestored });
+  it('waits for the context to come back: restored in time, it does not give up', () => {
+    watchContextLoss(canvas, { onGiveUp });
     lose();
     vi.advanceTimersByTime(CONTEXT_RESTORE_TIMEOUT_MS - 1);
     restore();
     vi.advanceTimersByTime(CONTEXT_RESTORE_TIMEOUT_MS);
     expect(onGiveUp).not.toHaveBeenCalled();
-    expect(onRestored).toHaveBeenCalledTimes(1);
   });
 
   it('gives up when the context does not come back in time', () => {
@@ -55,7 +52,7 @@ describe('watchContextLoss', () => {
   });
 
   it('only one attempt: a second loss gives up at once, and only once', () => {
-    watchContextLoss(canvas, { onGiveUp, onRestored });
+    watchContextLoss(canvas, { onGiveUp });
     lose();
     restore();
     lose();
@@ -63,9 +60,9 @@ describe('watchContextLoss', () => {
     lose();
     vi.advanceTimersByTime(CONTEXT_RESTORE_TIMEOUT_MS);
     restore();
+    lose();
+    // Ya rendida, ni un contexto que vuelve tarde ni otra pérdida la llaman otra vez.
     expect(onGiveUp).toHaveBeenCalledTimes(1);
-    // Ya rendida, un contexto que vuelve tarde no resucita la escena.
-    expect(onRestored).toHaveBeenCalledTimes(1);
   });
 
   it('stops watching (its timer and the page visibility) when cleaned up', () => {
@@ -96,7 +93,7 @@ describe('watchContextLoss', () => {
     });
 
     it('restored after coming back, nothing happens', () => {
-      watchContextLoss(canvas, { onGiveUp, onRestored });
+      watchContextLoss(canvas, { onGiveUp });
       setVisibility('hidden');
       lose();
       setVisibility('visible');
@@ -104,7 +101,6 @@ describe('watchContextLoss', () => {
       restore();
       vi.advanceTimersByTime(CONTEXT_RESTORE_TIMEOUT_MS);
       expect(onGiveUp).not.toHaveBeenCalled();
-      expect(onRestored).toHaveBeenCalledTimes(1);
     });
 
     it('a loss while hidden does not spend the attempt, however many times it happens', () => {

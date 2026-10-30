@@ -89,7 +89,10 @@ export function lowerSceneLevel(sceneLevel: RenderLevel): void {
   if (LEVEL_RANK[sceneLevel] < LEVEL_RANK[current]) useUiStore.setState({ sceneLevel });
 }
 
-/** Modo sin WebGL: sin WebGL2, o la escena falló (contexto, shader, chunk). No tiene vuelta atrás. */
+/**
+ * Modo sin WebGL: sin WebGL2 o pintado por software (ADR-029), o la escena falló (chunk, contexto, shader, un frame,
+ * las formas). No tiene vuelta atrás.
+ */
 export function turnSceneOff(): void {
   if (useUiStore.getState().sceneLevel === 'off') return;
   useUiStore.setState({ sceneLevel: 'off' });

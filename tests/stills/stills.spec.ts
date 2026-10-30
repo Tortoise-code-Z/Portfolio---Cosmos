@@ -12,7 +12,7 @@ import {
   stillFileName,
   type StillFrameName,
 } from '../../src/features/scene-mount/stillFrames/stillFrames.ts';
-import { presentCapableMachine } from '../e2e/support/helpers.ts';
+import { PARTICLES_PAINTED, presentCapableMachine } from '../e2e/support/helpers.ts';
 import { stillsFingerprint } from './fingerprint.ts';
 
 /**
@@ -27,7 +27,6 @@ import { stillsFingerprint } from './fingerprint.ts';
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const OUT_DIR = join(ROOT, 'src/assets/scene-stills');
-const PARTICLES_PAINTED = '[data-particles="painted"]:has(canvas)';
 
 /**
  * Calidad de cada formato (sharp). Las partículas son puntos de color sobre negro: AVIF sin submuestreo de color

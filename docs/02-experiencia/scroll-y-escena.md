@@ -49,7 +49,7 @@ arriba del todo, `m` sigue siendo 0 (la barra no adelanta la explosión). Códig
 - El suavizado es **casi independiente de los fps** (usa `dt`; `min(1, dt · k)` es la aproximación por pasos de la
   curva exacta). Por debajo de un umbral (`|objetivo − m| < 1e-4`) se iguala para llegar exacta al objetivo.
 - **La interfaz no se suaviza:** `sceneStore.m` es el objetivo tal cual, con y sin escena. Quienes lo leen (raíl,
-  HUD, idioma) cambian a saltos, así que no lo necesitan; durante la inercia van un instante por delante de la
+  HUD, idioma y las fotos fijas del modo sin WebGL) cambian a saltos, así que no lo necesitan; durante la inercia van un instante por delante de la
   escena. Sin escena (WebGL desactivado) no hay suavizado en ningún sitio.
 - No se usa scroll suavizado de terceros (Lenis, etc.): el scroll del navegador se respeta tal cual, solo se
   suaviza la escena. Así no se rompen la accesibilidad, los atajos de teclado ni la restauración del scroll.

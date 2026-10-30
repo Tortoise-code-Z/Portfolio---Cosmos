@@ -278,8 +278,9 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   en diferido: las capas lo vigilan con `no-restricted-imports` (también en `routes/` y `root.tsx`), y
   `no-restricted-syntax` prohíbe fuera de ahí los `import()` de `scene/` o de Three y cualquier `import()`
   cuya ruta no sea una cadena fija (una plantilla o una variable no se pueden comprobar).
-- El lienzo vive en `root.tsx` (persistente entre rutas); `routes/journey/journey.tsx` y `routes/project/project.tsx` le
-  comunican su estado (viaje, proyecto activo, atenuación) vía `sceneStore`.
+- El lienzo vive en `root.tsx` (persistente entre rutas). El viaje (`routes/journey/journey.tsx`) le escribe
+  `mTarget` en `sceneStore` (`setScrollTarget`); el proyecto activo (`uiStore`, F4.4) y la atenuación de las fichas
+  (F5) llegan después.
 
 ## Configuración y entorno
 

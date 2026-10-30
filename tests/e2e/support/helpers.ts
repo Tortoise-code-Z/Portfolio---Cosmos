@@ -32,6 +32,19 @@ export function projectBySlug(slug: string): ProjectEntry {
 /** La escena montada de verdad: `SceneRoot` lo marca cuando existe el renderer (no basta el `<canvas>`). */
 export const SCENE_READY = '[data-ready="true"]:has(canvas)';
 
+/** Partículas pintadas (`SceneRoot` → `data-particles`): las esperan los e2e, las capturas y las fotos fijas. */
+export const PARTICLES_PAINTED = '[data-particles="painted"]:has(canvas)';
+
+/**
+ * Este navegador dice no a WebGL (como uno sin GPU o con WebGL desactivado). El sitio solo usa `<canvas>` para la
+ * escena, así que basta con que ningún lienzo dé contexto. Va antes de cargar la página (`addInitScript`).
+ */
+export async function withoutWebGL(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    HTMLCanvasElement.prototype.getContext = () => null;
+  });
+}
+
 /**
  * Espera a que el sitio decida la escena (la escena montada o el modo sin WebGL) y, si salió el aviso «sin WebGL»,
  * lo descarta. Para los tests que miden la posición del scroll al usar algo del pie de la ventana: en un

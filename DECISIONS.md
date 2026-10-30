@@ -569,7 +569,7 @@
 - Fecha: 2026-10-29
 - Contexto: al cerrar F3, PageSpeed Insights (Lighthouse 13.6.0, Chromium headless sin GPU) pinta la escena con
   SwiftShader: la home baja de 97 a 88 de Performance con 450 ms de TBT y la ficha de Cosmos a 83 con 660 ms
-  (el brief pide ≥ 85 y < 200 ms; `calidad.md` → «Mediciones»). Montar la escena cuesta ~1 s de hilo principal y
+  (el brief pide Performance ≥ 85; `calidad.md` → «Presupuestos», TBT < 200 ms, y «Mediciones»). Montar la escena cuesta ~1 s de hilo principal y
   cada frame 60–180 ms. Chromium sin GPU da contexto WebGL2 incluso con `failIfMajorPerformanceCaveat`, así que
   `detectWebGL2` no lo ve como «software»; su `renderer` sí lo dice («… SwiftShader driver»). Lo mismo le pasa a
   un visitante sin aceleración (máquina virtual, escritorio remoto, GPU bloqueada): en escritorio arrancaría en

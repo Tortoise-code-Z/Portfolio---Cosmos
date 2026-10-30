@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import { generateShapes } from '../shapes/generateShapes/generateShapes';
+import { mulberry32 } from '../shapes/prng/prng';
+import { generateStars } from '../shapes/stars/stars';
 import {
   createParticleGeometry,
   createStarsGeometry,
   PARTICLES_BOUNDING_RADIUS,
   SHAPE_ATTRIBUTES,
+  STARS_BOUNDING_RADIUS,
 } from './particleGeometry';
 
 describe('createParticleGeometry', () => {
@@ -54,5 +57,24 @@ describe('createStarsGeometry', () => {
     expect(geometry.getAttribute('position').array).toBe(positions);
     expect(geometry.getAttribute('aR').array).toBe(rand);
     expect(geometry.getAttribute('aR').itemSize).toBe(1);
+  });
+
+  it('a bounding sphere that covers every star, and no more than the farthest shell', () => {
+    const count = 5000;
+    const positions = new Float32Array(count * 3);
+    generateStars(count, mulberry32(3), positions, new Float32Array(count));
+    const geometry = createStarsGeometry(positions, new Float32Array(count));
+    expect(geometry.boundingSphere?.radius).toBe(STARS_BOUNDING_RADIUS);
+    expect(geometry.boundingSphere?.center.length()).toBe(0);
+    let farthest = 0;
+    for (let i = 0; i < count; i++) {
+      farthest = Math.max(
+        farthest,
+        Math.hypot(positions[i * 3] ?? 0, positions[i * 3 + 1] ?? 0, positions[i * 3 + 2] ?? 0),
+      );
+    }
+    expect(farthest).toBeLessThanOrEqual(STARS_BOUNDING_RADIUS);
+    // Las más lejanas llegan casi al borde: la esfera no es más grande de lo que hace falta.
+    expect(farthest).toBeGreaterThan(STARS_BOUNDING_RADIUS * 0.99);
   });
 });

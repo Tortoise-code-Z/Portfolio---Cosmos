@@ -89,7 +89,8 @@ Valores en `docs/04-escena/`.
 ## 404 «Lost in space»
 
 - Título, frase y enlace «Back to the start», centrados (sin barra ni raíl: solo hay un camino, volver). La escena
-  muestra la nebulosa atenuada y a la deriva (desde F3).
+  muestra la nebulosa atenuada y a la deriva (desde F5, con la escena atenuada
+  de las páginas de proyecto; hasta entonces, la 404 enseña la singularidad, como el hero).
 - Responde con estado 404 real (configuración del hosting).
 
 ## Accesibilidad (resumen comprobable)

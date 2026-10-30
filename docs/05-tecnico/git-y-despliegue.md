@@ -53,6 +53,7 @@ install (npm ci)
   ├─ typecheck
   ├─ lint + format:check
   ├─ test:coverage  (umbrales de calidad.md)
+  ├─ npm audit --omit=dev --audit-level=high  (aviso: no para el CI)
   └─ build ─┬─ e2e · chromium ─┐  (contenedor mcr.microsoft.com/playwright:v1.64.0-noble;
             ├─ e2e · firefox  ─┼─ E2E (Chromium · Firefox · WebKit)   un job por navegador, ADR-024)
             ├─ e2e · webkit   ─┘
@@ -105,5 +106,6 @@ install (npm ci)
 
 - Sin secretos en la v1. Si aparecen (por ejemplo, una API key de la NASA en el futuro), solo en variables de
   entorno de Vercel, nunca en el cliente si son privadas.
-- `npm audit` en CI (aviso) y antes de cada versión (bloqueante si hay vulnerabilidades altas en producción).
+- `npm audit` en CI (aviso: `npm audit --omit=dev --audit-level=high` con `continue-on-error`, en el job `quality`)
+  y antes de cada versión (bloqueante si hay vulnerabilidades altas en producción).
 - Enlaces externos con `rel="noopener noreferrer"`.
