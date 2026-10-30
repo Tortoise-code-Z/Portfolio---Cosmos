@@ -3,48 +3,62 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F3 · paso 7 hecho** (`main` en `d5ee0a9`: AUD-F3-6C corregida en PR #70, F3.7 en PR #71) ·
-**ADR-029 decidido**: siguiente, F3.8 (WebGL por software → sin escena) y F3.9 (fotos fijas en el modo sin WebGL);
-después la versión 0.2.0, la Mesa de cierre y la etiqueta.
+**Dónde estamos:** **F3 · pasos 8 y 9 hechos** (`main` en `37a1045`: F3.8 en PR #73, F3.9 en PR #74, AUD-F3-8
+corregida en PR #75 y AUD-F3-9 en PR #76) · siguiente: la versión 0.2.0 (mediciones tras desplegar), la Mesa de
+cierre AUD-F3-CIERRE y la etiqueta `v0.2.0`.
 
-_Última actualización: 2026-10-29 (**CIERRE DE SESIÓN · 26**) · AUD-F3-6C corregida, la ficha de Cosmos ya cuenta
-la escena y, al medir el cierre de F3, PageSpeed pinta la escena por software (Performance 83–88, TBT 450–660 ms,
-por debajo del brief): se decide apagarla en ese caso y vestir el modo sin WebGL con fotos fijas. 1146 unitarios y
-199 e2e en Chromium._
+_Última actualización: 2026-10-30 (**CIERRE DE SESIÓN · 27**) · ADR-029 hecho entero: el WebGL pintado por software
+apaga la escena (detección por el `renderer`) y el modo sin WebGL del viaje enseña fotos fijas de la escena real.
+Las dos auditorías, corregidas. 1192 unitarios y 212 e2e en Chromium._
 
-**Hecho esta sesión** (vivas S26 en `_claude/cadena/hecho/2026-10-29/decisiones-vivas-S26.md`):
-1. **AUD-F3-6C corregida entera** (PR #70, `099c27a`; vivas #1–#4): la regla de ESLint del `test` de los e2e cierra
-   el import por defecto y `playwright/test`, y `testMatch: '**/*.spec.ts'`; opción `sceneInLow` del fixture sobre
-   el contexto (cubre `context.newPage()` y popups; la degradación la apaga con `test.use`); el e2e «en Chromium,
-   Bajo» lee el nivel una vez; avisos de WebGL en la degradación; `visual:update` solo borra sin más argumentos;
-   el guardián de citas exige cada carpeta de la raíz que sigue git (`NOT_CODE_DIRS`); docs, comentarios y
-   ADR-024.
-2. **F3.7 · ficha de Cosmos con la escena** (PR #71, `d5ee0a9`; vivas #5–#8, F37-1-A): resumen final en tres
-   frases en EN y ES, «Scroll-driven particle morphing across five scenes», «Works without WebGL and with reduced
-   motion» y Three.js / React Three Fiber / GLSL en el stack principal. Referencia de escritorio de
-   `chapter-3-projects` rehecha (la de móvil no cambió).
-3. **Mediciones del cierre de F3** (vivas #9–#13): Lighthouse local 63–64 (TBT 4,8–7,4 s; con WebGL apagado, 94 y
-   0 ms) y PageSpeed en producción `/` 88 · TBT 450 ms y `/projects/cosmos` 83 · TBT 660 ms (A11y, BP y SEO 100;
-   CLS 0). `npm audit`: 0. En `calidad.md` → «Mediciones».
-4. **Decisiones para cerrar F3** (vivas #10, #14–#17): ADR-029 (por software → sin escena, detección por
-   `renderer`; fotos fijas de la escena real en el modo sin WebGL; pasos 8 y 9 del roadmap). La etiqueta va al
-   final del cierre, ya auditada (`git-y-despliegue.md`).
+**Hecho esta sesión** (vivas S27 en `_claude/cadena/hecho/2026-10-30/decisiones-vivas-S27.md`):
+1. **F3.8 · por software → sin escena** (PR #73, `72e7c0b`; vivas #1–#8): `detectWebGL2` lee el `renderer`
+   (`RENDERER`; si es el genérico, `WEBGL_debug_renderer_info`) con `isSoftwareRenderer`; «software» → modo sin
+   WebGL con su aviso, sin descargar Three.js. Los e2e y las capturas se presentan como GPU con poca memoria
+   (`forceLowScene`, Bajo en los tres motores). Duda escrita: `_claude/dudas/2026-10-29-detectar-gpu-y-apagar-3d.md`.
+2. **F3.9 · fotos fijas** (PR #74, `6c60d92`; vivas #10–#21): `npm run stills` (Docker) saca la escena real de los
+   capítulos 1–4 en dos encuadres (escritorio en Alto a densidad 2, móvil en Bajo) sobre negro, AVIF + WebP en
+   `src/assets/scene-stills/`, con una huella que vigila `budgets.spec.ts`. `SceneStills` (solo en el viaje y sin
+   WebGL) pinta la del capítulo activo fundida con `screen`, encajada con la regla del campo de visión. Incluye el
+   arreglo de WebKit (el `src` del `<img>` ya dentro del `<picture>`), `sharp` como devDependency y ESLint/Prettier
+   ignorando el buzón.
+3. **AUD-F3-8 corregida** (PR #75, `452076b`; vivas #23–#26): e2e del camino real de PageSpeed (Chromium sin
+   disfraz, el nombre por la extensión), nombres del disfraz en `tests/e2e/support/renderers.ts`, `gpuProbe`,
+   `startHigh` con la memoria fija, «si leer el nombre lanza, sin WebGL» escrito, docs.
+4. **AUD-F3-9 corregida** (PR #76, `37a1045`; vivas #28–#30): huella con `useSceneShapes`, `lib/math` y las placas;
+   encaje por `@container` en la capa (la barra de direcciones del móvil no lo mueve) y probado bloque a bloque y en
+   cinco tamaños; fundido con `plus-lighter`; la huella exige las 16 fotos de la pasada; las fotos salen al build
+   como archivos; `tsconfig` ignora el buzón; `presentCapableMachine`; reglas §13, «hecho», roadmap y docs.
 
 **Incidencias y lecciones:**
-- **Chromium sin GPU da contexto WebGL2 con `failIfMajorPerformanceCaveat`** (headless 156 en el contenedor;
-  PageSpeed con HeadlessChromium 153 pintó la escena): la única pista fiable es el `renderer` («… SwiftShader
-  driver»). PageSpeed **sí ejecuta WebGL**: cuenta cada frame como trabajo del hilo principal.
-- **Medir en local no basta para Performance:** el contenedor (2 núcleos, CPU ×4) exagera el TBT (5 s frente a
-  450 ms en PageSpeed). Sirve para comparar con y sin escena (`--disable-3d-apis`), no como cifra.
-- **El guardián de carpetas lista con git:** la copia del contenedor debe llevar `.git` (y `safe.directory`), o el
-  test falla.
-- **Leer PageSpeed:** los informes se leen bien desde el navegador de la app con `javascript_tool` (filas de
-  `long-tasks` y `mainthread-work-breakdown`); `pagespeed.web.dev` quedó permitido en el navegador de la app.
-- **Método del contenedor** (sin cambios): Node 24 con `npm pack node-linux-x64@<versión>`, navegadores enlazados
-  (`chromium-<revisión pedida>` → la instalada), árbol por `tar` desde el equipo con `.git`, `.env` desde
-  `.env.example`; tras un PR, `git stash -u` en la copia, nunca commit ni push desde ahí.
+- **WebKit pedía la foto de móvil en escritorio** (solo en el CI): React pone el `src` del `<img>` antes de meterlo en
+  el `<picture>`. Con `<picture>` creado por React, el `src` se pone en un `useLayoutEffect`.
+- **El `npm run check` de Víctor ve el buzón** (en el contenedor no viaja): ESLint falló con las herramientas `.js` de
+  `hecho/`. ESLint, Prettier y `tsconfig` ignoran `_claude` (sin barra: el guardián de citas prohíbe la ruta con
+  barra en las configs).
+- **Las capas de ESLint valen también para los tests:** `scene` y `features` no se importan entre sí ni en un test
+  (por eso `DESKTOP_STILL_QUERY` y `WIDE_LAYOUT_QUERY` se atan a través del CSS, con dos tests).
+- **Fotos del contenedor = fotos de Docker:** el Chromium del contenedor (enlazado a la revisión pedida) da las
+  mismas fotos, byte a byte, que la imagen de Playwright. WebKit no se puede instalar en el contenedor (la descarga
+  falla): se prueba en el CI o en el equipo de Víctor (`npx playwright test --project=webkit`).
+- **Llevar archivos al equipo:** se extraen con Python escribiendo encima (sin borrar: `tar` desenlazaría y el
+  borrado está bloqueado), con `md5sum -c` de comprobación.
+- **Método del contenedor** (sin cambios): Node 24 con `npm pack node-linux-x64@<versión>`, navegadores enlazados,
+  árbol por `tar` desde el equipo con `.git`; tras un PR, `git stash -u` en la copia, nunca commit ni push desde ahí.
 
 **Deuda anotada:**
+- **Vitest:** avisa «jsdom was created 121 times · ~123 s» (tiempo sumado entre hilos). No activar `isolate: false` ni
+  `vmThreads` (quitan aislamiento: stores, globales y mocks). Valorar pasar a entorno `node` los tests sin DOM (lógica
+  pura de `lib`, `content`; hoy 8 de 121), midiendo antes y después. Tarea pequeña aparte.
+- **Fotos fijas (F3.9):** límites aceptados en `camara-y-encuadre.md` («Dónde no cuadra»: franjas en móvil apaisado,
+  en ventanas ≥ 900 px más estrechas que 1,25 y en las más anchas que 2,4; puntos más gordos al escalar). En F6, con
+  un móvil real sin WebGL: el encaje con la barra de direcciones visible y escondida (ya lo mide `@container`), el
+  fundido entre capítulos y AVIF 4:4:4 en Safari.
+- **F4 · fotos fijas:** cada paso que cambie lo que se ve (formas, shaders, cámara, placas, el Sol) pide
+  `npm run stills` en el mismo PR; una carpeta nueva de `scene/` que cambie las fotos va a `STILLS_SOURCES`
+  (`tests/stills/fingerprint.ts`). Lo recuerdan §13, «hecho» y el roadmap.
+- **WebKit y el `<picture>`:** que WebKit pidiera el `src` del `<img>` antes de entrar en el `<picture>` es deducido
+  (no hay WebKit en el contenedor); el arreglo lo vigila el e2e de escritorio sin WebGL en el CI.
 - **Peso de la escena:** 248,97 KB de 250 (F3.6a 249,0; encuadre +7 B; corrección de AUD-F3-6 −51 B).
   R3F importa Three.js entero: las constelaciones y el Sol de F4 no caben en ~1 KB. Subir el límite, solo con
   ADR; antes, mirar qué más se puede ahorrar (sangría y líneas vacías del GLSL solo darían ~77 B y romperían las
@@ -52,9 +66,9 @@ por debajo del brief): se decide apagarla en ese caso y vestir el modo sin WebGL
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
 - **Degradación en caliente:** un navegador que limita los frames a 30 (ahorro de batería) baja a Bajo en
   escritorio: aceptado y escrito en `rendimiento.md`.
-- **e2e de Chromium:** ~7,7–8,4 min en el contenedor, ya en Bajo (los dos de la degradación arrancan en Alto con
-  los frames retrasados por el test: 22 y 15 s). SwiftShader pinta sin parar mientras la página está a la vista:
-  mirar los tiempos del CI.
+- **e2e de Chromium:** ~5,8–8 min en el contenedor (212), en Bajo en los tres motores (los dos de la degradación
+  arrancan en Alto con los frames retrasados por el test). SwiftShader pinta sin parar mientras la página está a la
+  vista: mirar los tiempos del CI.
 - **F4 · escena:** todo lo nuevo lee `SceneFrame.m` (la `m` suavizada de la escena), nunca `sceneStore.m`
   (ADR-028). Un módulo nuevo de `scene/` con Three, React o un store se añade a `IMPURE_SCENE_MODULES` de
   `eslint.config.js` (la lista es a mano), y uno de lógica que se prueba sin WebGL, al 90 % de `vitest.config.ts`
@@ -92,8 +106,8 @@ por debajo del brief): se decide apagarla en ese caso y vestir el modo sin WebGL
   decidirlo con NVDA y alto contraste a mano.
 - **Generación de 60.000 partículas:** ~0,4 s en el contenedor (casi todo la nube de la nebulosa; algoritmo del
   prototipo). Pasa el límite de 1 s; si en el CI o en un móvil real pesa, mirarlo allí antes de tocar nada.
-- **CI · Firefox y WebKit:** no sabemos si tienen WebGL2 ni si solo por software (desde P1-B arrancarían en Bajo;
-  con ADR-029, sin escena); los e2e con WebGL se omiten si no lo hay. Mirarlo en el log de un PR.
+- **CI · Firefox y WebKit:** pasan presentados como GPU y en Bajo (F3.8); sigue sin saberse qué `renderer` real dan
+  ni si tienen WebGL2 por GPU. Los e2e con WebGL se omiten si no lo hay.
 - **R3F 9.8.1 + three 0.186:** `console.warn` «THREE.Clock: This module has been deprecated» al montar el lienzo.
   Se va cuando R3F use `THREE.Timer`: mirarlo al subir R3F.
 - **F6 · NVDA:** el aviso sin WebGL se descarta con «Got it» y el foco cae al `body` (igual que «No, gracias»).
@@ -106,11 +120,6 @@ por debajo del brief): se decide apagarla en ese caso y vestir el modo sin WebGL
   es «English», decidido en `componentes.md`): revisarlo con NVDA y control por voz. Hasta F6, Lighthouse se pasa
   a mano al cerrar cada fase y se apunta en `calidad.md` → «Mediciones» (en local y, con PageSpeed Insights, en
   producción).
-- **ADR-029 al implementarlo:** «Elección inicial» de `rendimiento.md` y «Sin WebGL» de
-  `estados-y-accesibilidad.md` aún dicen «por software → Bajo» y no cuentan las fotos fijas; `forceSoftwareWebGL`,
-  el `test` de `tests/e2e/support` (opción `sceneInLow`), `calidad.md`, ADR-010/024 y `chapters.spec.ts` se apoyan
-  en fingir «software». Las e2e de la degradación en caliente fuerzan Alto quitando la opción: revisar que sigan
-  teniendo sentido con la detección por `renderer` (en la imagen, el `renderer` es SwiftShader).
 - **F3–F4 · móvil:** a 390 px el raíl (y cualquier ancla) cae en el capítulo con la escena primero
   (`03-tortuga.md` → «Móvil»); en F2 son ~700 px vacíos. La escena los llena; `recruiter.spec.ts` fija que las filas
   quedan a **un** deslizamiento y avisará si el hueco crece.
@@ -160,27 +169,22 @@ por debajo del brief): se decide apagarla en ese caso y vestir el modo sin WebGL
   actualizar React Router, comprobar si ya lo pasa.
 - Si alguna ruta lanza un 404 desde un `loader` (`throw data(null, { status: 404 })`), choca con
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
+
 **Siguiente paso (próxima sesión, conversación nueva):**
-1. Arrancar con `session-start` (y la skill `taller`). Cola vacía de auditorías.
-2. **F3.8 · ADR-029, detección por software** (esquema → VB): `detectWebGL2` mira el `renderer` (lista de nombres
-   por software, con tests), «por software» → Apagado con su aviso; los e2e y las capturas consiguen Bajo sin
-   fingir «software» (p. ej. `navigator.connection.saveData` o `deviceMemory` simulados y el `renderer` de GPU);
-   revisar `forceSoftwareWebGL`, `sceneInLow`, la degradación en caliente (fuerza Alto), `chapters.spec.ts`,
-   ADR-010/024, `rendimiento.md` y `estados-y-accesibilidad.md`. `npm run visual` (no debería cambiar).
-3. **F3.9 · fotos fijas** (esquema → VB): script en Docker (lienzo solo, fondo transparente, capítulos 1–4 en
-   escritorio y móvil, AVIF/WebP; las herramientas de `_claude/cadena/hecho/2026-10-28/encuadre/` sirven de
-   punto de partida), CSS de `no-gl` con la del capítulo activo y fundido, presupuesto de imágenes, captura nueva
-   del modo sin WebGL si conviene.
-4. **Versión 0.2.0:** repetir Lighthouse local y PageSpeed (`/` y `/projects/cosmos`, lo pasa Víctor) tras
-   desplegar, `npm audit`, PR con la versión; después la Mesa AUD-F3-CIERRE, sus correcciones y la etiqueta
-   `v0.2.0` sobre el último commit del cierre.
+1. Arrancar con `session-start` (y la skill `taller`). Cola: la versión 0.2.0; ninguna auditoría abierta.
+2. **Versión 0.2.0** (esquema → VB): desplegada `main`, repetir Lighthouse local y PageSpeed (`/` y
+   `/projects/cosmos`, lo pasa Víctor; se espera volver a cerca de lo medido sin escena) y `npm audit`, y
+   apuntarlo en `calidad.md` → «Mediciones»; PR con la versión.
+3. **Mesa AUD-F3-CIERRE** sobre toda F3, sus correcciones y la etiqueta `v0.2.0` sobre el último commit del
+   cierre (`git-y-despliegue.md`).
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»), CV en PDF EN/ES.
 **Limpieza manual del usuario:**
 - Ramas locales ya fusionadas (todas menos `main`): las de la lista del cierre 25 (en `docs/_historial/estado/2026-10.md`) que sigan, más
-  `docs/session-close-2026-10-28`, `fix/aud-f3-6c`, `feat/f3-7-cosmos-entry` y la de este cierre,
-  `docs/session-close-2026-10-29`, cuando se fusione (`git branch -D <rama>`: con squash, `-d` no las reconoce
+  `docs/session-close-2026-10-28`, `fix/aud-f3-6c`, `feat/f3-7-cosmos-entry`, `docs/session-close-2026-10-29`,
+  `feat/f3-8-software-webgl`, `feat/f3-9-scene-stills`, `fix/aud-f3-8`, `fix/aud-f3-9` y la de este cierre,
+  `docs/session-close-2026-10-30`, cuando se fusione (`git branch -D <rama>`: con squash, `-d` no las reconoce
   como fusionadas). Para verlas: `git branch`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js` ni
