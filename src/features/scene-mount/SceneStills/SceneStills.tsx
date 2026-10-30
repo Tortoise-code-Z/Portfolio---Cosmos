@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useStore } from 'zustand';
 
 import desktop1Avif from '~/assets/scene-stills/avif/scene-still-desktop-1.avif';
@@ -107,17 +107,28 @@ interface StillProps {
   readonly onLoad: () => void;
 }
 
-/** Una foto: la de escritorio o la de móvil (`DESKTOP_STILL_QUERY`), en AVIF o WebP, la que elija el navegador. */
+/**
+ * Una foto: la de escritorio o la de móvil (`DESKTOP_STILL_QUERY`), en AVIF o WebP, la que elija el navegador.
+ *
+ * El `src` del `<img>` (la WebP de móvil, el respaldo) se pone ya dentro del `<picture>`, no en el JSX: React crea el
+ * `<img>` suelto, le pone sus atributos y después lo mete en el `<picture>`. Chromium espera a ese momento para
+ * elegir (lo que pide el estándar), pero WebKit pide el `src` en cuanto lo recibe, así que en escritorio bajaba
+ * también la foto de móvil. Sin `src` hasta estar dentro, cada navegador pide solo la que elige.
+ */
 function Still({ chapter, visible, onLoad }: StillProps): ReactNode {
   const { desktop, handheld } = STILL_SOURCES[chapter];
+  const image = useRef<HTMLImageElement>(null);
+  useLayoutEffect(() => {
+    if (image.current !== null) image.current.src = handheld.webp;
+  }, [handheld.webp]);
   return (
     <picture>
       <source media={DESKTOP_STILL_QUERY} type="image/avif" srcSet={desktop.avif} />
       <source media={DESKTOP_STILL_QUERY} type="image/webp" srcSet={desktop.webp} />
       <source type="image/avif" srcSet={handheld.avif} />
       <img
+        ref={image}
         className={styles.still}
-        src={handheld.webp}
         alt=""
         decoding="async"
         fetchPriority="low"

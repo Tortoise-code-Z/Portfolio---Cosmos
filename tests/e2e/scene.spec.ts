@@ -745,9 +745,11 @@ test.describe('without WebGL', () => {
       window.scrollTo(0, 0);
     });
     await expect.poll(() => shownStills(page)).toEqual([]);
-    // Solo las de los capítulos por los que ha pasado: Habilidades y Proyectos (y los que cruzó el scroll).
-    expect(requests.length).toBeGreaterThanOrEqual(2);
-    expect(requests.every((url) => url.includes('scene-still-desktop-'))).toBe(true);
+    // Solo las de escritorio de los capítulos por los que ha pasado: Habilidades y Proyectos (y los que cruzó el
+    // scroll); ninguna de móvil (WebKit pedía el respaldo del `<img>` si lo recibía antes de estar en el `<picture>`).
+    const requested = requests.map((url) => /scene-still-([a-z]+-\d)/.exec(url)?.[1] ?? url);
+    expect(requested).toEqual(expect.arrayContaining(['desktop-2', 'desktop-3']));
+    expect(requested.filter((name) => !name.startsWith('desktop-'))).toEqual([]);
     expect(errors).toEqual([]);
   });
 
@@ -755,12 +757,14 @@ test.describe('without WebGL', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
+    const requests = stillRequests(page);
     await page.goto('/#contact');
     const earth = stillOf(page, 4);
     await expect(earth).toHaveAttribute('data-visible', 'true');
     expect(await earth.evaluate((image: HTMLImageElement) => image.currentSrc)).toMatch(
       /scene-still-handheld-4-/,
     );
+    expect(requests.filter((url) => !url.includes('scene-still-handheld-'))).toEqual([]);
     const [box, frame] = await Promise.all([
       earth.boundingBox(),
       page.locator('[data-scene-stills]').boundingBox(),
