@@ -57,8 +57,8 @@ function isStillChapter(chapter: number): chapter is StillChapter {
 
 /**
  * Las fotos fijas de la escena en el modo sin WebGL (ADR-029; docs/02-experiencia/estados-y-accesibilidad.md →
- * «Sin WebGL»): solo en el viaje (la ruta las pinta) y solo con el nivel `off`. Sin escena, nada: ni el DOM ni las
- * descargas.
+ * «Sin WebGL»): solo en el viaje (la ruta las pinta) y solo con el nivel `off`. Con escena, o mientras se decide,
+ * nada: ni el DOM ni las descargas.
  */
 export function SceneStills(): ReactNode {
   const level = useUiStore(selectSceneLevel);
@@ -112,8 +112,9 @@ interface StillProps {
  *
  * El `src` del `<img>` (la WebP de móvil, el respaldo) se pone ya dentro del `<picture>`, no en el JSX: React crea el
  * `<img>` suelto, le pone sus atributos y después lo mete en el `<picture>`. Chromium espera a ese momento para
- * elegir (lo que pide el estándar), pero WebKit pide el `src` en cuanto lo recibe, así que en escritorio bajaba
- * también la foto de móvil. Sin `src` hasta estar dentro, cada navegador pide solo la que elige.
+ * elegir (lo que pide el estándar); WebKit, en el CI, pidió también la foto de móvil en escritorio, y la causa
+ * deducida es que pide el `src` en cuanto lo recibe. Sin `src` hasta estar dentro, cada navegador pide solo la que
+ * elige (lo vigila el e2e de escritorio sin WebGL, también en WebKit: ninguna foto de móvil pedida).
  */
 function Still({ chapter, visible, onLoad }: StillProps): ReactNode {
   const { desktop, handheld } = STILL_SOURCES[chapter];

@@ -248,6 +248,23 @@ test.describe('build budgets', () => {
     expect(over).toEqual([]);
   });
 
+  test('the scene stills reach the build as files, not inlined in the JS', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
+    // Vite mete en base64 los archivos de menos de 4 KB (`assetsInlineLimit`): una foto que bajara de ahí iría dentro
+    // del JS del viaje y la descargaría todo el mundo, con escena o sin ella.
+    const scripts = readdirSync(ASSETS_DIR)
+      .filter((name) => name.endsWith('.js'))
+      .map((name) => readFileSync(join(ASSETS_DIR, name), 'utf8'));
+    const named = new Set(
+      scripts.flatMap((code) =>
+        Array.from(code.matchAll(/\/assets\/scene-still-[\w-]+\.(?:avif|webp)/g), ([url]) => url),
+      ),
+    );
+    expect(named.size).toBe(STILL_CHAPTERS.length * Object.keys(STILL_FRAMES).length * 2);
+    for (const url of named) expect(statSync(join(CLIENT_DIR, url)).isFile()).toBe(true);
+    expect(scripts.some((code) => /data:image\/(?:avif|webp)/.test(code))).toBe(false);
+  });
+
   test('the scene stills show the current scene (npm run stills after changing shapes, shaders or camera)', () => {
     test.skip(
       test.info().project.name !== 'chromium',

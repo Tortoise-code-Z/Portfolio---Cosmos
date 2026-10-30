@@ -1,6 +1,6 @@
 {
   "include": ["**/*.ts", "**/*.tsx", ".react-router/types/**/*"],
-  "exclude": ["node_modules", "build", "coverage", "playwright-report", "test-results"],
+  "exclude": ["node_modules", "build", "coverage", "playwright-report", "test-results", "_claude"],
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["DOM", "DOM.Iterable", "ES2023"],

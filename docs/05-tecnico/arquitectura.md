@@ -86,8 +86,10 @@ cosmos-portfolio/
 │  │  └─ math/                  ← clamp, smoothstep, lerp, damp (el amortiguado de `m`; después, easing)
 │  ├─ stores/                   ← uiStore (React) · sceneStore (mutable, sin re-render)
 │  ├─ styles/                   ← tokens.css, global.css, fonts.css
-│  └─ assets/projects/<slug>/   ← capturas originales `NN-<nombre>.png` (vite-imagetools genera las variantes
-│                                  con los presets `?project` y `?share` de vite.config.ts; ADR-023)
+│  ├─ assets/projects/<slug>/   ← capturas originales `NN-<nombre>.png` (vite-imagetools genera las variantes
+│  │                               con los presets `?project` y `?share` de vite.config.ts; ADR-023)
+│  └─ assets/scene-stills/      ← fotos fijas del modo sin WebGL, `{avif,webp}/` y su huella `stills.json`
+│                                  (las saca `npm run stills`; ADR-029)
 ├─ public/                      ← favicon.svg, apple-touch-icon.png, og/, cv/ (robots.txt y sitemap.xml
 │                                  se generan en el build)
 ├─ tests/
@@ -96,9 +98,9 @@ cosmos-portfolio/
 │  ├─ visual/                   ← Playwright: capturas por capítulo y tamaño (referencias en __screenshots__/)
 │  └─ stills/                   ← Playwright: saca las fotos fijas del modo sin WebGL (`npm run stills`) y su
 │                                 huella (fingerprint.ts)
-├─ scripts/                     ← lo que corre en Docker (calidad.md): playwrightImage.ts (lanza la imagen),
-│                                 visual.ts y stills.ts, y dentro prepare-in-docker.sh, visual-in-docker.sh y
-│                                 stills-in-docker.sh
+├─ scripts/                     ← lo que va en Docker (calidad.md): en el equipo, visual.ts y stills.ts lanzan la
+│                                 imagen (playwrightImage.ts); dentro corren prepare-in-docker.sh,
+│                                 visual-in-docker.sh y stills-in-docker.sh
 ├─ docs/                        ← esta documentación
 ├─ .github/workflows/ci.yml
 └─ (configs) react-router.config.ts · vite.config.ts · vitest.config.ts · playwright.config.ts · playwright.visual.config.ts · playwright.stills.config.ts ·
@@ -136,7 +138,7 @@ El diagrama es orientativo; manda la tabla.
 | `lib` | `content/types` (tipos y constantes de idioma) y `content/texts` (para `useT`) (ADR-017) | Los datos de `content` (perfil, proyectos, skills: le llegan por parámetro), `stores`, `ui`, `features`, `scene`, `routes`, Three |
 | `stores` | `lib`, `content` | `ui`, `features`, `scene`, `routes`, Three |
 | `ui` | `lib` | `stores`, `features`, `scene`, `routes`, `content` (recibe datos por props), Three |
-| `features` | `ui`, `lib`, `stores`, `content` | `three`, `@react-three/*`, `scene` (salvo el punto de montaje diferido), `routes` |
+| `features` | `ui`, `lib`, `stores`, `content` y, solo en `scene-mount/SceneStills`, las fotos fijas de `src/assets/scene-stills/` (ADR-029) | `three`, `@react-three/*`, `scene` (salvo el punto de montaje diferido), `routes` |
 | `scene` | `lib`, `stores`, `content` (solo ids y orden) | `features`, `ui`, `routes` |
 | `scene/{shapes,math,config,worker}` (código puro: va en el worker) | `lib`, `content/types` (los datos, por parámetro; sus tests sí usan el contenido real) y los módulos de `scene/` fuera de `IMPURE_SCENE_MODULES` (hoy `pointer`, `frameLoop`, `sceneClock`, `fpsMeter`, `shaders`; `math/camera` usa el tipo de `scene/pointer`) | Three, React, Zustand, `stores`, `features`, `ui`, `routes`, los módulos de la escena con Three, React o un store, y `contextLoss` (`IMPURE_SCENE_MODULES` de `eslint.config.js`), los datos de `content` y cualquier `import()` |
 | `routes` (y `root.tsx`) | todo lo anterior menos la escena | `scene`, `three`, `@react-three/*` (la escena solo llega por `SceneMount`) |
@@ -207,7 +209,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
 | `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); después, grupo de skills activo y proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
-| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028), y desde F4 carga y peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget` y deja su `m` suavizada en el `SceneFrame` que leen los `useFrame`; el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
+| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028), y desde F4 carga y peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget` y deja su `m` suavizada en el `SceneFrame` que leen los `useFrame`; el HUD por `getState()`/suscripción, **sin re-render**; el raíl, el idioma y las fotos fijas del modo sin WebGL eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
 ningún store: se guarda en `localStorage` (`lib/storage`), la lee solo `LanguageNotice` y la escriben el aviso y
@@ -225,7 +227,8 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
    `M_SMOOTHING`; en su primer frame arranca en `mTarget`), que deja en el `SceneFrame` compartido; los `useFrame`
    de cada pieza (uniforms, cámara y, en F4, etiquetas) la leen de ahí (ADR-028). `sceneStore.m` sigue siendo
    `mTarget`. Con la página oculta o la misión rápida abierta, el bucle se pausa (`scene/pause`).
-4. El raíl y el idioma eligen `round(m)` (`selectActiveChapter`); el HUD se suscribe y solo toca el DOM cuando
+4. El raíl, el idioma y las fotos fijas (sin WebGL) eligen `round(m)` (`selectActiveChapter`); el HUD se suscribe y
+   solo toca el DOM cuando
    cambia su texto (cambios discretos, no por frame).
 
 ## Carga de la escena

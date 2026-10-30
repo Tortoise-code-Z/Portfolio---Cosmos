@@ -187,7 +187,7 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 
 | Token | Valor | Capa |
 |---|---|---|
-| `--z-scene` | 0 | Lienzo WebGL (y, sin WebGL, el fondo `--gradient-space`) |
+| `--z-scene` | 0 | Lienzo WebGL (y, sin WebGL, el fondo `--gradient-space` y, en el viaje, las fotos fijas de la escena encima) |
 | `--z-glow` | 1 | Halo CSS de la singularidad (dentro de `main`: por debajo del texto del hero y por encima del lienzo, también con escena). Su valor cuenta **dentro de `main`**, no frente a `--z-flash` y `--z-labels`, que irán fuera de `main`: leído por números, el orden de esta tabla no es el real. El orden halo / destello / etiquetas se decide con la detonación (F4.1) |
 | `--z-flash` | 3 | Destello |
 | `--z-labels` | 4 | Etiquetas y pins proyectados |

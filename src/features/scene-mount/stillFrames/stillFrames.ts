@@ -38,8 +38,9 @@ export type StillFrameName = keyof typeof STILL_FRAMES;
 
 /**
  * Cuándo se usa la foto de escritorio: la misma condición que aparta la escena para los paneles
- * (`WIDE_LAYOUT_QUERY` de `scene/config/sceneConfig`, que `features` no puede importar; lo vigila
- * `scene/math/camera/camera.test.ts`).
+ * (`WIDE_LAYOUT_QUERY` de `scene/config/sceneConfig`, que `features` no puede importar, ni `scene` esta). Lo vigilan
+ * dos tests a través del CSS de las fotos: `stillFrames.test.ts` exige ahí `@media ${DESKTOP_STILL_QUERY}` y
+ * `scene/math/camera/camera.test.ts`, `@media ${WIDE_LAYOUT_QUERY}`.
  */
 export const DESKTOP_STILL_QUERY = '(width >= 900px)';
 

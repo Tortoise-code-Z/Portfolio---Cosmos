@@ -22,7 +22,7 @@
 | `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Entradas y vuelos (salida exponencial) |
 | `--ease-in-out` | `cubic-bezier(0.65, 0, 0.35, 1)` | Fundidos simétricos |
 | `--dur-fade-base` | = `--dur-base` | Fundidos de opacidad de duración base |
-| `--dur-fade-slow` | = `--dur-slow` | Fundidos de opacidad lentos: entrada del lienzo (y del fondo sin WebGL), avisos, diálogos |
+| `--dur-fade-slow` | = `--dur-slow` | Fundidos de opacidad lentos: entrada del lienzo (y del fondo sin WebGL), las fotos fijas sin WebGL al cambiar de capítulo, avisos, diálogos |
 
 Con `prefers-reduced-motion: reduce`, las duraciones de la interfaz pasan a 0 ms, salvo los fundidos de
 opacidad, que se quedan en 150 ms. Se resuelve en `tokens.css`: `--dur-fast`, `--dur-base`, `--dur-slow` y
@@ -47,6 +47,7 @@ ese evento para terminar de cerrarse se quedaría colgado con movimiento reducid
 | Giro de nebulosa / galaxia / Tierra | 0,018 / 0,035 / 0,05 rad/s | Escena |
 | Nado de la tortuga | aletas 1,3 rad/s; balanceo 0,7 rad/s; giro 0,25 rad/s | Escena |
 | Entrada del lienzo o del fondo sin WebGL | 400 ms (`--dur-fade-slow`; 150 ms con movimiento reducido) | Carga |
+| Foto fija sin WebGL al cambiar de capítulo | 400 ms (`--dur-fade-slow`; 150 ms con movimiento reducido), cuando ha llegado; la que sale y la que entra se suman como luz (`plus-lighter`) | Viaje sin WebGL |
 
 ## Coreografía del Big Bang
 

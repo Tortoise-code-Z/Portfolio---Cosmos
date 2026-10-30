@@ -12,7 +12,7 @@
 | Node.js | **24.22.0** (LTS «Krypton», en soporte activo) | LTS vigente hoy. Node 26 pasa a LTS el 28-10-2026: se evaluará subir tras la v1 (ADR propio) | Instalador oficial x64 o `fnm`; versión exacta en `.nvmrc`; `engines.node` = `24.x` (ADR-013) |
 | npm | el incluido en Node 24.22.0 | Sin gestores extra: menos piezas | ✔ |
 | Git | ≥ 2.45 (Git for Windows) | Control de versiones; Husky usa sus hooks | ✔ con `core.autocrlf=false` y `.gitattributes` |
-| Docker Desktop | estable vigente | Solo para generar capturas de regresión visual idénticas a CI | ✔ con WSL 2 |
+| Docker Desktop | estable vigente | Solo para generar, como en el CI, las capturas de regresión visual (`npm run visual`) y las fotos fijas del modo sin WebGL (`npm run stills`) | ✔ con WSL 2 |
 
 ## Navegadores soportados (ADR-016)
 
@@ -56,7 +56,7 @@ comentarios), Tailwind (decidido CSS Modules).
 | `vite` | 8.3.4 | Bundler (Rolldown) y servidor de desarrollo |
 | `typescript` | **6.0.3** | Tipado estricto. **No 7.x**: `typescript-eslint` aún no lo soporta (pide `< 6.1`) |
 | `vite-imagetools` | 12.0.1 | AVIF/WebP y `srcset` en build (usa `sharp`, con binarios para win32-x64); presets `?project` y `?share` en `vite.config.ts` (ADR-023) |
-| `sharp` | 0.35.5 | Codifica las fotos fijas del modo sin WebGL (`npm run stills`, ADR-029). La misma versión que trae `vite-imagetools`: declarada aparte porque la importa el script |
+| `sharp` | 0.35.5 | Codifica las fotos fijas del modo sin WebGL (`npm run stills`, ADR-029). La misma versión que trae `vite-imagetools`: declarada aparte porque la importa `tests/stills/stills.spec.ts`. Al subir `vite-imagetools`, subirla a la versión que traiga |
 | `@types/react` · `@types/react-dom` | 19.3.0 | Tipos |
 | `@types/three` | 0.186.0 | Tipos de Three.js |
 | `@types/node` | 24.19.2 | Tipos alineados con Node 24 |

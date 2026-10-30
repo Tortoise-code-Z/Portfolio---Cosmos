@@ -12,7 +12,7 @@ import {
   stillFileName,
   type StillFrameName,
 } from '../../src/features/scene-mount/stillFrames/stillFrames.ts';
-import { presentWebGLAsHardware } from '../e2e/support/helpers.ts';
+import { presentCapableMachine } from '../e2e/support/helpers.ts';
 import { stillsFingerprint } from './fingerprint.ts';
 
 /**
@@ -20,8 +20,9 @@ import { stillsFingerprint } from './fingerprint.ts';
  * Playwright (como las capturas). Para cada encuadre de `STILL_FRAMES` y cada capítulo con foto, entra por su ancla
  * (la escena arranca en su `m`, ADR-028) con movimiento reducido (quieta), espera a las partículas pintadas y
  * fotografía solo el lienzo, sobre negro (`--color-void` a `#000`: en el sitio se funde con `screen`). Después la
- * codifica en AVIF y WebP en `src/assets/scene-stills/` (una carpeta por formato) y deja la huella de lo que se ve en `stills.json`
- * (`fingerprint.ts`). No es un test: no compara nada (lo vigilan los e2e y las capturas del modo sin WebGL).
+ * codifica en AVIF y WebP en `src/assets/scene-stills/` (una carpeta por formato) y deja la huella de lo que se ve
+ * en `stills.json` (`fingerprint.ts`), solo si en esta pasada se han rehecho todas. No es un test: no compara nada
+ * (lo vigilan los e2e y las capturas del modo sin WebGL).
  */
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
@@ -31,15 +32,18 @@ const PARTICLES_PAINTED = '[data-particles="painted"]:has(canvas)';
 /**
  * Calidad de cada formato (sharp). Las partículas son puntos de color sobre negro: AVIF sin submuestreo de color
  * (con 4:2:0 los puntos pierden el tono). Medidas en F3.9: la mayor, la galaxia de escritorio (AVIF ~100 KB, WebP
- * ~165 KB), dentro de los 200 KB por variante de `budgets.spec.ts`.
+ * ~160 KB), dentro de los 200 KB por variante de `budgets.spec.ts`.
  */
 const ENCODING = {
   avif: { quality: 45, chromaSubsampling: '4:4:4', effort: 6 },
   webp: { quality: 70, effort: 6 },
 } as const;
 
-/** Las señales de una máquina con GPU: Alto en escritorio; Bajo en el encuadre de móvil (pantalla estrecha). */
-const CAPABLE_MACHINE = { hardwareConcurrency: 8, deviceMemory: 8 } as const;
+/**
+ * Las fotos escritas en esta pasada. La huella solo se escribe si están todas: con `npm run stills -- -g fingerprint`
+ * (o `--last-failed`) se quedaría la huella nueva con las fotos viejas.
+ */
+const written = new Set<string>();
 
 test.describe.configure({ mode: 'serial' });
 
@@ -55,16 +59,9 @@ for (const frameName of Object.keys(STILL_FRAMES) as StillFrameName[]) {
     });
 
     test('one per chapter, from the real scene', async ({ page }) => {
-      await presentWebGLAsHardware(page);
-      await page.addInitScript((machine) => {
-        Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', {
-          configurable: true,
-          get: () => machine.hardwareConcurrency,
-        });
-        Object.defineProperty(Navigator.prototype, 'deviceMemory', {
-          configurable: true,
-          get: () => machine.deviceMemory,
-        });
+      // Alto en escritorio; Bajo en el encuadre de móvil (pantalla estrecha), como un visitante con GPU.
+      await presentCapableMachine(page);
+      await page.addInitScript(() => {
         // Antes de montar la escena (que lee `--color-void` al crear el lienzo): fondo negro y sin barra de
         // scroll (el lienzo ocupa la ventana entera, con el aspecto exacto de `STILL_FRAMES`).
         document.addEventListener('DOMContentLoaded', () => {
@@ -73,7 +70,7 @@ for (const frameName of Object.keys(STILL_FRAMES) as StillFrameName[]) {
             ':root { --color-void: #000000 !important; scrollbar-width: none; } ::-webkit-scrollbar { display: none; }';
           document.head.append(style);
         });
-      }, CAPABLE_MACHINE);
+      });
       for (const format of ['avif', 'webp']) mkdirSync(join(OUT_DIR, format), { recursive: true });
 
       for (const chapter of STILL_CHAPTERS) {
@@ -104,12 +101,17 @@ for (const frameName of Object.keys(STILL_FRAMES) as StillFrameName[]) {
         await sharp(png)
           .webp(ENCODING.webp)
           .toFile(join(OUT_DIR, 'webp', `${name}.webp`));
+        written.add(name);
       }
     });
   });
 }
 
 test('the fingerprint of what the stills show', () => {
+  expect(
+    written.size,
+    'Every still must be taken in this run before writing the fingerprint (run `npm run stills` without filters)',
+  ).toBe(STILL_CHAPTERS.length * Object.keys(STILL_FRAMES).length);
   const manifest = {
     fingerprint: stillsFingerprint(ROOT),
     frames: STILL_FRAMES,

@@ -214,6 +214,6 @@ describe('the scene stills of the no-WebGL mode (features/scene-mount/SceneStill
   });
 
   it('switch to the desktop still at the same width as the camera moves aside (WIDE_LAYOUT_QUERY)', () => {
-    expect(stillsCss).toContain(`@media ${WIDE_LAYOUT_QUERY} and`);
+    expect(stillsCss).toContain(`@media ${WIDE_LAYOUT_QUERY} {`);
   });
 });

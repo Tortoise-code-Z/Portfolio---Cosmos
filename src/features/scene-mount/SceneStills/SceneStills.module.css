@@ -6,9 +6,12 @@
  *
  * Encaje (`stillFrames` → `STILL_FRAMES`; la regla del campo de visión, camara-y-encuadre.md): la cámara usa
  * perspectiva, así que la foto escalada cae donde caería la escena si se escala por el lado cuyo campo de visión es
- * fijo, centrada (`shiftX` va dentro de la foto). Por defecto, ajustada al alto: escritorio con aspecto ≥ 1,25
- * (campo vertical de 55°) y móvil por debajo de 461 / 844 (el tope de 100°). Las demás, abajo. Las cifras las
- * vigilan stillFrames.test.ts (con `STILL_FRAMES`) y camera.test.ts (con la cámara).
+ * fijo, centrada (`shiftX` va dentro de la foto). El aspecto lo mide la propia capa (`@container`), que ocupa lo
+ * mismo que el lienzo: no la ventana, que en un móvil cambia de alto al esconderse la barra de direcciones, ni la
+ * barra de scroll. Qué foto se usa lo decide el ancho de la ventana (`@media`), como el `<picture>`. Por defecto,
+ * ajustada al alto: escritorio con aspecto ≥ 1,25 (campo vertical de 55°) y móvil por debajo de 461 / 844 (el tope
+ * de 100°). Las demás, abajo. Las cifras las vigilan stillFrames.test.ts (con `STILL_FRAMES`, bloque a bloque) y
+ * camera.test.ts (con la cámara).
  */
 .stills {
   position: fixed;
@@ -17,6 +20,7 @@
   overflow: hidden;
   pointer-events: none;
   mix-blend-mode: screen;
+  container-type: size;
 }
 
 .still {
@@ -28,6 +32,8 @@
   height: 100%;
   translate: -50% -50%;
   opacity: 0;
+  /* Al cambiar de capítulo, la que sale y la que entra se suman como luz (como en el lienzo): sin bajón a medias. */
+  mix-blend-mode: plus-lighter;
   /* Con movimiento reducido, el fundido se queda en 150 ms (movimiento.md: los fundidos de opacidad no se quitan). */
   transition: opacity var(--dur-fade-slow) var(--ease-out);
 }
@@ -36,26 +42,33 @@
   opacity: 1;
 }
 
-/* Escritorio estrecho (< 1,25): conserva el campo horizontal que tendría a 1,25. La foto mide 2160 / 900. */
-@media (width >= 900px) and (aspect-ratio < 5 / 4) {
-  .still {
-    width: calc(100% * 2160 / 900 / 1.25);
-    height: auto;
+@media (width >= 900px) {
+  /* Escritorio estrecho (< 1,25): conserva el campo horizontal que tendría a 1,25. La foto mide 2160 / 900. */
+  @container (aspect-ratio < 5 / 4) {
+    .still {
+      width: calc(100% * 2160 / 900 / 1.25);
+      height: auto;
+    }
   }
 }
 
-/* Móvil y tableta entre el tope y 1,25: conservan el campo horizontal, el mismo que la foto (461 / 844). */
-@media (width < 900px) and (aspect-ratio > 461 / 844) and (aspect-ratio < 5 / 4) {
-  .still {
-    width: 100%;
-    height: auto;
+@media (width < 900px) {
+  /* Móvil y tableta entre el tope y 1,25: conservan el campo horizontal, el mismo que la foto (461 / 844). */
+  @container (aspect-ratio > 461 / 844) and (aspect-ratio < 5 / 4) {
+    .still {
+      width: 100%;
+      height: auto;
+    }
   }
-}
 
-/* Móvil apaisado (≥ 1,25): campo vertical de 55°; la foto tiene el del tope, 1,25 · 844 / 461 veces más alto. */
-@media (width < 900px) and (aspect-ratio >= 5 / 4) {
-  .still {
-    width: auto;
-    height: calc(100% * 1.25 * 844 / 461);
+  /*
+   * Móvil apaisado (≥ 1,25): campo vertical de 55°. La tangente del medio campo de la foto (la del tope) es
+   * 1,25 · 844 / 461 veces la de 55°, así que la foto va así de alta.
+   */
+  @container (aspect-ratio >= 5 / 4) {
+    .still {
+      width: auto;
+      height: calc(100% * 1.25 * 844 / 461);
+    }
   }
 }

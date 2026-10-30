@@ -7,7 +7,7 @@ import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/load
 import { isSoftwareRenderer } from '../../src/lib/device/webgl2/webgl2.ts';
 import {
   collectErrors,
-  presentWebGLAsHardware,
+  presentCapableMachine,
   presentWebGLAsRenderer,
   SCENE_READY,
 } from './support/helpers.ts';
@@ -187,6 +187,14 @@ function stillRequests(page: Page): string[] {
   return urls;
 }
 
+/** Una caja de `boundingBox()`. */
+interface Box {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
 /** La foto fija del capítulo `chapter` (`SceneStills`). */
 const stillOf = (page: Page, chapter: number) =>
   page.locator(`[data-scene-stills] img[data-chapter="${String(chapter)}"]`);
@@ -343,6 +351,20 @@ test.describe('the scene with WebGL', () => {
     await expect(noGlNotice(page)).toBeVisible({ timeout: CONTEXT_RESTORE_TIMEOUT_MS * 2 });
     await expect(sceneCanvas(page)).toHaveCount(0);
     await expect(page.locator('html')).toHaveClass(/\bno-gl\b/);
+  });
+
+  test('a scene lost mid-visit hands over to the still of the active chapter (ADR-029)', async ({
+    page,
+  }) => {
+    await page.goto('/#skills');
+    await expect(page.locator(SCENE_READY)).toBeAttached();
+    await expect(page.locator('[data-scene-stills]')).toHaveCount(0);
+    await sceneCanvas(page).evaluate((canvas) => {
+      const context = (canvas as HTMLCanvasElement).getContext('webgl2');
+      context?.getExtension('WEBGL_lose_context')?.loseContext();
+    });
+    await expect(noGlNotice(page)).toBeVisible({ timeout: CONTEXT_RESTORE_TIMEOUT_MS * 2 });
+    await expect(stillOf(page, 2)).toHaveAttribute('data-visible', 'true');
   });
 
   test('a WebGL context that comes back in time keeps the scene', async ({ page }) => {
@@ -518,23 +540,18 @@ test.describe('the scene with WebGL', () => {
     test.use({ sceneInLow: false });
 
     /**
-     * Arranca en Alto: la detección cree que hay GPU (`presentWebGLAsHardware`; en la imagen de Playwright,
-     * SwiftShader llevaría al modo sin WebGL) y hay 8 núcleos. Los fps bajos los pone el test, no la máquina: cada
-     * frame llega 50 ms tarde (~20 fps, por debajo de los 45 de escritorio también con GPU). El bucle de la escena
-     * lee `requestAnimationFrame` en cada frame, así que recoge el cambio. Este `describe` apaga el Bajo de
-     * `support/test.ts` (`sceneInLow: false`), así que también fija la memoria (8 GB): con la real, una máquina con
-     * 2 GB o menos arrancaría en Bajo y el test fallaría por otro motivo.
+     * Arranca en Alto: una máquina capaz (`presentCapableMachine`: GPU —en la imagen de Playwright, SwiftShader
+     * llevaría al modo sin WebGL—, 8 núcleos y 8 GB; con la memoria real, una máquina con 2 GB o menos arrancaría en
+     * Bajo y el test fallaría por otro motivo). Los fps bajos los pone el test, no la máquina: cada frame llega 50 ms
+     * tarde (~20 fps, por debajo de los 45 de escritorio también con GPU). El bucle de la escena lee
+     * `requestAnimationFrame` en cada frame, así que recoge el cambio. Este `describe` apaga el Bajo de
+     * `support/test.ts` (`sceneInLow: false`).
      */
     async function startHigh(page: Page, browserName: string): Promise<void> {
       test.skip(browserName !== 'chromium', 'Only Chromium is forced and slowed down here');
       await page.setViewportSize({ width: 1280, height: 720 });
-      await presentWebGLAsHardware(page);
+      await presentCapableMachine(page);
       await page.addInitScript(() => {
-        Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', { get: () => 8 });
-        Object.defineProperty(Navigator.prototype, 'deviceMemory', {
-          configurable: true,
-          get: () => 8,
-        });
         const SLOW_FRAME_MS = 50;
         window.requestAnimationFrame = (callback) =>
           window.setTimeout(() => {
@@ -814,6 +831,43 @@ test.describe('without WebGL', () => {
     ]);
     expect(box?.height).toBeCloseTo(frame?.height ?? 0, 0);
   });
+
+  // Las otras tres ramas del encaje (SceneStills.module.css), medidas sobre la capa (lo que mide su `@container`).
+  for (const { name, viewport, fit } of [
+    {
+      name: 'a narrow desktop window (< 1.25): the width of a 1.25 window',
+      viewport: { width: 1000, height: 1000 },
+      fit: (frame: Box) => ({ width: (frame.width * 2160) / 900 / 1.25 }),
+    },
+    {
+      name: 'a tablet in portrait (between the cap and 1.25): the width of the layer',
+      viewport: { width: 768, height: 1024 },
+      fit: (frame: Box) => ({ width: frame.width }),
+    },
+    {
+      name: 'a phone in landscape (≥ 1.25): taller by the ratio of the half-field tangents',
+      viewport: { width: 844, height: 390 },
+      fit: (frame: Box) => ({ height: (frame.height * 1.25 * 844) / 461 }),
+    },
+  ]) {
+    test(`fits the still on ${name}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.goto('/#skills');
+      const galaxy = stillOf(page, 2);
+      await expect(galaxy).toHaveAttribute('data-visible', 'true');
+      const [box, frame] = await Promise.all([
+        galaxy.boundingBox(),
+        page.locator('[data-scene-stills]').boundingBox(),
+      ]);
+      if (box === null || frame === null) throw new Error('The still or its layer has no box');
+      const expected = fit(frame);
+      if ('width' in expected) expect(box.width).toBeCloseTo(expected.width, 0);
+      if ('height' in expected) expect(box.height).toBeCloseTo(expected.height, 0);
+      // Centrada en la capa.
+      expect(box.x + box.width / 2).toBeCloseTo(frame.x + frame.width / 2, 0);
+      expect(box.y + box.height / 2).toBeCloseTo(frame.y + frame.height / 2, 0);
+    });
+  }
 
   test('a project page keeps the backdrop alone: no stills', async ({ page }) => {
     const requests = stillRequests(page);
