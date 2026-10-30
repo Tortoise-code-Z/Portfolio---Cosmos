@@ -117,7 +117,8 @@ táctil), a densidad 1, y una del modo sin WebGL (Skills, con su foto fija sobre
 ### Mediciones
 
 Hasta F6, Lighthouse se pasa a mano al cerrar cada fase (`npx lighthouse@<versión exacta>`, perfil móvil por
-defecto, sobre `npm run build` + `npm run preview`) y se apunta aquí; en F6 lo sustituye Lighthouse CI.
+defecto, sobre `npm run build` + `npm run preview`) y se apunta aquí; en F6 lo sustituye Lighthouse CI. En local se
+hacen tres pasadas por página y se apunta la mediana: la primera tras arrancar `npm run preview` sale en frío.
 
 **Cierre de F2 (`v0.1.0`) · Lighthouse 13.5.0 · móvil simulado · build local**
 

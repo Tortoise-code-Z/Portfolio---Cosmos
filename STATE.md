@@ -3,50 +3,37 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F3 · pasos 8 y 9 hechos** (`main` en `37a1045`: F3.8 en PR #73, F3.9 en PR #74, AUD-F3-8
-corregida en PR #75 y AUD-F3-9 en PR #76) · siguiente: la versión 0.2.0 (mediciones tras desplegar), la Mesa de
-cierre AUD-F3-CIERRE y la etiqueta `v0.2.0`.
+**Dónde estamos:** **F3 cerrada en código · versión 0.2.0 en `main`** (`0a951ea`, PR #78) · AUD-F3-CIERRE
+lanzada a la Mesa (base `f6f6b2f` · hasta `0a951ea`) · siguiente: decidir su entrega, corregir y etiquetar `v0.2.0`.
 
-_Última actualización: 2026-10-30 (**CIERRE DE SESIÓN · 27**) · ADR-029 hecho entero: el WebGL pintado por software
-apaga la escena (detección por el `renderer`) y el modo sin WebGL del viaje enseña fotos fijas de la escena real.
-Las dos auditorías, corregidas. 1192 unitarios y 212 e2e en Chromium._
+_Última actualización: 2026-10-30 (**CIERRE DE SESIÓN · 28**) · versión 0.2.0 con las mediciones del cierre de F3:
+PageSpeed 100 en las cuatro notas (móvil y escritorio) y `npm audit` limpio. 1192 unitarios en verde._
 
-**Hecho esta sesión** (vivas S27 en `_claude/cadena/hecho/2026-10-30/decisiones-vivas-S27.md`):
-1. **F3.8 · por software → sin escena** (PR #73, `72e7c0b`; vivas #1–#8): `detectWebGL2` lee el `renderer`
-   (`RENDERER`; si es el genérico, `WEBGL_debug_renderer_info`) con `isSoftwareRenderer`; «software» → modo sin
-   WebGL con su aviso, sin descargar Three.js. Los e2e y las capturas se presentan como GPU con poca memoria
-   (`forceLowScene`, Bajo en los tres motores). Duda escrita: `_claude/dudas/2026-10-29-detectar-gpu-y-apagar-3d.md`.
-2. **F3.9 · fotos fijas** (PR #74, `6c60d92`; vivas #10–#21): `npm run stills` (Docker) saca la escena real de los
-   capítulos 1–4 en dos encuadres (escritorio en Alto a densidad 2, móvil en Bajo) sobre negro, AVIF + WebP en
-   `src/assets/scene-stills/`, con una huella que vigila `budgets.spec.ts`. `SceneStills` (solo en el viaje y sin
-   WebGL) pinta la del capítulo activo fundida con `screen`, encajada con la regla del campo de visión. Incluye el
-   arreglo de WebKit (el `src` del `<img>` ya dentro del `<picture>`), `sharp` como devDependency y ESLint/Prettier
-   ignorando el buzón.
-3. **AUD-F3-8 corregida** (PR #75, `452076b`; vivas #23–#26): e2e del camino real de PageSpeed (Chromium sin
-   disfraz, el nombre por la extensión), nombres del disfraz en `tests/e2e/support/renderers.ts`, `gpuProbe`,
-   `startHigh` con la memoria fija, «si leer el nombre lanza, sin WebGL» escrito, docs.
-4. **AUD-F3-9 corregida** (PR #76, `37a1045`; vivas #28–#30): huella con `useSceneShapes`, `lib/math` y las placas;
-   encaje por `@container` en la capa (la barra de direcciones del móvil no lo mueve) y probado bloque a bloque y en
-   cinco tamaños; fundido con `plus-lighter`; la huella exige las 16 fotos de la pasada; las fotos salen al build
-   como archivos; `tsconfig` ignora el buzón; `presentCapableMachine`; reglas §13, «hecho», roadmap y docs.
+**Hecho esta sesión** (vivas S28 en `_claude/cadena/hecho/2026-10-30/decisiones-vivas-S28.md`):
+1. **Versión 0.2.0** (PR #78, `0a951ea`; vivas #1–#5): `package.json` y `package-lock.json` a `0.2.0`;
+   `calidad.md` → «Mediciones», tabla «Cierre de F3 (`v0.2.0`)»: PageSpeed (Lighthouse 13.6.0) en producción,
+   `/` y `/projects/cosmos` 100/100/100/100 en móvil (LCP 0,9 y 0,8 s, TBT 0) y en escritorio; build local
+   (contenedor sin GPU, mediana de 3 pasadas) 95–100 de Performance y 100 en lo demás (404: SEO 54, `noindex`).
+   La escena se apaga sin GPU (ADR-029): ni Three.js ni fotos fijas en la carga. `npm audit`: 0 (también
+   `--omit=dev`). Línea en el roadmap (F3: versión medida; faltan auditoría y etiqueta).
+2. **AUD-F3-CIERRE lanzada** (vivas #6): transversal sobre toda F3 y línea a línea F3.7 (`d5ee0a9`) y la versión
+   (`0a951ea`), los dos commits sin auditoría propia. Entrega en `_claude/cadena/aud-f3-cierre/auditoria.md`.
 
 **Incidencias y lecciones:**
-- **WebKit pedía la foto de móvil en escritorio** (solo en el CI): React pone el `src` del `<img>` antes de meterlo en
-  el `<picture>`. Con `<picture>` creado por React, el `src` se pone en un `useLayoutEffect`.
-- **El `npm run check` de Víctor ve el buzón** (en el contenedor no viaja): ESLint falló con las herramientas `.js` de
-  `hecho/`. ESLint, Prettier y `tsconfig` ignoran `_claude` (sin barra: el guardián de citas prohíbe la ruta con
-  barra en las configs).
-- **Las capas de ESLint valen también para los tests:** `scene` y `features` no se importan entre sí ni en un test
-  (por eso `DESKTOP_STILL_QUERY` y `WIDE_LAYOUT_QUERY` se atan a través del CSS, con dos tests).
-- **Fotos del contenedor = fotos de Docker:** el Chromium del contenedor (enlazado a la revisión pedida) da las
-  mismas fotos, byte a byte, que la imagen de Playwright. WebKit no se puede instalar en el contenedor (la descarga
-  falla): se prueba en el CI o en el equipo de Víctor (`npx playwright test --project=webkit`).
-- **Llevar archivos al equipo:** se extraen con Python escribiendo encima (sin borrar: `tar` desenlazaría y el
-  borrado está bloqueado), con `md5sum -c` de comprobación.
-- **Método del contenedor** (sin cambios): Node 24 con `npm pack node-linux-x64@<versión>`, navegadores enlazados,
-  árbol por `tar` desde el equipo con `.git`; tras un PR, `git stash -u` en la copia, nunca commit ni push desde ahí.
+- **Lighthouse en frío:** la primera pasada tras arrancar `npm run preview` sale peor (`/` 80, TBT 700 ms). Se hacen
+  tres pasadas por página y se apunta la mediana (ya escrito en `calidad.md` → «Mediciones»).
+- **LCP y versión de Lighthouse:** 13.6.0 da 0,8 s en `/` y 13.5.0 da 2,4–2,7 s con el mismo build y el mismo
+  elemento (el párrafo del hero). Al comparar con F2, mirar la versión antes que el código.
+- **PageSpeed sin escena:** el 2026-10-29 daba 88 y 83 con la escena por SwiftShader; ahora 100 (F3.8 funciona
+  también en el Lighthouse de Google). Trae una categoría nueva, «Navegación agéntica» (2/2).
+- **Contenedor:** el `playwright` del repo pide Chromium 1248 y en el contenedor solo está el 1243; para Lighthouse
+  basta con `CHROME_PATH` al 1243. El aviso del contenedor de «cambios sin commit» se resuelve con `git stash -u` en
+  la copia, nunca con commit ni push desde ahí.
 
 **Deuda anotada:**
+- **Mediciones (desde F3.8):** Lighthouse y PageSpeed corren sin GPU y miden el modo sin WebGL (con fotos fijas):
+  el rendimiento de la escena solo lo miden los fps (`calidad.md` → «F3.6c · fps de la escena»). En F6, con
+  Lighthouse CI, decidir si se mide también con GPU; falta el móvil real (≥ 30 fps en Bajo).
 - **Vitest:** avisa «jsdom was created 121 times · ~123 s» (tiempo sumado entre hilos). No activar `isolate: false` ni
   `vmThreads` (quitan aislamiento: stores, globales y mocks). Valorar pasar a entorno `node` los tests sin DOM (lógica
   pura de `lib`, `content`; hoy 8 de 121), midiendo antes y después. Tarea pequeña aparte.
@@ -171,20 +158,20 @@ Las dos auditorías, corregidas. 1192 unitarios y 212 e2e en Chromium._
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
 
 **Siguiente paso (próxima sesión, conversación nueva):**
-1. Arrancar con `session-start` (y la skill `taller`). Cola: la versión 0.2.0; ninguna auditoría abierta.
-2. **Versión 0.2.0** (esquema → VB): desplegada `main`, repetir Lighthouse local y PageSpeed (`/` y
-   `/projects/cosmos`, lo pasa Víctor; se espera volver a cerca de lo medido sin escena) y `npm audit`, y
-   apuntarlo en `calidad.md` → «Mediciones»; PR con la versión.
-3. **Mesa AUD-F3-CIERRE** sobre toda F3, sus correcciones y la etiqueta `v0.2.0` sobre el último commit del
-   cierre (`git-y-despliegue.md`).
+1. Arrancar con `session-start` (y la skill `taller`). Cola: AUD-F3-CIERRE `[lanzado]`.
+2. Leer `_claude/cadena/aud-f3-cierre/auditoria.md` (sello: commit `0a951ea` + vivas S28 hasta #5), contrastar con
+   `main` y que Víctor elija qué se corrige → rama `fix/aud-f3-cierre`, su PR.
+3. **Etiqueta `v0.2.0`** sobre el último commit del cierre en `main` (`git-y-despliegue.md`); Claude da los
+   comandos (`git tag -a v0.2.0 <hash> -m …` y `git push origin v0.2.0`). Después, F4.1 (singularidad).
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»), CV en PDF EN/ES.
 **Limpieza manual del usuario:**
 - Ramas locales ya fusionadas (todas menos `main`): las de la lista del cierre 25 (en `docs/_historial/estado/2026-10.md`) que sigan, más
   `docs/session-close-2026-10-28`, `fix/aud-f3-6c`, `feat/f3-7-cosmos-entry`, `docs/session-close-2026-10-29`,
-  `feat/f3-8-software-webgl`, `feat/f3-9-scene-stills`, `fix/aud-f3-8`, `fix/aud-f3-9` y la de este cierre,
-  `docs/session-close-2026-10-30`, cuando se fusione (`git branch -D <rama>`: con squash, `-d` no las reconoce
+  `feat/f3-8-software-webgl`, `feat/f3-9-scene-stills`, `fix/aud-f3-8`, `fix/aud-f3-9`,
+  `docs/session-close-2026-10-30`, `chore/release-0.2.0` y la de este cierre, `docs/session-close-2026-10-30-2`,
+  cuando se fusione (`git branch -D <rama>`: con squash, `-d` no las reconoce
   como fusionadas). Para verlas: `git branch`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js` ni
