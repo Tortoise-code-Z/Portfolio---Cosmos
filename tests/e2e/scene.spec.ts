@@ -4,13 +4,14 @@ import { test } from './support/test.ts';
 
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../../src/scene/contextLoss/contextLoss.ts';
 import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
+import { isSoftwareRenderer } from '../../src/lib/device/webgl2/webgl2.ts';
 import {
   collectErrors,
   presentWebGLAsHardware,
   presentWebGLAsRenderer,
   SCENE_READY,
-  SWIFTSHADER_RENDERER,
 } from './support/helpers.ts';
+import { SWIFTSHADER_RENDERER } from './support/renderers.ts';
 
 /**
  * Carga de la escena y modo sin WebGL (docs/05-tecnico/arquitectura.md → «Carga de la escena»,
@@ -521,7 +522,8 @@ test.describe('the scene with WebGL', () => {
      * SwiftShader llevaría al modo sin WebGL) y hay 8 núcleos. Los fps bajos los pone el test, no la máquina: cada
      * frame llega 50 ms tarde (~20 fps, por debajo de los 45 de escritorio también con GPU). El bucle de la escena
      * lee `requestAnimationFrame` en cada frame, así que recoge el cambio. Este `describe` apaga el Bajo de
-     * `support/test.ts` (`sceneInLow: false`): no hay otra memoria ni otro `renderer` que pisar.
+     * `support/test.ts` (`sceneInLow: false`), así que también fija la memoria (8 GB): con la real, una máquina con
+     * 2 GB o menos arrancaría en Bajo y el test fallaría por otro motivo.
      */
     async function startHigh(page: Page, browserName: string): Promise<void> {
       test.skip(browserName !== 'chromium', 'Only Chromium is forced and slowed down here');
@@ -529,6 +531,10 @@ test.describe('the scene with WebGL', () => {
       await presentWebGLAsHardware(page);
       await page.addInitScript(() => {
         Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', { get: () => 8 });
+        Object.defineProperty(Navigator.prototype, 'deviceMemory', {
+          configurable: true,
+          get: () => 8,
+        });
         const SLOW_FRAME_MS = 50;
         window.requestAnimationFrame = (callback) =>
           window.setTimeout(() => {
@@ -639,10 +645,47 @@ test.describe('WebGL2 painted by software (ADR-029)', () => {
 
   test('goes to the no-WebGL mode with its notice, without downloading the scene', async ({
     page,
+    browserName,
   }) => {
     await page.goto('/');
-    test.skip(!(await browserHasWebGL2(page)), 'This browser has no WebGL2 here');
+    const hasWebGL2 = await browserHasWebGL2(page);
+    if (browserName === 'chromium') expect(hasWebGL2, 'Chromium must have WebGL2').toBe(true);
+    test.skip(!hasWebGL2, 'This browser has no WebGL2 here');
     await presentWebGLAsRenderer(page, SWIFTSHADER_RENDERER);
+    const errors = collectErrors(page);
+    const requests = sceneRequests(page);
+    await page.reload({ waitUntil: 'networkidle' });
+    await expect(noGlNotice(page)).toBeVisible();
+    await expect(page.locator('html')).toHaveClass(/\bno-gl\b/);
+    await expect(sceneCanvas(page)).toHaveCount(0);
+    expect(requests).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test('without any disguise, Chromium without a GPU (like PageSpeed) is caught by the debug extension', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== 'chromium', 'The real path of Chromium without a GPU');
+    await page.goto('/');
+    expect(await browserHasWebGL2(page), 'Chromium must have WebGL2').toBe(true);
+    // Los nombres de verdad, sin disfraz: `RENDERER` y el de `WEBGL_debug_renderer_info`.
+    const names = await page.evaluate(() => {
+      const gl = document.createElement('canvas').getContext('webgl2');
+      if (gl === null) return { renderer: null, unmasked: null };
+      const info = gl.getExtension('WEBGL_debug_renderer_info');
+      const renderer: unknown = gl.getParameter(gl.RENDERER);
+      const unmasked: unknown =
+        info === null ? null : gl.getParameter(info.UNMASKED_RENDERER_WEBGL);
+      return { renderer, unmasked };
+    });
+    // En una máquina con GPU no hay nada que probar aquí (el CI y PageSpeed no la tienen).
+    test.skip(
+      typeof names.unmasked !== 'string' || !isSoftwareRenderer(names.unmasked),
+      `This Chromium paints with a GPU (${String(names.unmasked)})`,
+    );
+    // El nombre llega escondido: la detección tiene que pasar por la extensión, como en PageSpeed.
+    expect(names.renderer).toBe('WebKit WebGL');
     const errors = collectErrors(page);
     const requests = sceneRequests(page);
     await page.reload({ waitUntil: 'networkidle' });

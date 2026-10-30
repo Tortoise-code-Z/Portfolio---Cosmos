@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  FAKE_GPU_RENDERER,
+  RENDERER_PARAMETER,
+  SWIFTSHADER_RENDERER,
+  UNMASKED_RENDERER_PARAMETER,
+} from '../../../../tests/e2e/support/renderers';
 import { detectWebGL2, isSoftwareRenderer } from './webgl2';
 
 afterEach(() => {
@@ -15,9 +21,9 @@ function stubGetContext(implementation: GetContext) {
     .mockImplementation(implementation as HTMLCanvasElement['getContext']);
 }
 
-/** Las constantes de WebGL que lee la detección (los números del estándar). */
-const RENDERER = 0x1f01;
-const UNMASKED_RENDERER_WEBGL = 0x9246;
+/** Las constantes de WebGL que lee la detección (los números del estándar, los mismos que el disfraz de los e2e). */
+const RENDERER = RENDERER_PARAMETER;
+const UNMASKED_RENDERER_WEBGL = UNMASKED_RENDERER_PARAMETER;
 
 interface FakeContextOptions {
   /** Lo que da `getParameter(RENDERER)`. Por defecto, el genérico de Chromium. */
@@ -51,9 +57,11 @@ function fakeContext({
 const withCaveat = (attributes?: WebGLContextAttributes): boolean =>
   attributes?.failIfMajorPerformanceCaveat === true;
 
-/** Nombres reales de `renderer` (los de Chromium, tal cual los da `WEBGL_debug_renderer_info`). */
-const SWIFTSHADER =
-  'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)';
+/**
+ * Nombres reales de `renderer` (los de Chromium, tal cual los da `WEBGL_debug_renderer_info`). El de SwiftShader es
+ * el mismo con el que se disfrazan los e2e de «por software» (`tests/e2e/support/renderers.ts`).
+ */
+const SWIFTSHADER = SWIFTSHADER_RENDERER;
 const NVIDIA =
   'ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 (0x00002503) Direct3D11 vs_5_0 ps_5_0, D3D11)';
 
@@ -81,6 +89,8 @@ describe('isSoftwareRenderer', () => {
     'Adreno (TM) 740',
     'Mali-G78 MC14',
     'Mesa Intel(R) UHD Graphics 620 (KBL GT2)',
+    // El inventado de los e2e que se presentan como GPU: si cayera en software, irían al modo sin WebGL.
+    FAKE_GPU_RENDERER,
   ])('%s → a graphics card', (renderer) => {
     expect(isSoftwareRenderer(renderer)).toBe(false);
   });
@@ -131,15 +141,19 @@ describe('detectWebGL2', () => {
     expect(detectWebGL2()).toBe('hardware');
   });
 
-  it('software: a context only without the caveat (painted by the CPU), and both are released', () => {
+  it('software: a context only without the caveat (painted by the CPU), released, without reading its name', () => {
     const loseContext = vi.fn();
+    const context = fakeContext({ unmasked: NVIDIA, loseContext });
     const getContext = stubGetContext((_kind, attributes) =>
-      withCaveat(attributes) ? null : fakeContext({ unmasked: NVIDIA, loseContext }),
+      withCaveat(attributes) ? null : context,
     );
     expect(detectWebGL2()).toBe('software');
     expect(getContext).toHaveBeenCalledTimes(2);
-    expect(getContext).toHaveBeenLastCalledWith('webgl2', undefined);
+    expect(getContext).toHaveBeenLastCalledWith('webgl2');
     expect(loseContext).toHaveBeenCalledTimes(1);
+    // Sin GPU usable el nombre ya no cambia nada: ni se lee ni se pide la extensión.
+    expect(context.getParameter).not.toHaveBeenCalled();
+    expect(context.getExtension).not.toHaveBeenCalledWith('WEBGL_debug_renderer_info');
   });
 
   it('a context without the extension to release it still counts', () => {
@@ -162,8 +176,8 @@ describe('detectWebGL2', () => {
     expect(consoleError).toHaveBeenCalledWith('[scene] WebGL2 detection failed', failure);
   });
 
-  it('none, and logs it, when reading the renderer throws, and the context is still released', () => {
-    const failure = new Error('context lost');
+  it('none, and logs it, when reading the renderer throws (Three.js would break too), still releasing it', () => {
+    const failure = new Error('getParameter blocked');
     const loseContext = vi.fn();
     const context = fakeContext({ loseContext });
     context.getParameter.mockImplementation(() => {

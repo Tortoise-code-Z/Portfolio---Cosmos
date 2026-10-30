@@ -255,10 +255,11 @@ export default defineConfig(
     languageOptions: { globals: { ...globals.node } },
   },
   {
-    // Los e2e usan el `test` de `tests/e2e/support/test.ts`: en Chromium arranca la escena en Bajo (calidad.md →
-    // «Pirámide de tests»). Con el de Playwright, un spec nuevo dependería del nivel que elija la máquina. El glob
-    // es el `testMatch` de `playwright.config.ts`, y se cierran las dos puertas del módulo (`@playwright/test`
-    // reexporta `playwright/test`) y el import por defecto, que también es `test`.
+    // Los e2e usan el `test` de `tests/e2e/support/test.ts`: en los tres motores, presentados como GPU con poca
+    // memoria, arranca la escena en Bajo (calidad.md → «Pirámide de tests»). Con el de Playwright, un spec nuevo
+    // dependería del nivel que elija la máquina. El glob es el `testMatch` de `playwright.config.ts`, y se cierran
+    // las dos puertas del módulo (`@playwright/test` reexporta `playwright/test`) y el import por defecto, que
+    // también es `test`.
     files: ['tests/e2e/**/*.spec.ts'],
     rules: {
       'no-restricted-imports': [
@@ -268,7 +269,7 @@ export default defineConfig(
             name,
             importNames: ['test', 'default'],
             message:
-              "Import `test` from './support/test.ts' (the scene starts in Low in Chromium).",
+              "Import `test` from './support/test.ts' (the scene starts in Low in every engine).",
           })),
         },
       ],

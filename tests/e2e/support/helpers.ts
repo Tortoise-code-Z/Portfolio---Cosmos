@@ -3,6 +3,7 @@ import type { BrowserContext, Page } from '@playwright/test';
 import { projectEntries } from '../../../src/content/projects/entries.ts';
 import type { ProjectEntry } from '../../../src/content/types.ts';
 import { LOW_MEMORY_GB } from '../../../src/lib/device/sceneLevel/sceneLevel.ts';
+import { FAKE_GPU_RENDERER, RENDERER_PARAMETER, UNMASKED_RENDERER_PARAMETER } from './renderers.ts';
 
 /**
  * Ayudas compartidas por los e2e (una sola copia: DEVELOPMENT_RULES.md §5, «sin duplicación»).
@@ -50,19 +51,6 @@ export async function settleScene(page: Page): Promise<void> {
 }
 
 /**
- * El `renderer` que dicen tener los navegadores de los tests que se presentan como GPU (`presentWebGLAsHardware`):
- * un nombre de ANGLE inventado, sin nada de los de software (`isSoftwareRenderer`).
- */
-export const FAKE_GPU_RENDERER = 'ANGLE (e2e, Fake GPU for the tests, Direct3D11)';
-
-/**
- * El `renderer` de Chromium sin GPU, tal cual (el de la imagen de Playwright y el de PageSpeed): para fingir WebGL
- * pintado por software (`presentWebGLAsRenderer`).
- */
-export const SWIFTSHADER_RENDERER =
-  'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)';
-
-/**
  * WebGL que dice pintar con `renderer` para la detección (`detectWebGL2`, ADR-029): `RENDERER` y
  * `UNMASKED_RENDERER_WEBGL` devuelven ese nombre y el contexto se da aunque se pida `failIfMajorPerformanceCaveat`
  * (como Chromium sin GPU). Solo cambia lo que se lee: se sigue pintando con lo que haya (SwiftShader en la imagen).
@@ -72,35 +60,36 @@ export async function presentWebGLAsRenderer(
   target: Page | BrowserContext,
   renderer: string,
 ): Promise<void> {
-  await target.addInitScript((name) => {
-    // eslint-disable-next-line @typescript-eslint/unbound-method -- se llama con `.call(this, …)`
-    const getContext = HTMLCanvasElement.prototype.getContext;
-    function withoutCaveat(
-      this: HTMLCanvasElement,
-      type: string,
-      attributes?: WebGLContextAttributes,
-    ): RenderingContext | null {
-      const rest = { ...attributes };
-      delete rest.failIfMajorPerformanceCaveat;
-      return getContext.call(this, type, rest);
-    }
-    HTMLCanvasElement.prototype.getContext = withoutCaveat as typeof getContext;
-    // `RENDERER` y `WEBGL_debug_renderer_info.UNMASKED_RENDERER_WEBGL` (los números del estándar).
-    const RENDERER_PARAMETERS: readonly number[] = [0x1f01, 0x9246];
-    const prototypes = [
-      window.WebGLRenderingContext as typeof WebGLRenderingContext | undefined,
-      window.WebGL2RenderingContext as typeof WebGL2RenderingContext | undefined,
-    ].flatMap((kind) => (kind === undefined ? [] : [kind.prototype]));
-    for (const prototype of prototypes) {
+  await target.addInitScript(
+    ({ name, parameters }) => {
       // eslint-disable-next-line @typescript-eslint/unbound-method -- se llama con `.call(this, …)`
-      const getParameter = prototype.getParameter;
-      prototype.getParameter = function named(this: WebGLRenderingContext, parameter: number) {
-        return RENDERER_PARAMETERS.includes(parameter)
-          ? name
-          : (getParameter.call(this, parameter) as unknown);
-      } as typeof getParameter;
-    }
-  }, renderer);
+      const getContext = HTMLCanvasElement.prototype.getContext;
+      function ignoringPerformanceCaveat(
+        this: HTMLCanvasElement,
+        type: string,
+        attributes?: WebGLContextAttributes,
+      ): RenderingContext | null {
+        const rest = { ...attributes };
+        delete rest.failIfMajorPerformanceCaveat;
+        return getContext.call(this, type, rest);
+      }
+      HTMLCanvasElement.prototype.getContext = ignoringPerformanceCaveat as typeof getContext;
+      const prototypes = [
+        window.WebGLRenderingContext as typeof WebGLRenderingContext | undefined,
+        window.WebGL2RenderingContext as typeof WebGL2RenderingContext | undefined,
+      ].flatMap((kind) => (kind === undefined ? [] : [kind.prototype]));
+      for (const prototype of prototypes) {
+        // eslint-disable-next-line @typescript-eslint/unbound-method -- se llama con `.call(this, …)`
+        const getParameter = prototype.getParameter;
+        prototype.getParameter = function named(this: WebGLRenderingContext, parameter: number) {
+          return parameters.includes(parameter)
+            ? name
+            : (getParameter.call(this, parameter) as unknown);
+        } as typeof getParameter;
+      }
+    },
+    { name: renderer, parameters: [RENDERER_PARAMETER, UNMASKED_RENDERER_PARAMETER] },
+  );
 }
 
 /**

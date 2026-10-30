@@ -6,7 +6,9 @@
  *   leer: se le da el beneficio de la duda, y la degradación en caliente sigue ahí).
  * - `software`: pinta con la CPU. Lo dice el nombre del `renderer` (SwiftShader, llvmpipe…: Chromium sin GPU da
  *   contexto aunque se pida `failIfMajorPerformanceCaveat`) o solo da contexto sin esa opción.
- * - `none`: no hay WebGL2 (desactivado, en la lista negra) o pedirlo lanza (se registra).
+ * - `none`: no hay WebGL2 (desactivado, en la lista negra), o pedirlo o leer su nombre lanza (se registra). Un
+ *   navegador que lanza al leer el nombre (una extensión que envuelve `getParameter`) también rompería Three.js, que
+ *   lo llama sin parar: mejor sin escena desde el principio (P1).
  * Cada prueba crea un lienzo suelto, pide el contexto y lo suelta enseguida (los navegadores limitan
  * cuántos contextos vivos hay a la vez).
  */
@@ -48,7 +50,7 @@ interface Probe {
 }
 
 /** Pide un contexto WebGL2 en un lienzo nuevo, lee su `renderer` y lo suelta. `null`: no lo dio. */
-function probe(doc: Document, attributes?: WebGLContextAttributes): Probe | null {
+function probe(doc: Document, attributes: WebGLContextAttributes): Probe | null {
   const context = doc.createElement('canvas').getContext('webgl2', attributes);
   if (context === null) return null;
   try {
@@ -58,14 +60,24 @@ function probe(doc: Document, attributes?: WebGLContextAttributes): Probe | null
   }
 }
 
+/** Pide un contexto WebGL2 en un lienzo nuevo, sin opciones, y lo suelta: ¿lo dio? */
+function hasContext(doc: Document): boolean {
+  const context = doc.createElement('canvas').getContext('webgl2');
+  if (context === null) return false;
+  context.getExtension('WEBGL_lose_context')?.loseContext();
+  return true;
+}
+
 export function detectWebGL2(doc: Document = document): WebGL2Support {
   try {
-    const withoutCaveat = probe(doc, { failIfMajorPerformanceCaveat: true });
-    if (withoutCaveat !== null) {
-      const { renderer } = withoutCaveat;
+    // La prueba que pide GPU: contexto solo si no va a pintar mucho peor (y, aun así, el nombre manda).
+    const gpuProbe = probe(doc, { failIfMajorPerformanceCaveat: true });
+    if (gpuProbe !== null) {
+      const { renderer } = gpuProbe;
       return renderer !== null && isSoftwareRenderer(renderer) ? 'software' : 'hardware';
     }
-    return probe(doc) === null ? 'none' : 'software';
+    // Sin GPU usable: ¿hay WebGL2 aunque sea por software? Aquí el nombre ya no hace falta.
+    return hasContext(doc) ? 'software' : 'none';
   } catch (error) {
     console.error('[scene] WebGL2 detection failed', error);
     return 'none';
