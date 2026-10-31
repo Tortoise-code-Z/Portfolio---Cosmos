@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { hexToRgb, SCENE_PALETTE, type ScenePaletteName } from './scenePalette';
 
 const DESIGN_SYSTEM = new URL('../../../../docs/03-diseno/design-system.md', import.meta.url);
+const TOKENS = new URL('../../../styles/tokens.css', import.meta.url);
 
 /** Los colores de la tabla «Paleta de la escena» del design system. */
 function documentedSceneColours(): string[] {
@@ -64,5 +65,19 @@ describe('scene palette', () => {
     expect(hexToRgb('#FFFFFF')).toEqual([1, 1, 1]);
     expect(() => hexToRgb('#fff')).toThrow(RangeError);
     expect(() => hexToRgb('red')).toThrow(/#rrggbb/);
+  });
+});
+
+describe('the CSS pairs of the scene colours (styles/tokens.css)', () => {
+  const tokens = readFileSync(TOKENS, 'utf8');
+  const token = (name: string): string | undefined =>
+    new RegExp(`${name}:\\s*(#[0-9a-f]{6});`, 'i').exec(tokens)?.[1]?.toLowerCase();
+
+  it('the CSS point the particles take over is the warm singularity colour', () => {
+    expect(token('--color-singularity')).toBe(SCENE_PALETTE.singularityWarm);
+  });
+
+  it('the Big Bang flash is one colour, in the scene and in the CSS', () => {
+    expect(token('--color-flash')).toBe(SCENE_PALETTE.flash);
   });
 });

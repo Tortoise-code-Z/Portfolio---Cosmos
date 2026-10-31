@@ -5,12 +5,14 @@ import { profile } from '~/content/profile';
 import { useHoldCharge } from '~/lib/hold/useHoldCharge/useHoldCharge';
 import { useT } from '~/lib/i18n/useT/useT';
 import { jumpToChapter } from '~/lib/scroll/jumpToChapter/jumpToChapter';
+import { setCharge } from '~/stores/sceneStore/sceneStore';
 import { HoldButton } from '~/ui/HoldButton/HoldButton';
 import { Icon } from '~/ui/Icon/Icon';
 
 import { ChapterSection } from '../ChapterSection/ChapterSection';
 import { HERO_TITLE_ID } from '../chapterDom/chapterDom';
 import { Eyebrow } from '../Eyebrow/Eyebrow';
+import { useBigBang } from '../useBigBang/useBigBang';
 import styles from './Hero.module.css';
 
 const preventDefault = (event: Event): void => {
@@ -18,24 +20,28 @@ const preventDefault = (event: Event): void => {
 };
 
 /**
- * Capítulo 0 · Singularidad (docs/02-experiencia/capitulos/00-singularidad.md). Sin escena: el punto
- * y su halo son CSS. Mantener pulsado el botón (o la zona vacía del hero) 1,5 s detona y lleva a
- * «About», con el foco en su título; los efectos (temblor, destello, eje `wdth`) llegan con la escena.
+ * Capítulo 0 · Singularidad (docs/02-experiencia/capitulos/00-singularidad.md). El halo es CSS y, sin escena,
+ * también el punto. Mantener pulsado el botón (o la zona vacía del hero) 1,5 s detona y lleva a «About», con el
+ * foco en su título. La carga va a `sceneStore` (la escena hincha el punto) y los efectos del Big Bang en el DOM
+ * (nombre, halo y, con escena, destello y temblor) los pinta `useBigBang`.
  */
 export function Hero(): ReactNode {
   const t = useT();
   const areaRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
+  const { detonate } = useBigBang();
+
   const onDetonate = useCallback((): void => {
+    detonate();
     const about = CHAPTER_ANCHORS[1];
     if (about === null) return;
     const chapter = document.getElementById(about);
     if (chapter === null) return;
     jumpToChapter(chapter);
-  }, []);
+  }, [detonate]);
 
-  const { detonated, press, release } = useHoldCharge(buttonRef, onDetonate);
+  const { detonated, press, release } = useHoldCharge(buttonRef, onDetonate, setCharge);
 
   // Mantener pulsado en la zona vacía del hero también carga. Solo la zona misma: sobre el texto se
   // selecciona (y en táctil el toque largo es del sistema) y lo pulsable tiene su propio gesto.

@@ -8,6 +8,8 @@
   inset: 0;
   z-index: var(--z-scene);
   pointer-events: none;
+  /* El temblor del Big Bang (lo escribe el bucle del hero en `<html>`; en reposo, quieto). */
+  translate: var(--_bang-shake-x, 0px) var(--_bang-shake-y, 0px);
   animation: fade-in var(--dur-fade-slow) var(--ease-out);
 }
 

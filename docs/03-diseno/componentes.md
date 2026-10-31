@@ -43,7 +43,8 @@
   contextual. Acepta una clase del dueño para colocarlo (en el hero móvil ocupa el ancho de la fila).
 - Nombre accesible = texto visible («Hold to detonate»); la explicación larga va en `aria-describedby`, en un
   elemento `hidden` (el lector la toma igual y en modo exploración no la repite como texto suelto).
-- Estados: reposo · cargando · detonado (`aria-disabled`, sin perder el foco, hasta volver al inicio).
+- Estados: reposo · cargando · detonado (`aria-disabled`, sin perder el foco, hasta volver al inicio; el anillo se
+  vacía solo, como al soltar).
 - Con varios dedos manda el que empezó la carga. Si la ventana pierde el foco o la pestaña se oculta, suelta.
 
 ### Enlace de acción (`ActionLink`)

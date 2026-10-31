@@ -17,14 +17,26 @@ export interface SceneState {
    * copia desde `mTarget` (`SceneFrame.m`, ADR-028).
    */
   readonly m: number;
+  /**
+   * Carga de la detonación (0–1), la del botón del hero: la escribe su bucle en cada frame mientras carga o se
+   * descarga (como `mTarget` con el scroll) y la leen la escena (`uCharge`) y los efectos del Big Bang en el DOM.
+   */
+  readonly charge: number;
 }
 
-export const sceneStore = createStore<SceneState>()(() => ({ mTarget: 0, m: 0 }));
+export const sceneStore = createStore<SceneState>()(() => ({ mTarget: 0, m: 0, charge: 0 }));
 
 /** Lo que pide el scroll. `m` lo sigue sin suavizado (la escena suaviza el suyo, ADR-028). */
 export function setScrollTarget(mTarget: number): void {
   if (sceneStore.getState().mTarget === mTarget) return;
   sceneStore.setState({ mTarget, m: mTarget });
+}
+
+/** La carga de la detonación (se queda entre 0 y 1). */
+export function setCharge(value: number): void {
+  const charge = Number.isFinite(value) ? clamp(value, 0, 1) : 0;
+  if (sceneStore.getState().charge === charge) return;
+  sceneStore.setState({ charge });
 }
 
 /** Capítulo activo para un `m`: el más cercano (`round(m)`), dentro de los que hay. */

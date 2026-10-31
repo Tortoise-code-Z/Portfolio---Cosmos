@@ -1,0 +1,17 @@
+/*
+ * Destello del Big Bang (docs/03-diseno/design-system.md → «Capas»: `--z-flash`, entre el lienzo y el `main`). Más
+ * grande que la ventana para que el borde del degradado no se vea. Sin escena no se pinta (con `scene-on`, sí).
+ */
+.flash {
+  position: fixed;
+  inset: -10%;
+  z-index: var(--z-flash);
+  display: none;
+  background: var(--gradient-flash);
+  opacity: var(--_bang-flash, 0);
+  pointer-events: none;
+}
+
+:global(.scene-on) .flash {
+  display: block;
+}

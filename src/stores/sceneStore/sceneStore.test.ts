@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { activeChapter, sceneStore, selectActiveChapter, setScrollTarget } from './sceneStore';
+import {
+  activeChapter,
+  sceneStore,
+  selectActiveChapter,
+  setCharge,
+  setScrollTarget,
+} from './sceneStore';
 
 afterEach(() => {
   sceneStore.setState(sceneStore.getInitialState(), true);
@@ -8,12 +14,12 @@ afterEach(() => {
 
 describe('sceneStore', () => {
   it('starts at the singularity', () => {
-    expect(sceneStore.getState()).toEqual({ mTarget: 0, m: 0 });
+    expect(sceneStore.getState()).toEqual({ mTarget: 0, m: 0, charge: 0 });
   });
 
   it('m follows the scroll target as is (the scene smooths its own)', () => {
     setScrollTarget(2.4);
-    expect(sceneStore.getState()).toEqual({ mTarget: 2.4, m: 2.4 });
+    expect(sceneStore.getState()).toEqual({ mTarget: 2.4, m: 2.4, charge: 0 });
   });
 
   it('does not notify when the target has not changed', () => {
@@ -21,6 +27,33 @@ describe('sceneStore', () => {
     const unsubscribe = sceneStore.subscribe(listener);
     setScrollTarget(1);
     setScrollTarget(1);
+    expect(listener).toHaveBeenCalledTimes(1);
+    unsubscribe();
+  });
+});
+
+describe('setCharge', () => {
+  it('keeps the detonation charge, without touching m', () => {
+    setScrollTarget(0.1);
+    setCharge(0.4);
+    expect(sceneStore.getState()).toEqual({ mTarget: 0.1, m: 0.1, charge: 0.4 });
+  });
+
+  it('stays between 0 and 1, and a broken value is 0', () => {
+    setCharge(1.2);
+    expect(sceneStore.getState().charge).toBe(1);
+    setCharge(-0.3);
+    expect(sceneStore.getState().charge).toBe(0);
+    setCharge(0.5);
+    setCharge(Number.NaN);
+    expect(sceneStore.getState().charge).toBe(0);
+  });
+
+  it('does not notify when the charge has not changed', () => {
+    const listener = vi.fn();
+    const unsubscribe = sceneStore.subscribe(listener);
+    setCharge(0.2);
+    setCharge(0.2);
     expect(listener).toHaveBeenCalledTimes(1);
     unsubscribe();
   });
@@ -44,6 +77,6 @@ describe('activeChapter', () => {
 
 describe('selectActiveChapter', () => {
   it('reads the active chapter from the state', () => {
-    expect(selectActiveChapter({ mTarget: 3.2, m: 3.2 })).toBe(3);
+    expect(selectActiveChapter({ mTarget: 3.2, m: 3.2, charge: 0 })).toBe(3);
   });
 });

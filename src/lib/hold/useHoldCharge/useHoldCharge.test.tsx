@@ -92,7 +92,44 @@ describe('useHoldCharge', () => {
     expect(charge(element)).toBe(1);
     expect(onDetonate).toHaveBeenCalledTimes(1);
     expect(result.current.detonated).toBe(true);
+  });
+
+  it('after detonating, the charge drains back to 0 on its own and the loop stops', () => {
+    const { element, onDetonate, result } = setup();
+    press(result);
+    advance(0);
+    advance(100, 15);
+    expect(charge(element)).toBe(1);
+    advance(100, 2); // 1 − 0,36
+    expect(charge(element)).toBeCloseTo(0.64, 5);
+    advance(100, 4);
+    expect(charge(element)).toBe(0);
     expect(pending).toEqual([]);
+    expect(onDetonate).toHaveBeenCalledTimes(1);
+    expect(result.current.detonated).toBe(true);
+  });
+
+  it('hands every charge it writes to onCharge, and 0 on unmount with charge left', () => {
+    const element = document.createElement('button');
+    const onCharge = vi.fn();
+    const { result, unmount } = renderHook(() =>
+      useHoldCharge({ current: element }, vi.fn(), onCharge),
+    );
+    press(result);
+    advance(0);
+    advance(100, 3);
+    expect(onCharge).toHaveBeenLastCalledWith(charge(element));
+    expect(onCharge.mock.lastCall?.[0]).toBeCloseTo(0.2, 5);
+    unmount();
+    expect(onCharge).toHaveBeenLastCalledWith(0);
+  });
+
+  it('unmounting at rest does not write the charge again', () => {
+    const element = document.createElement('button');
+    const onCharge = vi.fn();
+    const { unmount } = renderHook(() => useHoldCharge({ current: element }, vi.fn(), onCharge));
+    unmount();
+    expect(onCharge).not.toHaveBeenCalled();
   });
 
   it('releasing early drains back to 0 and stops the loop without detonating', () => {
@@ -204,6 +241,7 @@ describe('useHoldCharge', () => {
     advance(0);
     advance(100, 15);
     expect(result.current.detonated).toBe(true);
+    advance(100, 6); // se descarga sola
 
     act(() => {
       result.current.press();

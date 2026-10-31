@@ -28,7 +28,8 @@ cosmos-portfolio/
 │  ├─ features/                 ← piezas de interfaz con lógica propia
 │  │  ├─ journey/               ← Hero, ChapterSection, ChapterPanel, Eyebrow, About, Skills, Projects,
 │  │  │                           ProjectRow, Contact, `chapterDom` (el contrato con el DOM que lee la
-│  │  │                           navegación) y `shared.module.css` (piezas de texto comunes)
+│  │  │                           navegación), `useBigBang` y `BigBangFlash` (los efectos del Big Bang en el
+│  │  │                           DOM, ADR-030) y `shared.module.css` (piezas de texto comunes)
 │  │  ├─ navigation/            ← TopBar, ChapterRail, LanguageSwitch, SkipLink, goToChapter (salto con
 │  │  │                           ancla en la URL), AvailabilityChip, QuickMissionDialog y
 │  │  │                           QuickMissionContent, `quickMission.ts` (suelto: ancla `#quick` e id del
@@ -71,7 +72,8 @@ cosmos-portfolio/
 │  │  ├─ storage/               ← readStorage / writeStorage: localStorage que nunca lanza; si falla, memoria
 │  │  │                           hasta recargar y un aviso por clave (solo comodidades)
 │  │  ├─ scroll/                ← mapM y toScrollLayout (puros), useChapterLayout, useScrollTarget,
-│  │  │                           jumpToChapter (scroll + foco al título + ancla)
+│  │  │                           jumpToChapter (scroll + foco al título + ancla) y smoothM (el suavizado de
+│  │  │                           `m` que comparten la escena y los efectos del Big Bang, ADR-030)
 │  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
 │  │  │                           sitemap y robots (reciben origen y datos por parámetro, ADR-017)
 │  │  ├─ device/                ← señales del dispositivo: mediaQuery (watchMediaQuery: una media query ahora y
@@ -82,6 +84,8 @@ cosmos-portfolio/
 │  │  │                           leen las señales en cliente) y webgl2 (detectWebGL2:
 │  │  │                           con GPU, por software —por su renderer— o sin WebGL2); después usePointerType
 │  │  ├─ hold/                  ← carga de «mantén pulsado»: charge (puro) y useHoldCharge (rAF + variable CSS)
+│  │  ├─ bigBang/               ← cuentas de los efectos del Big Bang en el DOM (destello, temblor, nombre,
+│  │  │                           halo) y sus variables CSS (puro, ADR-030)
 │  │  ├─ css/                   ← cx (unir clases) y useHeightVar (altura de un elemento como variable CSS)
 │  │  └─ math/                  ← clamp, smoothstep, lerp, damp (el amortiguado de `m`; después, easing)
 │  ├─ stores/                   ← uiStore (React) · sceneStore (mutable, sin re-render)
@@ -209,7 +213,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
 | `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); después, grupo de skills activo y proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
-| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028), y desde F4 carga y peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget` y deja su `m` suavizada en el `SceneFrame` que leen los `useFrame`; el HUD por `getState()`/suscripción, **sin re-render**; el raíl, el idioma y las fotos fijas del modo sin WebGL eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
+| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028), la carga de la detonación (`charge`, desde F4.1: la escribe el bucle del botón del hero en cada frame mientras carga o se descarga, ADR-030) y, más adelante en F4, peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget` y `charge` y deja su `m` suavizada y la carga en el `SceneFrame` que leen los `useFrame`; los efectos del Big Bang del hero (`useBigBang`, ADR-030) por suscripción, en su propio bucle y **sin re-render**; el HUD por `getState()`/suscripción, **sin re-render**; el raíl, el idioma y las fotos fijas del modo sin WebGL eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
 ningún store: se guarda en `localStorage` (`lib/storage`), la lee solo `LanguageNotice` y la escriben el aviso y
@@ -223,10 +227,14 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 2. Un único listener de scroll pasivo calcula `mTarget = mapM(scrollY, layout)` y lo escribe en `sceneStore`
    (`setScrollTarget`; también al montar, para una recarga a mitad del viaje). La ruta del viaje los conecta:
    `lib` no importa `stores`, así que el destino le llega por parámetro.
-3. El bucle de la escena lee `mTarget` en cada frame y suaviza su propia `m` (`damp` con el tiempo real del frame,
-   `M_SMOOTHING`; en su primer frame arranca en `mTarget`), que deja en el `SceneFrame` compartido; los `useFrame`
+3. El bucle de la escena lee `mTarget` en cada frame y suaviza su propia `m` (`smoothM` de `lib/scroll`, con el tiempo
+   real del frame; en su primer frame arranca en `mTarget`), que deja en el `SceneFrame` compartido; los `useFrame`
    de cada pieza (uniforms, cámara y, en F4, etiquetas) la leen de ahí (ADR-028). `sceneStore.m` sigue siendo
-   `mTarget`. Con la página oculta o la misión rápida abierta, el bucle se pausa (`scene/pause`).
+   `mTarget`. Con la página oculta o la misión rápida abierta, el bucle se pausa (`scene/pause`). Los efectos del
+   Big Bang en el DOM (`features/journey/useBigBang`) llevan otra copia con el mismo `smoothM` y la escriben, ya
+   convertida en destello, temblor, nombre y halo, como variables CSS privadas en `<html>` (`--_bang-*`); los leen el
+   hero, el destello (`BigBangFlash`, en la ruta del viaje, fuera de `<main>`) y el lienzo, sin importarse entre
+   capas (ADR-030).
 4. El raíl, el idioma y las fotos fijas (sin WebGL) eligen `round(m)` (`selectActiveChapter`); el HUD se suscribe y
    solo toca el DOM cuando
    cambia su texto (cambios discretos, no por frame).

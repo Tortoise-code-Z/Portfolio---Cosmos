@@ -40,7 +40,8 @@ activo.
 | `--color-veil-dialog` | `rgb(4 5 11 / 0.96)` | Fondo de los diálogos a pantalla completa: el modo misión rápida y el visor de galería | — |
 | `--gradient-row-hot` | degradado ámbar al 8 % → transparente | Fondo de una fila de proyecto «hot» | — |
 | `--gradient-panel` · `--gradient-panel-mobile` | velo radial · velo que entra desde arriba (`--space-8`) | Fondo del panel en escritorio · en móvil | — |
-| `--color-flash` | `#fff4dc` | Destello del Big Bang | — |
+| `--color-flash` | `#fff2d9` | Destello del Big Bang (el mismo `flash` de la paleta de la escena; lo comprueba su test) | — |
+| `--gradient-flash` | radial blanco → `--color-flash` → ámbar → violeta → transparente | Velo del destello del Big Bang | — |
 | `--color-singularity` | `#fff2d9` | Punto CSS de la singularidad (hero sin escena) | — |
 | `--gradient-singularity-halo` | radial cálido → azul → transparente | Halo CSS del punto | — |
 | `--gradient-space` | dos nubes radiales muy tenues (violeta al 9 %, turquesa al 5 %) | Fondo del espacio sin escena (`no-gl`), en la capa del lienzo | — |
@@ -188,8 +189,8 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 | Token | Valor | Capa |
 |---|---|---|
 | `--z-scene` | 0 | Lienzo WebGL (y, sin WebGL, el fondo `--gradient-space` y, en el viaje, las fotos fijas de la escena encima) |
-| `--z-glow` | 1 | Halo CSS de la singularidad (dentro de `main`: por debajo del texto del hero y por encima del lienzo, también con escena). Su valor cuenta **dentro de `main`**, no frente a `--z-flash` y `--z-labels`, que irán fuera de `main`: leído por números, el orden de esta tabla no es el real. El orden halo / destello / etiquetas se decide con la detonación (F4.1) |
-| `--z-flash` | 3 | Destello |
+| `--z-glow` | 1 | Halo CSS de la singularidad (dentro de `main`: por debajo del texto del hero y por encima del lienzo, también con escena). Su valor cuenta **dentro de `main`**, no frente a `--z-flash` y `--z-labels`, que van fuera de `main`: leído por números, el orden de esta tabla no es el real. Orden real, de abajo arriba: lienzo · destello · etiquetas · `main` (con el halo debajo del texto del hero): el halo queda **por encima del destello** (ADR-030). Mientras corren los efectos del Big Bang es fijo, en el centro de la ventana |
+| `--z-flash` | 3 | Destello del Big Bang (fuera de `main`, entre el lienzo y el contenido; solo con escena) |
 | `--z-labels` | 4 | Etiquetas y pins proyectados |
 | `--z-content` | 5 | El `main` de cada página (capítulos, fichas, 404 y página de error): todo el contenido por encima del lienzo |
 | `--z-chrome` | 15 | Raíl y HUD |

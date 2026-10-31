@@ -38,10 +38,12 @@ ese evento para terminar de cerrarse se quedaría colgado con movimiento reducid
 
 | Constante | Valor | Dónde |
 |---|---|---|
-| Suavizado de `m` en la escena `k` (`M_SMOOTHING`) | 3,4 (12 con movimiento reducido) | `scroll-y-escena.md` |
-| Carga de detonación | 1,5 s para llenar; descarga 1,8/s | Capítulo 0 |
-| Destello | pico en `m` 0–0,2, opacidad máx. 0,75 (0,95 al detonar) | Capítulo 0 |
-| Temblor | hasta 9 px con el destello + 3 px por carga | Capítulo 0 |
+| Suavizado de `m` en la escena y en los efectos del Big Bang `k` (`M_SMOOTHING`, `lib/scroll/smoothM`) | 3,4 (12 con movimiento reducido) | `scroll-y-escena.md` |
+| Carga de detonación | 1,5 s para llenar; descarga 1,8/s (también tras detonar) | Capítulo 0 |
+| Destello | pico en `m` 0–0,2, opacidad máx. 0,75 (0,95 al detonar, que baja 1,6/s: ≈ 0,6 s) | Capítulo 0 |
+| Temblor | hasta 9 px con el destello + 3 px por carga (el lienzo y el punto o halo CSS, nunca el texto) | Capítulo 0 |
+| Nombre del hero (`wdth`) | 62 en reposo; −12 con la carga (mín. 50); +88 en `m` 0–0,35 (máx. 150); espaciado 0,25 em por unidad de `m` | Capítulo 0 |
+| Halo del hero | ×(1 + 1,6 · carga); se apaga en `m` 0–0,12 | Capítulo 0 |
 | Retraso de morph por partícula | hasta el 25 % de la transición | Escena |
 | Ciclo de placas | 2,6 s | Capítulo 3 |
 | Giro de nebulosa / galaxia / Tierra | 0,018 / 0,035 / 0,05 rad/s | Escena |
@@ -63,3 +65,10 @@ partículas                          explosión → nebulosa
 nombre wdth                         50 → 150 + espaciado, mientras sube y se va
 scroll                              automático hasta «About»
 ```
+
+Quién lo pinta (ADR-030): el punto de partículas, la escena (`uCharge`, desde `sceneStore.charge`); lo demás, el
+bucle de efectos del hero (`useBigBang`), que escribe variables CSS privadas en `<html>` (`--_bang-*`) con las
+cuentas de `lib/bigBang` y la misma `m` suavizada que la escena. Tras detonar, la carga se descarga sola (el punto,
+el halo y el nombre vuelven a reposo mientras llega la explosión). Sin escena: el nombre y el halo, sí; el destello
+y el temblor, no. Con movimiento reducido: sin destello, sin temblor y sin vibración; el nombre y el halo siguen
+la carga y el scroll.
