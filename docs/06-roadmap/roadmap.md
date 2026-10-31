@@ -100,7 +100,8 @@ recorridos e2e del recruiter en verde. Etiqueta `v0.1.0`. *(Se podría publicar 
 desactivado. Versión 0.2.0, auditoría de cierre y etiqueta `v0.2.0` sobre el último commit del cierre
 (`git-y-despliegue.md`).
 *(Versión 0.2.0 medida el 2026-10-30: Performance 100 en PageSpeed y 95–100 en el build local, sin escena donde
-no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Quedan la auditoría de cierre y la etiqueta.)*
+no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierre corregida en el PR #80 y etiqueta
+`v0.2.0` sobre `6b46c7d` el 2026-10-31: **F3 cerrada**.)*
 
 ## F4 · Capítulos (uno por PR, en este orden)
 
