@@ -8,6 +8,7 @@ import { isSoftwareRenderer } from '../../src/lib/device/webgl2/webgl2.ts';
 import { CAMERA_FIT } from '../../src/scene/config/sceneConfig.ts';
 import { STILL_FRAMES } from '../../src/features/scene-mount/stillFrames/stillFrames.ts';
 import {
+  browserHasWebGL2,
   collectErrors,
   PARTICLES_PAINTED,
   presentCapableMachine,
@@ -215,11 +216,6 @@ function generatorRequests(page: Page): string[] {
     if (GENERATOR_CHUNK.test(new URL(request.url()).pathname)) urls.push(request.url());
   });
   return urls;
-}
-
-/** ¿Tiene este navegador WebGL2? (en el CI, Firefox o WebKit sin GPU pueden no tenerlo). */
-async function browserHasWebGL2(page: Page): Promise<boolean> {
-  return page.evaluate(() => document.createElement('canvas').getContext('webgl2') !== null);
 }
 
 test.describe('the scene with WebGL', () => {

@@ -2,7 +2,13 @@ import { expect, type Page } from '@playwright/test';
 
 import { test } from './support/test.ts';
 
-import { collectErrors, PARTICLES_PAINTED, settleScene, withoutWebGL } from './support/helpers.ts';
+import {
+  browserHasWebGL2,
+  collectErrors,
+  PARTICLES_PAINTED,
+  settleScene,
+  withoutWebGL,
+} from './support/helpers.ts';
 
 /**
  * El viaje sin escena (F2 · paso 4): capítulos, anclas, detonación, encuadre y lectura sin JS.
@@ -361,6 +367,16 @@ test.describe('the Big Bang', () => {
       );
   }
 
+  /**
+   * Los de la escena se saltan sin WebGL2 (en el CI, Firefox o WebKit sin GPU pueden no tenerlo), como los de
+   * `scene.spec.ts`; Chromium siempre lo tiene (SwiftShader), así que ahí nunca se saltan en silencio.
+   */
+  async function skipWithoutWebGL2(page: Page, browserName: string): Promise<void> {
+    const hasWebGL2 = await browserHasWebGL2(page);
+    if (browserName === 'chromium') expect(hasWebGL2, 'Chromium must have WebGL2').toBe(true);
+    test.skip(!hasWebGL2, 'This browser has no WebGL2 here');
+  }
+
   /** Mantiene `Espacio` en el botón hasta que detona y suelta. */
   async function holdUntilDetonated(page: Page, during?: () => Promise<void>): Promise<void> {
     const button = page.getByRole('button', { name: 'Hold to detonate' });
@@ -407,13 +423,17 @@ test.describe('the Big Bang', () => {
 
   test('with the scene: the canvas shakes while it charges and detonating flashes', async ({
     page,
+    browserName,
   }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
+    await skipWithoutWebGL2(page, browserName);
     await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({ timeout: 15_000 });
     await settleScene(page);
     const peaks = await recordPeaks(page);
     await holdUntilDetonated(page);
-    await expect.poll(async () => (await peaks()).flash).toBeGreaterThan(0.8);
+    // El golpe de la detonación: 0,95, y en su primer frame a la vista nunca baja de 0,95 · (1 − 0,1 · 1,6) ≈ 0,8
+    // (el paso del frame va topado a 0,1 s). El destello del scroll no pasa de 0,75: por encima, es la detonación.
+    await expect.poll(async () => (await peaks()).flash).toBeGreaterThan(0.75);
     expect((await peaks()).shake).toBeGreaterThan(0);
     await expect
       .poll(() =>
@@ -424,9 +444,11 @@ test.describe('the Big Bang', () => {
 
   test('with reduced motion: no flash and no shake, but the name still squeezes', async ({
     page,
+    browserName,
   }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/', { waitUntil: 'networkidle' });
+    await skipWithoutWebGL2(page, browserName);
     await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({ timeout: 15_000 });
     await settleScene(page);
     const peaks = await recordPeaks(page);

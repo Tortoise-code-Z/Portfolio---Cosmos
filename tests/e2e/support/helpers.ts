@@ -35,6 +35,11 @@ export const SCENE_READY = '[data-ready="true"]:has(canvas)';
 /** Partículas pintadas (`SceneRoot` → `data-particles`): las esperan los e2e, las capturas y las fotos fijas. */
 export const PARTICLES_PAINTED = '[data-particles="painted"]:has(canvas)';
 
+/** ¿Tiene este navegador WebGL2? (en el CI, Firefox o WebKit sin GPU pueden no tenerlo). */
+export async function browserHasWebGL2(page: Page): Promise<boolean> {
+  return page.evaluate(() => document.createElement('canvas').getContext('webgl2') !== null);
+}
+
 /**
  * Este navegador dice no a WebGL (como uno sin GPU o con WebGL desactivado). El sitio solo usa `<canvas>` para la
  * escena, así que basta con que ningún lienzo dé contexto. Va antes de cargar la página (`addInitScript`).
