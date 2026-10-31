@@ -42,10 +42,19 @@
   --gradient-space:
     radial-gradient(60% 50% at 78% 22%, rgb(128 71 255 / 0.09) 0%, transparent 100%),
     radial-gradient(55% 45% at 18% 82%, rgb(36 217 224 / 0.05) 0%, transparent 100%);
-  /* Pareja del `flash` de `scene/config/scenePalette` (`#fff2d9`): se unifican con el destello (F4). */
-  --color-flash: #fff4dc;
+  /* Pareja del `flash` de `scene/config/scenePalette` (lo comprueba su test): el destello del Big Bang. */
+  --color-flash: #fff2d9;
   /* Pareja de `singularityWarm` de `scene/config/scenePalette`: el punto CSS que relevan las partículas. */
   --color-singularity: #fff2d9;
+  /* Destello del Big Bang (el del prototipo): blanco en el centro, el destello, ámbar, violeta y nada. */
+  --gradient-flash: radial-gradient(
+    circle,
+    rgb(255 255 255) 0%,
+    var(--color-flash) 22%,
+    rgb(255 196 120 / 0.85) 42%,
+    rgb(160 120 255 / 0.35) 66%,
+    transparent 90%
+  );
   --gradient-singularity-halo: radial-gradient(
     circle,
     rgb(255 246 230 / 0.55) 0%,

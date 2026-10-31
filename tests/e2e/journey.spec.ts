@@ -2,7 +2,13 @@ import { expect, type Page } from '@playwright/test';
 
 import { test } from './support/test.ts';
 
-import { collectErrors, settleScene } from './support/helpers.ts';
+import {
+  browserHasWebGL2,
+  collectErrors,
+  PARTICLES_PAINTED,
+  settleScene,
+  withoutWebGL,
+} from './support/helpers.ts';
 
 /**
  * El viaje sin escena (F2 · paso 4): capítulos, anclas, detonación, encuadre y lectura sin JS.
@@ -177,6 +183,25 @@ test.describe('the journey (home)', () => {
       expect(layout?.nameOverCore).toBe(false);
       expect(layout?.kickerOverCore).toBe(false);
       expect(layout?.kickerOverName).toBe(false);
+
+      // Bajando, el nombre se ensancha (`wdth` 150 y espaciado, ADR-030): tampoco desborda de lado.
+      await page.evaluate(() => {
+        window.scrollTo(0, window.innerHeight);
+      });
+      await expect
+        .poll(() =>
+          page.evaluate(() =>
+            Number.parseFloat(
+              getComputedStyle(document.querySelector('h1') ?? document.body).fontStretch,
+            ),
+          ),
+        )
+        .toBe(150);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        ),
+      ).toBeLessThanOrEqual(0);
     });
   }
 
@@ -297,6 +322,158 @@ test.describe('the journey (home)', () => {
       expect(cls).toBeLessThan(0.1);
     });
   }
+});
+
+/**
+ * Los efectos del Big Bang en el DOM (F4.1, ADR-030): el nombre (eje `wdth` y espaciado) y el halo en todos los
+ * modos; el destello y el temblor, solo con escena y sin movimiento reducido. Los valores exactos los vigilan
+ * `lib/bigBang` y `useBigBang`; aquí, que lleguen a la página.
+ */
+test.describe('the Big Bang', () => {
+  const nameWidth = (page: Page): Promise<number> =>
+    page.evaluate(() =>
+      Number.parseFloat(
+        getComputedStyle(document.querySelector('h1') ?? document.body).fontStretch,
+      ),
+    );
+
+  /**
+   * Apunta lo más alto que llegan el destello y el temblor mientras dura el test: el destello de la detonación dura
+   * ≈ 0,6 s y un sondeo desde fuera se lo puede saltar. Mira lo que escribe el bucle en `<html>` y, del destello,
+   * si se pinta (sin escena no se ve).
+   */
+  async function recordPeaks(page: Page): Promise<() => Promise<{ flash: number; shake: number }>> {
+    await page.evaluate(() => {
+      const peaks = { flash: 0, shake: 0 };
+      const root = document.documentElement;
+      const flash = document.querySelector('[data-big-bang="flash"]');
+      new MutationObserver(() => {
+        const painted = flash !== null && getComputedStyle(flash).display !== 'none';
+        const opacity = Number(root.style.getPropertyValue('--_bang-flash') || '0');
+        if (painted) peaks.flash = Math.max(peaks.flash, opacity);
+        for (const axis of ['x', 'y']) {
+          const offset = Math.abs(
+            Number.parseFloat(root.style.getPropertyValue(`--_bang-shake-${axis}`) || '0'),
+          );
+          peaks.shake = Math.max(peaks.shake, offset);
+        }
+      }).observe(root, { attributeFilter: ['style'] });
+      Object.assign(window, { bigBangPeaks: peaks });
+    });
+    return () =>
+      page.evaluate(
+        () =>
+          (window as unknown as { bigBangPeaks: { flash: number; shake: number } }).bigBangPeaks,
+      );
+  }
+
+  /**
+   * Los de la escena se saltan sin WebGL2 (en el CI, Firefox o WebKit sin GPU pueden no tenerlo), como los de
+   * `scene.spec.ts`; Chromium siempre lo tiene (SwiftShader), así que ahí nunca se saltan en silencio.
+   */
+  async function skipWithoutWebGL2(page: Page, browserName: string): Promise<void> {
+    const hasWebGL2 = await browserHasWebGL2(page);
+    if (browserName === 'chromium') expect(hasWebGL2, 'Chromium must have WebGL2').toBe(true);
+    test.skip(!hasWebGL2, 'This browser has no WebGL2 here');
+  }
+
+  /** Mantiene `Espacio` en el botón hasta que detona y suelta. */
+  async function holdUntilDetonated(page: Page, during?: () => Promise<void>): Promise<void> {
+    const button = page.getByRole('button', { name: 'Hold to detonate' });
+    await button.focus();
+    await page.keyboard.down('Space');
+    try {
+      await during?.();
+      await expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 });
+    } finally {
+      await page.keyboard.up('Space');
+    }
+  }
+
+  test('charging squeezes the name; going down widens it, spreads its letters and puts the halo out', async ({
+    page,
+  }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await settleScene(page);
+    expect(await nameWidth(page)).toBe(62);
+    const button = page.getByRole('button', { name: 'Hold to detonate' });
+    await button.focus();
+    await page.keyboard.down('Space');
+    await expect.poll(() => nameWidth(page)).toBeLessThan(58);
+    await page.keyboard.up('Space');
+    await expect.poll(() => nameWidth(page)).toBe(62);
+
+    await page.evaluate(() => {
+      window.scrollTo(0, window.innerHeight);
+    });
+    await expect.poll(() => nameWidth(page)).toBe(150);
+    const { tracking, halo, position } = await page.evaluate(() => {
+      const title = document.querySelector('h1');
+      const singularity = document.querySelector('[data-singularity="halo"]')?.parentElement;
+      return {
+        tracking: Number.parseFloat(title === null ? '0' : getComputedStyle(title).letterSpacing),
+        halo: singularity == null ? -1 : Number(getComputedStyle(singularity).opacity),
+        position: singularity == null ? '' : getComputedStyle(singularity).position,
+      };
+    });
+    expect(tracking).toBeGreaterThan(0);
+    expect(halo).toBe(0);
+    expect(position).toBe('fixed');
+  });
+
+  test('with the scene: the canvas shakes while it charges and detonating flashes', async ({
+    page,
+    browserName,
+  }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await skipWithoutWebGL2(page, browserName);
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({ timeout: 15_000 });
+    await settleScene(page);
+    const peaks = await recordPeaks(page);
+    await holdUntilDetonated(page);
+    // El golpe de la detonación: 0,95, y en su primer frame a la vista nunca baja de 0,95 · (1 − 0,1 · 1,6) ≈ 0,8
+    // (el paso del frame va topado a 0,1 s). El destello del scroll no pasa de 0,75: por encima, es la detonación.
+    await expect.poll(async () => (await peaks()).flash).toBeGreaterThan(0.75);
+    expect((await peaks()).shake).toBeGreaterThan(0);
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.documentElement.style.getPropertyValue('--_bang-flash')),
+      )
+      .toBe('0.000');
+  });
+
+  test('with reduced motion: no flash and no shake, but the name still squeezes', async ({
+    page,
+    browserName,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await skipWithoutWebGL2(page, browserName);
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({ timeout: 15_000 });
+    await settleScene(page);
+    const peaks = await recordPeaks(page);
+    await holdUntilDetonated(page, async () => {
+      await expect.poll(() => nameWidth(page)).toBeLessThan(58);
+    });
+    // La detonación ya pasó (y con ella el salto a About): nada que esperar.
+    expect(await peaks()).toEqual({ flash: 0, shake: 0 });
+  });
+
+  test('without WebGL: no flash and no canvas to shake, but the name still squeezes', async ({
+    page,
+  }) => {
+    await withoutWebGL(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await expect(page.locator('html')).toHaveClass(/\bno-gl\b/);
+    await settleScene(page);
+    const peaks = await recordPeaks(page);
+    await holdUntilDetonated(page, async () => {
+      await expect.poll(() => nameWidth(page)).toBeLessThan(58);
+    });
+    // Los valores se escriben igual; sin escena no hay lienzo que tiemble ni destello que se pinte.
+    expect((await peaks()).flash).toBe(0);
+    expect(await page.locator('canvas').count()).toBe(0);
+  });
 });
 
 test.describe('on a touch screen', () => {

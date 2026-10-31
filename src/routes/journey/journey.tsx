@@ -7,6 +7,7 @@ import { skillGroups } from '~/content/skills';
 import { NotFoundPage } from '~/features/errors/NotFoundPage/NotFoundPage';
 import { CosmicHud } from '~/features/hud/CosmicHud/CosmicHud';
 import { About } from '~/features/journey/About/About';
+import { BigBangFlash } from '~/features/journey/BigBangFlash/BigBangFlash';
 import { CHAPTER_SELECTOR } from '~/features/journey/chapterDom/chapterDom';
 import { Contact } from '~/features/journey/Contact/Contact';
 import { Hero } from '~/features/journey/Hero/Hero';
@@ -54,9 +55,10 @@ export default function Journey(): ReactNode {
 /**
  * El viaje: los cinco capítulos en orden (docs/02-experiencia/README.md), sin montar la escena (la monta
  * `Layout`, `root.tsx`), con la interfaz fija en el orden del Tab (Skip → barra → contenido → raíl → sugerencia
- * de idioma, si sale; el HUD es decorativo) y el modo misión rápida (un diálogo modal: fuera del orden hasta que se abre). Su scroll fija
- * `mTarget` en `sceneStore` (y `m = mTarget`): el raíl, el HUD, el idioma y las fotos fijas leen `m`; la escena,
- * `mTarget`. Las fotos fijas de la escena (solo en el modo sin WebGL, ADR-029) son solo del viaje: las fichas y la
+ * de idioma, si sale; el HUD es decorativo) y el modo misión rápida (un diálogo modal: fuera del orden hasta que
+ * se abre). Su scroll fija `mTarget` en `sceneStore` (y `m = mTarget`): el raíl, el HUD, el idioma y las fotos
+ * fijas leen `m`; la escena, `mTarget`. El destello del Big Bang va fuera de `<main>`, entre el lienzo y el
+ * contenido. Las fotos fijas de la escena (solo en el modo sin WebGL, ADR-029) son solo del viaje: las fichas y la
  * 404 se quedan con el degradado del espacio.
  */
 function JourneyPage(): ReactNode {
@@ -66,6 +68,7 @@ function JourneyPage(): ReactNode {
   return (
     <>
       <SceneStills />
+      <BigBangFlash />
       <SkipLink />
       <TopBar />
       <main ref={mainRef}>

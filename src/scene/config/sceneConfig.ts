@@ -75,13 +75,6 @@ export const PARALLAX = { x: 0.7, y: 0.45, rate: 2 } as const;
 export const STARS_SEED_NAME = 'stars';
 
 /**
- * Suavizado de `m` en la escena (docs/02-experiencia/scroll-y-escena.md → «Suavizado», ADR-028): persigue a
- * `mTarget` a ritmo `rate` (`min(1, dt · rate)`), `reducedRate` con movimiento reducido (casi sin inercia), y llega
- * cuando le falta menos de `epsilon`.
- */
-export const M_SMOOTHING = { rate: 3.4, reducedRate: 12, epsilon: 1e-4 } as const;
-
-/**
  * Degradación en caliente (docs/04-escena/rendimiento.md → «Degradación en caliente»): la media de fps de cada
  * ventana de `windowS` segundos; con `slowWindows` ventanas seguidas por debajo de `minFps` (escritorio o móvil),
  * un nivel menos. Los primeros `warmupS` segundos de cada nivel no cuentan (la geometría nueva, el DPR y lo que

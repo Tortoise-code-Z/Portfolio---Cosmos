@@ -45,12 +45,14 @@ arriba del todo, `m` sigue siendo 0 (la barra no adelanta la explosión). Códig
 - La escena suaviza **su propia** `m` (ADR-028): persigue al valor objetivo con un amortiguado exponencial,
   `m += (objetivo − m) · min(1, dt · k)`, con `k = 3,4` (y `k = 12` con movimiento reducido, que equivale a casi
   sin inercia). En su primer frame arranca en el objetivo: si el usuario ya había hecho scroll, no se repite la
-  explosión. Código: `src/lib/math/damp` y el bucle de `SceneRoot` (`M_SMOOTHING` en `scene/config/sceneConfig`).
+  explosión. Código: `src/lib/scroll/smoothM` (`M_SMOOTHING`, sobre `lib/math/damp`) y el bucle de `SceneRoot`.
+- Los **efectos del Big Bang en el DOM** (destello, nombre, halo: `useBigBang` del hero) llevan otra copia de `m`
+  con el mismo `smoothM` y arrancan igual en el objetivo, para ir al paso de la explosión (ADR-030).
 - El suavizado es **casi independiente de los fps** (usa `dt`; `min(1, dt · k)` es la aproximación por pasos de la
   curva exacta). Por debajo de un umbral (`|objetivo − m| < 1e-4`) se iguala para llegar exacta al objetivo.
-- **La interfaz no se suaviza:** `sceneStore.m` es el objetivo tal cual, con y sin escena. Quienes lo leen (raíl,
+- **La interfaz fija no se suaviza:** `sceneStore.m` es el objetivo tal cual, con y sin escena. Quienes lo leen (raíl,
   HUD, idioma y las fotos fijas del modo sin WebGL) cambian a saltos, así que no lo necesitan; durante la inercia van un instante por delante de la
-  escena. Sin escena (WebGL desactivado) no hay suavizado en ningún sitio.
+  escena. Sin escena (WebGL desactivado), solo se suavizan el nombre y el halo del hero.
 - No se usa scroll suavizado de terceros (Lenis, etc.): el scroll del navegador se respeta tal cual, solo se
   suaviza la escena. Así no se rompen la accesibilidad, los atajos de teclado ni la restauración del scroll.
 
@@ -69,8 +71,9 @@ arriba del todo, `m` sigue siendo 0 (la barra no adelanta la explosión). Códig
 | Raíl | Capítulo activo = `round(m)` |
 | HUD · reloj | `t = 0 s` hasta `m` 0,004; después, tiempo cósmico interpolado en escala logarítmica entre capítulos (0 → 1 → 2): del tiempo de Planck (10⁻⁴³ s) a 200 Ma y a 1000 Ma. Se cuenta en segundos (potencias de 10) mientras el valor redondeado no llegue a 2 años (nunca «1 years»); después, años y millones con 2 cifras significativas, y la unidad se elige con el valor ya redondeado (999.999 años ya es «1 million»); 1000 Ma hasta `m` 2,5; `∞` de 2,5 a 3,5 (la tortuga es el capítulo activo); 13.800 Ma desde 3,5 |
 | HUD · escala | La del capítulo activo |
-| Hero · nombre | Ancho tipográfico de 62 a 150 (eje `wdth`) y espaciado al detonar; se va con el scroll |
-| Destello | Pico al principio de la explosión (`m` de 0 a 0,2) |
+| Hero · nombre | Ancho tipográfico (eje `wdth`): la carga lo comprime de 62 a 50; la explosión lo ensancha hasta 150 (`m` de 0 a 0,35) y separa sus letras (hasta 0,25 em en `m` 1); se va con el scroll. Con la `m` suavizada del hero (ADR-030), también sin WebGL |
+| Hero · halo | Crece con la carga (hasta ×2,6) y se apaga con la explosión (`m` de 0 a 0,12); fijo en el centro de la ventana |
+| Destello | Pico al principio de la explosión (`m` de 0 a 0,2, opacidad 0,75) y golpe de 0,95 al detonar que se apaga en ≈ 0,6 s; solo con escena y sin movimiento reducido |
 | Encuadre | En escritorio, la escena se desplaza a la derecha para dejar sitio a los paneles (cantidad por capítulo en `docs/04-escena/`) |
 | Estrellas de fondo | No existen antes del Big Bang: aparecen entre `m` 0,02 y 0,4 |
 

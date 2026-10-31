@@ -19,15 +19,18 @@ export interface HoldCharge {
 
 /**
  * Carga de «mantén pulsado para detonar» (docs/02-experiencia/capitulos/00-singularidad.md).
- * La carga avanza en un bucle de `requestAnimationFrame` y se escribe como variable CSS en `target`:
- * nada que cambie en cada frame pasa por el estado de React (ADR-004); solo `detonated` lo hace, una
- * vez. Al llegar a 1 llama a `onDetonate`; volver arriba del todo la deja lista otra vez. Si la
+ * La carga avanza en un bucle de `requestAnimationFrame` y se escribe como variable CSS en `target` y, si se
+ * da, en `onCharge` (la escena y los efectos del Big Bang la leen de ahí): nada que cambie en cada frame pasa
+ * por el estado de React (ADR-004); solo `detonated` lo hace, una vez. Al llegar a 1 llama a `onDetonate`;
+ * volver arriba del todo la deja lista otra vez. Tras detonar, la carga se descarga sola. Al desmontar con
+ * carga, la deja en 0. Si la
  * ventana pierde el foco o la pestaña se oculta, suelta: un `pointerup` que se pierde fuera (Alt+Tab
  * con el botón pulsado) no puede dejar la carga llenándose sola.
  */
 export function useHoldCharge(
   target: RefObject<HTMLElement | null>,
   onDetonate: () => void,
+  onCharge?: (charge: number) => void,
 ): HoldCharge {
   const [detonated, setDetonated] = useState(false);
   const charge = useRef(0);
@@ -36,14 +39,17 @@ export function useHoldCharge(
   const frame = useRef<number | null>(null);
   const lastTime = useRef<number | null>(null);
   const onDetonateRef = useRef(onDetonate);
+  const onChargeRef = useRef(onCharge);
 
   useEffect(() => {
     onDetonateRef.current = onDetonate;
-  }, [onDetonate]);
+    onChargeRef.current = onCharge;
+  }, [onDetonate, onCharge]);
 
   const write = useCallback(
     (value: number): void => {
       target.current?.style.setProperty(CHARGE_VAR, String(value));
+      onChargeRef.current?.(value);
     },
     [target],
   );
@@ -73,13 +79,13 @@ export function useHoldCharge(
       charge.current = stepCharge(charge.current, dt, holding.current);
       write(charge.current);
 
-      if (charge.current >= 1) {
+      // Al llegar a 1 detona una vez y sigue el bucle: la carga se descarga sola, como al soltar (el punto, el
+      // halo y el nombre vuelven a reposo mientras llega la explosión).
+      if (charge.current >= 1 && !detonatedRef.current) {
         holding.current = false;
         detonatedRef.current = true;
-        stop();
         setDetonated(true);
         onDetonateRef.current();
-        return;
       }
       if (!holding.current && charge.current <= 0) {
         stop();
@@ -128,7 +134,14 @@ export function useHoldCharge(
     };
   }, [detonated, write]);
 
-  useEffect(() => stop, [stop]);
+  // Al desmontar se para el bucle; una carga a medias no se queda escrita para la escena.
+  useEffect(
+    () => () => {
+      stop();
+      if (charge.current > 0) onChargeRef.current?.(0);
+    },
+    [stop],
+  );
 
   return { detonated, press, release };
 }

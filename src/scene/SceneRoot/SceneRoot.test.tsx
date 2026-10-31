@@ -1,15 +1,26 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { act, render } from '@testing-library/react';
 import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 import type { Color } from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { sceneStore, setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import { BIG_BANG_VARS } from '~/lib/bigBang/bigBang';
+import { sceneStore, setCharge, setScrollTarget } from '~/stores/sceneStore/sceneStore';
 import { closeQuickMission, openQuickMission, useUiStore } from '~/stores/uiStore/uiStore';
 
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../contextLoss/contextLoss';
 import { MAX_STEP_S } from '../sceneClock/sceneClock';
 import { useSceneShapes } from '../useSceneShapes/useSceneShapes';
 import SceneRoot from './SceneRoot';
+
+/** Su CSS, del disco (con jsdom, `new URL` no lleva a rutas `file:`). */
+const sceneCss = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), 'SceneRoot.module.css'),
+  'utf8',
+);
 
 // Las formas tienen sus propios tests (worker, reintento): aquí solo se mira cómo las usa SceneRoot.
 vi.mock('../useSceneShapes/useSceneShapes', () => ({
@@ -159,7 +170,7 @@ afterEach(() => {
   seen.stars = [];
   seen.cameraFrame = null;
   vi.unstubAllGlobals();
-  setScrollTarget(0);
+  sceneStore.setState(sceneStore.getInitialState(), true);
   useUiStore.setState(useUiStore.getInitialState(), true);
   Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
   document.documentElement.style.removeProperty('--color-void');
@@ -309,11 +320,13 @@ describe('SceneRoot', () => {
     expect(onPainted).toHaveBeenCalledTimes(1);
     expect(canvas.closest('[aria-hidden="true"]')).toHaveAttribute('data-particles', 'painted');
     setScrollTarget(2.25);
+    setCharge(0.3);
     // Un hueco de 1 s (más que el tope): el frame lleva el reloj de la escena, no los segundos del bucle.
     frames.tick(1000);
     frames.tick(2000);
     expect(seen.frame).toEqual({
       m: 2.25,
+      charge: 0.3,
       time: MAX_STEP_S,
       delta: MAX_STEP_S,
       reducedMotion: false,
@@ -672,5 +685,13 @@ describe('SceneRoot', () => {
     unmount();
     vi.advanceTimersByTime(CONTEXT_RESTORE_TIMEOUT_MS);
     expect(onFail).not.toHaveBeenCalled();
+  });
+});
+
+describe('SceneRoot.module.css', () => {
+  it('the canvas shakes with the Big Bang (the hero loop writes the offsets); at rest, still', () => {
+    expect(sceneCss).toContain(
+      `translate: var(${BIG_BANG_VARS.shakeX}, 0px) var(${BIG_BANG_VARS.shakeY}, 0px);`,
+    );
   });
 });

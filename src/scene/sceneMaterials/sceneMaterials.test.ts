@@ -16,6 +16,7 @@ import {
 
 const frame: Readonly<SceneFrame> = {
   m: 2.5,
+  charge: 0.4,
   time: 12,
   delta: 0.016,
   reducedMotion: false,
@@ -41,6 +42,7 @@ describe('particle uniforms', () => {
     updateParticleUniforms(uniforms, frame);
     expect(uniforms).toEqual(before);
     expect(uniforms.uM.value).toBe(2.5);
+    expect(uniforms.uCharge.value).toBe(0.4);
     expect(uniforms.uTime.value).toBe(12);
     expect(uniforms.uPR.value).toBe(2);
     expect(uniforms.uAspect.value).toBe(1.6);
@@ -60,9 +62,10 @@ describe('particle uniforms', () => {
 });
 
 describe('createSceneFrame', () => {
-  it('starts at the singularity, with motion and extras, narrow and with no mouse', () => {
+  it('starts at the singularity, uncharged, with motion and extras, narrow and with no mouse', () => {
     expect(createSceneFrame()).toEqual({
       m: 0,
+      charge: 0,
       time: 0,
       delta: 0,
       reducedMotion: false,

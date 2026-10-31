@@ -25,9 +25,10 @@ Presentar quién eres en 3 segundos y dar el primer momento «wow». Tesis visua
   **1,5 s**; al soltar, baja a ritmo de 1,8/s.
 - Con la carga: el punto crece y vibra, el halo se expande, la pantalla tiembla un poco y el nombre **se
   comprime** (el eje `wdth` baja): la energía se acumula.
-- Al llegar a 1: **destello** radial blanco-ámbar, la explosión y un desplazamiento automático suave hasta el
-  capítulo 1, con el foco en su título (`estados-y-accesibilidad.md` → «Accesibilidad», punto 8). La detonación
-  solo puede volver a cargarse si se regresa al inicio.
+- Al llegar a 1: **destello** radial blanco-ámbar (entre el lienzo y el texto: no tapa la lectura), la explosión
+  y un desplazamiento automático suave hasta el capítulo 1, con el foco en su título
+  (`estados-y-accesibilidad.md` → «Accesibilidad», punto 8). La carga se descarga sola; la detonación solo puede
+  volver a cargarse si se regresa al inicio.
 - Mantener pulsado en la zona vacía del hero también carga: no sobre el texto (se puede seleccionar, y en táctil el
   toque largo es del sistema) ni sobre enlaces y botones. Mientras carga desde la zona, el toque largo no abre el
   menú contextual.
@@ -55,6 +56,8 @@ Presentar quién eres en 3 segundos y dar el primer momento «wow». Tesis visua
   usuario).
 - Sin WebGL: el punto y el halo se dibujan con CSS, así que el hero se ve completo igual. Con escena, el punto
   es el de partículas y el halo sigue siendo el CSS (`estados-y-accesibilidad.md` → «Secuencia de carga»).
+- Sin WebGL, el nombre (`wdth` y espaciado) y el halo siguen la carga y el scroll; el destello y el temblor solo
+  existen con la escena, porque acompañan a la explosión de partículas (ADR-030).
 
 ## Aceptación
 

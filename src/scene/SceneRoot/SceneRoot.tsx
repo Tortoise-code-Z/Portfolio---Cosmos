@@ -4,12 +4,12 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { watchMediaQuery } from '~/lib/device/mediaQuery/mediaQuery';
 import { watchReducedMotion } from '~/lib/device/reducedMotion/reducedMotion';
 import { LEVEL_SETTINGS, type RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
-import { damp } from '~/lib/math/damp/damp';
+import { smoothM } from '~/lib/scroll/smoothM/smoothM';
 import { sceneStore } from '~/stores/sceneStore/sceneStore';
 
 import { BackgroundStars } from '../BackgroundStars/BackgroundStars';
 import { CameraRig } from '../CameraRig/CameraRig';
-import { CAMERA_LENS, M_SMOOTHING, WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
+import { CAMERA_LENS, WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
 import { watchContextLoss } from '../contextLoss/contextLoss';
 import { startFrameLoop, type FrameLoop } from '../frameLoop/frameLoop';
 import { Particles } from '../Particles/Particles';
@@ -67,7 +67,7 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * si falla, reintento) y las pinta (`Particles`), con las estrellas de fondo; la cámara la lleva `CameraRig`.
  *
  * Los frames los pide su propio bucle (`frameloop="never"` + `startFrameLoop`, ADR-027): antes de cada
- * `advance()` rellena el frame compartido (`m` suavizado, reloj, densidad de píxeles…; el ratón y si es
+ * `advance()` rellena el frame compartido (`m` suavizado, la carga de la detonación, reloj, densidad de píxeles…; el ratón y si es
  * escritorio los escriben sus observadores, `watchPointer` y `watchMediaQuery`) y, si un frame lanza, para y pasa
  * a sin WebGL. La `m` de la escena es suya: persigue a `mTarget` con un amortiguado (`M_SMOOTHING`, con el tiempo
  * real del frame) y arranca en él (sin repetir la explosión a mitad del viaje); `sceneStore` sigue con
@@ -194,18 +194,13 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
         clock.tick(seconds);
         degradation.sample(seconds);
         const state = get();
-        const { mTarget } = sceneStore.getState();
+        const { mTarget, charge } = sceneStore.getState();
         frame.m =
           first || !Number.isFinite(frame.m)
             ? mTarget
-            : damp(
-                frame.m,
-                mTarget,
-                clock.delta,
-                clock.reduced ? M_SMOOTHING.reducedRate : M_SMOOTHING.rate,
-                M_SMOOTHING.epsilon,
-              );
+            : smoothM(frame.m, mTarget, clock.delta, clock.reduced);
         first = false;
+        frame.charge = charge;
         frame.time = clock.time;
         frame.delta = clock.delta;
         frame.reducedMotion = clock.reduced;

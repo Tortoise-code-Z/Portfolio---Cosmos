@@ -539,7 +539,8 @@
   «Etiquetas y colores»).
 
 ## ADR-028 · La escena suaviza su propia `m`; la interfaz fija sigue el scroll a saltos
-- Estado: Aceptada
+- Estado: Aceptada · matizada por ADR-030 (los efectos del Big Bang en el DOM suavizan su `m` como la escena;
+  `M_SMOOTHING` pasa a `lib/scroll/smoothM`)
 - Fecha: 2026-10-27
 - Contexto: F3.5 conecta el scroll con la escena: `m` tiene que perseguir a `mTarget` con inercia
   (`scroll-y-escena.md` → «Suavizado»). ADR-021 dejó el raíl, el HUD y el idioma leyendo `m = mTarget` a saltos y
@@ -609,3 +610,38 @@
   («Sin WebGL»), `docs/01-contenido/assets.md` («Fotos fijas de la escena»), `docs/04-escena/camara-y-encuadre.md`
   («Fotos fijas del modo sin WebGL»), `docs/05-tecnico/calidad.md` («Pirámide de tests», «Regresión visual» y
   «Mediciones»), `docs/05-tecnico/arquitectura.md` («Carga de la escena»).
+
+## ADR-030 · Los efectos del Big Bang en el DOM, con su propio bucle y la misma `m` suavizada que la escena
+- Estado: Aceptada
+- Fecha: 2026-10-31
+- Contexto: F4.1 completa la detonación del capítulo 0 (`docs/02-experiencia/capitulos/00-singularidad.md`,
+  `docs/03-diseno/movimiento.md` → «Coreografía del Big Bang»): el punto de partículas crece y vibra con la carga,
+  y fuera del lienzo hay destello, temblor, nombre que se comprime y se ensancha (eje `wdth`) y halo que crece y se
+  apaga. El prototipo lo hacía todo en el bucle de la escena con su `m` suavizada. Aquí la escena no toca el DOM
+  de la interfaz (capas de `arquitectura.md`), el sitio funciona sin escena (P1) e, según ADR-028, la interfaz
+  fija va con `mTarget` a saltos: un destello con `mTarget` llegaría ≈ 0,3 s antes que la explosión.
+- Decisión:
+  - La carga va en `sceneStore` (`charge`), escrita por el bucle del botón en cada frame mientras carga o se
+    descarga, como `mTarget` con el scroll; la escena la copia en su `SceneFrame` (`uCharge`). Tras detonar, la
+    carga baja sola (como el prototipo).
+  - Los efectos del DOM tienen **un bucle propio** en el hero (`useBigBang`), que escribe variables CSS privadas
+    en `<html>` (`--_bang-*`) y solo corre mientras algo se mueve. Sigue **su propia copia de `m`**, suavizada con
+    el mismo `smoothM` (`M_SMOOTHING`, ahora en `lib`) que la escena: las dos arrancan en `mTarget` y van al
+    mismo ritmo, sin que la escena publique su `m`.
+  - El nombre y el halo cambian en todos los modos (también sin WebGL); el destello y el temblor, solo con la
+    escena pintando (`scene-on`, lo decide el CSS) y nunca con movimiento reducido. Tiemblan el lienzo y el punto
+    o halo CSS, nunca el texto. El halo pasa a fijo mientras el bucle corre y queda por encima del destello (el
+    halo va en `main`; el destello, fuera, entre el lienzo y el contenido). El destello tiene un solo color en la
+    escena y en el CSS.
+- Alternativas descartadas: que la escena guarde solo «pulsando» y calcule su carga (dos cargas que se pueden
+  desfasar); que los efectos usen `mTarget` tal cual (el destello se adelanta a la explosión); que la escena
+  escriba los efectos en el DOM (rompe las capas y P1); pasarlo todo también al modo sin WebGL (un destello sin
+  explosión detrás) o nada (el nombre es la firma tipográfica y no necesita la escena); hacer temblar la página
+  entera (el texto se leería peor).
+- Consecuencias: con escena, la escena y los efectos del DOM llevan dos copias de `m` que coinciden salvo por la
+  diferencia de frames entre los dos bucles. El `wdth` del `<h1>` cambia por frame mientras se carga o se baja por
+  el hero: se maquetan sus líneas (son bloques de alto fijo y nada se mueve alrededor; vigilar el CLS en F6). Lo
+  nuevo que acompañe a la explosión desde el DOM lee la misma `m` (`smoothM`), no `mTarget`.
+- Detalle: `docs/03-diseno/movimiento.md` («Coreografía del Big Bang»), `docs/02-experiencia/capitulos/00-singularidad.md`,
+  `docs/05-tecnico/arquitectura.md` («Estado», «Puente scroll → escena»), `docs/02-experiencia/scroll-y-escena.md`
+  («Suavizado»), `docs/03-diseno/design-system.md` («Capas»).

@@ -5,7 +5,8 @@
 
 /*
  * Punto y halo en CSS. Con escena, la singularidad de partículas releva solo al punto, en el mismo sitio (se funde
- * con `scene-on`); el halo se queda (estados-y-accesibilidad.md → «Secuencia de carga»).
+ * con `scene-on`); el halo se queda (estados-y-accesibilidad.md → «Secuencia de carga»). Los efectos del Big Bang
+ * (`useBigBang`, variables `--_bang-*` en `<html>`) lo apagan con la explosión y, con escena, lo hacen temblar.
  */
 .singularity {
   position: absolute;
@@ -15,7 +16,21 @@
   display: grid;
   place-items: center;
   translate: -50% -50%;
+  opacity: var(--_bang-halo-fade, 1);
   pointer-events: none;
+}
+
+/*
+ * Con el bucle del Big Bang en marcha, fijo en el centro de la ventana como el punto de partículas (en reposo, el
+ * mismo sitio). Antes de hidratar sigue en el hero: abierta a mitad del viaje, no queda encima del texto.
+ */
+:global(.bang-live) .singularity {
+  position: fixed;
+}
+
+/* El temblor, solo con escena: acompaña a la explosión de partículas. */
+:global(.scene-on) .singularity {
+  translate: calc(-50% + var(--_bang-shake-x, 0px)) calc(-50% + var(--_bang-shake-y, 0px));
 }
 
 .halo,
@@ -28,6 +43,8 @@
   inline-size: var(--singularity-halo-size);
   block-size: var(--singularity-halo-size);
   background: var(--gradient-singularity-halo);
+  /* Crece con la carga; `scale` lo lleva el latido y se compone con este. */
+  transform: scale(var(--_bang-halo-scale, 1));
   animation: breathe var(--dur-breathe) var(--ease-in-out) infinite alternate;
 }
 
@@ -77,12 +94,21 @@
   }
 }
 
-/* El nombre: display gigante, eje wdth estrecho en reposo (energía contenida). */
+/*
+ * El nombre: display gigante, eje wdth estrecho en reposo (energía contenida). La carga lo comprime y la explosión
+ * lo ensancha y separa sus letras (`useBigBang`).
+ */
 .name {
   padding-block-start: var(--hero-accent-room);
   font-size: var(--text-hero);
   font-weight: var(--weight-hero);
-  font-stretch: var(--wdth-hero-rest);
+  font-stretch: var(--_bang-hero-width, var(--wdth-hero-rest));
+  letter-spacing: var(--_bang-hero-tracking, normal);
+  /*
+   * Ensanchado (`wdth` 150 y espaciado) no cabe en móvil: se corta en el borde de su columna, sin scroll de lado.
+   * Solo en horizontal (los acentos de arriba siguen a la vista); su propio anillo de foco no se recorta.
+   */
+  overflow-x: clip;
   line-height: var(--leading-hero);
   white-space: nowrap;
 }

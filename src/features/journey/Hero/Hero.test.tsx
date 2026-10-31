@@ -1,20 +1,34 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { BIG_BANG_VARS } from '~/lib/bigBang/bigBang';
+import { sceneStore } from '~/stores/sceneStore/sceneStore';
+
 import { Hero } from './Hero';
 
-let pending: FrameRequestCallback | null = null;
+/** Su CSS, del disco (con jsdom, `new URL` no lleva a rutas `file:`). */
+const heroCss = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), 'Hero.module.css'),
+  'utf8',
+);
+
+/** Frames pedidos (la carga y los efectos del Big Bang tienen cada uno su bucle): una cola, como el navegador. */
+let pending: FrameRequestCallback[] = [];
 let now = 0;
 
-/** Avanza el bucle de frames `frames` veces, `ms` cada una. */
+/** Avanza los bucles de frames `frames` veces, `ms` cada una. */
 function advance(ms: number, frames = 1): void {
   for (let index = 0; index < frames; index += 1) {
     now += ms;
-    const callback = pending;
-    pending = null;
+    const callbacks = pending;
+    pending = [];
     act(() => {
-      callback?.(now);
+      for (const callback of callbacks) callback(now);
     });
   }
 }
@@ -44,13 +58,13 @@ function renderHero(path = '/'): {
 }
 
 beforeEach(() => {
-  pending = null;
+  pending = [];
   now = 0;
   vi.stubGlobal(
     'requestAnimationFrame',
     vi.fn((callback: FrameRequestCallback) => {
-      pending = callback;
-      return 1;
+      pending.push(callback);
+      return pending.length;
     }),
   );
   vi.stubGlobal('cancelAnimationFrame', vi.fn());
@@ -58,6 +72,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  sceneStore.setState(sceneStore.getInitialState(), true);
 });
 
 describe('Hero', () => {
@@ -100,6 +115,44 @@ describe('Hero', () => {
     expect(aboutTitle).toHaveFocus();
   });
 
+  it('the charge goes to the scene store (the scene and the Big Bang effects read it there)', () => {
+    renderHero();
+    const button = screen.getByRole('button', { name: 'Hold to detonate' });
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+    advance(0);
+    advance(100, 6);
+    expect(sceneStore.getState().charge).toBeCloseTo(0.4, 5);
+    fireEvent.pointerUp(button, { pointerId: 1 });
+    advance(100, 5);
+    expect(sceneStore.getState().charge).toBe(0);
+  });
+
+  it('charging squeezes the name and detonating sets off the flash (useBigBang)', () => {
+    renderHero();
+    const root = document.documentElement;
+    const button = screen.getByRole('button', { name: 'Hold to detonate' });
+    fireEvent.pointerDown(button, { button: 0, pointerId: 1 });
+    advance(0);
+    advance(100, 8);
+    expect(parseFloat(root.style.getPropertyValue(BIG_BANG_VARS.heroWidth))).toBeLessThan(62);
+    expect(root.style.getPropertyValue(BIG_BANG_VARS.flash)).toBe('0.000');
+    advance(100, 7); // detona
+    advance(16);
+    expect(Number(root.style.getPropertyValue(BIG_BANG_VARS.flash))).toBeGreaterThan(0.8);
+  });
+
+  it('the CSS reads the Big Bang variables, each with its resting value', () => {
+    expect(heroCss).toContain(
+      `font-stretch: var(${BIG_BANG_VARS.heroWidth}, var(--wdth-hero-rest));`,
+    );
+    expect(heroCss).toContain(`letter-spacing: var(${BIG_BANG_VARS.heroTracking}, normal);`);
+    expect(heroCss).toContain(`opacity: var(${BIG_BANG_VARS.haloFade}, 1);`);
+    expect(heroCss).toContain(`transform: scale(var(${BIG_BANG_VARS.haloScale}, 1));`);
+    expect(heroCss).toContain(
+      `translate: calc(-50% + var(${BIG_BANG_VARS.shakeX}, 0px)) calc(-50% + var(${BIG_BANG_VARS.shakeY}, 0px));`,
+    );
+  });
+
   it('holding the empty area of the hero also charges; releasing anywhere drains it', () => {
     const { scrollIntoView, area } = renderHero();
     fireEvent.pointerDown(area, { button: 0 });
@@ -117,9 +170,11 @@ describe('Hero', () => {
 
   it('holding the text of the hero does not charge (it stays selectable)', () => {
     renderHero();
+    advance(16); // el primer frame de los efectos del Big Bang, que luego duermen
     fireEvent.pointerDown(screen.getByText(/So did my code\./), { button: 0 });
     fireEvent.pointerDown(screen.getByRole('heading', { level: 1 }), { button: 0 });
-    expect(pending).toBeNull();
+    expect(pending).toEqual([]);
+    expect(sceneStore.getState().charge).toBe(0);
   });
 
   it('while the area charges, a long press does not open the context menu; after, it does', () => {
@@ -132,8 +187,9 @@ describe('Hero', () => {
 
   it('a secondary pointer button on the area does nothing', () => {
     const { area } = renderHero();
+    advance(16);
     fireEvent.pointerDown(area, { button: 2 });
-    expect(pending).toBeNull();
+    expect(pending).toEqual([]);
   });
 
   it('a pointer down on the button is the button gesture: releasing elsewhere does not cut it', () => {

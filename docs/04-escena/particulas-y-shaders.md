@@ -33,8 +33,9 @@ la dirección de `position` escalada a casi cero.
 | `uMotion` | float | 1 normal · 0 movimiento reducido (anula oscilaciones autónomas) |
 | `uExtras` | float | 1 · 0 en Bajo: esconde la estela de la tortuga (alfa 0) y apaga las luces de ciudad |
 
-`uCharge`, `uPlate` y `uGrav` (con `uMouse` fuera de la pantalla) se quedan a 0 hasta que los conecte F4
-(detonación, placas, gravedad). Todos los uniforms se ponen al día en el `useFrame` desde un `SceneFrame`
+`uCharge` lo conecta F4.1: la carga del botón del hero (`sceneStore.charge`, copiada en `SceneFrame.charge`) hincha
+el punto y lo hace vibrar; con movimiento reducido, `uTime` se congela y la vibración no se mueve (ADR-030).
+`uPlate` y `uGrav` (con `uMouse` fuera de la pantalla) se quedan a 0 hasta que los conecte F4 (placas, gravedad). Todos los uniforms se ponen al día en el `useFrame` desde un `SceneFrame`
 compartido que rellena el bucle antes de cada frame: ningún objeto nuevo por frame.
 
 ## Etiquetas y colores

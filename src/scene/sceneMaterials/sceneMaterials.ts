@@ -20,7 +20,7 @@ export interface ParticleUniforms {
   readonly uM: IUniform<number>;
   /** Segundos de animación (congelados con movimiento reducido). */
   readonly uTime: IUniform<number>;
-  /** Carga de la detonación (0–1). F4: hoy 0. */
+  /** Carga de la detonación (0–1): el punto crece y vibra (la vibración, sin movimiento reducido). */
   readonly uCharge: IUniform<number>;
   /** Densidad de píxeles del lienzo. */
   readonly uPR: IUniform<number>;
@@ -80,6 +80,8 @@ export interface SceneFrame {
    * `sceneStore.m`.
    */
   m: number;
+  /** Carga de la detonación (0–1), tal cual la deja el botón del hero en `sceneStore`. */
+  charge: number;
   time: number;
   /** Segundos reales desde el frame anterior (`sceneClock.delta`): para suavizar, no para animar. */
   delta: number;
@@ -97,6 +99,7 @@ export interface SceneFrame {
 export function createSceneFrame(): SceneFrame {
   return {
     m: 0,
+    charge: 0,
     time: 0,
     delta: 0,
     reducedMotion: false,
@@ -113,6 +116,7 @@ export function updateParticleUniforms(
   frame: Readonly<SceneFrame>,
 ): void {
   uniforms.uM.value = frame.m;
+  uniforms.uCharge.value = frame.charge;
   uniforms.uTime.value = frame.time;
   uniforms.uPR.value = frame.pixelRatio;
   uniforms.uAspect.value = frame.aspect;
