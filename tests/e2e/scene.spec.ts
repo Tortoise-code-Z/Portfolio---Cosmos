@@ -132,13 +132,14 @@ async function look(page: Page, clip: Clip): Promise<{ painted: number; dominant
 }
 
 /**
- * Brillo medio (0–255, la media de los tres canales) de cada celda de `cell` px de una zona de la ventana, fila a
- * fila; la captura la descodifica el navegador (en un lienzo 2D), sin dependencias.
+ * Brillo medio (0–255, la media de los tres canales) de cada celda de `cell` px CSS de una zona de la ventana, fila a
+ * fila; la captura la descodifica el navegador (en un lienzo 2D), sin dependencias. La captura sale a la densidad de
+ * píxeles del motor (WebKit, como Safari de escritorio, a 2): la celda se pasa a píxeles de la imagen.
  */
 async function brightnessGrid(page: Page, clip: Clip, cell: number): Promise<number[][]> {
   const png = await page.screenshot({ clip });
   return page.evaluate(
-    async ({ base64, size }) => {
+    async ({ base64, cssCell, cssWidth }) => {
       const image = new Image();
       image.src = `data:image/png;base64,${base64}`;
       await image.decode();
@@ -149,6 +150,7 @@ async function brightnessGrid(page: Page, clip: Clip, cell: number): Promise<num
       if (context === null) throw new Error('No 2D context');
       context.drawImage(image, 0, 0);
       const { data, width, height } = context.getImageData(0, 0, canvas.width, canvas.height);
+      const size = Math.round(cssCell * (width / cssWidth));
       const rows: number[][] = [];
       for (let top = 0; top + size <= height; top += size) {
         const row: number[] = [];
@@ -166,7 +168,7 @@ async function brightnessGrid(page: Page, clip: Clip, cell: number): Promise<num
       }
       return rows;
     },
-    { base64: png.toString('base64'), size: cell },
+    { base64: png.toString('base64'), cssCell: cell, cssWidth: clip.width },
   );
 }
 
@@ -488,9 +490,8 @@ test.describe('the scene with WebGL', () => {
     });
     await settleScene(page);
     await page.mouse.move(24, 700);
-    // La `m` de la escena llega a la nebulosa con su inercia (y en WebKit el salto al ancla puede llegar después
-    // de pintar): por el camino pasa por la explosión, mucho más brillante. Se mide cuando dos capturas seguidas
-    // dan lo mismo en la celda más brillante.
+    // La escena llega a la nebulosa con su inercia: se mide cuando dos capturas seguidas dan lo mismo en la celda
+    // más brillante.
     const scene = sceneClip(page);
     let best = { value: 0, top: 0, left: 0 };
     await expect
