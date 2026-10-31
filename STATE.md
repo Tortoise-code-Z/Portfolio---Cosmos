@@ -3,34 +3,44 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F3 cerrada en código · versión 0.2.0 en `main`** (`0a951ea`, PR #78) · AUD-F3-CIERRE
-lanzada a la Mesa (base `f6f6b2f` · hasta `0a951ea`) · siguiente: decidir su entrega, corregir y etiquetar `v0.2.0`.
+**Dónde estamos:** **F3 cerrada · `v0.2.0`** (etiqueta anotada sobre `6b46c7d`, PR #80) · siguiente: **F4.1
+(singularidad)**.
 
-_Última actualización: 2026-10-30 (**CIERRE DE SESIÓN · 28**) · versión 0.2.0 con las mediciones del cierre de F3:
-PageSpeed 100 en las cuatro notas (móvil y escritorio) y `npm audit` limpio. 1192 unitarios en verde._
+_Última actualización: 2026-10-31 (**CIERRE DE SESIÓN · 29**) · AUD-F3-CIERRE corregida entera y `v0.2.0`
+etiquetada: F3 auditada y cerrada. 1193 unitarios y 212 e2e de Chromium en verde._
 
-**Hecho esta sesión** (vivas S28 en `_claude/cadena/hecho/2026-10-30/decisiones-vivas-S28.md`):
-1. **Versión 0.2.0** (PR #78, `0a951ea`; vivas #1–#5): `package.json` y `package-lock.json` a `0.2.0`;
-   `calidad.md` → «Mediciones», tabla «Cierre de F3 (`v0.2.0`)»: PageSpeed (Lighthouse 13.6.0) en producción,
-   `/` y `/projects/cosmos` 100/100/100/100 en móvil (LCP 0,9 y 0,8 s, TBT 0) y en escritorio; build local
-   (contenedor sin GPU, mediana de 3 pasadas) 95–100 de Performance y 100 en lo demás (404: SEO 54, `noindex`).
-   La escena se apaga sin GPU (ADR-029): ni Three.js ni fotos fijas en la carga. `npm audit`: 0 (también
-   `--omit=dev`). Línea en el roadmap (F3: versión medida; faltan auditoría y etiqueta).
-2. **AUD-F3-CIERRE lanzada** (vivas #6): transversal sobre toda F3 y línea a línea F3.7 (`d5ee0a9`) y la versión
-   (`0a951ea`), los dos commits sin auditoría propia. Entrega en `_claude/cadena/aud-f3-cierre/auditoria.md`.
+**Hecho esta sesión** (vivas S29 en `_claude/cadena/hecho/2026-10-31/decisiones-vivas-S29.md`):
+1. **AUD-F3-CIERRE decidida y corregida** (PR #80, `6b46c7d`; vivas #1–#7): 3 recomendados, 11 menores y P1, con la
+   opción recomendada.
+   - Huella de las fotos fijas con `scene/sceneClock` y `lib/device/reducedMotion` (fotos rehechas: idénticas byte a
+     byte; solo cambia `stills.json`).
+   - `onRestored` fuera de `watchContextLoss` (código muerto desde ADR-027).
+   - `PARTICLES_PAINTED` y `withoutWebGL` en `tests/e2e/support/helpers.ts`; el e2e del encaje saca sus números de
+     `STILL_FRAMES` y `CAMERA_FIT`; `journey.spec` busca el punto por `data-singularity="core"`.
+   - CI: paso «npm audit (warning)» (`--omit=dev --audit-level=high`, `continue-on-error`) en `quality`.
+   - ESLint: `caseSensitive: true` en los grupos de las capas (`**/Particles/**` cerraba también
+     `shaders/particles/`; probado antes y después).
+   - Esfera de las estrellas desde `STARS` (`STARS_BOUNDING_RADIUS`), con test.
+   - Comentarios y docs al día: 404 → F5 en el roadmap, fps en móvil desde F6 (`rendimiento.md`), los dos e2e de
+     «por software», §11 remite al «hecho» de `calidad.md`, ADR-029 (INP frente a TBT), `arquitectura.md`,
+     `scroll-y-escena.md`, `cosmos.md`, `habilidades.md`, `03-tortuga.md`; P1 en F6 del roadmap.
+2. **CIE-1 (vivas #4–#5):** con la captura de la 404, la singularidad no tapa texto → Víctor elige A (solo docs).
+3. **Etiqueta `v0.2.0`** (anotada, «v0.2.0: F3, the 3D scene engine (audited)») sobre `6b46c7d`. Roadmap: F3 cerrada.
 
 **Incidencias y lecciones:**
-- **Lighthouse en frío:** la primera pasada tras arrancar `npm run preview` sale peor (`/` 80, TBT 700 ms). Se hacen
-  tres pasadas por página y se apunta la mediana (ya escrito en `calidad.md` → «Mediciones»).
-- **LCP y versión de Lighthouse:** 13.6.0 da 0,8 s en `/` y 13.5.0 da 2,4–2,7 s con el mismo build y el mismo
-  elemento (el párrafo del hero). Al comparar con F2, mirar la versión antes que el código.
-- **PageSpeed sin escena:** el 2026-10-29 daba 88 y 83 con la escena por SwiftShader; ahora 100 (F3.8 funciona
-  también en el Lighthouse de Google). Trae una categoría nueva, «Navegación agéntica» (2/2).
-- **Contenedor:** el `playwright` del repo pide Chromium 1248 y en el contenedor solo está el 1243; para Lighthouse
-  basta con `CHROME_PATH` al 1243. El aviso del contenedor de «cambios sin commit» se resuelve con `git stash -u` en
-  la copia, nunca con commit ni push desde ahí.
+- **Contenedor:** trae Node 22; Node 24 con `npm i -g node@24.22.0` (el `n` no descarga de nodejs.org). Para
+  `npm run stills` y los e2e, el Chromium 1243 de `/opt/pw-browsers` enlazado como 1248 (`ln -s`); las fotos salen
+  idénticas a las de Docker. Las fotos se rehacen sin Docker con `COSMOS_STILLS_DOCKER=1 npm run stills:run` tras
+  el build.
+- **Aviso del contenedor «cambios sin commit»:** otra vez; se resuelve con `git stash -u` en la copia.
+- **Mesa:** su «si el punto tapa el texto, C» se resolvió midiendo (captura con `main` oculto y los píxeles claros):
+  medir antes de abrir trabajo de escena en un cierre.
 
 **Deuda anotada:**
+- **F6 · meta description de Cosmos (AUD-F3-CIERRE-P1, A):** es el `summary` tal cual, 220 caracteres (EN) y 228
+  (ES); los buscadores cortan hacia 155–160. Decidir en F6 si se acorta o se añade un `metaDescription` (roadmap F6).
+- **F5 · la 404:** enseña la singularidad (bajo el título a 1440×900; entre el título y la frase a 390×844, sin tapar
+  texto). La nebulosa atenuada llega en F5, con un e2e de que no tapa el texto (roadmap F5).
 - **Mediciones (desde F3.8):** Lighthouse y PageSpeed corren sin GPU y miden el modo sin WebGL (con fotos fijas):
   el rendimiento de la escena solo lo miden los fps (`calidad.md` → «F3.6c · fps de la escena»). En F6, con
   Lighthouse CI, decidir si se mide también con GPU; falta el móvil real (≥ 30 fps en Bajo).
@@ -43,13 +53,16 @@ PageSpeed 100 en las cuatro notas (móvil y escritorio) y `npm audit` limpio. 11
   fundido entre capítulos y AVIF 4:4:4 en Safari.
 - **F4 · fotos fijas:** cada paso que cambie lo que se ve (formas, shaders, cámara, placas, el Sol) pide
   `npm run stills` en el mismo PR; una carpeta nueva de `scene/` que cambie las fotos va a `STILLS_SOURCES`
-  (`tests/stills/fingerprint.ts`). Lo recuerdan §13, «hecho» y el roadmap.
+  (`tests/stills/fingerprint.ts`).
+  La lista es a mano: AUD-F3-CIERRE sumó `sceneClock` y `reducedMotion`, que `SceneRoot` importa por ruta relativa.
+  Al añadir una carpeta, mirar también sus imports relativos (si F4 trae varias, un guardián que recorra el grafo
+  desde `SceneRoot`). Lo recuerdan §13, «hecho» y el roadmap.
 - **WebKit y el `<picture>`:** que WebKit pidiera el `src` del `<img>` antes de entrar en el `<picture>` es deducido
   (no hay WebKit en el contenedor); el arreglo lo vigila el e2e de escritorio sin WebGL en el CI.
-- **Peso de la escena:** 248,97 KB de 250 (F3.6a 249,0; encuadre +7 B; corrección de AUD-F3-6 −51 B).
-  R3F importa Three.js entero: las constelaciones y el Sol de F4 no caben en ~1 KB. Subir el límite, solo con
-  ADR; antes, mirar qué más se puede ahorrar (sangría y líneas vacías del GLSL solo darían ~77 B y romperían las
-  líneas de los errores).
+- **Peso de la escena:** 248,97 KB de 250 (F3.6a 249,0; encuadre +7 B; corrección de AUD-F3-6 −51 B; tras AUD-F3-CIERRE,
+  248 972 B, sin cambio). R3F importa Three.js entero: las constelaciones y el Sol de F4 no caben en ~1 KB. Subir el
+  límite, solo con ADR; antes, mirar qué más se puede ahorrar (sangría y líneas vacías del GLSL solo darían ~77 B y
+  romperían las líneas de los errores).
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
 - **Degradación en caliente:** un navegador que limita los frames a 30 (ahorro de batería) baja a Bajo en
   escritorio: aceptado y escrito en `rendimiento.md`.
@@ -158,11 +171,11 @@ PageSpeed 100 en las cuatro notas (móvil y escritorio) y `npm audit` limpio. 11
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
 
 **Siguiente paso (próxima sesión, conversación nueva):**
-1. Arrancar con `session-start` (y la skill `taller`). Cola: AUD-F3-CIERRE `[lanzado]`.
-2. Leer `_claude/cadena/aud-f3-cierre/auditoria.md` (sello: commit `0a951ea` + vivas S28 hasta #5), contrastar con
-   `main` y que Víctor elija qué se corrige → rama `fix/aud-f3-cierre`, su PR.
-3. **Etiqueta `v0.2.0`** sobre el último commit del cierre en `main` (`git-y-despliegue.md`); Claude da los
-   comandos (`git tag -a v0.2.0 <hash> -m …` y `git push origin v0.2.0`). Después, F4.1 (singularidad).
+1. Arrancar con `session-start` (y la skill `taller`). Cola: F4.1.
+2. **F4.1 · Singularidad** (roadmap F4): mantén para detonar (puntero y teclado), destello, temblor, nombre con
+   `wdth`, autoscroll. Antes del esquema: fijar las zonas de F4 en el tablero, leer
+   `docs/02-experiencia/capitulos/00-singularidad.md`, la deuda de F4.1 de arriba (halo, capas, destello y
+   `--color-flash`) y ADR-028 (`SceneFrame.m`). Si cambia lo que se ve: `npm run stills` en el mismo PR.
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»), CV en PDF EN/ES.
@@ -170,9 +183,9 @@ PageSpeed 100 en las cuatro notas (móvil y escritorio) y `npm audit` limpio. 11
 - Ramas locales ya fusionadas (todas menos `main`): las de la lista del cierre 25 (en `docs/_historial/estado/2026-10.md`) que sigan, más
   `docs/session-close-2026-10-28`, `fix/aud-f3-6c`, `feat/f3-7-cosmos-entry`, `docs/session-close-2026-10-29`,
   `feat/f3-8-software-webgl`, `feat/f3-9-scene-stills`, `fix/aud-f3-8`, `fix/aud-f3-9`,
-  `docs/session-close-2026-10-30`, `chore/release-0.2.0` y la de este cierre, `docs/session-close-2026-10-30-2`,
-  cuando se fusione (`git branch -D <rama>`: con squash, `-d` no las reconoce
-  como fusionadas). Para verlas: `git branch`.
+  `docs/session-close-2026-10-30`, `chore/release-0.2.0`, `docs/session-close-2026-10-30-2`, `fix/aud-f3-cierre`
+  y la de este cierre, `docs/session-close-2026-10-31`, cuando se fusione (`git branch -D <rama>`: con squash, `-d`
+  no las reconoce como fusionadas). Para verlas: `git branch`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js` ni
   `hecho/2026-10-28/encuadre/`, que se reutilizan).
