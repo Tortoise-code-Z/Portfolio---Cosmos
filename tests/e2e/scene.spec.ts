@@ -474,10 +474,10 @@ test.describe('the scene with WebGL', () => {
   });
 
   /**
-   * La gravedad del cursor sobre la nebulosa (F4.2). Con el ratón lejos (en la otra punta, sobre el panel), busca
-   * la parte más densa de la forma (la celda más brillante junto al panel) y mide su brillo; después pone el ratón
-   * en su centro, deja que la gravedad suba (≈ 0,25 s) y lo mide otra vez. Sin movimiento reducido la nebulosa gira
-   * despacio (algo de ruido): el margen es amplio; con él, todo está quieto.
+   * La gravedad del cursor sobre la nebulosa (F4.2). Con el ratón lejos (en la otra punta, sobre el panel), espera a
+   * que la escena esté quieta en la nebulosa y busca su parte más densa (la celda más brillante junto al panel);
+   * después pone el ratón en su centro, deja que la gravedad suba (≈ 0,25 s) y la mide otra vez. Sin movimiento
+   * reducido la nebulosa gira despacio (algo de ruido): el margen es amplio; con él, todo está quieto.
    */
   async function gravityGlow(page: Page): Promise<{ far: number; near: number }> {
     const CELL = 120;
@@ -488,11 +488,27 @@ test.describe('the scene with WebGL', () => {
     });
     await settleScene(page);
     await page.mouse.move(24, 700);
-    await page.waitForTimeout(800);
+    // La `m` de la escena llega a la nebulosa con su inercia (y en WebKit el salto al ancla puede llegar después
+    // de pintar): por el camino pasa por la explosión, mucho más brillante. Se mide cuando dos capturas seguidas
+    // dan lo mismo en la celda más brillante.
     const scene = sceneClip(page);
-    const grid = await brightnessGrid(page, scene, CELL);
-    const cells = grid.flatMap((row, top) => row.map((value, left) => ({ value, top, left })));
-    const best = cells.reduce((a, b) => (b.value > a.value ? b : a));
+    let best = { value: 0, top: 0, left: 0 };
+    await expect
+      .poll(
+        async () => {
+          const before = await brightnessGrid(page, scene, CELL);
+          await page.waitForTimeout(400);
+          const after = await brightnessGrid(page, scene, CELL);
+          const cells = after.flatMap((row, top) =>
+            row.map((value, left) => ({ value, top, left })),
+          );
+          best = cells.reduce((a, b) => (b.value > a.value ? b : a));
+          const previous = before[best.top]?.[best.left] ?? 0;
+          return Math.abs(best.value - previous) / Math.max(best.value, 1);
+        },
+        { timeout: 15_000 },
+      )
+      .toBeLessThan(0.05);
     const box = {
       x: scene.x + best.left * CELL,
       y: scene.y + best.top * CELL,
