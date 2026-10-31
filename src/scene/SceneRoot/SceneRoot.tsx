@@ -15,6 +15,7 @@ import { startFrameLoop, type FrameLoop } from '../frameLoop/frameLoop';
 import { Particles } from '../Particles/Particles';
 import { watchScenePause } from '../pause/pause';
 import { watchPointer } from '../pointer/pointer';
+import { followGravity } from '../math/gravity/gravity';
 import { createSceneClock } from '../sceneClock/sceneClock';
 import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
 import { useHotDegradation } from '../useHotDegradation/useHotDegradation';
@@ -67,7 +68,8 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * si falla, reintento) y las pinta (`Particles`), con las estrellas de fondo; la cámara la lleva `CameraRig`.
  *
  * Los frames los pide su propio bucle (`frameloop="never"` + `startFrameLoop`, ADR-027): antes de cada
- * `advance()` rellena el frame compartido (`m` suavizado, la carga de la detonación, reloj, densidad de píxeles…; el ratón y si es
+ * `advance()` rellena el frame compartido (`m` suavizado, la carga de la detonación, la gravedad del cursor, reloj,
+ * densidad de píxeles…; el ratón y si es
  * escritorio los escriben sus observadores, `watchPointer` y `watchMediaQuery`) y, si un frame lanza, para y pasa
  * a sin WebGL. La `m` de la escena es suya: persigue a `mTarget` con un amortiguado (`M_SMOOTHING`, con el tiempo
  * real del frame) y arranca en él (sin repetir la explosión a mitad del viaje); `sceneStore` sigue con
@@ -207,6 +209,7 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
         frame.pixelRatio = state.viewport.dpr;
         frame.aspect = state.size.width / Math.max(state.size.height, 1);
         frame.extras = LEVEL_SETTINGS[levelRef.current].extras;
+        followGravity(frame.gravity, frame.pointer, !clock.reduced, clock.delta);
         state.advance(seconds);
       },
       onError: (error) => {

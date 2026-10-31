@@ -2,6 +2,7 @@ import { AdditiveBlending, ShaderMaterial, Vector2, type IUniform } from 'three'
 
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
 
+import { createGravity, type Gravity } from '../math/gravity/gravity';
 import { createScenePointer, type ScenePointer } from '../pointer/pointer';
 import { glslHeader } from '../shaders/glslHeader/glslHeader';
 import particlesFragment from '../shaders/particles/particles.frag.glsl?raw';
@@ -24,12 +25,12 @@ export interface ParticleUniforms {
   readonly uCharge: IUniform<number>;
   /** Densidad de píxeles del lienzo. */
   readonly uPR: IUniform<number>;
-  /** Etiqueta de la placa iluminada (0 = ninguna). F4: hoy 0. */
+  /** Etiqueta de la placa iluminada (0 = ninguna). F4.4: hoy 0. */
   readonly uPlate: IUniform<number>;
-  /** Gravedad del cursor (0 en táctil o con movimiento reducido). F4: hoy 0. */
+  /** Gravedad del cursor, de 0 a 1 (0 en táctil, sin ratón dentro o con movimiento reducido). */
   readonly uGrav: IUniform<number>;
   readonly uAspect: IUniform<number>;
-  /** Puntero en NDC; fuera de la pantalla, sin efecto. */
+  /** Dónde tira la gravedad, en NDC (el ratón o, al apagarse, el último punto donde estuvo). */
   readonly uMouse: IUniform<Vector2>;
   /** 1 normal · 0 movimiento reducido (anula las oscilaciones propias). */
   readonly uMotion: IUniform<number>;
@@ -44,7 +45,7 @@ export interface StarUniforms {
   readonly uVisible: IUniform<number>;
 }
 
-/** Fuera de la pantalla (NDC va de −1 a 1): la gravedad no toca nada hasta que llegue el puntero (F4). */
+/** Fuera de la pantalla (NDC va de −1 a 1): antes del primer frame, la gravedad no toca nada. */
 export const POINTER_AWAY = 9;
 
 /** Las estrellas aparecen con el Big Bang: `smoothstep(0,02; 0,4; m)`. */
@@ -94,6 +95,8 @@ export interface SceneFrame {
   wide: boolean;
   /** El ratón (lo escribe `watchPointer`; es el mismo objeto toda la visita). */
   readonly pointer: ScenePointer;
+  /** La gravedad del cursor (la pone al día el bucle con `followGravity`; el mismo objeto toda la visita). */
+  readonly gravity: Gravity;
 }
 
 export function createSceneFrame(): SceneFrame {
@@ -108,6 +111,7 @@ export function createSceneFrame(): SceneFrame {
     extras: true,
     wide: false,
     pointer: createScenePointer(),
+    gravity: createGravity(),
   };
 }
 
@@ -122,6 +126,8 @@ export function updateParticleUniforms(
   uniforms.uAspect.value = frame.aspect;
   uniforms.uMotion.value = frame.reducedMotion ? 0 : 1;
   uniforms.uExtras.value = frame.extras ? 1 : 0;
+  uniforms.uGrav.value = frame.gravity.strength;
+  uniforms.uMouse.value.set(frame.gravity.x, frame.gravity.y);
 }
 
 export function updateStarUniforms(uniforms: StarUniforms, frame: Readonly<SceneFrame>): void {

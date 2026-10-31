@@ -21,14 +21,17 @@ tu profesión.
 ## Interacciones
 
 - **Gravedad del cursor:** las partículas cercanas al puntero giran y se apartan, como un remolino; brillan un poco más.
-  Solo con puntero fino (ratón o trackpad).
+  Solo con puntero fino (ratón o trackpad). Entra y sale suave (≈ 0,25 s): al salir el ratón de la ventana se
+  apaga donde estaba, sin saltos. Es solo visual: el texto del panel mantiene su contraste encima (medido en F4.2
+  a 900, 1024 y 1280 px con el ratón sobre cada línea: el mismo que sin gravedad). Detalle en
+  `docs/04-escena/particulas-y-shaders.md` → «Gravedad del cursor».
 - No hay más interacción: es un capítulo de lectura.
 
 ## Layout
 
 - **Escritorio:** panel a la izquierda (máx. ~540 px), *sticky* durante su capítulo (si es más alto que la ventana,
-  se fija por abajo); la nebulosa a la derecha (encuadre desplazado). Soltarlo a mitad del capítulo, cuando la
-  forma empieza a cambiar, se decide en F3–F4 con la escena delante.
+  se fija por abajo); la nebulosa a la derecha (encuadre desplazado). Se queda *sticky* todo el capítulo, también
+  mientras la forma empieza a cambiar (decidido en F4.2: no se suelta a mitad).
 - **Móvil:** primero ~70 vh de escena limpia; después el panel sube por encima con un fondo degradado que
   asegura el contraste. Los paneles no son *sticky* en móvil.
 - El panel lleva los corchetes de esquina del design system.

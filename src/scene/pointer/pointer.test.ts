@@ -49,6 +49,20 @@ describe('watchPointer', () => {
     expect(pointer).toEqual({ x: 0, y: 0, inside: true });
   });
 
+  it('measures over the canvas: without the classic scrollbar, not over the whole window', () => {
+    vi.stubGlobal('innerWidth', 1015);
+    vi.stubGlobal('innerHeight', 500);
+    const root = document.documentElement;
+    vi.spyOn(root, 'clientWidth', 'get').mockReturnValue(1000);
+    vi.spyOn(root, 'clientHeight', 'get').mockReturnValue(500);
+    const pointer = createScenePointer();
+    stop = watchPointer(pointer);
+    window.dispatchEvent(pointerEvent('pointermove', { clientX: 500, clientY: 250 }));
+    expect(pointer).toEqual({ x: 0, y: 0, inside: true });
+    window.dispatchEvent(pointerEvent('pointermove', { clientX: 1000, clientY: 500 }));
+    expect(pointer).toEqual({ x: 1, y: -1, inside: true });
+  });
+
   it('ignores touch and pen, event by event (a laptop with a touch screen keeps its mouse)', () => {
     const pointer = createScenePointer();
     stop = watchPointer(pointer);

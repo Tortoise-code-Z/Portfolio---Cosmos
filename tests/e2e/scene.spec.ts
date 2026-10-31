@@ -14,6 +14,7 @@ import {
   presentCapableMachine,
   presentWebGLAsRenderer,
   SCENE_READY,
+  settleScene,
   withoutWebGL,
 } from './support/helpers.ts';
 import { SWIFTSHADER_RENDERER } from './support/renderers.ts';
@@ -127,6 +128,45 @@ async function look(page: Page, clip: Clip): Promise<{ painted: number; dominant
       };
     },
     { base64: png.toString('base64'), background },
+  );
+}
+
+/**
+ * Brillo medio (0–255, la media de los tres canales) de cada celda de `cell` px de una zona de la ventana, fila a
+ * fila; la captura la descodifica el navegador (en un lienzo 2D), sin dependencias.
+ */
+async function brightnessGrid(page: Page, clip: Clip, cell: number): Promise<number[][]> {
+  const png = await page.screenshot({ clip });
+  return page.evaluate(
+    async ({ base64, size }) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${base64}`;
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const context = canvas.getContext('2d');
+      if (context === null) throw new Error('No 2D context');
+      context.drawImage(image, 0, 0);
+      const { data, width, height } = context.getImageData(0, 0, canvas.width, canvas.height);
+      const rows: number[][] = [];
+      for (let top = 0; top + size <= height; top += size) {
+        const row: number[] = [];
+        for (let left = 0; left + size <= width; left += size) {
+          let sum = 0;
+          for (let y = top; y < top + size; y += 1) {
+            for (let x = left; x < left + size; x += 1) {
+              const i = (y * width + x) * 4;
+              sum += (data[i] ?? 0) + (data[i + 1] ?? 0) + (data[i + 2] ?? 0);
+            }
+          }
+          row.push(sum / (size * size * 3));
+        }
+        rows.push(row);
+      }
+      return rows;
+    },
+    { base64: png.toString('base64'), size: cell },
   );
 }
 
@@ -431,6 +471,51 @@ test.describe('the scene with WebGL', () => {
       expect(errors).toEqual([]);
       expect(glWarnings).toEqual([]);
     });
+  });
+
+  /**
+   * La gravedad del cursor sobre la nebulosa (F4.2). Con el ratón lejos (en la otra punta, sobre el panel), busca
+   * la parte más densa de la forma (la celda más brillante junto al panel) y mide su brillo; después pone el ratón
+   * en su centro, deja que la gravedad suba (≈ 0,25 s) y lo mide otra vez. Sin movimiento reducido la nebulosa gira
+   * despacio (algo de ruido): el margen es amplio; con él, todo está quieto.
+   */
+  async function gravityGlow(page: Page): Promise<{ far: number; near: number }> {
+    const CELL = 120;
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/#about', { waitUntil: 'networkidle' });
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
+      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+    });
+    await settleScene(page);
+    await page.mouse.move(24, 700);
+    await page.waitForTimeout(800);
+    const scene = sceneClip(page);
+    const grid = await brightnessGrid(page, scene, CELL);
+    const cells = grid.flatMap((row, top) => row.map((value, left) => ({ value, top, left })));
+    const best = cells.reduce((a, b) => (b.value > a.value ? b : a));
+    const box = {
+      x: scene.x + best.left * CELL,
+      y: scene.y + best.top * CELL,
+      width: CELL,
+      height: CELL,
+    };
+    await page.mouse.move(box.x + CELL / 2, box.y + CELL / 2, { steps: 5 });
+    await page.waitForTimeout(800);
+    const [[near = 0] = []] = await brightnessGrid(page, box, CELL);
+    return { far: best.value, near };
+  }
+
+  test('the cursor gravity: near the mouse, the nebula swirls and glows', async ({ page }) => {
+    const { far, near } = await gravityGlow(page);
+    expect(far).toBeGreaterThan(10);
+    expect(near).toBeGreaterThan(far * 1.1);
+  });
+
+  test('with reduced motion there is no cursor gravity', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const { far, near } = await gravityGlow(page);
+    expect(far).toBeGreaterThan(10);
+    expect(Math.abs(near - far)).toBeLessThanOrEqual(far * 0.02);
   });
 
   test('pauses while the quick mission covers it, and goes on when it closes', async ({ page }) => {

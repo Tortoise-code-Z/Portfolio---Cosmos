@@ -1,8 +1,9 @@
 /**
  * El ratón sobre la escena, en coordenadas normalizadas (NDC: de −1 a 1 dentro de la ventana, `y` hacia
- * arriba; al arrastrar fuera de ella con el botón pulsado puede salirse de ±1: quien lo use pone su tope). Lo usa
- * el paralaje de la cámara (F3.4) y lo usará la gravedad del cursor (F4, `uMouse`). Un solo objeto para toda la
- * visita: los eventos lo escriben y la escena lo lee en cada frame (cero objetos nuevos por frame, ADR-004).
+ * arriba; al arrastrar fuera de ella con el botón pulsado puede salirse de ±1: quien lo use pone su tope), medido
+ * sobre el lienzo. Lo usan el paralaje de la cámara (F3.4) y la gravedad del cursor (F4.2, `uMouse`). Un solo
+ * objeto para toda la visita: los eventos lo escriben y la escena lo lee en cada frame (cero objetos nuevos por
+ * frame, ADR-004).
  */
 export interface ScenePointer {
   x: number;
@@ -23,10 +24,15 @@ export function createScenePointer(): ScenePointer {
  * lápiz que se levanta no.
  */
 export function watchPointer(pointer: ScenePointer, target: Window = window): () => void {
+  const root = target.document.documentElement;
   const onMove = (event: PointerEvent): void => {
     if (event.pointerType !== 'mouse') return;
-    pointer.x = (event.clientX / Math.max(target.innerWidth, 1)) * 2 - 1;
-    pointer.y = 1 - (event.clientY / Math.max(target.innerHeight, 1)) * 2;
+    // Sobre el lienzo (fijo a toda la ventana menos sus barras de scroll), no sobre la ventana: con una barra
+    // clásica, el centro de la escena y el del ratón coinciden. Sin medidas (pre-render, jsdom), la ventana.
+    const width = root.clientWidth || target.innerWidth;
+    const height = root.clientHeight || target.innerHeight;
+    pointer.x = (event.clientX / Math.max(width, 1)) * 2 - 1;
+    pointer.y = 1 - (event.clientY / Math.max(height, 1)) * 2;
     pointer.inside = true;
   };
   const onOut = (event: PointerEvent): void => {
