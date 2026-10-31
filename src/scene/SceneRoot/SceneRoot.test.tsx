@@ -335,6 +335,7 @@ describe('SceneRoot', () => {
       extras: false,
       wide: false,
       pointer: { x: 0, y: 0, inside: false },
+      gravity: { strength: 0, x: 0, y: 0 },
     });
     // La cámara lee el mismo frame.
     expect(seen.cameraFrame).toBe(seen.frame);
@@ -546,6 +547,23 @@ describe('SceneRoot', () => {
     move(0);
     expect(frame.pointer).toEqual({ x: 0.5, y: 0, inside: true });
     expect(media.listeners('(width >= 900px)')).toBe(0);
+  });
+
+  it('each frame, the cursor gravity follows the mouse; with reduced motion it is off', () => {
+    const media = stubMatchMedia([]);
+    vi.stubGlobal('innerWidth', 1000);
+    vi.stubGlobal('innerHeight', 500);
+    const frames = manualFrames();
+    renderScene();
+    const frame = seen.cameraFrame as { gravity: { strength: number; x: number; y: number } };
+    const event = new MouseEvent('pointermove', { clientX: 750, clientY: 125 });
+    Object.defineProperty(event, 'pointerType', { value: 'mouse' });
+    window.dispatchEvent(event);
+    for (let t = 1000; t <= 2000; t += 50) frames.tick(t);
+    expect(frame.gravity).toEqual({ strength: 1, x: 0.5, y: 0.5 });
+    media.change('(prefers-reduced-motion: reduce)', true);
+    frames.tick(2050);
+    expect(frame.gravity.strength).toBe(0);
   });
 
   it('says when the renderer exists (data-ready), so the e2e know the scene is mounted', () => {

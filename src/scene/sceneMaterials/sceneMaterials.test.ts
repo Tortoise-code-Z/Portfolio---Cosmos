@@ -25,6 +25,7 @@ const frame: Readonly<SceneFrame> = {
   extras: true,
   wide: true,
   pointer: { x: 0.2, y: -0.4, inside: true },
+  gravity: { strength: 0.7, x: 0.25, y: -0.5 },
 };
 
 describe('particle uniforms', () => {
@@ -39,6 +40,7 @@ describe('particle uniforms', () => {
   it('take the frame in place (the same objects every frame)', () => {
     const uniforms = createParticleUniforms();
     const before = { ...uniforms };
+    const mouse = uniforms.uMouse.value;
     updateParticleUniforms(uniforms, frame);
     expect(uniforms).toEqual(before);
     expect(uniforms.uM.value).toBe(2.5);
@@ -48,6 +50,9 @@ describe('particle uniforms', () => {
     expect(uniforms.uAspect.value).toBe(1.6);
     expect(uniforms.uMotion.value).toBe(1);
     expect(uniforms.uExtras.value).toBe(1);
+    expect(uniforms.uGrav.value).toBe(0.7);
+    expect(uniforms.uMouse.value).toBe(mouse);
+    expect(mouse.toArray()).toEqual([0.25, -0.5]);
     for (const key of Object.keys(before) as (keyof typeof before)[]) {
       expect(uniforms[key]).toBe(before[key]);
     }
@@ -74,6 +79,7 @@ describe('createSceneFrame', () => {
       extras: true,
       wide: false,
       pointer: { x: 0, y: 0, inside: false },
+      gravity: { strength: 0, x: 0, y: 0 },
     });
   });
 });

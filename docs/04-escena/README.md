@@ -66,7 +66,7 @@ src/scene/
   Constellations.tsx
   Sun.tsx
   CameraRig/               ← aplica la pose de math/camera a la cámara del <Canvas> en cada frame (F3.4)
-  pointer/                 ← el ratón en NDC, solo `pointerType: mouse` (paralaje en F3.4; gravedad en F4)
+  pointer/                 ← el ratón en NDC sobre el lienzo, solo `pointerType: mouse` (paralaje en F3.4; gravedad en F4.2)
   pause/                   ← cuándo pausar el bucle: pestaña oculta o misión rápida abierta (F3.5)
   overlay/ProjectedLabels.tsx   ← etiquetas y pins DOM actualizados por refs
   shaders/ particles/ · stars/ (los .glsl) · glslHeader/ (etiquetas y colores desde TS)   (F3.3)
@@ -77,7 +77,8 @@ src/scene/
   shapes/  prng/ · noise/ · sampling/ · hexGrid/ · nebula/ · galaxy/ · turtle/ · earth/ ·
            shapeContract/ · generateShapes/   (F3.2; la singularidad no se genera: formas.md)
            stars/   (F3.3: las estrellas de fondo, en el hilo principal)
-  math/    camera/ (pose por m, FOV de móvil, paralaje; F3.4) · projection.ts · easing.ts
+  math/    camera/ (pose por m, FOV de móvil, paralaje; F3.4) · gravity/ (la gravedad del cursor; F4.2) ·
+           projection.ts · easing.ts
   config/  sceneConfig.ts · plateSlots/ (F3.2) · scenePalette/ (F3.3) · constellationLayout.ts
                              (niveles: lib/device/sceneLevel)
                              (cada archivo con test, en su carpeta: ADR-018)

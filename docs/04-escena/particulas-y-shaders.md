@@ -35,7 +35,8 @@ la dirección de `position` escalada a casi cero.
 
 `uCharge` lo conecta F4.1: la carga del botón del hero (`sceneStore.charge`, copiada en `SceneFrame.charge`) hincha
 el punto y lo hace vibrar; con movimiento reducido, `uTime` se congela y la vibración no se mueve (ADR-030).
-`uPlate` y `uGrav` (con `uMouse` fuera de la pantalla) se quedan a 0 hasta que los conecte F4 (placas, gravedad). Todos los uniforms se ponen al día en el `useFrame` desde un `SceneFrame`
+`uGrav` y `uMouse` los conecta F4.2 (la gravedad del cursor, abajo). `uPlate` se queda a 0 hasta que lo conecte F4.4
+(placas). Todos los uniforms se ponen al día en el `useFrame` desde un `SceneFrame`
 compartido que rellena el bucle antes de cada frame: ningún objeto nuevo por frame.
 
 ## Etiquetas y colores
@@ -94,6 +95,13 @@ void main() {
 En espacio de pantalla, tras proyectar: distancia al puntero corregida por el aspecto, caída gaussiana
 (`exp(-d² · 14)`), desplazamiento en remolino (perpendicular · 1,3 + radial · 0,5) · 0,22 y brillo extra
 (`color · (1 + f · 1,6)`). No modifica la geometría: es solo visual.
+
+Conectada en F4.2: `uGrav` es la intensidad de `SceneFrame.gravity` y `uMouse`, su punto. El bucle la pone al día
+en cada frame (`followGravity`, `scene/math/gravity`): con el ratón dentro de la ventana (solo `pointerType:
+mouse`) sube hasta 1 en su posición con un suavizado `min(1, dt · 10)` (≈ 0,25 s); al salir baja igual, apagándose
+en el último punto donde estuvo; con movimiento reducido, 0 de golpe. El ratón se mide sobre el lienzo (sin la
+barra de scroll). La misma intensidad en todos los capítulos; F4.3 deja quietas las constelaciones y F4.5 suaviza
+la Tierra (sus capítulos).
 
 ### Colores
 

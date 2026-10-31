@@ -71,6 +71,13 @@ export const WIDE_LAYOUT_QUERY = '(width >= 900px)';
  */
 export const PARALLAX = { x: 0.7, y: 0.45, rate: 2 } as const;
 
+/**
+ * Gravedad del cursor (docs/04-escena/particulas-y-shaders.md → «Gravedad del cursor»): su intensidad (`uGrav`, de 0
+ * a 1) sube con el ratón dentro de la ventana y baja al salir con un suavizado de ritmo `rate` (≈ 0,25 s), sin
+ * saltos; por debajo de `epsilon` llega. La fórmula del remolino, con sus cifras, va en el shader.
+ */
+export const GRAVITY = { rate: 10, epsilon: 1e-3 } as const;
+
 /** Subsemilla de las estrellas de fondo (como las de cada forma, `subSeed`). */
 export const STARS_SEED_NAME = 'stars';
 
