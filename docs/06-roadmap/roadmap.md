@@ -106,7 +106,11 @@ no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierr
 ## F4 · Capítulos (uno por PR, en este orden)
 
 1. **Singularidad:** mantén para detonar (puntero y teclado), destello, temblor, nombre con `wdth`, autoscroll.
+   *(Hecho en F4.1, PR #82: la carga llega a la escena y los efectos del DOM tienen su propio bucle con la misma `m`
+   suavizada, ADR-030.)*
 2. **Nebulosa:** protoestrella y gravedad del cursor.
+   *(Hecho en F4.2, PR #83: la protoestrella ya venía de F3; la gravedad del cursor, conectada, con la misma
+   intensidad en todos los capítulos hasta que F4.3 y F4.5 ajusten los suyos.)*
 3. **Galaxia:** 4 constelaciones, etiquetas proyectadas, encendido sincronizado con el panel (ratón, foco, toque);
    test de no solapamiento.
 4. **Tortuga:** placas por huecos, pins, ciclo automático, resaltado sincronizado con las filas.
