@@ -50,11 +50,12 @@ const STILLS_DIR = fileURLToPath(new URL('../../src/assets/scene-stills/', impor
 /**
  * JS de la escena (Three.js, React Three Fiber, lo que arrastran y `SceneRoot`), gzip: se pide en diferido
  * y ningún HTML lo nombra (ADR-020). Medido en F3.1, con el lienzo vacío: 241,6 KB, casi todo Three.js
- * entero (React Three Fiber lo importa completo).
+ * entero (React Three Fiber lo importa completo). En F4.2, 249 066 B; ADR-032 lo sube a 260 KB para las
+ * constelaciones, los pins y el Sol (F4.3–F4.5).
  */
-const SCENE_JS_BUDGET_BYTES = 250_000;
+const SCENE_JS_BUDGET_BYTES = 260_000;
 /**
- * Lo que la escena carga aparte, fuera de sus 250 KB, cada cosa con su límite gzip: el worker de
+ * Lo que la escena carga aparte, fuera de sus 260 KB, cada cosa con su límite gzip: el worker de
  * las formas y los generadores del reintento en el hilo principal (el mismo código: el mismo límite). Medido
  * en F3.2: worker 4,4 KB, reintento 3,8 KB. Cualquier otro `import()` o `new URL(…)` que salga de la escena
  * hace fallar el test hasta que se clasifique aquí.

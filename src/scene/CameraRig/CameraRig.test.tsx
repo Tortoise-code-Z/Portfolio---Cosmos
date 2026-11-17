@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { CAMERA_KEYFRAMES, PARALLAX } from '../config/sceneConfig';
 import { cameraFov } from '../math/camera/camera';
+import { createScreenPoint, projectToScreen } from '../math/projection/projection';
 import { createSceneFrame, type SceneFrame } from '../sceneMaterials/sceneMaterials';
 import { CameraRig } from './CameraRig';
 
@@ -52,6 +53,35 @@ describe('CameraRig', () => {
     expect(camera.position.toArray()).toEqual([...turtle.position]);
     const expected = new Vector3(...turtle.target).sub(new Vector3(...turtle.position)).normalize();
     expect(facing(camera).distanceTo(expected)).toBeLessThan(1e-6);
+  });
+
+  it('puts a point where math/projection says it goes (the labels follow the camera the canvas shows)', () => {
+    const camera = new PerspectiveCamera(55, 1280 / 720, 0.1, 400);
+    const { frame, tick } = mountRig(camera);
+    frame.m = 2;
+    frame.wide = true;
+    frame.aspect = 1280 / 720;
+    frame.delta = 0.05;
+    frame.pointer.x = 0.6;
+    frame.pointer.y = -0.4;
+    frame.pointer.inside = true;
+    for (let step = 0; step < 4; step += 1) tick();
+    camera.updateMatrixWorld();
+    const pose = {
+      position: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+      target: { x: CAMERA_KEYFRAMES[2].target[0] + CAMERA_KEYFRAMES[2].shiftX, y: 0, z: 0 },
+    };
+    const viewport = { width: 1280, height: 720, fov: camera.fov };
+    for (const point of [
+      [5.3, 1.44, -15.77],
+      [-4.15, 1.08, 7.18],
+      [0, 0, 0],
+    ] as const) {
+      const ndc = new Vector3(...point).project(camera);
+      const screen = projectToScreen(point, pose, viewport, createScreenPoint());
+      expect(screen.x).toBeCloseTo(((ndc.x + 1) / 2) * 1280, 6);
+      expect(screen.y).toBeCloseTo(((1 - ndc.y) / 2) * 720, 6);
+    }
   });
 
   it('on desktop, the whole frame moves aside (shiftX); on narrow screens it stays centred', () => {

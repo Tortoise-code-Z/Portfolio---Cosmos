@@ -14,15 +14,16 @@
   estela en Bajo, `MAX_STEP_S` y la compilación del primer frame no entran en ella. Se vuelven a mirar si un móvil
   real o F4 (constelaciones, Sol) bajan de los presupuestos.
 - El código 3D va en un **chunk aparte** que se carga después de la primera pintura: el JS inicial de la interfaz no
-  incluye Three.js. Sin WebGL2 ni siquiera se descarga. Pesa ≤ 250 KB gzip (`calidad.md` → «Presupuestos»); en F3.2,
+  incluye Three.js. Sin WebGL2 ni siquiera se descarga. Pesa ≤ 260 KB gzip desde F4.3 (ADR-032; antes, 250 KB; `calidad.md` → «Presupuestos»); en F3.2,
   con el lienzo vacío y las formas pedidas, 241,6 KB; en F3.3, con las partículas, sus shaders y las estrellas,
   248,2 KB. Desde justo antes de F3.4 los shaders llegan sin comentarios (el plugin `cosmos:glsl-without-comments`
   de `vite.config.ts`, que conserva los saltos de línea para que la línea de un error siga siendo la del archivo):
   247,0 KB; en F3.4, con la cámara (`CameraRig`, `math/camera`, el ratón), 248,0 KB; con el color de fondo leído sin
   linealizar y el reajuste de las partículas y del shader, 248,1 KB; en F3.5, con el suavizado de `m` y la pausa,
   248,4 KB; en F3.6, con la degradación en caliente, 249,0 KB; en F4.1, con la carga en la escena, 72 B menos, y en
-  F4.2, con la gravedad del cursor, 166 B más: 249 066 B. React Three Fiber importa Three.js entero, así que lo que
-  añadan las constelaciones y el Sol (F4.3, F4.5) no cabe sin ahorrar o subir el límite. Los generadores no cuentan ahí: van en el worker
+  F4.2, con la gravedad del cursor, 166 B más: 249 066 B. React Three Fiber importa Three.js entero (152,7 KB de
+  los 249; React Three Fiber, 51,7, y el código propio, 10,0), así que no hay de dónde ahorrar sin quitarlo: ADR-032
+  sube el límite a 260 KB para las constelaciones, los pins y el Sol (F4.3–F4.5). Los generadores no cuentan ahí: van en el worker
   (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
 
 ## Niveles
