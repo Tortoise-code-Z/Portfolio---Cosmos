@@ -27,9 +27,9 @@ la dirección de `position` escalada a casi cero.
 | `uCharge` | float | carga de la detonación (0–1) |
 | `uPR` | float | pixel ratio efectivo |
 | `uPlate` | float | etiqueta de la placa iluminada (0 = ninguna) |
-| `uGrav` | float | intensidad de la gravedad del cursor (0 en táctil o movimiento reducido) |
+| `uGrav` | float | intensidad de la gravedad del cursor (0–1; 0 en táctil, sin ratón dentro o con movimiento reducido): es lo que la apaga |
 | `uAspect` | float | relación de aspecto |
-| `uMouse` | vec2 | puntero en coordenadas NDC (fuera de pantalla = sin efecto) |
+| `uMouse` | vec2 | dónde tira la gravedad, en NDC (el ratón o, al apagarse, el último punto donde estuvo) |
 | `uMotion` | float | 1 normal · 0 movimiento reducido (anula oscilaciones autónomas) |
 | `uExtras` | float | 1 · 0 en Bajo: esconde la estela de la tortuga (alfa 0) y apaga las luces de ciudad |
 
@@ -100,7 +100,10 @@ Conectada en F4.2: `uGrav` es la intensidad de `SceneFrame.gravity` y `uMouse`, 
 en cada frame (`followGravity`, `scene/math/gravity`): con el ratón dentro de la ventana (solo `pointerType:
 mouse`) sube hasta 1 en su posición con un suavizado `min(1, dt · 10)` (≈ 0,25 s); al salir baja igual, apagándose
 en el último punto donde estuvo; con movimiento reducido, 0 de golpe. El ratón se mide sobre el lienzo (sin la
-barra de scroll). La misma intensidad en todos los capítulos; F4.3 deja quietas las constelaciones y F4.5 suaviza
+barra de scroll). Con frames de 0,1 s (el tope del reloj: ≤ 10 fps, un frame atascado o el primero tras una pausa),
+`dt · 10` llega a 1 y entra o se apaga de golpe: aceptado, a esos fps todo va a saltos. El punto no se acota a ±1
+(arrastrando fuera de la ventana sale de la pantalla y la caída lo apaga), y si el ratón sale por un sitio y vuelve
+por otro antes de apagarse, lo que queda del remolino salta al punto nuevo: aceptado, como un movimiento rápido. La misma intensidad en todos los capítulos; F4.3 deja quietas las constelaciones y F4.5 suaviza
 la Tierra (sus capítulos).
 
 ### Colores

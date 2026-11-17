@@ -229,7 +229,7 @@ void main() {
   gl_Position = projectionMatrix * mv;
   gl_PointSize = min(S * uPR * (SIZE_DISTANCE / -mv.z), SIZE_MAX_PX);
 
-  // Gravedad del cursor: remolino en pantalla, sin tocar la geometría (uGrav = 0 en táctil o movimiento reducido).
+  // Gravedad del cursor, en pantalla y sin tocar la geometría (uGrav 0: táctil, sin ratón dentro, movimiento reducido).
   vec2 d = gl_Position.xy / gl_Position.w - uMouse;
   d.x *= uAspect;
   float f = exp(-dot(d, d) * GRAV_FALLOFF) * uGrav;

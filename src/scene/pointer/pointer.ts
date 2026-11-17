@@ -1,5 +1,5 @@
 /**
- * El ratón sobre la escena, en coordenadas normalizadas (NDC: de −1 a 1 dentro de la ventana, `y` hacia
+ * El ratón sobre la escena, en coordenadas normalizadas (NDC: de −1 a 1 dentro del lienzo, `y` hacia
  * arriba; al arrastrar fuera de ella con el botón pulsado puede salirse de ±1: quien lo use pone su tope), medido
  * sobre el lienzo. Lo usan el paralaje de la cámara (F3.4) y la gravedad del cursor (F4.2, `uMouse`). Un solo
  * objeto para toda la visita: los eventos lo escriben y la escena lo lee en cada frame (cero objetos nuevos por
@@ -8,7 +8,10 @@
 export interface ScenePointer {
   x: number;
   y: number;
-  /** Hay un ratón dentro de la ventana. Sin él (táctil, o fuera), el paralaje vuelve al centro. */
+  /**
+   * Hay un ratón dentro de la ventana. Sin él (táctil, o fuera), el paralaje vuelve al centro y la gravedad se
+   * apaga.
+   */
   inside: boolean;
 }
 
@@ -28,7 +31,7 @@ export function watchPointer(pointer: ScenePointer, target: Window = window): ()
   const onMove = (event: PointerEvent): void => {
     if (event.pointerType !== 'mouse') return;
     // Sobre el lienzo (fijo a toda la ventana menos sus barras de scroll), no sobre la ventana: con una barra
-    // clásica, el centro de la escena y el del ratón coinciden. Sin medidas (pre-render, jsdom), la ventana.
+    // clásica, el centro de la escena y el del ratón coinciden. Sin medidas (jsdom), la ventana.
     const width = root.clientWidth || target.innerWidth;
     const height = root.clientHeight || target.innerHeight;
     pointer.x = (event.clientX / Math.max(width, 1)) * 2 - 1;

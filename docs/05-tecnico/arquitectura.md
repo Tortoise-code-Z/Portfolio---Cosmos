@@ -54,7 +54,8 @@ cosmos-portfolio/
 │  │                              y el ratón) y pause (cuándo pausar el bucle: pestaña oculta, misión rápida)
 │  │  ├─ shaders/               ← los `.glsl` (particles, stars), glslHeader (etiquetas y colores desde TS) y
 │  │  │                           stripGlslComments (el plugin de vite.config.ts)
-│  │  ├─ math/                  ← código puro: camera (pose por `m`, campo de visión, paralaje)
+│  │  ├─ math/                  ← código puro: camera (pose por `m`, campo de visión, paralaje) · gravity (la
+│  │  │                           gravedad del cursor)
 │  │  ├─ config/                ← lo compartido: sceneConfig (semilla, semiejes del caparazón, cámara),
 │  │  │                           plateSlots (huecos de las placas, assignPlates) y scenePalette (los colores)
 │  │  ├─ shapes/                ← código puro: prng, noise, sampling, hexGrid, un generador por forma
@@ -267,7 +268,8 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. Pinta con su propio
   bucle (`frameloop="never"` + `scene/frameLoop`, ADR-027) las partículas (`Particles`) y las estrellas de fondo
   (`BackgroundStars`); la cámara la mueve `CameraRig` (`docs/04-escena/camara-y-encuadre.md`), con el ratón de
-  `scene/pointer` y si es escritorio de `watchMediaQuery`. Al montar pide las formas al worker; si falla, las genera
+  `scene/pointer` y si es escritorio de `watchMediaQuery`; con el mismo ratón, la gravedad del cursor
+  (`math/gravity`). Al montar pide las formas al worker; si falla, las genera
   una vez en el hilo principal a nivel Bajo, y si eso también falla, Apagado (`docs/04-escena/rendimiento.md` →
   «Worker de las formas»). Si después pinta por debajo de los fps del presupuesto, baja un nivel
   (`useHotDegradation`: rendimiento.md → «Degradación en caliente»).

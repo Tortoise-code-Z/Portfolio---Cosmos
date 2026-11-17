@@ -93,16 +93,20 @@ async function voidRgb(page: Page): Promise<Rgb> {
   ) as unknown as Rgb;
 }
 
+/** La página sabe descodificar una captura en PNG (en base64) a sus píxeles: lo deja `capture`. */
+interface CaptureDecoder {
+  decodeCapture: (base64: string) => Promise<ImageData>;
+}
+
 /**
- * Lo que se ve en una zona de la ventana: qué parte no es el fondo (algo pinta ahí: un píxel cuenta si se aleja
- * del fondo más que el ruido de la compresión) y el color que más se repite. La captura la descodifica el propio
- * navegador (en un lienzo 2D), sin dependencias.
+ * Una captura de una zona de la ventana, en base64, y la página lista para descodificarla
+ * (`window.decodeCapture`): la descodifica el propio navegador (en un lienzo 2D), sin dependencias. Quien la lee lo
+ * hace dentro de `page.evaluate`, sin pasar los píxeles de vuelta.
  */
-async function look(page: Page, clip: Clip): Promise<{ painted: number; dominant: Rgb }> {
-  const background = await voidRgb(page);
-  const png = await page.screenshot({ clip });
-  return page.evaluate(
-    async ({ base64, background: [r, g, b] }) => {
+async function capture(page: Page, clip: Clip): Promise<string> {
+  await page.evaluate(() => {
+    const target = window as unknown as Partial<CaptureDecoder>;
+    target.decodeCapture ??= async (base64: string): Promise<ImageData> => {
       const image = new Image();
       image.src = `data:image/png;base64,${base64}`;
       await image.decode();
@@ -112,7 +116,22 @@ async function look(page: Page, clip: Clip): Promise<{ painted: number; dominant
       const context = canvas.getContext('2d');
       if (context === null) throw new Error('No 2D context');
       context.drawImage(image, 0, 0);
-      const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+      return context.getImageData(0, 0, canvas.width, canvas.height);
+    };
+  });
+  return (await page.screenshot({ clip })).toString('base64');
+}
+
+/**
+ * Lo que se ve en una zona de la ventana: qué parte no es el fondo (algo pinta ahí: un píxel cuenta si se aleja
+ * del fondo más que el ruido de la compresión) y el color que más se repite.
+ */
+async function look(page: Page, clip: Clip): Promise<{ painted: number; dominant: Rgb }> {
+  const background = await voidRgb(page);
+  const base64 = await capture(page, clip);
+  return page.evaluate(
+    async ({ base64: png, background: [r, g, b] }) => {
+      const { data } = await (window as unknown as CaptureDecoder).decodeCapture(png);
       let painted = 0;
       const counts = new Map<number, number>();
       for (let i = 0; i < data.length; i += 4) {
@@ -127,29 +146,22 @@ async function look(page: Page, clip: Clip): Promise<{ painted: number; dominant
         dominant: [(top >> 16) & 255, (top >> 8) & 255, top & 255] as const,
       };
     },
-    { base64: png.toString('base64'), background },
+    { base64, background },
   );
 }
 
 /**
  * Brillo medio (0–255, la media de los tres canales) de cada celda de `cell` px CSS de una zona de la ventana, fila a
- * fila; la captura la descodifica el navegador (en un lienzo 2D), sin dependencias. La captura sale a la densidad de
- * píxeles del motor (WebKit, como Safari de escritorio, a 2): la celda se pasa a píxeles de la imagen.
+ * fila. La captura sale a la densidad de píxeles del motor (WebKit, como Safari de escritorio, a 2): la celda se
+ * pasa a píxeles de la imagen.
  */
 async function brightnessGrid(page: Page, clip: Clip, cell: number): Promise<number[][]> {
-  const png = await page.screenshot({ clip });
+  const base64 = await capture(page, clip);
   return page.evaluate(
-    async ({ base64, cssCell, cssWidth }) => {
-      const image = new Image();
-      image.src = `data:image/png;base64,${base64}`;
-      await image.decode();
-      const canvas = document.createElement('canvas');
-      canvas.width = image.width;
-      canvas.height = image.height;
-      const context = canvas.getContext('2d');
-      if (context === null) throw new Error('No 2D context');
-      context.drawImage(image, 0, 0);
-      const { data, width, height } = context.getImageData(0, 0, canvas.width, canvas.height);
+    async ({ base64: png, cssCell, cssWidth }) => {
+      const { data, width, height } = await (window as unknown as CaptureDecoder).decodeCapture(
+        png,
+      );
       const size = Math.round(cssCell * (width / cssWidth));
       const rows: number[][] = [];
       for (let top = 0; top + size <= height; top += size) {
@@ -168,7 +180,7 @@ async function brightnessGrid(page: Page, clip: Clip, cell: number): Promise<num
       }
       return rows;
     },
-    { base64: png.toString('base64'), cssCell: cell, cssWidth: clip.width },
+    { base64, cssCell: cell, cssWidth: clip.width },
   );
 }
 
@@ -488,63 +500,99 @@ test.describe('the scene with WebGL', () => {
     });
   });
 
+  /** Lo que mide `gravityGlow`: el brillo de una celda antes y después de poner el ratón encima, y de otra lejos. */
+  interface GravityGlow {
+    /** El fondo (`--color-void`), con el mismo brillo medio que las celdas. */
+    voidLevel: number;
+    far: number;
+    near: number;
+    /** Una celda de la nebulosa a dos celdas o más del ratón (allí la gravedad vale ≈ e⁻⁶), antes y después. */
+    control: { before: number; after: number };
+  }
+
   /**
-   * La gravedad del cursor sobre la nebulosa (F4.2). Con el ratón lejos (en la otra punta, sobre el panel), espera a
-   * que la escena esté quieta en la nebulosa y busca su parte más densa (la celda más brillante junto al panel);
-   * después pone el ratón en su centro, deja que la gravedad suba (≈ 0,25 s) y la mide otra vez. Sin movimiento
-   * reducido la nebulosa gira despacio (algo de ruido): el margen es amplio; con él, todo está quieto.
+   * La gravedad del cursor sobre la nebulosa (F4.2). Carga `/#about` de nuevo (desde `about:blank`: desde `/`, ir a
+   * `/#about` solo movería el ancla y la escena llegaría con su inercia, pasando por la explosión). Con el ratón lejos
+   * (en la otra punta, sobre el panel), espera a que la escena esté quieta en la nebulosa y busca su parte más densa
+   * (la celda más brillante junto al panel); después pone el ratón en su centro, deja que la gravedad suba
+   * (≈ 0,25 s) y mide otra vez esa celda y una de control lejos del ratón: el paralaje de la cámara también se mueve
+   * con el ratón, pero llega a las dos; la gravedad, solo a la de cerca. Sin movimiento reducido la nebulosa gira
+   * despacio (algo de ruido): los márgenes son amplios; con él, todo está quieto.
    */
-  async function gravityGlow(page: Page): Promise<{ far: number; near: number }> {
+  async function gravityGlow(page: Page): Promise<GravityGlow> {
     const CELL = 120;
     await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('about:blank');
     await page.goto('/#about', { waitUntil: 'networkidle' });
     await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
       timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
     });
     await settleScene(page);
     await page.mouse.move(24, 700);
-    // La escena llega a la nebulosa con su inercia: se mide cuando dos capturas seguidas dan lo mismo en la celda
-    // más brillante.
+    // Se mide cuando dos capturas seguidas dan lo mismo en la celda más brillante.
     const scene = sceneClip(page);
+    let before: number[][] = [];
     let best = { value: 0, top: 0, left: 0 };
     await expect
       .poll(
         async () => {
-          const before = await brightnessGrid(page, scene, CELL);
+          const first = await brightnessGrid(page, scene, CELL);
           await page.waitForTimeout(400);
-          const after = await brightnessGrid(page, scene, CELL);
-          const cells = after.flatMap((row, top) =>
+          before = await brightnessGrid(page, scene, CELL);
+          const cells = before.flatMap((row, top) =>
             row.map((value, left) => ({ value, top, left })),
           );
           best = cells.reduce((a, b) => (b.value > a.value ? b : a));
-          const previous = before[best.top]?.[best.left] ?? 0;
+          const previous = first[best.top]?.[best.left] ?? 0;
           return Math.abs(best.value - previous) / Math.max(best.value, 1);
         },
         { timeout: 15_000 },
       )
       .toBeLessThan(0.05);
-    const box = {
-      x: scene.x + best.left * CELL,
-      y: scene.y + best.top * CELL,
-      width: CELL,
-      height: CELL,
-    };
-    await page.mouse.move(box.x + CELL / 2, box.y + CELL / 2, { steps: 5 });
+    // La celda de control: la más brillante a dos celdas o más de la del ratón.
+    const control = before
+      .flatMap((row, top) => row.map((value, left) => ({ value, top, left })))
+      .filter(
+        ({ top, left }) => Math.max(Math.abs(top - best.top), Math.abs(left - best.left)) >= 2,
+      )
+      .reduce((a, b) => (b.value > a.value ? b : a), { value: 0, top: -1, left: -1 });
+    await page.mouse.move(
+      scene.x + best.left * CELL + CELL / 2,
+      scene.y + best.top * CELL + CELL / 2,
+      { steps: 5 },
+    );
     await page.waitForTimeout(800);
-    const [[near = 0] = []] = await brightnessGrid(page, box, CELL);
-    return { far: best.value, near };
+    const after = await brightnessGrid(page, scene, CELL);
+    const [r, g, b] = await voidRgb(page);
+    return {
+      voidLevel: (r + g + b) / 3,
+      far: best.value,
+      near: after[best.top]?.[best.left] ?? 0,
+      control: { before: control.value, after: after[control.top]?.[control.left] ?? 0 },
+    };
   }
 
-  test('the cursor gravity: near the mouse, the nebula swirls and glows', async ({ page }) => {
-    const { far, near } = await gravityGlow(page);
-    expect(far).toBeGreaterThan(10);
+  /** Se mide la nebulosa, no el vacío ni el polvo de alrededor: claramente más brillante que el fondo. */
+  const NEBULA_OVER_VOID = 30;
+
+  test('the cursor gravity: near the mouse the nebula glows brighter, and only there', async ({
+    page,
+  }) => {
+    const { voidLevel, far, near, control } = await gravityGlow(page);
+    expect(far).toBeGreaterThan(voidLevel + NEBULA_OVER_VOID);
     expect(near).toBeGreaterThan(far * 1.1);
+    // Lejos del ratón (la cámara se ha movido igual) casi no cambia: lo de cerca es la gravedad. A esa distancia ya
+    // no queda nebulosa, solo su polvo (medido: ≈ 15 frente a ≈ 7 del fondo); basta con que haya partículas que el
+    // paralaje pueda mover.
+    expect(control.before).toBeGreaterThan(voidLevel + 5);
+    expect(Math.abs(control.after - control.before)).toBeLessThan(control.before * 0.05);
   });
 
   test('with reduced motion there is no cursor gravity', async ({ page }) => {
+    // Antes de cargar: la escena arranca ya con movimiento reducido.
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    const { far, near } = await gravityGlow(page);
-    expect(far).toBeGreaterThan(10);
+    const { voidLevel, far, near } = await gravityGlow(page);
+    expect(far).toBeGreaterThan(voidLevel + NEBULA_OVER_VOID);
     expect(Math.abs(near - far)).toBeLessThanOrEqual(far * 0.02);
   });
 

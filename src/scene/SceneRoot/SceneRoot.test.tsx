@@ -567,10 +567,21 @@ describe('SceneRoot', () => {
     const event = new MouseEvent('pointermove', { clientX: 750, clientY: 125 });
     Object.defineProperty(event, 'pointerType', { value: 'mouse' });
     window.dispatchEvent(event);
-    for (let t = 1000; t <= 2000; t += 50) frames.tick(t);
+    frames.tick(1000); // primer frame: sin tiempo
+    expect(frame.gravity).toEqual({ strength: 0, x: 0.5, y: 0.5 });
+    frames.tick(1050); // con el tiempo real del reloj: 0,05 s · 10
+    expect(frame.gravity.strength).toBeCloseTo(0.5, 10);
+    for (let t = 1100; t <= 2000; t += 50) frames.tick(t);
     expect(frame.gravity).toEqual({ strength: 1, x: 0.5, y: 0.5 });
-    media.change('(prefers-reduced-motion: reduce)', true);
+    // El ratón sale de la ventana: baja con el mismo suavizado, donde estaba.
+    const out = new MouseEvent('pointerout', { relatedTarget: null });
+    Object.defineProperty(out, 'pointerType', { value: 'mouse' });
+    window.dispatchEvent(out);
     frames.tick(2050);
+    expect(frame.gravity.strength).toBeCloseTo(0.5, 10);
+    expect([frame.gravity.x, frame.gravity.y]).toEqual([0.5, 0.5]);
+    media.change(REDUCED_MOTION, true);
+    frames.tick(2100);
     expect(frame.gravity.strength).toBe(0);
   });
 
