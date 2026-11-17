@@ -8,32 +8,42 @@ ella, para que las etiquetas se lean quietas.
 
 ### Regiones (plano X–Z, cámara de la galaxia con encuadre de escritorio)
 
-Hay **4 grupos y 31 estrellas** (ver `docs/01-contenido/habilidades.md`). Cada grupo ocupa una región de la
-zona libre (fuera del panel y del raíl):
+Hay **4 grupos y 31 estrellas** (ver `docs/01-contenido/habilidades.md`). Cada grupo ocupa una zona del hueco
+libre de la pantalla, entre el panel y el raíl, debajo de la barra y por encima del HUD; cada estrella, su fila, con
+la etiqueta a la derecha. Las posiciones salen de colocar las etiquetas en pantalla con la cámara de la galaxia
+(`m` = 2, escritorio) a 1280×720 y llevarlas a la escena (decidido en F4.3a; la cámara de la versión final no es la
+del prototipo, así que sus regiones no servían):
 
 ```
-          z = −6
-   ┌───────────────┬──────────────────┐
-   │ web (7)       │ libraries (10)   │
-   │ x −4…1        │ x 2…7 · 2 filas  │
-   ├───────────────┼──────────────────┤   z ≈ 0
-   │ ai (6)        │ tools (8)        │
-   │ x −4…0,5      │ x 1,5…6,5        │
-   └───────────────┴──────────────────┘
-          z = +5,5
+   pantalla, 1280×720                         escena (X, Z)
+   ┌ panel ┬──────────────┬──────────────────┐
+   │       │ web (7)      │ libraries (10)   │   web       x −3,8…−2,0 · z −16,7…−3,5
+   │       │              │                  │   libraries x  1,9…6,6  · z −15,8…0,1
+   │       ├──────────────┼──────────────┐   │ ← raíl
+   │       │ ai (6)       │ tools (8)    │   │   ai        x −4,4…−3,0 · z  2,5…7,2
+   │       │              │              │HUD│   tools     x  0,8…4,0  · z  1,9…8,2
+   └───────┴──────────────┴──────────────┴───┘
 ```
 
-El grupo `ai` pasó de 4 a 6 estrellas en F2 · paso 2 (las 4 prácticas + Claude y ChatGPT): su región hace sitio
-para las 6 en F4.3, con las mismas reglas de colocación.
+Las de arriba quedan lejos de la cámara (z negativo) y las de abajo, cerca: en pantalla miden lo mismo porque el
+tamaño de las estrellas no depende de la distancia (F4.3b).
 
 ### Reglas de colocación (comprobadas por test)
 
 1. Distancia mínima entre estrellas: **1,2 unidades**.
 2. Las etiquetas van a la derecha de su estrella; proyectadas en 1280×720 y 1440×900, **ningún rectángulo de
-   etiqueta se solapa** con otro, con el raíl ni con el panel, y todos caben en pantalla.
+   etiqueta se solapa** con otro, con el raíl, el panel, la barra ni el HUD, y todos caben en pantalla.
 3. Las líneas forman una figura reconocible por grupo (cadena, triángulo, rama), sin cruzarse con otro grupo.
-4. Las coordenadas viven en `config/constellationLayout.ts`, indexadas por `Skill.id`. Un test falla si una skill
-   del contenido no tiene posición o si sobra una posición sin skill.
+4. Las coordenadas viven en `scene/config/constellationLayout`, indexadas por `Skill.id`, con las líneas de cada
+   figura por pares de ids. Un test falla si una skill del contenido no tiene posición o si sobra una posición sin
+   skill.
+5. Las estrellas flotan entre Y 0,9 y 1,5.
+
+La regla 2 la comprueba primero el test de `constellationLayout` con la proyección de `scene/math/projection` (la
+misma cuenta que la cámara; un test la compara con la de Three) y la caja de la etiqueta (`STAR_LABEL_BOX`: mono de
+11 px, 0,6 em por letra, 14 px a la izquierda para el trazo, 6 a la derecha, 22 de alto), con lo que tapa la
+interfaz medido en F4.3a (panel, barra, raíl, HUD), en inglés y en español, con barra de scroll clásica y sin ella, y
+con el paralaje en reposo y en sus cuatro esquinas. El e2e de F4.3c lo mide sobre la página de verdad.
 
 ### Estados
 

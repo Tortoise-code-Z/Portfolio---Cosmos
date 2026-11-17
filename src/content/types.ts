@@ -95,7 +95,7 @@ export interface Profile {
 export type SkillGroupId = 'web' | 'libraries' | 'tools' | 'ai';
 
 export interface Skill {
-  /** La escena lo usa para colocar la estrella (F4: `config/constellationLayout.ts`). */
+  /** La escena lo usa para colocar la estrella (`scene/config/constellationLayout`). */
   readonly id: string;
   readonly label: Label;
 }

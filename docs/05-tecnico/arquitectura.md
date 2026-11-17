@@ -55,9 +55,10 @@ cosmos-portfolio/
 │  │  ├─ shaders/               ← los `.glsl` (particles, stars), glslHeader (etiquetas y colores desde TS) y
 │  │  │                           stripGlslComments (el plugin de vite.config.ts)
 │  │  ├─ math/                  ← código puro: camera (pose por `m`, campo de visión, paralaje) · gravity (la
-│  │  │                           gravedad del cursor)
+│  │  │                           gravedad del cursor) · projection (de la escena a la pantalla)
 │  │  ├─ config/                ← lo compartido: sceneConfig (semilla, semiejes del caparazón, cámara),
-│  │  │                           plateSlots (huecos de las placas, assignPlates) y scenePalette (los colores)
+│  │  │                           plateSlots (huecos de las placas, assignPlates), scenePalette (los colores) y
+│  │  │                           constellationLayout (estrellas y líneas de las skills, caja de su etiqueta)
 │  │  ├─ shapes/                ← código puro: prng, noise, sampling, hexGrid, un generador por forma
 │  │  │                           (nebula, galaxy, turtle, earth), shapeContract, generateShapes y stars
 │  │  │                           (las estrellas de fondo, en el hilo principal)

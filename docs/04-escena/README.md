@@ -79,8 +79,8 @@ src/scene/
            shapeContract/ · generateShapes/   (F3.2; la singularidad no se genera: formas.md)
            stars/   (F3.3: las estrellas de fondo, en el hilo principal)
   math/    camera/ (pose por m, FOV de móvil, paralaje; F3.4) · gravity/ (la gravedad del cursor; F4.2) ·
-           projection.ts · easing.ts
-  config/  sceneConfig.ts · plateSlots/ (F3.2) · scenePalette/ (F3.3) · constellationLayout.ts
+           projection/ (de la escena a la pantalla; F4.3a) · easing.ts
+  config/  sceneConfig.ts · plateSlots/ (F3.2) · scenePalette/ (F3.3) · constellationLayout/ (F4.3a)
                              (niveles: lib/device/sceneLevel)
                              (cada archivo con test, en su carpeta: ADR-018)
 ```
