@@ -47,7 +47,12 @@ activo.
 | `--gradient-space` | dos nubes radiales muy tenues (violeta al 9 %, turquesa al 5 %) | Fondo del espacio sin escena (`no-gl`), en la capa del lienzo | — |
 
 **Garantía de lectura:** el peor caso medido (texto sobre el velo encima de la zona más brillante de la escena)
-da `--color-dim` 5,9 : 1 y `--color-ink` > 10 : 1: todo el texto cumple AA.
+da `--color-dim` 5,9 : 1 y `--color-ink` > 10 : 1: todo el texto cumple AA. Medido otra vez al cerrar F4.2, con la
+escena en Alto y la gravedad del cursor (el ratón encima de cada línea), en EN y ES, a 900 y 1280 px, sobre el
+percentil 98 del fondo de cada línea (texto transparente en la captura): el panel de About da ≥ 6,2 : 1 a 900 px y
+≥ 8,8 : 1 a 1280; las etiquetas del raíl, que no llevan velo, ≥ 4,66 : 1 (la inactiva es `--color-dim` al 70 %:
+justo por encima de AA, no bajarla). Una partícula suelta justo detrás de una letra baja ese punto (hasta 4 : 1 en
+el panel a 900 px y por debajo de 2 : 1 en el raíl): son puntos que pasan, no zonas de lectura.
 
 Reglas:
 - El ámbar es **el único** acento de estado (activo, foco, hover). El turquesa nunca indica estado.

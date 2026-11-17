@@ -45,7 +45,10 @@ export interface StarUniforms {
   readonly uVisible: IUniform<number>;
 }
 
-/** Fuera de la pantalla (NDC va de −1 a 1): antes del primer frame, la gravedad no toca nada. */
+/**
+ * Fuera de la pantalla (NDC va de −1 a 1): solo hasta el primer frame, que pone en `uMouse` el punto de la gravedad.
+ * Es una defensa: lo que apaga la gravedad es `uGrav = 0`, no que el punto esté lejos.
+ */
 export const POINTER_AWAY = 9;
 
 /** Las estrellas aparecen con el Big Bang: `smoothstep(0,02; 0,4; m)`. */

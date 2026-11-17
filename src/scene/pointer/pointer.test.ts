@@ -37,8 +37,9 @@ describe('createScenePointer', () => {
 
 describe('watchPointer', () => {
   it('writes the mouse in normalised coordinates, y up, into the same object', () => {
-    vi.stubGlobal('innerWidth', 1000);
-    vi.stubGlobal('innerHeight', 500);
+    const root = document.documentElement;
+    vi.spyOn(root, 'clientWidth', 'get').mockReturnValue(1000);
+    vi.spyOn(root, 'clientHeight', 'get').mockReturnValue(500);
     const pointer = createScenePointer();
     stop = watchPointer(pointer);
     window.dispatchEvent(pointerEvent('pointermove', { clientX: 1000, clientY: 0 }));
@@ -49,9 +50,22 @@ describe('watchPointer', () => {
     expect(pointer).toEqual({ x: 0, y: 0, inside: true });
   });
 
-  it('measures over the canvas: without the classic scrollbar, not over the whole window', () => {
+  it('without page measures (clientWidth 0, as in jsdom) it falls back to the window', () => {
+    const root = document.documentElement;
+    vi.spyOn(root, 'clientWidth', 'get').mockReturnValue(0);
+    vi.spyOn(root, 'clientHeight', 'get').mockReturnValue(0);
+    vi.stubGlobal('innerWidth', 800);
+    vi.stubGlobal('innerHeight', 400);
+    const pointer = createScenePointer();
+    stop = watchPointer(pointer);
+    window.dispatchEvent(pointerEvent('pointermove', { clientX: 600, clientY: 100 }));
+    expect(pointer).toEqual({ x: 0.5, y: 0.5, inside: true });
+  });
+
+  it('measures over the canvas: without the classic scrollbars, not over the whole window', () => {
+    // Con barra vertical y horizontal: cada eje se mide con su lado del lienzo, no con el de la ventana.
     vi.stubGlobal('innerWidth', 1015);
-    vi.stubGlobal('innerHeight', 500);
+    vi.stubGlobal('innerHeight', 515);
     const root = document.documentElement;
     vi.spyOn(root, 'clientWidth', 'get').mockReturnValue(1000);
     vi.spyOn(root, 'clientHeight', 'get').mockReturnValue(500);

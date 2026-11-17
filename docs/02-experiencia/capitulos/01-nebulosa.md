@@ -43,6 +43,9 @@ tu profesión.
 
 ## Aceptación
 
-1. El texto mantiene contraste AA sobre la parte más brillante de la nebulosa (el fondo del panel lo garantiza).
-2. La nebulosa no se mueve mientras se lee la primera mitad del capítulo, salvo su giro lento.
+1. El texto mantiene contraste AA sobre la parte más brillante de la nebulosa: lo sostienen el fondo del panel (un
+   velo radial que hacia su esquina superior derecha baja a ≈ 0,43 de opacidad) y el encuadre, que deja la nebulosa a
+   la derecha.
+2. La nebulosa no se mueve mientras se lee la primera mitad del capítulo, salvo su giro lento y la gravedad del
+   cursor.
 3. En móvil se ve la nebulosa completa antes de que suba el texto.
