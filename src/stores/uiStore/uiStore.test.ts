@@ -3,9 +3,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   closeQuickMission,
   openQuickMission,
+  selectActiveSkillGroup,
   selectLanguageNoticeOpen,
   selectQuickMissionOpen,
   selectSceneLevel,
+  setActiveSkillGroup,
   setLanguageNoticeOpen,
   lowerSceneLevel,
   setSceneLevel,
@@ -114,5 +116,18 @@ describe('uiStore', () => {
     expect(selectLanguageNoticeOpen(useUiStore.getState())).toBe(false);
     setLanguageNoticeOpen(true);
     expect(selectLanguageNoticeOpen(useUiStore.getState())).toBe(true);
+  });
+
+  it('keeps the lit skill group (none at first), and does not notify when it did not change', () => {
+    expect(selectActiveSkillGroup(useUiStore.getState())).toBeNull();
+    const listener = vi.fn();
+    const unsubscribe = useUiStore.subscribe(listener);
+    setActiveSkillGroup('tools');
+    setActiveSkillGroup('tools');
+    expect(selectActiveSkillGroup(useUiStore.getState())).toBe('tools');
+    setActiveSkillGroup(null);
+    expect(selectActiveSkillGroup(useUiStore.getState())).toBeNull();
+    expect(listener).toHaveBeenCalledTimes(2);
+    unsubscribe();
   });
 });

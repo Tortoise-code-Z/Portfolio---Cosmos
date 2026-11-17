@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
 import { SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
 import { EARTH_TAG, TURTLE_TAG } from '../../shapes/shapeContract/shapeContract';
+import constellationLinesFragment from '../constellations/constellationLines.frag.glsl?raw';
+import constellationsVertex from '../constellations/constellations.vert.glsl?raw';
+import constellationStarsFragment from '../constellations/constellationStars.frag.glsl?raw';
 import particlesFragment from '../particles/particles.frag.glsl?raw';
 import particlesVertex from '../particles/particles.vert.glsl?raw';
 import starsFragment from '../stars/stars.frag.glsl?raw';
@@ -10,10 +13,15 @@ import starsVertex from '../stars/stars.vert.glsl?raw';
 import { constantName, glslFloat, glslHeader } from './glslHeader';
 
 const header = glslHeader();
-const SHADERS = { particlesVertex, particlesFragment, starsVertex, starsFragment };
 /** La cabecera solo se antepone a los vertex shaders (`sceneMaterials`). */
-const VERTEX_SHADERS = { particlesVertex, starsVertex };
-const FRAGMENT_SHADERS = { particlesFragment, starsFragment };
+const VERTEX_SHADERS = { particlesVertex, starsVertex, constellationsVertex };
+const FRAGMENT_SHADERS = {
+  particlesFragment,
+  starsFragment,
+  constellationStarsFragment,
+  constellationLinesFragment,
+};
+const SHADERS = { ...VERTEX_SHADERS, ...FRAGMENT_SHADERS };
 const HEADER_NAME = /\b(?:TURTLE|EARTH|PLATE|COLOR)_\w+/g;
 
 /** Los nombres que define la cabecera (`#define X …` y `const vec3 X = …`). */

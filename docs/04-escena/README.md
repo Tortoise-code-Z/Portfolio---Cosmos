@@ -64,12 +64,13 @@ src/scene/
   BackgroundStars/         ← estrellas de fondo; useBackgroundStars se prueba sin WebGL (F3.3)
   particleGeometry/ · sceneMaterials/   ← atributos · uniforms y materiales (F3.3)
   frameLoop/ · sceneClock/ ← bucle de frames propio y reloj de animación (F3.3, ADR-027)
-  Constellations.tsx
+  Constellations/          ← las 4 constelaciones (estrellas y líneas) y cómo colocan sus etiquetas (F4.3b)
+  ConstellationLabels/     ← la capa del DOM de las etiquetas, en `body` (F4.3b)
   Sun.tsx
   CameraRig/               ← aplica la pose de math/camera a la cámara del <Canvas> en cada frame (F3.4)
   pointer/                 ← el ratón en NDC sobre el lienzo, solo `pointerType: mouse` (paralaje en F3.4; gravedad en F4.2)
   pause/                   ← cuándo pausar el bucle: pestaña oculta o misión rápida abierta (F3.5)
-  overlay/ProjectedLabels.tsx   ← etiquetas y pins DOM actualizados por refs
+  overlay/ProjectedLabels.tsx   ← los pins DOM actualizados por refs (F4.4)
   shaders/ particles/ · stars/ (los .glsl) · glslHeader/ (etiquetas y colores desde TS)   (F3.3)
            stripGlslComments/ (los .glsl sin comentarios al compilar: plugin de vite.config.ts)
   useSceneShapes/          ← pide las formas al montar; reintento en el hilo principal (F3.2); `lowerTo` (F3.6)
@@ -79,7 +80,8 @@ src/scene/
            shapeContract/ · generateShapes/   (F3.2; la singularidad no se genera: formas.md)
            stars/   (F3.3: las estrellas de fondo, en el hilo principal)
   math/    camera/ (pose por m, FOV de móvil, paralaje; F3.4) · gravity/ (la gravedad del cursor; F4.2) ·
-           projection/ (de la escena a la pantalla; F4.3a) · easing.ts
+           projection/ (de la escena a la pantalla; F4.3a) · constellations/ (presencia, encendido y aspecto) ·
+           labelFit/ (qué etiquetas caben; F4.3b) · easing.ts
   config/  sceneConfig.ts · plateSlots/ (F3.2) · scenePalette/ (F3.3) · constellationLayout/ (F4.3a)
                              (niveles: lib/device/sceneLevel)
                              (cada archivo con test, en su carpeta: ADR-018)
