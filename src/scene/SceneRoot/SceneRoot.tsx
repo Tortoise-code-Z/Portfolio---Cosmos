@@ -9,6 +9,11 @@ import { sceneStore } from '~/stores/sceneStore/sceneStore';
 
 import { BackgroundStars } from '../BackgroundStars/BackgroundStars';
 import { CameraRig } from '../CameraRig/CameraRig';
+import {
+  ConstellationLabels,
+  createStarLabelElements,
+} from '../ConstellationLabels/ConstellationLabels';
+import { Constellations } from '../Constellations/Constellations';
 import { CAMERA_LENS, WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
 import { watchContextLoss } from '../contextLoss/contextLoss';
 import { startFrameLoop, type FrameLoop } from '../frameLoop/frameLoop';
@@ -49,6 +54,12 @@ export interface SceneRootProps {
   readonly onFail: (reason: SceneFailure) => void;
   /** La escena ha pintado su primer frame con partículas: `SceneMount` funde el punto CSS del hero. */
   readonly onPainted?: () => void;
+  /**
+   * El texto de la etiqueta de cada estrella de las constelaciones, por `Skill.id`, en el idioma de la página
+   * (`SceneMount`: la escena solo lee del contenido los ids y el orden). `null` (u omitido) fuera del viaje: sin
+   * etiquetas.
+   */
+  readonly skillLabels?: Readonly<Record<string, string>> | null;
 }
 
 /** El DPR mínimo: nunca por debajo de 1 píxel por píxel CSS. */
@@ -65,7 +76,8 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * Raíz de la escena (docs/05-tecnico/arquitectura.md → «Carga de la escena»). Llega en su propio chunk,
  * con Three.js y React Three Fiber, después de la primera pintura: el JS inicial no la incluye. Fija detrás del
  * contenido, decorativa (`aria-hidden`) y sin puntero. Pide las formas al montar (`useSceneShapes`: worker y,
- * si falla, reintento) y las pinta (`Particles`), con las estrellas de fondo; la cámara la lleva `CameraRig`.
+ * si falla, reintento) y las pinta (`Particles`), con las estrellas de fondo y las constelaciones (con sus etiquetas
+ * en una capa del DOM aparte, `ConstellationLabels`); la cámara la lleva `CameraRig`, la primera del `<Canvas>`.
  *
  * Los frames los pide su propio bucle (`frameloop="never"` + `startFrameLoop`, ADR-027): antes de cada
  * `advance()` rellena el frame compartido (`m` suavizado, la carga de la detonación, la gravedad del cursor, reloj,
@@ -79,7 +91,12 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * color del espacio, y sin gestión de color ni mapeo de tonos (`linear`, `flat`): los shaders suman la luz tal
  * cual, como el prototipo (particulas-y-shaders.md → «Colores»).
  */
-export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps): ReactNode {
+export default function SceneRoot({
+  level,
+  onFail,
+  onPainted,
+  skillLabels = null,
+}: SceneRootProps): ReactNode {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const onFailRef = useRef(onFail);
   const onPaintedRef = useRef(onPainted);
@@ -92,6 +109,7 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
   const pausedRef = useRef(false);
   const [clock] = useState(createSceneClock);
   const [frame] = useState(createSceneFrame);
+  const [labelElements] = useState(createStarLabelElements);
   const levelRef = useRef(level);
   const loopRef = useRef<FrameLoop | null>(null);
   const stopVoidRef = useRef<(() => void) | null>(null);
@@ -254,7 +272,9 @@ export default function SceneRoot({ level, onFail, onPainted }: SceneRootProps):
           <Particles shapes={shapes.shapes} frame={frame} onFirstFrame={onFirstFrame} />
         )}
         <BackgroundStars count={LEVEL_SETTINGS[level].stars} frame={frame} />
+        <Constellations frame={frame} texts={skillLabels} labels={labelElements} />
       </Canvas>
+      <ConstellationLabels texts={skillLabels} elements={labelElements} />
     </div>
   );
 }

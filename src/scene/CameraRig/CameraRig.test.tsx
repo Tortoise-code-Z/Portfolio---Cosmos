@@ -84,6 +84,21 @@ describe('CameraRig', () => {
     }
   });
 
+  it('leaves its pose and its field of view in the frame, for the labels that project after it', () => {
+    const camera = new PerspectiveCamera(55, 1, 0.1, 400);
+    const { frame, tick } = mountRig(camera);
+    frame.m = 2;
+    frame.aspect = 390 / 844;
+    tick();
+    expect(frame.camera.position).toEqual({
+      x: camera.position.x,
+      y: camera.position.y,
+      z: camera.position.z,
+    });
+    expect(frame.camera.target).toEqual({ x: 0, y: 0, z: 0 });
+    expect(frame.fov).toBe(camera.fov);
+  });
+
   it('on desktop, the whole frame moves aside (shiftX); on narrow screens it stays centred', () => {
     const camera = new PerspectiveCamera();
     const { frame, tick } = mountRig(camera);

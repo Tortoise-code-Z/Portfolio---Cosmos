@@ -65,6 +65,7 @@ Reglas:
 | Singularidad / destello | blanco cálido `#fff2d9`, azul hielo `#c7dbff` |
 | Nebulosa | magenta `#ff4291`, violeta `#8047ff`, turquesa `#24d9e0`, ámbar `#ff9947`, núcleo `#ffe6b8` |
 | Galaxia | núcleo `#ffd18c`, brazos `#618cff` con toques `#f273ff` |
+| Constelaciones | estrellas `#fff0d7` con halo `#ffc88c`, líneas `#ffd9a0` |
 | Tortuga | caparazón `#1a998a`, bordes `#ffa847`, placas `#f2b861` (iluminada `#ffedc7`), bosque `#52f26b`, cuerpo `#38c7a3`, estela `#73bfff` |
 | Tierra | océano `#1247d9`, tierras `#47b852` / `#c79e5c`, nubes `#f2f7ff`, atmósfera `#599eff`, amanecer `#ff7326` |
 

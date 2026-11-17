@@ -19,8 +19,14 @@ import { IDLE_TIMEOUT_MS, NO_GL_CLASS, SCENE_ON_CLASS, SceneMount } from './Scen
 interface FakeScene {
   behaviour: 'render' | 'throw' | 'fail' | 'paint';
   levels: string[];
+  /** Los textos de las etiquetas de las constelaciones con que se montó (`undefined`: aún no). */
+  skillLabels: Readonly<Record<string, string>> | null | undefined;
 }
-const scene = vi.hoisted((): FakeScene => ({ behaviour: 'render', levels: [] }));
+const scene = vi.hoisted((): FakeScene => ({
+  behaviour: 'render',
+  levels: [],
+  skillLabels: undefined,
+}));
 
 // La escena de verdad necesita WebGL: aquí se sustituye por un componente que dice con qué nivel se montó.
 vi.mock('~/scene/SceneRoot/SceneRoot', () => ({
@@ -28,12 +34,15 @@ vi.mock('~/scene/SceneRoot/SceneRoot', () => ({
     level,
     onFail,
     onPainted,
+    skillLabels,
   }: {
     readonly level: RenderLevel;
     readonly onFail: (reason: string) => void;
     readonly onPainted: () => void;
+    readonly skillLabels: Readonly<Record<string, string>> | null;
   }): ReactNode {
     if (scene.behaviour === 'throw') throw new Error('WebGL context could not be created');
+    scene.skillLabels = skillLabels;
     useEffect(() => {
       scene.levels.push(level);
       if (scene.behaviour === 'fail') onFail('shader-error');
@@ -82,6 +91,7 @@ afterEach(() => {
   useUiStore.setState(useUiStore.getInitialState(), true);
   scene.behaviour = 'render';
   scene.levels = [];
+  scene.skillLabels = undefined;
 });
 
 describe('SceneMount', () => {
@@ -100,6 +110,26 @@ describe('SceneMount', () => {
     expect(sceneLevel()).toBe('high');
     expect(document.documentElement).not.toHaveClass(NO_GL_CLASS);
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('in the journey, hands the scene the text of every constellation label in the page language', async () => {
+    renderMount();
+    await idle();
+    await screen.findByTestId('scene');
+    expect(scene.skillLabels?.vms).toBe('Virtual machines');
+    expect(scene.skillLabels?.r3f).toBe('Three.js / React Three Fiber');
+    expect(Object.keys(scene.skillLabels ?? {})).toHaveLength(31);
+    cleanup();
+    renderMount('/es');
+    await screen.findByTestId('scene');
+    expect(scene.skillLabels?.vms).toBe('Máquinas virtuales');
+  });
+
+  it('outside the journey (a project page), no labels', async () => {
+    renderMount('/projects/chessmate');
+    await idle();
+    await screen.findByTestId('scene');
+    expect(scene.skillLabels).toBeNull();
   });
 
   it('marks the page while the scene paints particles (the hero dot hands over), and not after a failure', async () => {

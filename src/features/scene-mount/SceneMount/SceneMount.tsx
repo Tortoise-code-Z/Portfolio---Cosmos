@@ -1,8 +1,13 @@
-import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useLocation } from 'react-router';
+
+import { skillGroups } from '~/content/skills';
 
 import { chooseInitialLevel, readBrowserSignals } from '~/lib/device/sceneLevel/sceneLevel';
 import { detectWebGL2 } from '~/lib/device/webgl2/webgl2';
-import { useT } from '~/lib/i18n/useT/useT';
+import { localize } from '~/lib/i18n/localize/localize';
+import { homePath } from '~/lib/i18n/paths/paths';
+import { useLocale, useT } from '~/lib/i18n/useT/useT';
 import {
   selectLanguageNoticeOpen,
   selectSceneLevel,
@@ -53,17 +58,39 @@ function whenIdle(task: () => void): () => void {
 }
 
 /**
+ * El texto de la etiqueta de cada estrella de las constelaciones, por `Skill.id`, en el idioma de la página: solo en
+ * el viaje (en las fichas y la 404 no hay capítulo de Skills, así que tampoco etiquetas: `null`).
+ */
+function useSkillLabels(): Readonly<Record<string, string>> | null {
+  const locale = useLocale();
+  const { pathname } = useLocation();
+  const inJourney = (pathname.replace(/\/$/, '') || '/') === homePath(locale);
+  return useMemo(
+    () =>
+      inJourney
+        ? Object.fromEntries(
+            skillGroups.flatMap((group) =>
+              group.skills.map((skill) => [skill.id, localize(locale, skill.label)] as const),
+            ),
+          )
+        : null,
+    [inJourney, locale],
+  );
+}
+
+/**
  * Monta la escena 3D (docs/05-tecnico/arquitectura.md → «Carga de la escena»). `root.tsx` lo pinta una
  * sola vez, en `Layout` detrás de las rutas, para que el lienzo no se recree al navegar. En el pre-render y al hidratar
  * no pinta nada (solo la región del aviso, vacía); después, con el navegador libre:
  * - sin WebGL2, o con WebGL2 pintado por software (ADR-029) → modo sin WebGL, sin descargar Three.js;
  * - con WebGL2 en la tarjeta gráfica → elige el nivel y carga la escena en diferido, dentro de su
- *   `ErrorBoundary`.
+ *   `ErrorBoundary`, con los textos de las etiquetas de las constelaciones en el viaje.
  * Cualquier fallo de la escena pasa a sin WebGL para el resto de la visita: clase `no-gl` en `<html>` y un
  * aviso, una vez por visita, que espera su turno si la sugerencia de idioma se está viendo.
  */
 export function SceneMount(): ReactNode {
   const level = useUiStore(selectSceneLevel);
+  const skillLabels = useSkillLabels();
 
   useEffect(
     () =>
@@ -104,6 +131,7 @@ export function SceneMount(): ReactNode {
             <SceneRoot
               level={level}
               onFail={turnSceneOff}
+              skillLabels={skillLabels}
               onPainted={() => {
                 setPainted(true);
               }}

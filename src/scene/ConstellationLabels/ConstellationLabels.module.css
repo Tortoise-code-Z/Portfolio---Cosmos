@@ -1,0 +1,52 @@
+/*
+ * Etiquetas de las estrellas (docs/03-diseno/componentes.md → «Etiqueta de estrella»; constelaciones-y-placas.md):
+ * una capa fija entre el destello y el contenido (`--z-labels`), decorativa y sin puntero. Cada etiqueta la
+ * coloca la escena en cada frame (`transform`, opacidad, `visibility` y `data-hot`); hasta entonces, oculta. Su
+ * caja sigue `STAR_LABEL_BOX` (scene/config/constellationLayout): lo comprueba su test.
+ */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-labels);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.label {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  padding: 3px 6px 3px 14px;
+  color: var(--color-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  font-weight: var(--weight-mono);
+  line-height: 16px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: color var(--dur-fast) var(--ease-out);
+  will-change: transform, opacity;
+}
+
+/* El trazo que apunta a la estrella, a la izquierda y a media altura. */
+.label::before {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+  inline-size: 6px;
+  block-size: 1px;
+  background-color: currentcolor;
+  content: '';
+}
+
+.label[data-hot] {
+  color: var(--color-star);
+}
+
+/* Por debajo de md (900px), letra más pequeña (02-galaxia.md → «Layout»). */
+@media (width < 900px) {
+  .label {
+    font-size: var(--text-nano);
+  }
+}

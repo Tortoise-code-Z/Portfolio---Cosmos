@@ -9,7 +9,8 @@ import { assignPlates } from '../../src/scene/config/plateSlots/plateSlots.ts';
  * Huella de lo que se ve en las fotos fijas del modo sin WebGL (ADR-029): las formas, los shaders, la cámara, la
  * paleta, los niveles, las cuentas que comparten (`lib/math` y el suavizado de `m`, `lib/scroll/smoothM`), cómo se
  * piden las formas, cómo se monta el lienzo, el reloj y el movimiento reducido (las fotos se sacan con el reloj
- * parado: `uTime` = 0), cómo se sacan las fotos y las placas de la tortuga (una por proyecto). `npm run stills` la guarda en
+ * parado: `uTime` = 0), las constelaciones (F4.3, sin sus etiquetas: son del DOM), cómo se sacan las fotos y las placas
+ * de la tortuga (una por proyecto). `npm run stills` la guarda en
  * `src/assets/scene-stills/stills.json` y `budgets.spec.ts` la compara: si cambia algo de esto sin rehacer las fotos
  * (F4: constelaciones, Sol, cámara), el e2e falla y lo dice. Si F4 crea una carpeta nueva en `scene/` que cambie lo
  * que se ve, va también aquí.
@@ -21,6 +22,7 @@ export const STILLS_SOURCES = [
   'src/scene/math',
   'src/scene/BackgroundStars',
   'src/scene/CameraRig',
+  'src/scene/Constellations',
   'src/scene/Particles',
   'src/scene/SceneRoot',
   'src/scene/particleGeometry',

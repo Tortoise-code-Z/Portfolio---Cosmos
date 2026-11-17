@@ -113,8 +113,11 @@
 ## Escena ↔ interfaz
 
 ### Etiqueta de estrella (`StarLabel`)
-- Mono 11 px, `--color-dim`, con un trazo de 6 px a la izquierda que apunta a la estrella. *Hot*: ámbar.
-- Posicionada por proyección 3D → 2D en cada frame; opacidad según el peso del capítulo.
+- Mono 11 px (10 px por debajo de 900 px), `--color-dim`, con un trazo de 6 px a la izquierda que apunta a la
+  estrella. *Hot*: ámbar. Caja: 3 px arriba y abajo, 14 a la izquierda (trazo y hueco) y 6 a la derecha, línea de
+  16 px (`STAR_LABEL_BOX`, con su test de pareja).
+- Posicionada por proyección 3D → 2D en cada frame; opacidad según el peso del capítulo (0,6 en reposo, 1 en su
+  grupo activo). Si no cabe (la interfaz, el borde u otra etiqueta), se oculta.
 
 ### Pin de placa (`PlatePin`)
 - Tallo vertical de 46 px (degradado ámbar a transparente) + etiqueta con borde y velo. *Hot*: borde y texto ámbar.

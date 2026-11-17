@@ -142,6 +142,13 @@ Objeto aparte (las del nivel: 5.000, 3.500 o 2.000 en una cáscara de radio 70�
 `shapes/stars`, con la subsemilla `stars`: el mismo cielo en cada visita), titileo por shader (congelado con
 movimiento reducido) y visibilidad `smoothstep(0.02, 0.4, m)` (`uVisible`): antes del Big Bang no hay estrellas.
 
+## Constelaciones
+
+Desde F4.3b, aparte de las partículas: puntos y líneas con sus propios shaders (`scene/shaders/constellations/`,
+un vertex shader para los dos y uno de fragmentos para cada uno), la misma cabecera de colores
+(`constellationStar`, `constellationGlow`, `constellationLine`) y el mismo material aditivo. Las estrellas miden lo
+mismo en pantalla a cualquier distancia (`gl_PointSize = uSize · uPR`). Detalle en `constelaciones-y-placas.md`.
+
 ## Mejoras respecto al prototipo
 
 - Los shaders pasan a archivos `.glsl`. Las etiquetas y los colores llegan desde TypeScript (ver «Etiquetas y

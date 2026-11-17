@@ -23,7 +23,8 @@
   248,4 KB; en F3.6, con la degradación en caliente, 249,0 KB; en F4.1, con la carga en la escena, 72 B menos, y en
   F4.2, con la gravedad del cursor, 166 B más: 249 066 B. React Three Fiber importa Three.js entero (152,7 KB de
   los 249; React Three Fiber, 51,7, y el código propio, 10,0), así que no hay de dónde ahorrar sin quitarlo: ADR-032
-  sube el límite a 260 KB para las constelaciones, los pins y el Sol (F4.3–F4.5). Los generadores no cuentan ahí: van en el worker
+  sube el límite a 260 KB para las constelaciones, los pins y el Sol (F4.3–F4.5). En F4.3b, con las constelaciones
+  y sus etiquetas, 252 535 B (+3,5 KB). Los generadores no cuentan ahí: van en el worker
   (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
 
 ## Niveles

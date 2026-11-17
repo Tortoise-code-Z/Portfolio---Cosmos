@@ -19,6 +19,10 @@ export const SCENE_PALETTE = {
   galaxyCore: '#ffd18c',
   galaxyArm: '#618cff',
   galaxyArmPink: '#f273ff',
+  // Constelaciones (sobre la galaxia): estrella, su halo y las líneas
+  constellationStar: '#fff0d7',
+  constellationGlow: '#ffc88c',
+  constellationLine: '#ffd9a0',
   // Tortuga
   turtleShell: '#1a998a',
   turtleEdge: '#ffa847',

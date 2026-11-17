@@ -1,12 +1,23 @@
 import { describe, expect, it } from 'vitest';
 
+import constellationLinesFragment from '../constellations/constellationLines.frag.glsl?raw';
+import constellationsVertex from '../constellations/constellations.vert.glsl?raw';
+import constellationStarsFragment from '../constellations/constellationStars.frag.glsl?raw';
 import particlesFragment from '../particles/particles.frag.glsl?raw';
 import particlesVertex from '../particles/particles.vert.glsl?raw';
 import starsFragment from '../stars/stars.frag.glsl?raw';
 import starsVertex from '../stars/stars.vert.glsl?raw';
 import { stripGlslComments } from './stripGlslComments';
 
-const SHADERS = { particlesVertex, particlesFragment, starsVertex, starsFragment };
+const SHADERS = {
+  particlesVertex,
+  particlesFragment,
+  starsVertex,
+  starsFragment,
+  constellationsVertex,
+  constellationStarsFragment,
+  constellationLinesFragment,
+};
 
 /** Las líneas con código de verdad, sin comentarios a mano: lo que no puede cambiar. */
 function codeLines(source: string): string[] {

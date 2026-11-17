@@ -96,24 +96,70 @@ export const CONSTELLATION_LINKS: Readonly<
 
 /**
  * La caja de la etiqueta de una estrella (docs/03-diseno/componentes.md → «Etiqueta de estrella»), en píxeles CSS:
- * mono de 11 px (cada letra, 0,6 em: IBM Plex Mono), con el trazo y su hueco a la izquierda (`startPx`), un poco de
- * aire a la derecha y 22 de alto. Empieza `offsetPx` a la derecha de la estrella, centrada en su altura. Con ella
- * se comprueba que las etiquetas caben; el CSS de la etiqueta (F4.3b) la sigue.
+ * mono de 11 px en escritorio y 10 por debajo de 900 px (cada letra, 0,6 em: IBM Plex Mono), con el trazo y su
+ * hueco a la izquierda (`startPx`), un poco de aire a la derecha y 22 de alto (16 de línea + 3 arriba y abajo).
+ * Empieza `offsetPx` a la derecha de la estrella, centrada en su altura. El CSS de la etiqueta
+ * (`scene/ConstellationLabels`) la sigue: lo comprueba su test.
  */
 export const STAR_LABEL_BOX = {
   fontPx: 11,
+  narrowFontPx: 10,
   advanceEm: 0.6,
   startPx: 14,
   endPx: 6,
+  lineHeightPx: 16,
+  padBlockPx: 3,
   heightPx: 22,
   offsetPx: 4,
 } as const;
 
 /**
- * Lo que ocupa a lo ancho la etiqueta de `text`, en píxeles CSS. Una letra por unidad de `length` (en NFC, una «á» es
- * una sola; las etiquetas no llevan emojis).
+ * Lo que ocupa a lo ancho la etiqueta de `text`, en píxeles CSS, con su tamaño de letra (11 por omisión). Una letra
+ * por unidad de `length` (en NFC, una «á» es una sola; las etiquetas no llevan emojis).
  */
-export function starLabelWidth(text: string): number {
-  const { fontPx, advanceEm, startPx, endPx } = STAR_LABEL_BOX;
+export function starLabelWidth(text: string, fontPx: number = STAR_LABEL_BOX.fontPx): number {
+  const { advanceEm, startPx, endPx } = STAR_LABEL_BOX;
   return startPx + text.normalize('NFC').length * fontPx * advanceEm + endPx;
 }
+
+/**
+ * Lo que la interfaz tapa por encima de la escena y donde no puede quedar una etiqueta, en píxeles CSS del lienzo
+ * (medido en Chromium en F4.3a y F4.3b, EN y ES; el e2e de F4.3c lo compara con la página real). En escritorio
+ * (`wide`, desde 900 px): el panel a la izquierda (`--gutter` + `--panel-w`), la barra de arriba, el raíl (centrado
+ * en vertical, contado desde el borde derecho, con el ancho del español) y el HUD abajo a la derecha. Por debajo:
+ * la barra, el raíl (sin textos) y el HUD abajo a la izquierda (entre 520 y 899 px; por debajo no hay). Con
+ * `marginPx` alrededor.
+ */
+export const STAR_LABEL_KEEP_OUT = {
+  marginPx: 8,
+  wide: {
+    panelRight: 564,
+    barBottom: 64,
+    rail: { fromRight: 154, halfHeight: 110 },
+    hud: { fromRight: 247, fromBottom: 62 },
+  },
+  narrow: {
+    barBottom: 64,
+    rail: { fromRight: 52, halfHeight: 110 },
+    hud: { fromLeft: 247, fromBottom: 62 },
+  },
+} as const;
+
+/**
+ * Cómo se ven las constelaciones (constelaciones-y-placas.md → «Estados»): el tamaño de las estrellas en píxeles
+ * CSS (no cambia con la distancia: las de arriba quedan lejos), lo que crece una estrella de un grupo activo
+ * (0,9 → 1,4 de la especificación), la opacidad de estrellas, líneas y etiquetas en reposo y activas, y el ritmo
+ * del encendido. Todo multiplicado por la presencia del capítulo 2.
+ */
+export const CONSTELLATION_LOOK = {
+  starPx: 22,
+  hotScale: 1.55,
+  starOpacity: { rest: 0.65, hot: 1 },
+  lineOpacity: { rest: 0.22, hot: 0.9 },
+  labelOpacity: { rest: 0.6, hot: 1 },
+  hotRate: 8,
+  /** Presencia del capítulo 2: `clamp(1 − |m − 2| · fade, 0, 1)`. */
+  presenceFade: 1.8,
+  /** Desde aquí las etiquetas responden al ratón (F4.3c). */
+  interactiveFrom: 0.6,
+} as const;

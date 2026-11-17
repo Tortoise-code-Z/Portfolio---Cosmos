@@ -5,6 +5,7 @@ import { LOCALES, type Label, type Locale } from '~/content/types';
 
 import { cameraFov, cameraPose, createCameraPose, createParallax } from '../../math/camera/camera';
 import { createScreenPoint, projectToScreen } from '../../math/projection/projection';
+import { keepOutZones } from '../../math/labelFit/labelFit';
 import {
   CONSTELLATION_LINKS,
   CONSTELLATION_STARS,
@@ -14,17 +15,6 @@ import {
 
 const MIN_STAR_DISTANCE = 1.2;
 const FLOAT = { min: 0.9, max: 1.5 };
-
-/**
- * Lo que tapa la interfaz en escritorio, en píxeles CSS (medido en Chromium en F4.3a, EN y ES; el e2e de F4.3c lo
- * mide de verdad): el panel (`--gutter` + `--panel-w`), la barra de arriba, el raíl (centrado en vertical, desde el
- * borde derecho del lienzo; el ancho del español) y el HUD (abajo a la derecha). Con un margen alrededor.
- */
-const PANEL_RIGHT = 24 + 540;
-const BAR_BOTTOM = 64;
-const RAIL = { fromRight: 154, halfHeight: 110 };
-const HUD = { fromRight: 247, top: 62, bottom: 24 };
-const MARGIN = 8;
 
 /** Los tamaños que vigila la aceptación, con barra de scroll clásica (15 px menos de lienzo) y sin ella. */
 const VIEWPORTS = [
@@ -133,19 +123,8 @@ describe('constellationLayout', () => {
     for (const locale of LOCALES) {
       it(`at ${String(width)}×${String(height)} (${locale}) every label fits, apart from the rest`, () => {
         const viewport = { width, height, fov: cameraFov(width / height) };
-        const covered: Rect[] = [
-          [-Infinity, -Infinity, PANEL_RIGHT + MARGIN, Infinity],
-          [-Infinity, -Infinity, Infinity, BAR_BOTTOM + MARGIN],
-          [
-            width - RAIL.fromRight - MARGIN,
-            height / 2 - RAIL.halfHeight - MARGIN,
-            Infinity,
-            height / 2 + RAIL.halfHeight + MARGIN,
-          ],
-          [width - HUD.fromRight - MARGIN, height - HUD.top - MARGIN, Infinity, Infinity],
-          [width - MARGIN, -Infinity, Infinity, Infinity],
-          [-Infinity, height - MARGIN, Infinity, Infinity],
-        ];
+        // Lo que tapa la interfaz (`STAR_LABEL_KEEP_OUT`) y el borde del lienzo, con su margen.
+        const covered = keepOutZones(width, height, true);
         const parallax = createParallax();
         const pose = createCameraPose();
         const point = createScreenPoint();

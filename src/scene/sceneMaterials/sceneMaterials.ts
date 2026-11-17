@@ -2,8 +2,12 @@ import { AdditiveBlending, ShaderMaterial, Vector2, type IUniform } from 'three'
 
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
 
+import { createCameraPose, type CameraPose } from '../math/camera/camera';
 import { createGravity, type Gravity } from '../math/gravity/gravity';
 import { createScenePointer, type ScenePointer } from '../pointer/pointer';
+import constellationLinesFragment from '../shaders/constellations/constellationLines.frag.glsl?raw';
+import constellationsVertex from '../shaders/constellations/constellations.vert.glsl?raw';
+import constellationStarsFragment from '../shaders/constellations/constellationStars.frag.glsl?raw';
 import { glslHeader } from '../shaders/glslHeader/glslHeader';
 import particlesFragment from '../shaders/particles/particles.frag.glsl?raw';
 import particlesVertex from '../shaders/particles/particles.vert.glsl?raw';
@@ -45,6 +49,16 @@ export interface StarUniforms {
   readonly uVisible: IUniform<number>;
 }
 
+/** Los de una constelación: sus estrellas y sus líneas comparten shader de vértices (`uLine` las distingue). */
+export interface ConstellationUniforms {
+  /** Tamaño de las estrellas, en píxeles CSS. */
+  readonly uSize: IUniform<number>;
+  readonly uPR: IUniform<number>;
+  readonly uOpacity: IUniform<number>;
+  /** 0 en las estrellas · 1 en las líneas (su color). */
+  readonly uLine: IUniform<number>;
+}
+
 /**
  * Fuera de la pantalla (NDC va de −1 a 1): solo hasta el primer frame, que pone en `uMouse` el punto de la gravedad.
  * Es una defensa: lo que apaga la gravedad es `uGrav = 0`, no que el punto esté lejos.
@@ -67,6 +81,15 @@ export function createParticleUniforms(): ParticleUniforms {
     uMouse: { value: new Vector2(POINTER_AWAY, POINTER_AWAY) },
     uMotion: { value: 1 },
     uExtras: { value: 1 },
+  };
+}
+
+export function createConstellationUniforms(line: boolean): ConstellationUniforms {
+  return {
+    uSize: { value: 0 },
+    uPR: { value: 1 },
+    uOpacity: { value: 0 },
+    uLine: { value: line ? 1 : 0 },
   };
 }
 
@@ -100,6 +123,12 @@ export interface SceneFrame {
   readonly pointer: ScenePointer;
   /** La gravedad del cursor (la pone al día el bucle con `followGravity`; el mismo objeto toda la visita). */
   readonly gravity: Gravity;
+  /**
+   * La pose de la cámara de este frame (la escribe `CameraRig`, antes que nadie: va la primera en el `<Canvas>`) y
+   * su campo de visión vertical, en grados: con ellos se proyectan las etiquetas (`math/projection`).
+   */
+  readonly camera: CameraPose;
+  fov: number;
 }
 
 export function createSceneFrame(): SceneFrame {
@@ -115,6 +144,8 @@ export function createSceneFrame(): SceneFrame {
     wide: false,
     pointer: createScenePointer(),
     gravity: createGravity(),
+    camera: createCameraPose(),
+    fov: 55,
   };
 }
 
@@ -165,5 +196,25 @@ export function createStarsMaterial(uniforms: StarUniforms): ShaderMaterial {
     uniforms: { ...uniforms },
     vertexShader: glslHeader() + starsVertex,
     fragmentShader: starsFragment,
+  });
+}
+
+/** El material de las estrellas de una constelación: puntos con halo, del tamaño de `uSize`. */
+export function createConstellationStarsMaterial(uniforms: ConstellationUniforms): ShaderMaterial {
+  return new ShaderMaterial({
+    ...ADDITIVE,
+    uniforms: { ...uniforms },
+    vertexShader: glslHeader() + constellationsVertex,
+    fragmentShader: constellationStarsFragment,
+  });
+}
+
+/** El material de las líneas de una constelación. */
+export function createConstellationLinesMaterial(uniforms: ConstellationUniforms): ShaderMaterial {
+  return new ShaderMaterial({
+    ...ADDITIVE,
+    uniforms: { ...uniforms },
+    vertexShader: glslHeader() + constellationsVertex,
+    fragmentShader: constellationLinesFragment,
   });
 }

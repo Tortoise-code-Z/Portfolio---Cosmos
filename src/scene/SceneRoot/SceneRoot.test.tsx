@@ -35,11 +35,19 @@ vi.mock('../useSceneShapes/useSceneShapes', () => ({
 }));
 
 /** Las piezas de Three necesitan WebGL: aquí solo se mira qué reciben (y las partículas «pintan» al montar). */
-const seen = vi.hoisted((): { frame: unknown; stars: number[]; cameraFrame: unknown } => ({
-  frame: null,
-  stars: [],
-  cameraFrame: null,
-}));
+const seen = vi.hoisted(
+  (): {
+    frame: unknown;
+    stars: number[];
+    cameraFrame: unknown;
+    constellations: { frame: unknown; texts: unknown; labels: unknown } | null;
+  } => ({
+    frame: null,
+    stars: [],
+    cameraFrame: null,
+    constellations: null,
+  }),
+);
 vi.mock('../CameraRig/CameraRig', () => ({
   CameraRig: function FakeCameraRig({ frame }: { readonly frame: unknown }) {
     seen.cameraFrame = frame;
@@ -66,6 +74,16 @@ vi.mock('../Particles/Particles', async () => {
     },
   };
 });
+vi.mock('../Constellations/Constellations', () => ({
+  Constellations: function FakeConstellations(props: {
+    readonly frame: unknown;
+    readonly texts: unknown;
+    readonly labels: unknown;
+  }) {
+    seen.constellations = props;
+    return null;
+  },
+}));
 vi.mock('../BackgroundStars/BackgroundStars', () => ({
   BackgroundStars: function FakeStars({ count }: { readonly count: number }) {
     seen.stars.push(count);
@@ -176,6 +194,7 @@ afterEach(() => {
   seen.frame = null;
   seen.stars = [];
   seen.cameraFrame = null;
+  seen.constellations = null;
   vi.unstubAllGlobals();
   sceneStore.setState(sceneStore.getInitialState(), true);
   useUiStore.setState(useUiStore.getInitialState(), true);
@@ -343,6 +362,9 @@ describe('SceneRoot', () => {
       wide: false,
       pointer: { x: 0, y: 0, inside: false },
       gravity: { strength: 0, x: 0, y: 0 },
+      // La pose y el campo de visión los escribe la cámara (aquí, simulada).
+      camera: { position: { x: 0, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } },
+      fov: 55,
     });
     // La cámara lee el mismo frame.
     expect(seen.cameraFrame).toBe(seen.frame);
@@ -583,6 +605,27 @@ describe('SceneRoot', () => {
     media.change(REDUCED_MOTION, true);
     frames.tick(2100);
     expect(frame.gravity.strength).toBe(0);
+  });
+
+  it('paints the constellations with the frame its camera writes in, and their labels in their own layer', () => {
+    const texts = { html: 'HTML', vms: 'Virtual machines' };
+    const { unmount } = render(<SceneRoot level="low" onFail={vi.fn()} skillLabels={texts} />);
+    expect(seen.constellations?.frame).toBe(seen.cameraFrame);
+    expect(seen.constellations?.texts).toBe(texts);
+    // La capa va en `body`, fuera del envoltorio del lienzo (si no, quedaría por debajo del destello).
+    const layer = document.body.querySelector('[data-constellation-labels]');
+    expect(layer?.parentElement).toBe(document.body);
+    const labels = seen.constellations?.labels as Map<string, HTMLElement>;
+    expect(labels.get('vms')?.textContent).toBe('Virtual machines');
+    unmount();
+    expect(document.body.querySelector('[data-constellation-labels]')).toBeNull();
+    expect(labels.size).toBe(0);
+  });
+
+  it('outside the journey (no texts) there are no labels', () => {
+    renderScene();
+    expect(seen.constellations?.texts).toBeNull();
+    expect(document.body.querySelector('[data-constellation-labels]')).toBeNull();
   });
 
   it('says when the renderer exists (data-ready), so the e2e know the scene is mounted', () => {

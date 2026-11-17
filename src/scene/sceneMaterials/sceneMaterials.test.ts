@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 
 import { glslHeader } from '../shaders/glslHeader/glslHeader';
 import {
+  createConstellationLinesMaterial,
+  createConstellationStarsMaterial,
+  createConstellationUniforms,
   createParticleMaterial,
   createParticleUniforms,
   createSceneFrame,
@@ -26,6 +29,8 @@ const frame: Readonly<SceneFrame> = {
   wide: true,
   pointer: { x: 0.2, y: -0.4, inside: true },
   gravity: { strength: 0.7, x: 0.25, y: -0.5 },
+  camera: { position: { x: 0, y: 12.9, z: 14.2 }, target: { x: 0, y: 0, z: 0 } },
+  fov: 55,
 };
 
 describe('particle uniforms', () => {
@@ -80,7 +85,21 @@ describe('createSceneFrame', () => {
       wide: false,
       pointer: { x: 0, y: 0, inside: false },
       gravity: { strength: 0, x: 0, y: 0 },
+      camera: { position: { x: 0, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } },
+      fov: 55,
     });
+  });
+});
+
+describe('constellation uniforms', () => {
+  it('start hidden and say whether they paint stars or lines', () => {
+    expect(createConstellationUniforms(false)).toEqual({
+      uSize: { value: 0 },
+      uPR: { value: 1 },
+      uOpacity: { value: 0 },
+      uLine: { value: 0 },
+    });
+    expect(createConstellationUniforms(true).uLine.value).toBe(1);
   });
 });
 
@@ -103,6 +122,16 @@ describe('materials', () => {
   for (const [name, material, uniforms] of [
     ['particles', createParticleMaterial, createParticleUniforms],
     ['stars', createStarsMaterial, createStarUniforms],
+    [
+      'constellation stars',
+      createConstellationStarsMaterial,
+      () => createConstellationUniforms(false),
+    ],
+    [
+      'constellation lines',
+      createConstellationLinesMaterial,
+      () => createConstellationUniforms(true),
+    ],
   ] as const) {
     it(`${name}: additive light, no depth, the header first and the uniforms shared`, () => {
       const own = uniforms();

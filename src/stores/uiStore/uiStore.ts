@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import type { SkillGroupId } from '~/content/types';
 import type { RenderLevel, SceneLevel } from '~/lib/device/sceneLevel/sceneLevel';
 
 /**
@@ -30,6 +31,12 @@ export interface UiState {
    * en el mismo sitio y nunca se tapan (uno detrás de otro).
    */
   readonly languageNoticeOpen: boolean;
+  /**
+   * El grupo de skills encendido (docs/02-experiencia/capitulos/02-galaxia.md → «Interacciones»), o ninguno. Lo
+   * escriben el panel de Skills (ratón, foco, toque) y las etiquetas de la escena (ratón; F4.3c); la escena lo lee
+   * en cada frame con `getState()`, sin re-render, y enciende su constelación.
+   */
+  readonly activeSkillGroup: SkillGroupId | null;
 }
 
 export const useUiStore = create<UiState>()(() => ({
@@ -37,6 +44,7 @@ export const useUiStore = create<UiState>()(() => ({
   visitedProject: null,
   sceneLevel: null,
   languageNoticeOpen: false,
+  activeSkillGroup: null,
 }));
 
 function setQuickMissionOpen(quickMissionOpen: boolean): void {
@@ -110,4 +118,14 @@ export function setLanguageNoticeOpen(languageNoticeOpen: boolean): void {
 
 export function selectLanguageNoticeOpen({ languageNoticeOpen }: UiState): boolean {
   return languageNoticeOpen;
+}
+
+/** Enciende un grupo de skills (o ninguno, con `null`). */
+export function setActiveSkillGroup(activeSkillGroup: SkillGroupId | null): void {
+  if (useUiStore.getState().activeSkillGroup === activeSkillGroup) return;
+  useUiStore.setState({ activeSkillGroup });
+}
+
+export function selectActiveSkillGroup({ activeSkillGroup }: UiState): SkillGroupId | null {
+  return activeSkillGroup;
 }

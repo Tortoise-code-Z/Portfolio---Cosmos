@@ -51,11 +51,14 @@ cosmos-portfolio/
 │  │                              particleGeometry (atributos), sceneMaterials (uniforms, materiales y el
 │  │                              `SceneFrame`), frameLoop (el bucle de frames, ADR-027), sceneClock (el reloj de
 │  │                              animación), voidColour (el fondo del lienzo), CameraRig y pointer (la cámara
-│  │                              y el ratón) y pause (cuándo pausar el bucle: pestaña oculta, misión rápida)
-│  │  ├─ shaders/               ← los `.glsl` (particles, stars), glslHeader (etiquetas y colores desde TS) y
+│  │                              y el ratón), pause (cuándo pausar el bucle: pestaña oculta, misión rápida),
+│  │                              Constellations (las constelaciones y la colocación de sus etiquetas) y
+│  │                              ConstellationLabels (la capa del DOM de las etiquetas, en `body`)
+│  │  ├─ shaders/               ← los `.glsl` (particles, stars, constellations), glslHeader (etiquetas y colores desde TS) y
 │  │  │                           stripGlslComments (el plugin de vite.config.ts)
 │  │  ├─ math/                  ← código puro: camera (pose por `m`, campo de visión, paralaje) · gravity (la
-│  │  │                           gravedad del cursor) · projection (de la escena a la pantalla)
+│  │  │                           gravedad del cursor) · projection (de la escena a la pantalla) ·
+│  │  │                           constellations (presencia y encendido) · labelFit (qué etiquetas caben)
 │  │  ├─ config/                ← lo compartido: sceneConfig (semilla, semiejes del caparazón, cámara),
 │  │  │                           plateSlots (huecos de las placas, assignPlates), scenePalette (los colores) y
 │  │  │                           constellationLayout (estrellas y líneas de las skills, caja de su etiqueta)
@@ -214,7 +217,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
-| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); después, grupo de skills activo y proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
+| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); grupo de skills encendido (`activeSkillGroup`, desde F4.3b: lo lee la escena en cada frame con `getState()`; lo escriben el panel y las etiquetas desde F4.3c); después, proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
 | `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028; `setScrollTarget` no deja pasar lo que no sea un número finito), la carga de la detonación (`charge`, desde F4.1: la escribe el bucle del botón del hero en cada frame mientras carga o se descarga, ADR-030) y, más adelante en F4, peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget` y `charge` y deja su `m` suavizada y la carga en el `SceneFrame` que leen los `useFrame`; los efectos del Big Bang del hero (`useBigBang`, ADR-030) por suscripción, en su propio bucle y **sin re-render**; el HUD por `getState()`/suscripción, **sin re-render**; el raíl, el idioma y las fotos fijas del modo sin WebGL eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
@@ -252,7 +255,9 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   - sin WebGL2 o pintado por software (`detectWebGL2` → `none` o `software`, ADR-029) → modo sin WebGL, **sin
     descargar** Three.js;
   - con WebGL2 en la tarjeta gráfica → elige el nivel (`chooseInitialLevel`, `uiStore.sceneLevel`)
-    y hace `lazy(() => import('~/scene/SceneRoot/SceneRoot'))`, dentro de `SceneErrorBoundary`.
+    y hace `lazy(() => import('~/scene/SceneRoot/SceneRoot'))`, dentro de `SceneErrorBoundary`. En el viaje le pasa
+    el texto de cada etiqueta de las constelaciones en el idioma de la página (`skillLabels`, F4.3b): la escena solo
+    lee del contenido los ids y el orden.
 - `SceneErrorBoundary` recoge los errores de la escena al montar y al renderizar con React (el chunk que no llega,
   el contexto que no se crea, un hijo del lienzo que lanza), los registra y pasa a sin WebGL. Lo que lanza dentro de
   un frame (`useFrame`, `gl.render`) no le llega: corre en el bucle de la escena (`scene/frameLoop`, ADR-027), que

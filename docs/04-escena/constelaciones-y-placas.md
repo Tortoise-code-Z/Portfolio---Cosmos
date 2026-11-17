@@ -49,11 +49,38 @@ con el paralaje en reposo y en sus cuatro esquinas. El e2e de F4.3c lo mide sobr
 
 | Estado | Estrellas | Líneas | Etiquetas |
 |---|---|---|---|
-| Reposo | tamaño 0,9, opacidad 0,65 · peso | opacidad 0,22 · peso | `--color-dim` |
-| Grupo activo | tamaño 1,4, opacidad 1 · peso | opacidad 0,9 · peso | `--color-star` |
+| Reposo | 22 px, opacidad 0,65 · peso | opacidad 0,22 · peso | `--color-dim`, opacidad 0,6 · peso |
+| Grupo activo | 34 px (×1,55: 0,9 → 1,4), opacidad 1 · peso | opacidad 0,9 · peso | `--color-star` (`data-hot`), opacidad 1 · peso |
 
 «Peso» = presencia del capítulo 2: `clamp(1 − |m − 2| · 1,8, 0, 1)`. La transición entre estados se suaviza a
-ritmo `dt · 8`.
+ritmo `dt · 8`; con movimiento reducido es instantánea. El grupo activo es `uiStore.activeSkillGroup` (lo escriben
+el panel y las etiquetas, F4.3c; la escena lo lee en cada frame, sin re-render). Las cifras viven en
+`CONSTELLATION_LOOK` (`scene/config/constellationLayout`) y las cuentas en `scene/math/constellations`.
+
+### En la escena (F4.3b)
+
+- `scene/Constellations`: por grupo, un `Points` (sus estrellas) y un `LineSegments` (sus líneas), con mezcla
+  aditiva y sin profundidad, como las partículas. Las estrellas tienen **el mismo tamaño en pantalla a cualquier
+  distancia** (las de arriba quedan a z −16): un halo dibujado en el shader (núcleo `constellationStar`, halo
+  `constellationGlow`, el degradado del prototipo sin textura); las líneas, `constellationLine`. Shaders en
+  `scene/shaders/constellations/` (un vertex shader para los dos, con `uLine`). No giran con la galaxia ni las mueve
+  la gravedad del cursor (no son partículas).
+- Las estrellas y las líneas salen en las fotos fijas del modo sin WebGL (en reposo); las etiquetas no (son DOM).
+
+### Etiquetas
+
+- Elementos del DOM (`scene/ConstellationLabels`), uno por skill en el orden del panel, en una capa fija propia
+  (`--z-labels`: entre el destello y `main`) montada en `body` con un portal: dentro del envoltorio del lienzo
+  quedarían por debajo del destello. Decorativas (`aria-hidden`) y, hasta F4.3c, sin puntero.
+- Sus textos llegan ya traducidos por props (`SceneMount` → `SceneRoot`): la escena solo lee del contenido los ids
+  y el orden. Solo en el viaje: en las fichas y la 404, sin etiquetas.
+- En cada frame, `CameraRig` (la primera pieza del `<Canvas>`) deja en el `SceneFrame` su pose y su campo de
+  visión; las constelaciones proyectan cada estrella con ellos (`scene/math/projection`), colocan su etiqueta por
+  `transform` y ocultan las que no caben (`scene/math/labelFit`: la que pisa lo que tapa la interfaz,
+  `STAR_LABEL_KEEP_OUT`, el borde del lienzo u otra ya visible; manda el orden del panel). Solo escriben lo que
+  cambia, y nada con el capítulo lejos.
+- Mono de 11 px; por debajo de 900 px, 10 px (`--text-nano`). A 1280×720 y 1440×900 se ven las 31; en anchos
+  medios y en móvil, las que caben (a 390×844, unas 13): la lista del panel sigue completa.
 
 ## Placas de proyecto (capítulo 3)
 

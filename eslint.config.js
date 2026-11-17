@@ -34,6 +34,8 @@ const PURE_SCENE = 'src/scene/{shapes,math,config,worker}/**';
 const IMPURE_SCENE_MODULES = [
   'SceneRoot',
   'CameraRig',
+  'Constellations',
+  'ConstellationLabels',
   'Particles',
   'BackgroundStars',
   'sceneMaterials',
