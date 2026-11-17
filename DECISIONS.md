@@ -612,7 +612,8 @@
   «Mediciones»), `docs/05-tecnico/arquitectura.md` («Carga de la escena»).
 
 ## ADR-030 · Los efectos del Big Bang en el DOM, con su propio bucle y la misma `m` suavizada que la escena
-- Estado: Aceptada
+- Estado: Aceptada · matizada por ADR-031 (el destello del scroll pasa a ser un golpe con tiempo; el bucle persigue
+  `m` también pasado el hero; el halo es fijo desde el primer frame hasta que se desmonta el hero)
 - Fecha: 2026-10-31
 - Contexto: F4.1 completa la detonación del capítulo 0 (`docs/02-experiencia/capitulos/00-singularidad.md`,
   `docs/03-diseno/movimiento.md` → «Coreografía del Big Bang»): el punto de partículas crece y vibra con la carga,
@@ -645,3 +646,34 @@
 - Detalle: `docs/03-diseno/movimiento.md` («Coreografía del Big Bang»), `docs/02-experiencia/capitulos/00-singularidad.md`,
   `docs/05-tecnico/arquitectura.md` («Estado», «Puente scroll → escena»), `docs/02-experiencia/scroll-y-escena.md`
   («Suavizado»), `docs/03-diseno/design-system.md` («Capas»).
+
+## ADR-031 · El destello del scroll, un golpe que se apaga solo
+- Estado: Aceptada
+- Fecha: 2026-11-01
+- Contexto: en F4.1 el destello del scroll dependía solo de la posición (pico de 0,75 en `m` 0,1, como el
+  prototipo). Quien bajaba un poco y se paraba a leer se quedaba con un velo casi blanco fijo detrás del nombre, la
+  frase y el botón del hero. Medido con la escena (Chromium, nivel Bajo, destello en 0,75): el texto queda entre
+  1,1:1 y 2:1 en el peor punto a 390×844, 1280×720 y 1440×900, lejos de AA (`estados-y-accesibilidad.md`: «Contraste
+  AA en todo el texto»; el capítulo 0 promete que el destello «no tapa la lectura»).
+- Decisión:
+  - El destello del scroll es un **golpe**, como el de la detonación: salta a 0,75 cuando la `m` suavizada del
+    hero cruza 0,02 hacia abajo, baja al mismo ritmo (1,6/s, ≈ 0,6 s) y se apaga aunque el scroll se pare.
+  - Se **rearma** al volver arriba (`m` < 0,01) y solo con el golpe anterior ya apagado: como mucho un destello cada
+    ≈ 0,6 s, por mucho que se suba y se baje junto al borde (WCAG 2.3.1). Al abrir la página a mitad del viaje no
+    está armado. Con el de la detonación, manda el más fuerte.
+  - Con él va el temblor (sigue al destello): ya no se queda congelado unos píxeles al pararse.
+  - Matiza ADR-030 en dos puntos que su texto dejaba mal dichos: el bucle del DOM persigue `m` también pasado el hero
+    (sin escribir nada, porque ahí todo está en su valor final), para que al volver vaya con la escena y no desde
+    donde se durmió; y el halo es fijo desde el primer frame del bucle (al hidratar) hasta que se desmonta el hero,
+    no solo mientras el bucle corre.
+- Alternativas descartadas: dejarlo como el prototipo y anotarlo (el texto del hero no se lee); atenuar el
+  degradado detrás del texto con una máscara (toca el diseño y es difícil de afinar en cada tamaño); dormir el bucle
+  pasado el hero e igualar `m` al despertar (deja el DOM por delante de la escena).
+- Consecuencias: el destello del scroll ya no dura lo que dura la franja de `m` 0–0,2, sino ≈ 0,6 s desde que se
+  empieza a bajar; a un scroll rápido le acompaña igual que antes. El bucle del hero corre un rAF ligero mientras se
+  hace scroll en cualquier capítulo (se duerme al llegar; la escena ya pinta en todos esos frames). La escena salta a
+  `mTarget` en su primer frame: si se baja mientras se descarga, la `m` del DOM puede ir un instante por detrás de la
+  suya.
+- Detalle: `docs/03-diseno/movimiento.md` («Constantes de la experiencia», «Coreografía del Big Bang»),
+  `docs/02-experiencia/capitulos/00-singularidad.md` («Scroll»), `docs/02-experiencia/scroll-y-escena.md`
+  («Suavizado», «Lo que depende de `m`»), `src/lib/bigBang` (`FLASH`).

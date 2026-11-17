@@ -22,6 +22,13 @@ const sceneCss = readFileSync(
   'utf8',
 );
 
+/** El cuerpo de la regla cuya cabecera, al principio de una línea, es `selector`: así el contrato mira su selector. */
+function rule(css: string, selector: string): string {
+  const start = css.indexOf(`\n${selector} {`);
+  if (start === -1) throw new Error(`No está la regla «${selector}»`);
+  return css.slice(start, css.indexOf('}', start));
+}
+
 // Las formas tienen sus propios tests (worker, reintento): aquí solo se mira cómo las usa SceneRoot.
 vi.mock('../useSceneShapes/useSceneShapes', () => ({
   useSceneShapes: vi.fn(() => ({ shapes: null, lowerTo: () => Promise.resolve('kept') })),
@@ -387,7 +394,8 @@ describe('SceneRoot', () => {
     const frames = manualFrames();
     renderScene();
     const frame = seen.cameraFrame as { m: number };
-    setScrollTarget(Number.NaN);
+    // `setScrollTarget` ya no deja pasar un valor así: se rompe a mano, como defensa de la escena.
+    sceneStore.setState({ mTarget: Number.NaN, m: Number.NaN });
     frames.tick(1000);
     expect(frame.m).toBeNaN();
     setScrollTarget(2);
@@ -708,7 +716,7 @@ describe('SceneRoot', () => {
 
 describe('SceneRoot.module.css', () => {
   it('the canvas shakes with the Big Bang (the hero loop writes the offsets); at rest, still', () => {
-    expect(sceneCss).toContain(
+    expect(rule(sceneCss, '.scene')).toContain(
       `translate: var(${BIG_BANG_VARS.shakeX}, 0px) var(${BIG_BANG_VARS.shakeY}, 0px);`,
     );
   });

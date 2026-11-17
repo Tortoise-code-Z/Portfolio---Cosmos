@@ -340,17 +340,30 @@ test.describe('the scene with WebGL', () => {
         const canvas = document.querySelector('canvas');
         const scene = canvas?.closest('[aria-hidden="true"]') ?? null;
         const main = document.querySelector('main');
-        // Los dos cuelgan de `body` sin otro contexto de apilado en medio: sus z-index se comparan.
+        // El destello del Big Bang (solo en el viaje): entre el lienzo y el contenido.
+        const flash = document.querySelector('[data-big-bang="flash"]');
+        // Todos cuelgan de `body` sin otro contexto de apilado en medio: sus z-index se comparan.
         return {
           main: layer(main),
           scene: layer(scene),
-          sameContext:
-            scene?.parentElement === document.body && main?.parentElement === document.body,
+          flash: layer(flash),
+          sameContext: [scene, main, flash].every(
+            (element) => element === null || element.parentElement === document.body,
+          ),
         };
       });
       expect(layers.main?.position).not.toBe('static');
       expect(layers.scene?.position).toBe('fixed');
       expect(layers.main?.zIndex).toBeGreaterThan(layers.scene?.zIndex ?? Number.POSITIVE_INFINITY);
+      if (path === '/') {
+        expect(layers.flash?.position).toBe('fixed');
+        expect(layers.flash?.zIndex).toBeGreaterThan(
+          layers.scene?.zIndex ?? Number.POSITIVE_INFINITY,
+        );
+        expect(layers.flash?.zIndex).toBeLessThan(layers.main?.zIndex ?? Number.NEGATIVE_INFINITY);
+      } else {
+        expect(layers.flash).toBeNull();
+      }
       expect(layers.sameContext).toBe(true);
     });
   }

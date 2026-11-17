@@ -26,9 +26,12 @@ export interface SceneState {
 
 export const sceneStore = createStore<SceneState>()(() => ({ mTarget: 0, m: 0, charge: 0 }));
 
-/** Lo que pide el scroll. `m` lo sigue sin suavizado (la escena suaviza el suyo, ADR-028). */
+/**
+ * Lo que pide el scroll. `m` lo sigue sin suavizado (la escena suaviza el suyo, ADR-028). Un valor que no es un
+ * número finito no entra: lo leen la escena, el raíl, el HUD y el bucle del Big Bang, que no sabrían qué hacer con él.
+ */
 export function setScrollTarget(mTarget: number): void {
-  if (sceneStore.getState().mTarget === mTarget) return;
+  if (!Number.isFinite(mTarget) || sceneStore.getState().mTarget === mTarget) return;
   sceneStore.setState({ mTarget, m: mTarget });
 }
 

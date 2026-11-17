@@ -23,9 +23,10 @@ Presentar quién eres en 3 segundos y dar el primer momento «wow». Tesis visua
 **Mantén pulsado para detonar**
 - Mientras se mantiene (ratón, dedo, o `Espacio`/`Enter` con foco en el botón) la carga sube de 0 a 1 en
   **1,5 s**; al soltar, baja a ritmo de 1,8/s.
-- Con la carga: el punto crece y vibra, el halo se expande, la pantalla tiembla un poco y el nombre **se
-  comprime** (el eje `wdth` baja): la energía se acumula.
-- Al llegar a 1: **destello** radial blanco-ámbar (entre el lienzo y el texto: no tapa la lectura), la explosión
+- Con la carga: el punto crece y vibra, el halo se expande, el fondo (lienzo y halo) tiembla un poco y el nombre
+  **se comprime** (el eje `wdth` baja): la energía se acumula.
+- Al llegar a 1: **destello** radial blanco-ámbar (entre el lienzo y el texto, y se apaga solo en ≈ 0,6 s: no se
+  queda tapando la lectura), la explosión
   y un desplazamiento automático suave hasta el capítulo 1, con el foco en su título
   (`estados-y-accesibilidad.md` → «Accesibilidad», punto 8). La carga se descarga sola; la detonación solo puede
   volver a cargarse si se regresa al inicio.
@@ -34,7 +35,9 @@ Presentar quién eres en 3 segundos y dar el primer momento «wow». Tesis visua
   menú contextual.
 
 **Scroll**
-- El primer scroll ya inicia la explosión (ventana de morph desde el 0 %). El destello acompaña al comienzo.
+- El primer scroll ya inicia la explosión (ventana de morph desde el 0 %). El destello acompaña al comienzo: un
+  golpe al empezar a bajar que se apaga solo en ≈ 0,6 s, aunque el usuario se pare ahí (medido: un destello fijo
+  dejaba el texto del hero por debajo de 2:1). Se rearma al volver arriba del todo (ADR-031).
 - El nombre se ensancha de `wdth` 62 a 150 y se separan sus letras mientras sube y desaparece.
 
 **Cursor**
@@ -44,7 +47,9 @@ Presentar quién eres en 3 segundos y dar el primer momento «wow». Tesis visua
 
 - **Escritorio:** contenido abajo a la izquierda, el punto centrado en la pantalla. El hero ocupa la altura de la
   ventana con margen inferior; el nombre no puede tapar el punto.
-- **Móvil:** el mismo orden en una columna; el botón ocupa el ancho disponible si no cabe en línea.
+- **Móvil:** el mismo orden en una columna; el botón ocupa el ancho disponible si no cabe en línea. Ensanchado
+  (`wdth` 150 y espaciado) el nombre no cabe: se corta en el borde de su columna (`overflow-x: clip`), sin scroll
+  de lado.
 - El kicker nunca se solapa con los acentos del nombre (margen superior en el `<h1>`).
 
 ## Accesibilidad y movimiento reducido
@@ -56,7 +61,7 @@ Presentar quién eres en 3 segundos y dar el primer momento «wow». Tesis visua
   usuario).
 - Sin WebGL: el punto y el halo se dibujan con CSS, así que el hero se ve completo igual. Con escena, el punto
   es el de partículas y el halo sigue siendo el CSS (`estados-y-accesibilidad.md` → «Secuencia de carga»).
-- Sin WebGL, el nombre (`wdth` y espaciado) y el halo siguen la carga y el scroll; el destello y el temblor solo
+- Sin WebGL, el nombre (`wdth` y espaciado) y el halo (con él, el punto CSS) siguen la carga y el scroll; el destello y el temblor solo
   existen con la escena, porque acompañan a la explosión de partículas (ADR-030).
 
 ## Aceptación

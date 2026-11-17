@@ -17,6 +17,13 @@ const heroCss = readFileSync(
   'utf8',
 );
 
+/** El cuerpo de la regla cuya cabecera, al principio de una línea, es `selector`: así el contrato mira su selector. */
+function rule(css: string, selector: string): string {
+  const start = css.indexOf(`\n${selector} {`);
+  if (start === -1) throw new Error(`No está la regla «${selector}»`);
+  return css.slice(start, css.indexOf('}', start));
+}
+
 /** Frames pedidos (la carga y los efectos del Big Bang tienen cada uno su bucle): una cola, como el navegador. */
 let pending: FrameRequestCallback[] = [];
 let now = 0;
@@ -141,14 +148,21 @@ describe('Hero', () => {
     expect(Number(root.style.getPropertyValue(BIG_BANG_VARS.flash))).toBeGreaterThan(0.8);
   });
 
-  it('the CSS reads the Big Bang variables, each with its resting value', () => {
-    expect(heroCss).toContain(
-      `font-stretch: var(${BIG_BANG_VARS.heroWidth}, var(--wdth-hero-rest));`,
+  it('the CSS reads the Big Bang variables, each in its rule and with its resting value', () => {
+    const name = rule(heroCss, '.name');
+    expect(name).toContain(`font-stretch: var(${BIG_BANG_VARS.heroWidth}, var(--wdth-hero-rest));`);
+    expect(name).toContain(`letter-spacing: var(${BIG_BANG_VARS.heroTracking}, normal);`);
+    expect(rule(heroCss, '.halo')).toContain(
+      `transform: scale(var(${BIG_BANG_VARS.haloScale}, 1));`,
     );
-    expect(heroCss).toContain(`letter-spacing: var(${BIG_BANG_VARS.heroTracking}, normal);`);
-    expect(heroCss).toContain(`opacity: var(${BIG_BANG_VARS.haloFade}, 1);`);
-    expect(heroCss).toContain(`transform: scale(var(${BIG_BANG_VARS.haloScale}, 1));`);
-    expect(heroCss).toContain(
+    // El halo (y, sin escena, el punto) se apaga en todos los modos, pero es fijo solo con el bucle en marcha
+    // (`bang-live`) y tiembla solo con escena (`scene-on`).
+    const singularity = rule(heroCss, '.singularity');
+    expect(singularity).toContain(`opacity: var(${BIG_BANG_VARS.haloFade}, 1);`);
+    expect(singularity).toContain('position: absolute;');
+    expect(singularity).not.toContain(BIG_BANG_VARS.shakeX);
+    expect(rule(heroCss, ':global(.bang-live) .singularity')).toContain('position: fixed;');
+    expect(rule(heroCss, ':global(.scene-on) .singularity')).toContain(
       `translate: calc(-50% + var(${BIG_BANG_VARS.shakeX}, 0px)) calc(-50% + var(${BIG_BANG_VARS.shakeY}, 0px));`,
     );
   });
