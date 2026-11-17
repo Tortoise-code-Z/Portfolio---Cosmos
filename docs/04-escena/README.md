@@ -19,8 +19,8 @@
 ```
             ┌───────────────────────── hilo principal ────────────────────────────┐
 scroll ───► │ scroll/mapM (puro) ──► sceneStore (mutable, sin re-render de React) │
-            │                            │ mTarget                                │
-            │  SceneRoot (su step) ◄─────┘ suaviza m y rellena SceneFrame         │
+            │                            │ mTarget, charge (la carga del hero)    │
+            │  SceneRoot (su step) ◄─────┘ suaviza m, copia la carga: SceneFrame  │
 puntero ──► │ scene/pointer ──► SceneFrame.pointer (lo escribe cada evento)       │
             │       useFrame de cada pieza (R3F) ◄── leen SceneFrame              │
             │        ├─ uniforms de partículas (uM, uTime, uCharge, uPlate…)      │
@@ -38,8 +38,9 @@ puntero ──► │ scene/pointer ──► SceneFrame.pointer (lo escribe cad
 1. **Un solo `THREE.Points`** con todas las formas como atributos: la transición es una mezcla en la GPU, sin
    crear ni destruir objetos.
 2. **El estado que cambia cada frame no pasa por React.** El destino del scroll (`mTarget`) vive en un store
-   mutable; el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`) lo lee cada frame y deja su `m`
-   suavizada, el reloj y lo demás en un `SceneFrame` compartido, que leen los `useFrame`. El ratón y si es
+   mutable, junto a la carga de la detonación (`charge`, la escribe el bucle del botón del hero); el `step` del
+   bucle de `SceneRoot` (sobre `scene/frameLoop`) los lee cada frame y deja su `m` suavizada, la carga
+   (`SceneFrame.charge` → `uCharge`), el reloj y lo demás en un `SceneFrame` compartido, que leen los `useFrame`. El ratón y si es
    escritorio los escriben sus observadores (`scene/pointer`, `watchMediaQuery`) directamente en el
    `SceneFrame`. React solo renderiza cuando cambia algo estructural (idioma, nivel de rendimiento, ruta).
 3. **Lógica pura separada del render.** Mapeo de scroll, interpolación de cámara, generadores, proyección y

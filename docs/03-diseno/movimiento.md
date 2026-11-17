@@ -40,7 +40,7 @@ ese evento para terminar de cerrarse se quedaría colgado con movimiento reducid
 |---|---|---|
 | Suavizado de `m` en la escena y en los efectos del Big Bang `k` (`M_SMOOTHING`, `lib/scroll/smoothM`) | 3,4 (12 con movimiento reducido) | `scroll-y-escena.md` |
 | Carga de detonación | 1,5 s para llenar; descarga 1,8/s (también tras detonar) | Capítulo 0 |
-| Destello | pico en `m` 0–0,2, opacidad máx. 0,75 (0,95 al detonar, que baja 1,6/s: ≈ 0,6 s) | Capítulo 0 |
+| Destello | dos golpes que bajan 1,6/s (≈ 0,6 s): 0,75 al empezar a bajar (al cruzar `m` 0,02; se rearma de vuelta en `m` < 0,01 con el golpe apagado) y 0,95 al detonar; manda el más fuerte (ADR-031) | Capítulo 0 |
 | Temblor | hasta 9 px con el destello + 3 px por carga (el lienzo y el punto o halo CSS, nunca el texto) | Capítulo 0 |
 | Nombre del hero (`wdth`) | 62 en reposo; −12 con la carga (mín. 50); +88 en `m` 0–0,35 (máx. 150); espaciado 0,25 em por unidad de `m` | Capítulo 0 |
 | Halo del hero | ×(1 + 1,6 · carga); se apaga en `m` 0–0,12 | Capítulo 0 |
@@ -58,7 +58,7 @@ t (carga)     0 ─────────────── 1,5 s
 punto         crece y vibra ──────────► 
 halo          se expande ─────────────►
 nombre wdth   62 ──────────────────► 50   (se comprime hasta el mínimo del eje)
-pantalla      temblor leve ───────────►
+fondo         temblor leve ───────────►   (el lienzo y el halo, nunca el texto)
                                     │ detonación
 destello                            ███▓▒░  (≈ 0,6 s)
 partículas                          explosión → nebulosa
@@ -69,6 +69,7 @@ scroll                              automático hasta «About»
 Quién lo pinta (ADR-030): el punto de partículas, la escena (`uCharge`, desde `sceneStore.charge`); lo demás, el
 bucle de efectos del hero (`useBigBang`), que escribe variables CSS privadas en `<html>` (`--_bang-*`) con las
 cuentas de `lib/bigBang` y la misma `m` suavizada que la escena. Tras detonar, la carga se descarga sola (el punto,
-el halo y el nombre vuelven a reposo mientras llega la explosión). Sin escena: el nombre y el halo, sí; el destello
-y el temblor, no. Con movimiento reducido: sin destello, sin temblor y sin vibración; el nombre y el halo siguen
+el halo y el nombre vuelven a reposo mientras llega la explosión). Bajando con el scroll, el destello es otro golpe
+igual de corto (0,75), al empezar a bajar: aunque el usuario se pare a leer en mitad de la explosión, no se queda
+un velo claro detrás del texto (ADR-031). Sin escena: el nombre y el halo, sí; el destello y el temblor, no. Con movimiento reducido: sin destello, sin temblor y sin vibración; el nombre y el halo siguen
 la carga y el scroll.

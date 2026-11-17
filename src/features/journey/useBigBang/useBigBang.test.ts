@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BIG_BANG_VARS } from '~/lib/bigBang/bigBang';
+import { M_SMOOTHING } from '~/lib/scroll/smoothM/smoothM';
 import { sceneStore, setCharge, setScrollTarget } from '~/stores/sceneStore/sceneStore';
 
 import { BIG_BANG_LIVE_CLASS, useBigBang } from './useBigBang';
@@ -96,7 +97,14 @@ describe('useBigBang', () => {
     advance(16);
     expect(read(BIG_BANG_VARS.heroWidth)).toBe('56.0%');
     expect(read(BIG_BANG_VARS.haloScale)).toBe('1.800');
-    expect(Math.abs(parseFloat(read(BIG_BANG_VARS.shakeX)))).toBeLessThanOrEqual(0.75);
+    // Tiembla de verdad (no basta un `0.0px`), dentro de ±0,75 px (1,5 px de amplitud).
+    const offsets = [parseFloat(read(BIG_BANG_VARS.shakeX))];
+    for (let frame = 0; frame < 5; frame += 1) {
+      advance(16);
+      offsets.push(parseFloat(read(BIG_BANG_VARS.shakeX)));
+    }
+    expect(Math.max(...offsets.map(Math.abs))).toBeGreaterThan(0);
+    for (const offset of offsets) expect(Math.abs(offset)).toBeLessThanOrEqual(0.75);
     expect(pending).toHaveLength(1);
     act(() => {
       setCharge(0);
@@ -133,17 +141,71 @@ describe('useBigBang', () => {
       setScrollTarget(0.35);
     });
     advance(100); // despierta: sin tiempo
-    expect(read(BIG_BANG_VARS.flash)).toBe('0.000');
+    expect(read(BIG_BANG_VARS.heroWidth)).toBe('62.0%');
     advance(100);
-    // 0,1 s a ritmo 3,4: m = 0,35 · 0,34 = 0,119 → el destello en su pico, el nombre a medio ensanchar.
-    expect(Number(read(BIG_BANG_VARS.flash))).toBeCloseTo(
-      Math.sin((0.119 / 0.2) * Math.PI) * 0.75,
-      3,
-    );
+    // 0,1 s a ritmo 3,4: m = 0,35 · 0,34 = 0,119 → el nombre a medio ensanchar.
+    expect(parseFloat(read(BIG_BANG_VARS.heroWidth))).toBeGreaterThan(62);
     expect(parseFloat(read(BIG_BANG_VARS.heroWidth))).toBeLessThan(150);
     advance(100, 40);
     expect(read(BIG_BANG_VARS.heroWidth)).toBe('150.0%');
     expect(pending).toEqual([]);
+  });
+
+  it('starting to go down flashes at 0.75 once and it goes out in about 0.6 s, even stopped there', () => {
+    renderHook(() => useBigBang());
+    advance(16);
+    act(() => {
+      setScrollTarget(0.1);
+    });
+    advance(16); // despierta: sin tiempo, m sigue en 0
+    expect(read(BIG_BANG_VARS.flash)).toBe('0.000');
+    advance(16); // m = 0,1 · 0,054 ≈ 0,005: aún no
+    expect(read(BIG_BANG_VARS.flash)).toBe('0.000');
+    advance(16, 3); // m ≈ 0,011 → 0,015 → 0,020: salta
+    expect(read(BIG_BANG_VARS.flash)).toBe('0.750');
+    expect(Math.abs(parseFloat(read(BIG_BANG_VARS.shakeX)))).toBeLessThanOrEqual(3.375);
+    advance(100, 7);
+    // Parado en m 0,1 (donde antes el destello se quedaba en 0,75 encima del texto): apagado, sin temblor y dormido.
+    expect(read(BIG_BANG_VARS.flash)).toBe('0.000');
+    expect(read(BIG_BANG_VARS.shakeX)).toBe('0.0px');
+    expect(read(BIG_BANG_VARS.shakeY)).toBe('0.0px');
+    advance(100, 30);
+    expect(read(BIG_BANG_VARS.flash)).toBe('0.000');
+    expect(pending).toEqual([]);
+  });
+
+  it('it rearms back at the top, and never flashes again while the last hit is still on', () => {
+    renderHook(() => useBigBang());
+    advance(16);
+    act(() => {
+      setScrollTarget(0.1);
+    });
+    advance(16);
+    advance(100); // m = 0,034: salta
+    expect(read(BIG_BANG_VARS.flash)).toBe('0.750');
+    // Sube y baja enseguida: el golpe sigue encendido, así que no se rearma (como mucho uno cada ≈ 0,6 s).
+    act(() => {
+      setScrollTarget(0);
+    });
+    advance(100, 3);
+    act(() => {
+      setScrollTarget(0.1);
+    });
+    advance(100, 3);
+    expect(Number(read(BIG_BANG_VARS.flash))).toBeLessThan(0.75);
+    advance(100, 30);
+    expect(read(BIG_BANG_VARS.flash)).toBe('0.000');
+    // Arriba del todo, con el golpe apagado, se rearma; al volver a bajar, salta otra vez.
+    act(() => {
+      setScrollTarget(0);
+    });
+    advance(100, 30);
+    act(() => {
+      setScrollTarget(0.1);
+    });
+    advance(16);
+    advance(100);
+    expect(read(BIG_BANG_VARS.flash)).toBe('0.750');
   });
 
   it('with reduced motion: no flash and no shake, but the name and the halo still follow', () => {
@@ -176,18 +238,37 @@ describe('useBigBang', () => {
     expect(read(BIG_BANG_VARS.shakeX)).toBe('0.0px');
   });
 
-  it('past the hero, scrolling does not wake it (the values no longer change)', () => {
+  it('past the hero it keeps following m, so coming back it goes with the scene', () => {
     setScrollTarget(2);
     renderHook(() => useBigBang());
     advance(16);
     act(() => {
       setScrollTarget(3);
     });
+    expect(pending).toHaveLength(1);
+    advance(100, 60);
     expect(pending).toEqual([]);
     act(() => {
-      setScrollTarget(0.5);
+      setScrollTarget(0);
     });
-    expect(pending).toHaveLength(1);
+    advance(16); // despierta: sin tiempo
+    advance(100, 6);
+    // Desde 3 (donde está la escena), no desde 2: m = 3 · 0,66⁶ ≈ 0,248 → espaciado ≈ 0,062 em.
+    const m = 3 * (1 - 0.1 * M_SMOOTHING.rate) ** 6;
+    expect(parseFloat(read(BIG_BANG_VARS.heroTracking))).toBeCloseTo(m * 0.25, 3);
+  });
+
+  it('with reduced motion its m follows at the reduced rate (12), like the scene', () => {
+    stubReducedMotion(true);
+    renderHook(() => useBigBang());
+    advance(16);
+    act(() => {
+      setScrollTarget(0.35);
+    });
+    advance(16); // despierta: sin tiempo
+    advance(50);
+    // 0,05 s a ritmo 12: m = 0,35 · 0,6 = 0,21 → wdth 62 + smoothstep(0,6) · 88 ≈ 119,0 (a ritmo 3,4 sería ≈ 68,8).
+    expect(read(BIG_BANG_VARS.heroWidth)).toBe('119.0%');
   });
 
   it('writes a variable only when its value changes', () => {
@@ -221,7 +302,23 @@ describe('useBigBang', () => {
     expect(pending).toEqual([]);
   });
 
-  it('a broken m starts again from the target', () => {
+  it('a target that is not a number is ignored: nothing wakes and the next good one works', () => {
+    renderHook(() => useBigBang());
+    advance(16);
+    act(() => {
+      setScrollTarget(Number.NaN);
+    });
+    expect(pending).toEqual([]);
+    act(() => {
+      setScrollTarget(2);
+    });
+    advance(16);
+    advance(100, 60);
+    expect(read(BIG_BANG_VARS.heroWidth)).toBe('150.0%');
+    expect(pending).toEqual([]);
+  });
+
+  it('if m ever breaks, it starts again from the target', () => {
     renderHook(() => useBigBang());
     advance(16);
     act(() => {

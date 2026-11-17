@@ -6,7 +6,8 @@
 /*
  * Punto y halo en CSS. Con escena, la singularidad de partículas releva solo al punto, en el mismo sitio (se funde
  * con `scene-on`); el halo se queda (estados-y-accesibilidad.md → «Secuencia de carga»). Los efectos del Big Bang
- * (`useBigBang`, variables `--_bang-*` en `<html>`) lo apagan con la explosión y, con escena, lo hacen temblar.
+ * (`useBigBang`, variables `--_bang-*` en `<html>`) lo apagan con la explosión (sin escena, también el punto: van
+ * juntos) y, con escena, lo hacen temblar.
  */
 .singularity {
   position: absolute;
@@ -21,8 +22,9 @@
 }
 
 /*
- * Con el bucle del Big Bang en marcha, fijo en el centro de la ventana como el punto de partículas (en reposo, el
- * mismo sitio). Antes de hidratar sigue en el hero: abierta a mitad del viaje, no queda encima del texto.
+ * Desde el primer frame del bucle del Big Bang hasta que se desmonta el hero, fijo en el centro de la ventana como el
+ * punto de partículas (en reposo, el mismo sitio). Antes de hidratar sigue en el hero: abierta a mitad del viaje, no
+ * queda encima del texto.
  */
 :global(.bang-live) .singularity {
   position: fixed;

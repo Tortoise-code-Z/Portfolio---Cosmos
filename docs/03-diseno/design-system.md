@@ -189,7 +189,7 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 | Token | Valor | Capa |
 |---|---|---|
 | `--z-scene` | 0 | Lienzo WebGL (y, sin WebGL, el fondo `--gradient-space` y, en el viaje, las fotos fijas de la escena encima) |
-| `--z-glow` | 1 | Halo CSS de la singularidad (dentro de `main`: por debajo del texto del hero y por encima del lienzo, también con escena). Su valor cuenta **dentro de `main`**, no frente a `--z-flash` y `--z-labels`, que van fuera de `main`: leído por números, el orden de esta tabla no es el real. Orden real, de abajo arriba: lienzo · destello · etiquetas · `main` (con el halo debajo del texto del hero): el halo queda **por encima del destello** (ADR-030). Mientras corren los efectos del Big Bang es fijo, en el centro de la ventana |
+| `--z-glow` | 1 | Halo CSS de la singularidad (dentro de `main`: por debajo del texto del hero y por encima del lienzo, también con escena). Su valor cuenta **dentro de `main`**, no frente a `--z-flash` y `--z-labels`, que van fuera de `main`: leído por números, el orden de esta tabla no es el real. Orden real, de abajo arriba: lienzo · destello · etiquetas · `main` (con el halo debajo del texto del hero): el halo queda **por encima del destello** (ADR-030). Desde el primer frame de los efectos del Big Bang (al hidratar) hasta que se desmonta el hero es fijo, en el centro de la ventana |
 | `--z-flash` | 3 | Destello del Big Bang (fuera de `main`, entre el lienzo y el contenido; solo con escena) |
 | `--z-labels` | 4 | Etiquetas y pins proyectados |
 | `--z-content` | 5 | El `main` de cada página (capítulos, fichas, 404 y página de error): todo el contenido por encima del lienzo |

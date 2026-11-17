@@ -23,7 +23,10 @@ describe('BigBangFlash', () => {
   });
 
   it('its opacity is the one the Big Bang loop writes, 0 until it does, and only with the scene', () => {
-    expect(css).toContain(`opacity: var(${BIG_BANG_VARS.flash}, 0);`);
+    expect(css).toMatch(/\n\.flash \{[^}]*\bdisplay: none;/);
+    expect(css).toMatch(
+      new RegExp(`\\n\\.flash \\{[^}]*opacity: var\\(${BIG_BANG_VARS.flash}, 0\\);`),
+    );
     expect(css).toMatch(/:global\(\.scene-on\) \.flash \{\s+display: block;/);
   });
 });

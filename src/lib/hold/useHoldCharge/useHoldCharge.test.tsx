@@ -269,6 +269,41 @@ describe('useHoldCharge', () => {
     expect(onDetonate).toHaveBeenCalledTimes(2);
   });
 
+  it('pressing while it drains after detonating: the charge keeps going down and it detonates once', () => {
+    const { element, onDetonate, result } = setup();
+    press(result);
+    advance(0);
+    advance(100, 15);
+    expect(onDetonate).toHaveBeenCalledTimes(1);
+    advance(100); // a mitad de la descarga
+    const left = charge(element);
+    expect(left).toBeGreaterThan(0);
+    press(result);
+    advance(100);
+    expect(charge(element)).toBeLessThan(left);
+    advance(100, 10);
+    expect(charge(element)).toBe(0);
+    expect(pending).toEqual([]);
+    expect(onDetonate).toHaveBeenCalledTimes(1);
+  });
+
+  it('back at the very top while it drains: it rearms, the charge goes to 0 and the loop stops', () => {
+    const { element, onDetonate, result } = setup();
+    press(result);
+    advance(0);
+    advance(100, 15);
+    advance(100); // a mitad de la descarga
+    expect(charge(element)).toBeGreaterThan(0);
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
+    expect(result.current.detonated).toBe(false);
+    expect(charge(element)).toBe(0);
+    advance(100);
+    expect(pending).toEqual([]);
+    expect(onDetonate).toHaveBeenCalledTimes(1);
+  });
+
   it('cancels the pending frame on unmount', () => {
     const { result, unmount } = setup();
     act(() => {

@@ -34,7 +34,7 @@ la dirección de `position` escalada a casi cero.
 | `uExtras` | float | 1 · 0 en Bajo: esconde la estela de la tortuga (alfa 0) y apaga las luces de ciudad |
 
 `uCharge` lo conecta F4.1: la carga del botón del hero (`sceneStore.charge`, copiada en `SceneFrame.charge`) hincha
-el punto y lo hace vibrar; con movimiento reducido, `uTime` se congela y la vibración no se mueve (ADR-030).
+el punto y lo hace vibrar; con movimiento reducido, `uTime` se congela y la vibración no se mueve (`scene/sceneClock`).
 `uGrav` y `uMouse` los conecta F4.2 (la gravedad del cursor, abajo). `uPlate` se queda a 0 hasta que lo conecte F4.4
 (placas). Todos los uniforms se ponen al día en el `useFrame` desde un `SceneFrame`
 compartido que rellena el bucle antes de cada frame: ningún objeto nuevo por frame.

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { HOLD_MAX_STEP_SECONDS } from '~/lib/hold/charge/charge';
+
 import { createSceneClock, MAX_STEP_S } from './sceneClock';
 
 describe('createSceneClock', () => {
@@ -48,5 +50,13 @@ describe('createSceneClock', () => {
     clock.setReduced(false);
     clock.tick(0.2);
     expect(clock.time).toBeCloseTo(0.1, 10);
+  });
+});
+
+describe('MAX_STEP_S', () => {
+  it('is the step cap of the Big Bang loop in the DOM: both copies of m stay together on slow frames (ADR-030)', () => {
+    // `useBigBang` topa su paso con el de la carga (`HOLD_MAX_STEP_SECONDS`) y la escena, con este: si uno cambia,
+    // con frames lentos sus `m` se desfasan sin que falle nada más.
+    expect(HOLD_MAX_STEP_SECONDS).toBe(MAX_STEP_S);
   });
 });

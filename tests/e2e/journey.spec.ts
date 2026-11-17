@@ -184,9 +184,10 @@ test.describe('the journey (home)', () => {
       expect(layout?.kickerOverCore).toBe(false);
       expect(layout?.kickerOverName).toBe(false);
 
-      // Bajando, el nombre se ensancha (`wdth` 150 y espaciado, ADR-030): tampoco desborda de lado.
+      // Bajando, el nombre se ensancha (`wdth` 150 y espaciado, ADR-030): tampoco desborda de lado. Dos pantallas
+      // abajo, pasado `m` 1, para llegar también al espaciado máximo.
       await page.evaluate(() => {
-        window.scrollTo(0, window.innerHeight);
+        window.scrollTo(0, window.innerHeight * 2);
       });
       await expect
         .poll(() =>
@@ -197,6 +198,16 @@ test.describe('the journey (home)', () => {
           ),
         )
         .toBe(150);
+      // El peor caso es con todo el espaciado (0,25 em, en `m` 1), que llega después del `wdth`.
+      await expect
+        .poll(() =>
+          page.evaluate(() => {
+            const title = document.querySelector('h1') ?? document.body;
+            const { fontSize, letterSpacing } = getComputedStyle(title);
+            return Number.parseFloat(letterSpacing) / Number.parseFloat(fontSize);
+          }),
+        )
+        .toBeCloseTo(0.25, 2);
       expect(
         await page.evaluate(
           () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -368,6 +379,33 @@ test.describe('the Big Bang', () => {
   }
 
   /**
+   * Apunta si el lienzo se ha movido de verdad (su `translate` calculado, no solo las variables de `<html>`, que se
+   * escriben igual sin escena). Hay que llamarlo antes de que empiece el temblor.
+   */
+  async function recordCanvasMoves(page: Page): Promise<() => Promise<boolean>> {
+    await page.evaluate(() => {
+      const scene = document.querySelector('canvas')?.closest('[aria-hidden="true"]');
+      const seen = { moved: false };
+      const look = (): void => {
+        if (scene == null) return;
+        const translate = getComputedStyle(scene).translate;
+        if (
+          translate !== 'none' &&
+          translate.split(' ').some((part) => Number.parseFloat(part) !== 0)
+        ) {
+          seen.moved = true;
+        }
+      };
+      new MutationObserver(look).observe(document.documentElement, { attributeFilter: ['style'] });
+      Object.assign(window, { canvasSeen: seen });
+    });
+    return () =>
+      page.evaluate(
+        () => (window as unknown as { canvasSeen: { moved: boolean } }).canvasSeen.moved,
+      );
+  }
+
+  /**
    * Los de la escena se saltan sin WebGL2 (en el CI, Firefox o WebKit sin GPU pueden no tenerlo), como los de
    * `scene.spec.ts`; Chromium siempre lo tiene (SwiftShader), así que ahí nunca se saltan en silencio.
    */
@@ -388,6 +426,18 @@ test.describe('the Big Bang', () => {
     } finally {
       await page.keyboard.up('Space');
     }
+  }
+
+  /**
+   * Espera a que la carga se haya descargado tras detonar (el halo vuelve a su tamaño, ≈ 0,56 s): para entonces ya
+   * pasaron el frame de la detonación (el golpe del destello) y el salto a About, y sus picos están apuntados.
+   */
+  async function waitForDrain(page: Page): Promise<void> {
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.documentElement.style.getPropertyValue('--_bang-halo-scale')),
+      )
+      .toBe('1.000');
   }
 
   test('charging squeezes the name; going down widens it, spreads its letters and puts the halo out', async ({
@@ -430,16 +480,46 @@ test.describe('the Big Bang', () => {
     await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({ timeout: 15_000 });
     await settleScene(page);
     const peaks = await recordPeaks(page);
+    const canvasMoved = await recordCanvasMoves(page);
     await holdUntilDetonated(page);
     // El golpe de la detonación: 0,95, y en su primer frame a la vista nunca baja de 0,95 · (1 − 0,1 · 1,6) ≈ 0,8
     // (el paso del frame va topado a 0,1 s). El destello del scroll no pasa de 0,75: por encima, es la detonación.
     await expect.poll(async () => (await peaks()).flash).toBeGreaterThan(0.75);
     expect((await peaks()).shake).toBeGreaterThan(0);
+    expect(await canvasMoved()).toBe(true);
     await expect
       .poll(() =>
         page.evaluate(() => document.documentElement.style.getPropertyValue('--_bang-flash')),
       )
       .toBe('0.000');
+  });
+
+  test('with the scene: starting to go down flashes once, and stopped there the flash goes out', async ({
+    page,
+    browserName,
+  }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await skipWithoutWebGL2(page, browserName);
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({ timeout: 15_000 });
+    await settleScene(page);
+    const peaks = await recordPeaks(page);
+    // Un golpe de rueda bajo la primera pantalla (`m` ≈ 0,1): antes, el destello se quedaba en 0,75 sobre el texto.
+    await page.evaluate(() => {
+      window.scrollTo(0, Math.round(window.innerHeight * 0.3));
+    });
+    await expect.poll(async () => (await peaks()).flash).toBeGreaterThan(0.5);
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.documentElement.style.getPropertyValue('--_bang-flash')),
+      )
+      .toBe('0.000');
+    // Y no vuelve mientras sigue ahí: sin ningún pico en el medio segundo siguiente (algo que no pasa no se puede
+    // esperar con un sondeo).
+    await page.evaluate(() => {
+      (window as unknown as { bigBangPeaks: { flash: number } }).bigBangPeaks.flash = 0;
+    });
+    await page.waitForTimeout(500);
+    expect((await peaks()).flash).toBe(0);
   });
 
   test('with reduced motion: no flash and no shake, but the name still squeezes', async ({
@@ -455,7 +535,7 @@ test.describe('the Big Bang', () => {
     await holdUntilDetonated(page, async () => {
       await expect.poll(() => nameWidth(page)).toBeLessThan(58);
     });
-    // La detonación ya pasó (y con ella el salto a About): nada que esperar.
+    await waitForDrain(page);
     expect(await peaks()).toEqual({ flash: 0, shake: 0 });
   });
 
@@ -470,6 +550,7 @@ test.describe('the Big Bang', () => {
     await holdUntilDetonated(page, async () => {
       await expect.poll(() => nameWidth(page)).toBeLessThan(58);
     });
+    await waitForDrain(page);
     // Los valores se escriben igual; sin escena no hay lienzo que tiemble ni destello que se pinte.
     expect((await peaks()).flash).toBe(0);
     expect(await page.locator('canvas').count()).toBe(0);

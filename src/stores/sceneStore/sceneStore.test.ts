@@ -30,6 +30,18 @@ describe('sceneStore', () => {
     expect(listener).toHaveBeenCalledTimes(1);
     unsubscribe();
   });
+
+  it('ignores a target that is not a finite number (and does not notify)', () => {
+    setScrollTarget(1.5);
+    const listener = vi.fn();
+    const unsubscribe = sceneStore.subscribe(listener);
+    for (const broken of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      setScrollTarget(broken);
+    }
+    expect(listener).not.toHaveBeenCalled();
+    expect(sceneStore.getState()).toEqual({ mTarget: 1.5, m: 1.5, charge: 0 });
+    unsubscribe();
+  });
 });
 
 describe('setCharge', () => {

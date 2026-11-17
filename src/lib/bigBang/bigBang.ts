@@ -8,13 +8,19 @@ import { smoothstep } from '../math/smoothstep/smoothstep';
  * pinta es el bucle del hero, que las escribe como variables CSS (`BIG_BANG_VARS`).
  */
 
-/** Destello: pico al principio de la explosión (`m` 0–`peakUntilM`) y un golpe más fuerte al detonar, que se apaga. */
+/**
+ * Destello: dos golpes que se apagan solos al mismo ritmo (≈ 0,6 s). El del scroll (0,75) salta al empezar a bajar
+ * (`m` cruza `scrollFromM`) y se rearma al volver arriba (`m` < `rearmBelowM`) con el golpe ya apagado: como mucho
+ * uno cada ≈ 0,6 s, y quien se para a leer en el hero no se queda con un velo encima del texto (ADR-031). El de la
+ * detonación es más fuerte (0,95).
+ */
 export const FLASH = {
-  peakUntilM: 0.2,
+  scrollFromM: 0.02,
+  rearmBelowM: 0.01,
   scrollOpacity: 0.75,
   detonateOpacity: 0.95,
-  /** El golpe de la detonación baja de 1 a 0 a este ritmo (≈ 0,6 s). */
-  detonateDecayPerSecond: 1.6,
+  /** Un golpe baja de 1 a 0 a este ritmo (≈ 0,6 s). */
+  decayPerSecond: 1.6,
 } as const;
 
 /** Temblor, en píxeles: hasta 9 con el destello y 3 con la carga; por debajo de `minPx`, nada. */
@@ -39,7 +45,7 @@ export const HERO_TRACKING = { perMEm: 0.25 } as const;
 /** Halo: se apaga con la explosión (`m` 0–`fadeUntilM`) y crece con la carga (hasta ×2,6). */
 export const HALO = { fadeUntilM: 0.12, growPerCharge: 1.6 } as const;
 
-/** Desde aquí el hero ya se ha ido: los efectos se quedan como están y el bucle duerme. */
+/** Desde aquí el hero ya se ha ido: el nombre y el halo se quedan en su valor final. */
 export const BIG_BANG_UNTIL_M = 1;
 
 /**
@@ -57,16 +63,27 @@ export const BIG_BANG_VARS = {
   haloScale: '--_bang-halo-scale',
 } as const;
 
-/** Opacidad del destello (0–1) para la `m` suavizada y el golpe de la detonación (`boost`, 1 → 0). */
-export function flashOpacity(m: number, boost: number): number {
-  const t = m / FLASH.peakUntilM;
-  const fromScroll = t > 0 && t < 1 ? Math.sin(t * Math.PI) * FLASH.scrollOpacity : 0;
-  return Math.max(fromScroll, clamp(boost, 0, 1) * FLASH.detonateOpacity);
+/** Opacidad del destello (0–1) con el golpe del scroll y el de la detonación (cada uno, 1 → 0): manda el más fuerte. */
+export function flashOpacity(scrollHit: number, detonateHit: number): number {
+  return Math.max(
+    clamp(scrollHit, 0, 1) * FLASH.scrollOpacity,
+    clamp(detonateHit, 0, 1) * FLASH.detonateOpacity,
+  );
 }
 
-/** El golpe de la detonación tras `dt` segundos. */
-export function decayBoost(boost: number, dt: number): number {
-  return Math.max(0, boost - Math.max(dt, 0) * FLASH.detonateDecayPerSecond);
+/** Un golpe del destello tras `dt` segundos. */
+export function decayHit(hit: number, dt: number): number {
+  return Math.max(0, hit - Math.max(dt, 0) * FLASH.decayPerSecond);
+}
+
+/** ¿Salta el golpe del scroll? Armado y con la `m` suavizada ya en `scrollFromM` o más abajo. */
+export function scrollHitFires(armed: boolean, m: number): boolean {
+  return armed && m >= FLASH.scrollFromM;
+}
+
+/** ¿Se rearma el golpe del scroll? De vuelta arriba y con el anterior ya apagado. */
+export function scrollHitRearms(m: number, scrollHit: number): boolean {
+  return m < FLASH.rearmBelowM && scrollHit === 0;
 }
 
 /** Amplitud del temblor (px) con ese destello y esa carga; 0 si no llega a `minPx`. */

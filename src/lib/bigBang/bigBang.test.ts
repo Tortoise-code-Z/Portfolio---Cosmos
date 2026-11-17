@@ -1,40 +1,63 @@
+// @vitest-environment node
+import { readFileSync } from 'node:fs';
+
 import { describe, expect, it } from 'vitest';
 
 import {
   BIG_BANG_VARS,
-  decayBoost,
+  decayHit,
   flashOpacity,
   haloFade,
   haloScale,
   heroTracking,
+  HERO_WIDTH,
   heroWidth,
+  scrollHitFires,
+  scrollHitRearms,
   shakeAmplitude,
   shakeOffset,
 } from './bigBang';
 
+const TOKENS = new URL('../../styles/tokens.css', import.meta.url);
+
 describe('flashOpacity', () => {
-  it('peaks at 0.75 halfway through the start of the explosion and is 0 outside it', () => {
+  it('the scroll hit flashes up to 0.75 and the detonation hit up to 0.95; the stronger one wins', () => {
     expect(flashOpacity(0, 0)).toBe(0);
-    expect(flashOpacity(0.1, 0)).toBeCloseTo(0.75, 10);
-    expect(flashOpacity(0.05, 0)).toBeCloseTo(Math.sin(Math.PI / 4) * 0.75, 10);
-    expect(flashOpacity(0.2, 0)).toBe(0);
-    expect(flashOpacity(2, 0)).toBe(0);
-    expect(flashOpacity(-0.1, 0)).toBe(0);
+    expect(flashOpacity(1, 0)).toBeCloseTo(0.75, 10);
+    expect(flashOpacity(0.5, 0)).toBeCloseTo(0.375, 10);
+    expect(flashOpacity(0, 1)).toBeCloseTo(0.95, 10);
+    expect(flashOpacity(1, 0.5)).toBeCloseTo(0.75, 10);
+    expect(flashOpacity(1, 0.9)).toBeCloseTo(0.855, 10);
   });
 
-  it('detonating hits harder (0.95) and the stronger of the two wins', () => {
-    expect(flashOpacity(0, 1)).toBeCloseTo(0.95, 10);
-    expect(flashOpacity(0.1, 0.5)).toBeCloseTo(0.75, 10);
-    expect(flashOpacity(0.1, 0.9)).toBeCloseTo(0.855, 10);
+  it('a hit outside 0–1 counts as its nearest end', () => {
+    expect(flashOpacity(3, 0)).toBeCloseTo(0.75, 10);
     expect(flashOpacity(0, 3)).toBeCloseTo(0.95, 10);
+    expect(flashOpacity(-1, -1)).toBe(0);
   });
 });
 
-describe('decayBoost', () => {
-  it('fades the detonation hit in about 0.6 s and stays at 0', () => {
-    expect(decayBoost(1, 0.25)).toBeCloseTo(0.6, 10);
-    expect(decayBoost(0.1, 1)).toBe(0);
-    expect(decayBoost(0.5, -1)).toBe(0.5);
+describe('decayHit', () => {
+  it('fades a hit in about 0.6 s and stays at 0', () => {
+    expect(decayHit(1, 0.25)).toBeCloseTo(0.6, 10);
+    expect(decayHit(0.1, 1)).toBe(0);
+    expect(decayHit(0.5, -1)).toBe(0.5);
+  });
+});
+
+describe('the scroll hit', () => {
+  it('fires once armed and the explosion has started (m from 0.02)', () => {
+    expect(scrollHitFires(true, 0.019)).toBe(false);
+    expect(scrollHitFires(true, 0.02)).toBe(true);
+    expect(scrollHitFires(true, 2)).toBe(true);
+    expect(scrollHitFires(false, 0.1)).toBe(false);
+  });
+
+  it('rearms only back at the top (m below 0.01) and once the last hit is out', () => {
+    expect(scrollHitRearms(0, 0)).toBe(true);
+    expect(scrollHitRearms(0.009, 0)).toBe(true);
+    expect(scrollHitRearms(0.01, 0)).toBe(false);
+    expect(scrollHitRearms(0, 0.2)).toBe(false);
   });
 });
 
@@ -67,6 +90,12 @@ describe('shakeOffset', () => {
 });
 
 describe('heroWidth', () => {
+  it('rests at the token the CSS uses before the loop paints (--wdth-hero-rest)', () => {
+    // El pre-render enseña el token; al hidratar, el bucle escribe `HERO_WIDTH.rest`: si no coinciden, el nombre salta.
+    const rest = /--wdth-hero-rest:\s*([\d.]+)%;/.exec(readFileSync(TOKENS, 'utf8'))?.[1];
+    expect(Number(rest)).toBe(HERO_WIDTH.rest);
+  });
+
   it('rests at 62, squeezes to the axis minimum (50) with a full charge', () => {
     expect(heroWidth(0, 0)).toBe(62);
     expect(heroWidth(0.5, 0)).toBe(56);
