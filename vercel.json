@@ -3,6 +3,7 @@
   "framework": null,
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
+  "ignoreCommand": "node scripts/docs-only.ts \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD",
   "outputDirectory": "build/client",
   "trailingSlash": false
 }

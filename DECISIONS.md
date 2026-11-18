@@ -701,3 +701,30 @@
   no ve la escena, Lighthouse y PageSpeed no lo descargan (ADR-029), así que sus notas no cambian. A un visitante con
   escena le cuesta ~11 KB más como mucho (10 934 B sobre lo medido en F4.2). `budgets.spec.ts` lo vigila igual.
 - Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).
+
+## ADR-033 · Los commits de solo documentación van directos a `main`
+- Estado: Aceptada
+- Fecha: 2026-11-18
+- Contexto: `main` solo admite PR con los cuatro checks en verde (typecheck, lint y tests; build; e2e en tres
+  navegadores; regresión visual en Docker), y el CI completo corre otra vez en el push a `main`. Un cambio de
+  documentación (el cierre de cada sesión, una línea de un doc) pasaba por todo eso y por un PR, aunque ningún `.md`
+  entra en el build: el sitio desplegado queda idéntico. Además, cada push a `main` volvía a desplegar en Vercel.
+  Los docs no son inertes del todo: `src/code-references.test.ts` los lee, y un doc ya rompió ese test.
+- Decisión: un commit que solo toca documentación (archivos `.md` fuera de `src/`, `tests/` y `public/`, que se
+  copia al sitio) va directo a `main`, sin PR; si lleva cualquier otra cosa, va por PR como siempre. Un solo
+  criterio, `scripts/docs-only.ts` (con sus tests), en tres sitios: el **pre-push** para un push a `main` que traiga
+  algo que no sea doc; en el **push a `main`**, el CI se salta Build, E2E y Visual con un commit de solo docs y
+  mantiene typecheck, lint y tests (en los PR corre todo, sin mirar); **Vercel** no despliega (`ignoreCommand`). Todo
+  falla hacia el lado seguro: si no se puede comparar (un commit que no está en el clon, una rama nueva, un error),
+  cuenta como código. Nunca `git push --no-verify`.
+- Alternativas descartadas: seguir con PR para los docs (la espera del CI completo para un cambio que no toca el
+  sitio); empujar a `main` sin guardián, solo con la norma escrita (el día que se cuele un commit con código, entra
+  sin e2e ni capturas: GitHub deja pasar al admin); saltar el CI de los PR con `paths-ignore` (un check obligatorio
+  que no llega a correr deja el PR esperando para siempre, y saltar checks en los PR abre la puerta a fusionar código
+  sin ellos).
+- Consecuencias: un cambio de docs cuesta un commit y un push, sin esperar al CI; en `main` corre solo el job de
+  calidad, y la web no se vuelve a desplegar. El push lo deja pasar la regla de `main` porque Víctor es admin
+  (GitHub lo marca como «Bypassed rule violations»): el pre-push es lo que impide que pase código. En `main` los
+  commits de docs no van en squash: uno por push, con mensaje `docs: …`. Vercel compara con su último despliegue y
+  clona con 10 commits de historia: si ese despliegue queda más atrás, despliega (lado seguro).
+- Detalle: `docs/05-tecnico/git-y-despliegue.md` («Ramas y commits»), `DEVELOPMENT_RULES.md` §10 y §13.
