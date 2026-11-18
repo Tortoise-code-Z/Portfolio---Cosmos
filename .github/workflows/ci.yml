@@ -17,6 +17,34 @@ env:
   VITE_SITE_URL: https://tortoisecode.dev
 
 jobs:
+  # Un push a `main` de solo documentación (ADR-033) no cambia el sitio: se salta Build, E2E y Visual. `quality` corre
+  # siempre, porque los tests leen los docs. En los PR no se mira: corre todo. Falla hacia el lado seguro: si no se
+  # puede comparar (un push nuevo, un `before` que ya no existe), `code` es `true`; y si este job falla, Build corre
+  # igual (`!cancelled()`).
+  changes:
+    name: Changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.classify.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - id: classify
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          code=true
+          if [ "$EVENT" = push ] && git fetch --quiet --no-tags --depth=1 origin "$BEFORE" &&
+            node scripts/docs-only.ts "$BEFORE" "$AFTER"; then
+            code=false
+          fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+
   quality:
     name: Typecheck · lint · format · tests
     runs-on: ubuntu-latest
@@ -40,6 +68,8 @@ jobs:
 
   build:
     name: Build
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -130,15 +160,19 @@ jobs:
           retention-days: 7
 
   # Uno de los checks obligatorios de `main` (git-y-despliegue.md): resume los tres navegadores con el
-  # nombre de siempre, así la regla no cambia aunque los e2e vayan en paralelo.
+  # nombre de siempre, así la regla no cambia aunque los e2e vayan en paralelo. Saltados solo valen en un push de
+  # solo docs (ADR-033): si los saltó un fallo, el resumen sale en rojo.
   e2e-result:
     name: E2E (Chromium · Firefox · WebKit)
-    needs: e2e
+    needs: [changes, e2e]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Comprobar los tres navegadores
-        run: test "${{ needs.e2e.result }}" = "success"
+        env:
+          E2E: ${{ needs.e2e.result }}
+          CODE: ${{ needs.changes.outputs.code }}
+        run: test "$E2E" = success || { test "$E2E" = skipped && test "$CODE" = false; }
 
   # Lighthouse CI se añade en F6 (docs/06-roadmap/roadmap.md).

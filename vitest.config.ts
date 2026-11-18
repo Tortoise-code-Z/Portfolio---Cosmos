@@ -65,7 +65,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    // `scripts/`: el criterio de los commits de solo docs (ADR-033), que no es del sitio pero sí decide qué se prueba.
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
     restoreMocks: true,
     coverage: {
       provider: 'v8',
