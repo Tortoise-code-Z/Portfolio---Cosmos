@@ -214,6 +214,28 @@ describe('useConstellations', () => {
     expect(html.style.visibility).toBe('visible');
     expect(html.style.opacity).toBe(String(CONSTELLATION_LOOK.labelOpacity.rest));
     expect(html.style.transform).toMatch(/^translate\(\d+px, \d+px\)$/);
+    expect(html).toHaveAttribute('data-live');
+  });
+
+  it('the visible labels take the mouse (data-live) only with the chapter past interactiveFrom', () => {
+    const frame = galaxyFrame();
+    const { labels } = setup(frame);
+    const all = Object.keys(TEXTS);
+    // La `m` con esa presencia del capítulo 2 (la cámara se queda en la pose de m = 2).
+    const at = (presence: number): number => 2 + (1 - presence) / CONSTELLATION_LOOK.presenceFade;
+    frame.m = at(CONSTELLATION_LOOK.interactiveFrom - 0.05);
+    paint();
+    expect(shownLabels(labels)).toHaveLength(all.length);
+    for (const id of all) expect(label(labels, id), id).not.toHaveAttribute('data-live');
+    frame.m = at(CONSTELLATION_LOOK.interactiveFrom + 0.05);
+    paint();
+    for (const id of all) expect(label(labels, id), id).toHaveAttribute('data-live');
+    const write = vi.spyOn(label(labels, 'html'), 'toggleAttribute');
+    paint();
+    expect(write).not.toHaveBeenCalled();
+    frame.m = 3;
+    paint();
+    for (const id of all) expect(label(labels, id), id).not.toHaveAttribute('data-live');
   });
 
   it('a canvas without a size places nothing (never a NaN position)', () => {
@@ -269,6 +291,12 @@ describe('useConstellations', () => {
       'ai-review',
       'chatgpt',
     ]);
+    // Las que no caben, ocultas, tampoco reciben el ratón.
+    for (const id of Object.keys(TEXTS)) {
+      expect(label(labels, id).hasAttribute('data-live'), id).toBe(
+        shownLabels(labels).includes(id),
+      );
+    }
     frame.m = 3;
     paint(390, 844);
     expect(shownLabels(labels)).toEqual([]);

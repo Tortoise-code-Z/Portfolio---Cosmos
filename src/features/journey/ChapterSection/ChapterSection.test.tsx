@@ -31,4 +31,22 @@ describe('ChapterSection', () => {
     );
     expect(screen.getByRole('region', { name: 'Name' })).not.toHaveAttribute('id');
   });
+
+  it('marks the chapter that lets the mouse through to the scene labels (and only that one)', () => {
+    render(
+      <>
+        <ChapterSection index={2} labelledBy="a" passThrough>
+          <h2 id="a">Through</h2>
+        </ChapterSection>
+        <ChapterSection index={3} labelledBy="b">
+          <h2 id="b">Solid</h2>
+        </ChapterSection>
+      </>,
+    );
+    expect(screen.getByRole('region', { name: 'Through' })).toHaveAttribute(
+      'data-pass-through',
+      '',
+    );
+    expect(screen.getByRole('region', { name: 'Solid' })).not.toHaveAttribute('data-pass-through');
+  });
 });

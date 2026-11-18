@@ -28,3 +28,17 @@
   min-block-size: var(--chapter-h-4);
   padding-block-end: var(--chapter-end-room);
 }
+
+/*
+ * Un capítulo que deja pasar el ratón a las etiquetas de la escena (F4.3c): están en su capa, debajo de `<main>`
+ * (`--z-labels`). `<main>` y ese capítulo no lo recogen; los demás capítulos y los hijos directos del que lo deja
+ * pasar (el panel), sí.
+ */
+:global(main):has(> .chapter[data-pass-through]) {
+  pointer-events: none;
+}
+
+.chapter:not([data-pass-through]),
+.chapter[data-pass-through] > * {
+  pointer-events: auto;
+}

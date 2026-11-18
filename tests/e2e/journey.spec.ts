@@ -225,10 +225,14 @@ test.describe('the journey (home)', () => {
   }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/', { waitUntil: 'networkidle' });
-    // Se marca cada enlace y botón de main para saber cuáles visita el Tab (con lo que haya delante,
-    // como la barra superior de F2.5, el recorrido sigue hasta salir de main).
+    // Con la escena decidida: con ella, los grupos de Skills entran en el Tab (F4.3c); sin ella, no.
+    await settleScene(page);
+    // Se marca cada enlace, botón y grupo enfocable de main para saber cuáles visita el Tab (con lo que haya
+    // delante, como la barra superior de F2.5, el recorrido sigue hasta salir de main).
     const total = await page.evaluate(() => {
-      const focusables = [...document.querySelectorAll('main a[href], main button')];
+      const focusables = [
+        ...document.querySelectorAll('main a[href], main button, main [tabindex="0"]'),
+      ];
       focusables.forEach((element, index) => {
         element.setAttribute('data-tab-check', String(index));
       });

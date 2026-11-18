@@ -1,7 +1,8 @@
 /*
  * Etiquetas de las estrellas (docs/03-diseno/componentes.md → «Etiqueta de estrella»; constelaciones-y-placas.md):
- * una capa fija entre el destello y el contenido (`--z-labels`), decorativa: sin puntero y sin selección (Ctrl+A no
- * las copia). Cada etiqueta la coloca la escena en cada frame (`transform`, opacidad, `visibility` y `data-hot`);
+ * una capa fija entre el destello y el contenido (`--z-labels`), decorativa: sin selección (Ctrl+A no las copia) y
+ * sin puntero, salvo las que la escena marca con `data-live` (F4.3c; el capítulo de Skills deja pasar el ratón).
+ * Cada etiqueta la coloca la escena en cada frame (`transform`, opacidad, `visibility`, `data-hot` y `data-live`);
  * hasta entonces, oculta. Su caja sigue `STAR_LABEL_BOX` (scene/config/constellationLayout): lo comprueba su test.
  */
 .layer {
@@ -43,6 +44,10 @@
 
 .label[data-hot] {
   color: var(--color-star);
+}
+
+.label[data-live] {
+  pointer-events: auto;
 }
 
 /* Por debajo de md (900px), letra más pequeña (02-galaxia.md → «Layout»). */

@@ -2,10 +2,11 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { skillGroups } from '~/content/skills';
+import { selectActiveSkillGroup, setActiveSkillGroup, useUiStore } from '~/stores/uiStore/uiStore';
 
 import { STAR_LABEL_BOX } from '../config/constellationLayout/constellationLayout';
 import { WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
@@ -25,6 +26,14 @@ function rule(selector: string): string {
 }
 
 const texts = { html: 'HTML', 'ai-pair': 'AI pair programming' };
+
+afterEach(() => {
+  useUiStore.setState(useUiStore.getInitialState(), true);
+});
+
+function lit(): string | null {
+  return selectActiveSkillGroup(useUiStore.getState());
+}
 
 describe('ConstellationLabels', () => {
   it('one decorative label per skill, in the panel order, in a layer of its own in body', () => {
@@ -99,6 +108,45 @@ describe('ConstellationLabels', () => {
     expect(rule('.layer')).toContain('user-select: none;');
     expect(css).toMatch(/@media \(forced-colors: active\) \{\s+\.layer \{\s+display: none;/);
     expect(css).not.toContain('will-change');
+  });
+
+  it('only the labels the scene marks live take the pointer', () => {
+    expect(rule('.layer')).toContain('pointer-events: none;');
+    expect(rule('.label')).not.toContain('pointer-events');
+    expect(rule('.label[data-live]')).toContain('pointer-events: auto;');
+  });
+
+  it('the mouse over a label lights its group and leaving lets it go (only if still lit); a tap lights it', () => {
+    const elements = createStarLabelElements();
+    render(<ConstellationLabels texts={texts} elements={elements} />);
+    const html = elements.get('html');
+    const aiPair = elements.get('ai-pair');
+    if (html === undefined || aiPair === undefined) throw new Error('no labels');
+    fireEvent.pointerEnter(html, { pointerType: 'touch' });
+    expect(lit()).toBeNull();
+    fireEvent.pointerEnter(html, { pointerType: 'mouse' });
+    expect(lit()).toBe('web');
+    fireEvent.pointerLeave(html, { pointerType: 'mouse' });
+    expect(lit()).toBeNull();
+    fireEvent.pointerEnter(html, { pointerType: 'mouse' });
+    setActiveSkillGroup('tools');
+    fireEvent.pointerLeave(html, { pointerType: 'mouse' });
+    expect(lit()).toBe('tools');
+    fireEvent.click(aiPair);
+    expect(lit()).toBe('ai');
+  });
+
+  it('a label with a group that does not exist lights nothing', () => {
+    const elements = createStarLabelElements();
+    render(<ConstellationLabels texts={texts} elements={elements} />);
+    const html = elements.get('html');
+    if (html === undefined) throw new Error('no label');
+    html.dataset.group = 'nope';
+    fireEvent.pointerEnter(html, { pointerType: 'mouse' });
+    fireEvent.click(html);
+    setActiveSkillGroup('ai');
+    fireEvent.pointerLeave(html, { pointerType: 'mouse' });
+    expect(lit()).toBe('ai');
   });
 
   it('its letter sizes are px tokens equal to the box (11 and 10): they do not grow with the browser text size', () => {

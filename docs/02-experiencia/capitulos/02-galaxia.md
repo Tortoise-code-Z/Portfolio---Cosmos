@@ -26,7 +26,10 @@ constelaciones; tus tecnologías forman grupos con sentido.
 - **Pasar el cursor (o el foco) por un grupo del panel** → su constelación se enciende: estrellas más grandes,
   líneas a plena intensidad, etiquetas en ámbar. El grupo del panel también se marca.
 - **Pasar el cursor por una etiqueta de la escena** → mismo efecto en sentido contrario (se marca el grupo).
-- **Táctil:** tocar un grupo lo enciende; tocar otro cambia; tocar fuera apaga.
+- **Táctil:** tocar un grupo (o una etiqueta) lo enciende; tocar otro cambia; tocar fuera apaga. Solo un toque
+  limpio: deslizar o salir del capítulo no apaga.
+- Manda el último gesto: al salir el ratón o perder el foco, un grupo se apaga solo si sigue siendo el encendido.
+  Al ir a una ficha, se apaga.
 - Gravedad del cursor activa sobre la galaxia (no afecta a las constelaciones, que deben leerse quietas).
 
 ## Layout
@@ -42,7 +45,8 @@ constelaciones; tus tecnologías forman grupos con sentido.
 ## Accesibilidad y movimiento reducido
 
 - Las etiquetas de la escena son decorativas (`aria-hidden`): la información está en la lista del panel.
-- Los grupos del panel son enfocables para que el teclado también encienda constelaciones.
+- Con la escena encendida, los grupos del panel son enfocables (nombrados por su título) para que el teclado
+  también encienda constelaciones; sin escena no entran en el orden de tabulación.
 - Movimiento reducido: la galaxia no gira sola; el encendido es instantáneo, sin fundidos.
 
 ## Aceptación
