@@ -8,8 +8,10 @@ on:
 permissions:
   contents: read
 
+# En los PR, un push nuevo cancela el run anterior de la rama. En `main`, un grupo por commit: ningún run se cancela,
+# porque un push de solo docs (ADR-033) se salta Build, E2E y Visual y no puede sustituir al run del merge anterior.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: true
 
 env:
@@ -19,8 +21,8 @@ env:
 jobs:
   # Un push a `main` de solo documentación (ADR-033) no cambia el sitio: se salta Build, E2E y Visual. `quality` corre
   # siempre, porque los tests leen los docs. En los PR no se mira: corre todo. Falla hacia el lado seguro: si no se
-  # puede comparar (un push nuevo, un `before` que ya no existe), `code` es `true`; y si este job falla, Build corre
-  # igual (`!cancelled()`).
+  # puede comparar (un push nuevo, un `before` que ya no existe), `code` es `true`; y si este job falla, Build, E2E y
+  # Visual corren igual (`!cancelled()` y el resultado de Build).
   changes:
     name: Changes
     runs-on: ubuntu-latest
@@ -100,6 +102,8 @@ jobs:
   e2e:
     name: E2E · ${{ matrix.project }}
     needs: build
+    # Sin esto, el `success()` implícito mira también `changes`, y si ese falla, se saltarían.
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
@@ -135,6 +139,8 @@ jobs:
   visual:
     name: Visual regression
     needs: build
+    # Como E2E: un check obligatorio saltado cuenta como aprobado.
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
