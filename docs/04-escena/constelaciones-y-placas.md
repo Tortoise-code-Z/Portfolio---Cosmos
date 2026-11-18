@@ -31,9 +31,13 @@ tamaño de las estrellas no depende de la distancia (F4.3b).
 ### Reglas de colocación (comprobadas por test)
 
 1. Distancia mínima entre estrellas: **1,2 unidades**.
-2. Las etiquetas van a la derecha de su estrella; proyectadas en 1280×720 y 1440×900, **ningún rectángulo de
-   etiqueta se solapa** con otro, con el raíl, el panel, la barra ni el HUD, y todos caben en pantalla.
-3. Las líneas forman una figura reconocible por grupo (cadena, triángulo, rama), sin cruzarse con otro grupo.
+2. Las etiquetas van a la derecha de su estrella; proyectadas en reposo (m = 2) en 1280×720 y 1440×900, **ningún
+   rectángulo de etiqueta se solapa** con otro, con el raíl, el panel, la barra ni el HUD, y todos caben en
+   pantalla. Fuera del reposo o de esos tamaños, la escena oculta la que no cabe (ver «Etiquetas»).
+3. Las líneas forman una figura reconocible por grupo (web, una rama; libraries, un triángulo con su cadena; tools,
+   una cadena cerrada al final; ai, un rombo con su cola), sin cruzarse con otro grupo; en pantalla, ninguna línea
+   pasa a menos de 12 px de una estrella que no es suya ni tacha el texto de una etiqueta (en reposo, en los mismos
+   tamaños, con el paralaje en sus esquinas).
 4. Las coordenadas viven en `scene/config/constellationLayout`, indexadas por `Skill.id`, con las líneas de cada
    figura por pares de ids. Un test falla si una skill del contenido no tiene posición o si sobra una posición sin
    skill.
@@ -41,9 +45,15 @@ tamaño de las estrellas no depende de la distancia (F4.3b).
 
 La regla 2 la comprueba primero el test de `constellationLayout` con la proyección de `scene/math/projection` (la
 misma cuenta que la cámara; un test la compara con la de Three) y la caja de la etiqueta (`STAR_LABEL_BOX`: mono de
-11 px, 0,6 em por letra, 14 px a la izquierda para el trazo, 6 a la derecha, 22 de alto), con lo que tapa la
-interfaz medido en F4.3a (panel, barra, raíl, HUD), en inglés y en español, con barra de scroll clásica y sin ella, y
-con el paralaje en reposo y en sus cuatro esquinas. El e2e de F4.3c lo mide sobre la página de verdad.
+11 px, 0,6 em por letra, sin mayúsculas ni espacio entre letras, 14 px a la izquierda (trazo de 6 y hueco de 8), 6 a
+la derecha, 22 de alto, a 4 px de la estrella), con lo que tapa la interfaz (`STAR_LABEL_KEEP_OUT`: de los tokens
+el panel, la barra y el alto del raíl; medidos, el ancho del raíl y el HUD), en inglés y en español, con barra de
+scroll clásica y sin ella, y con el paralaje en reposo y en sus cuatro esquinas. El e2e de F4.3c lo medirá sobre la
+página de verdad.
+
+Las de arriba (`web` y `libraries`) quedan más allá del disco de la galaxia (radio ~8,35; `html` a 16,8 del centro):
+flotan sobre el cielo oscuro, por encima de la galaxia en pantalla, no justo encima de su plano. Es lo que da el
+hueco libre medido (más cerca pisarían el panel o la barra); en la foto fija de la galaxia se ve bien.
 
 ### Estados
 

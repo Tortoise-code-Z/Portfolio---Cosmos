@@ -103,7 +103,7 @@ desactivado. Versión 0.2.0, auditoría de cierre y etiqueta `v0.2.0` sobre el �
 no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierre corregida en el PR #80 y etiqueta
 `v0.2.0` sobre `6b46c7d` el 2026-10-31: **F3 cerrada**.)*
 
-## F4 · Capítulos (uno por PR, en este orden)
+## F4 · Capítulos (uno por PR, salvo la galaxia, en tres; en este orden)
 
 1. **Singularidad:** mantén para detonar (puntero y teclado), destello, temblor, nombre con `wdth`, autoscroll.
    *(Hecho en F4.1, PR #82: la carga llega a la escena y los efectos del DOM tienen su propio bucle con la misma `m`

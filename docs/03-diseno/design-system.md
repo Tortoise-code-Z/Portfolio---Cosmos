@@ -105,6 +105,7 @@ Las fuentes se autoalojan con `@font-face` propios en `src/styles/fonts.css` (fa
 | `--text-label` | `0.75rem` (12 px) | 1.4 | Mono 400–500, mayúsculas, `letter-spacing: var(--tracking-label)` |
 | `--text-micro` | `0.6875rem` (11 px) | 1.3 | Mono 400, mayúsculas, `letter-spacing: var(--tracking-micro)` |
 | `--text-nano` | `0.625rem` (10 px) | 1.15 | Mono 400, mayúsculas, `letter-spacing: var(--tracking-label)` (escena del raíl) |
+| `--text-star-label` · `--text-star-label-narrow` | `11px` · `10px` (en px a propósito: adorno del lienzo, no crece con la letra del navegador) | 16 px | Mono 400, sin mayúsculas ni espaciado: etiquetas de las estrellas (escritorio · por debajo de 900 px) |
 
 El email de contacto tiene su propio tamaño y ajustes: `--text-email` `clamp(1.05rem, 2.3vw, 1.5rem)`
 (interlineado `--leading-email` 1.2), `--weight-email` 700 y `--wdth-email` 112 %.

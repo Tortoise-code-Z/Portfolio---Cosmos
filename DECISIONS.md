@@ -681,13 +681,16 @@
 ## ADR-032 · El chunk de la escena sube a 260 KB gzip para los capítulos de F4
 - Estado: Aceptada
 - Fecha: 2026-11-17
-- Contexto: tras F4.2 el chunk de la escena pesa 249 066 B de 250 000. Medido por paquete (gzip): three 152,7 KB,
-  React Three Fiber 51,7 KB y lo que arrastra 3,3 KB, el código propio 10,0 KB. React Three Fiber importa Three.js
-  entero, así que no hay de dónde ahorrar sin quitarlo; recortar el código propio daría ~1 KB. Faltan las
-  constelaciones (F4.3, ~2–3 KB), los pins (F4.4) y el Sol (F4.5).
-- Decisión: el límite del chunk de la escena pasa de 250 a **260 KB gzip**, repartido: constelaciones y sus
-  etiquetas (F4.3), pins (F4.4) y Sol (F4.5), con el resto de margen. Sigue siendo una alarma: si un paso se acerca
-  al límite, se mira qué pesa antes de seguir. Lo que la escena carga aparte (worker, reintento) mantiene sus
+- Contexto: tras F4.2 el chunk de la escena pesa 249 066 B de 250 000 (gzip del nivel por defecto, como
+  `budgets.spec.ts`). Por paquete (medido tras F4.3b con `source-map-explorer --gzip` sobre los mapas de fuente,
+  que reparte el tamaño comprimido entre los archivos de origen): three 167,9 KB, React Three Fiber 53,6 KB y lo que
+  arrastra 3,5 KB, el código propio 13,7 KB (10 KB antes de las constelaciones) y ~8 KB de saltos de línea y código
+  sin origen en el mapa. React Three Fiber importa Three.js entero, así que no hay de dónde ahorrar sin quitarlo;
+  recortar el código propio daría ~1 KB. Faltan las constelaciones (F4.3, ~2–3 KB), los pins (F4.4) y el Sol (F4.5).
+- Decisión: el límite del chunk de la escena pasa de 250 a **260 KB gzip**: matiza las Consecuencias de ADR-002
+  (≤ 250 KB). Se reparte con un tope por paso: constelaciones y sus etiquetas (F4.3) ≤ 3,6 KB (gastó 3 528 B), pins
+  (F4.4) ≤ 2,5 KB y Sol (F4.5) ≤ 3 KB, con ~2 KB de margen. Cada paso apunta lo que pesó en `rendimiento.md`; si
+  pasa de su tope, se mira qué pesa antes de seguir. Lo que la escena carga aparte (worker, reintento) mantiene sus
   límites.
 - Alternativas descartadas: las piezas de cada capítulo en un chunk aparte que se carga después, con su propio
   límite (mantiene la cifra, pero el código llega igual unos segundos después y suma una carga diferida más que
@@ -696,5 +699,5 @@
   constelaciones ni el Sol.
 - Consecuencias: el chunk se descarga en diferido, después de la primera pintura, y solo con WebGL2 por GPU: quien
   no ve la escena, Lighthouse y PageSpeed no lo descargan (ADR-029), así que sus notas no cambian. A un visitante con
-  escena le cuesta ~10 KB más como mucho. `budgets.spec.ts` lo vigila igual.
-- Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` (el peso del chunk).
+  escena le cuesta ~11 KB más como mucho (10 934 B sobre lo medido en F4.2). `budgets.spec.ts` lo vigila igual.
+- Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).

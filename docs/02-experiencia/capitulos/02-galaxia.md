@@ -32,7 +32,10 @@ constelaciones; tus tecnologías forman grupos con sentido.
 ## Layout
 
 - **Escritorio:** panel a la izquierda; galaxia y constelaciones a la derecha. Las etiquetas nunca pueden quedar
-  bajo el raíl: las constelaciones se colocan dentro de la zona libre (posiciones en `docs/04-escena/`).
+  bajo el raíl: las constelaciones se colocan dentro de la zona libre (posiciones en `docs/04-escena/`), y en
+  reposo (m = 2) a 1280×720 y 1440×900 se ven todas. En cualquier otro tamaño o momento del scroll (entrando o
+  saliendo del capítulo, una ventana de 1024 px) la escena oculta la que pisaría el panel, el raíl, la barra, el
+  HUD, el borde u otra etiqueta (la lista del panel sigue completa).
 - **Móvil:** escena primero; la galaxia se ve completa y las etiquetas usan un tamaño menor. Si una etiqueta no
   cabe, se oculta (la lista del panel sigue completa).
 

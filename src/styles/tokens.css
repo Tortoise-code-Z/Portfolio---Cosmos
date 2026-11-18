@@ -96,6 +96,13 @@
   --leading-nano: 1.15;
   --text-email: clamp(1.05rem, 2.3vw, 1.5rem);
   --leading-email: 1.2;
+  /*
+   * Etiquetas de las estrellas de la escena, en px a propósito: son un adorno del lienzo (que se mide en px y no crece
+   * con la letra del navegador) y su caja la cuenta la escena (`STAR_LABEL_BOX`, con su test de pareja). El texto que
+   * se lee está en el panel. Escritorio y por debajo de md (900 px).
+   */
+  --text-star-label: 11px;
+  --text-star-label-narrow: 10px;
 
   /* ── Tipografía · ejes y ajustes ──────────────────────────────── */
   --weight-display: 800;

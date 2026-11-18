@@ -55,34 +55,43 @@ describe('CameraRig', () => {
     expect(facing(camera).distanceTo(expected)).toBeLessThan(1e-6);
   });
 
-  it('puts a point where math/projection says it goes (the labels follow the camera the canvas shows)', () => {
-    const camera = new PerspectiveCamera(55, 1280 / 720, 0.1, 400);
-    const { frame, tick } = mountRig(camera);
-    frame.m = 2;
-    frame.wide = true;
-    frame.aspect = 1280 / 720;
-    frame.delta = 0.05;
-    frame.pointer.x = 0.6;
-    frame.pointer.y = -0.4;
-    frame.pointer.inside = true;
-    for (let step = 0; step < 4; step += 1) tick();
-    camera.updateMatrixWorld();
-    const pose = {
-      position: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
-      target: { x: CAMERA_KEYFRAMES[2].target[0] + CAMERA_KEYFRAMES[2].shiftX, y: 0, z: 0 },
-    };
-    const viewport = { width: 1280, height: 720, fov: camera.fov };
-    for (const point of [
-      [5.3, 1.44, -15.77],
-      [-4.15, 1.08, 7.18],
-      [0, 0, 0],
-    ] as const) {
-      const ndc = new Vector3(...point).project(camera);
-      const screen = projectToScreen(point, pose, viewport, createScreenPoint());
-      expect(screen.x).toBeCloseTo(((ndc.x + 1) / 2) * 1280, 6);
-      expect(screen.y).toBeCloseTo(((1 - ndc.y) / 2) * 720, 6);
-    }
-  });
+  for (const { width, height, wide } of [
+    { width: 1280, height: 720, wide: true },
+    { width: 390, height: 844, wide: false },
+  ]) {
+    it(`puts a point where math/projection says it goes at ${String(width)}×${String(height)} (the labels follow the canvas camera)`, () => {
+      const camera = new PerspectiveCamera(55, width / height, 0.1, 400);
+      const { frame, tick } = mountRig(camera);
+      frame.m = 2;
+      frame.wide = wide;
+      frame.aspect = width / height;
+      frame.delta = 0.05;
+      frame.pointer.x = 0.6;
+      frame.pointer.y = -0.4;
+      frame.pointer.inside = true;
+      for (let step = 0; step < 4; step += 1) tick();
+      camera.updateMatrixWorld();
+      camera.updateProjectionMatrix();
+      const [tx, ty, tz] = CAMERA_KEYFRAMES[2].target;
+      const pose = {
+        position: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+        target: { x: tx + (wide ? CAMERA_KEYFRAMES[2].shiftX : 0), y: ty, z: tz },
+      };
+      // El campo de visión es el de la cámara de Three (el estrecho en móvil, `cameraFov`).
+      expect(camera.fov).toBe(cameraFov(width / height));
+      const viewport = { width, height, fov: camera.fov };
+      for (const point of [
+        [5.3, 1.44, -15.77],
+        [-4.84, 1.08, 7.18],
+        [0, 0, 0],
+      ] as const) {
+        const ndc = new Vector3(...point).project(camera);
+        const screen = projectToScreen(point, pose, viewport, createScreenPoint());
+        expect(screen.x).toBeCloseTo(((ndc.x + 1) / 2) * width, 6);
+        expect(screen.y).toBeCloseTo(((1 - ndc.y) / 2) * height, 6);
+      }
+    });
+  }
 
   it('leaves its pose and its field of view in the frame, for the labels that project after it', () => {
     const camera = new PerspectiveCamera(55, 1, 0.1, 400);
