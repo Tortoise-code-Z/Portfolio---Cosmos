@@ -114,7 +114,8 @@ no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierr
 3. **Galaxia:** 4 constelaciones, etiquetas proyectadas, encendido sincronizado con el panel (ratón, foco, toque);
    test de no solapamiento.
    *(En tres PR: F4.3a, el peso de la escena (ADR-032: 260 KB) y las posiciones con su test de no solapamiento;
-   F4.3b, la escena, las etiquetas y el grupo activo; F4.3c, el panel, el táctil, los e2e, las fotos y las capturas.)*
+   F4.3b, la escena, las etiquetas y el grupo activo, con las fotos y la captura de la galaxia; F4.3c, el panel, el
+   táctil y los e2e de la interacción. Hechos F4.3a (PR #87) y F4.3b (PR #88); falta F4.3c.)*
 4. **Tortuga:** placas por huecos, pins, ciclo automático, resaltado sincronizado con las filas.
 5. **Tierra:** día/noche, amanecer, luces de ciudad, atmósfera y Sol.
 

@@ -3,50 +3,51 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F4 · pasos 1 y 2 hechos** (`main` en `0347fce`: F4.1 en PR #82, F4.2 en PR #83) · AUD-F4-1
-entregada sin decidir · siguiente: decidir AUD-F4-1, lanzar AUD-F4-2 y **F4.3 (galaxia)**.
+**Dónde estamos:** **F4 · paso 3 (galaxia) a medias** (`main` en `7ebff3b`: F4.3a en PR #87, F4.3b en PR #88,
+corrección de AUD-F4-3A en PR #89) · siguiente: lanzar **AUD-F4-3B** y hacer **F4.3c** (panel, táctil y e2e).
 
-_Última actualización: 2026-11-01 (**CIERRE DE SESIÓN · 30**) · el Big Bang completo (carga en la escena, destello,
-temblor, nombre con `wdth`, halo) y la gravedad del cursor sobre la nebulosa. 1246 unitarios y 218 e2e de Chromium._
+_Última actualización: 2026-11-18 (**CIERRE DE SESIÓN · 31**, empezada el 2026-11-01) · AUD-F4-1 y AUD-F4-2
+corregidas; las constelaciones de la galaxia en la escena, con sus etiquetas; AUD-F4-3A corregida. 1335 unitarios
+y 219 e2e de Chromium en verde._
 
-**Hecho esta sesión** (vivas S30 en `_claude/cadena/hecho/2026-11-01/decisiones-vivas-S30.md`):
-1. **F4.1 · Singularidad** (PR #82, `5ba0a20`; vivas #1–#19, opciones F41-1…6 todas A; **ADR-030**):
-   - La carga va en `sceneStore.charge` (la escribe el bucle del botón) → `SceneFrame.charge` → `uCharge`. Tras detonar,
-     la carga se descarga sola.
-   - Los efectos del DOM, en su propio bucle (`features/journey/useBigBang`, cuentas en `lib/bigBang`): variables
-     privadas `--_bang-*` en `<html>`; misma `m` suavizada que la escena (`smoothM` y `M_SMOOTHING` pasan a
-     `lib/scroll/smoothM`, que entra en `STILLS_SOURCES`). Nombre 62 → 50 → 150 + espaciado, con `overflow-x: clip`;
-     halo fijo (con `bang-live`) que crece y se apaga; destello (`BigBangFlash`, entre el lienzo y `main`) y temblor
-     del lienzo solo con escena y sin movimiento reducido. `--color-flash` = `#fff2d9`, con test de pareja.
-2. **F4.2 · Nebulosa** (PR #83, `0347fce`; vivas #20–#36, opciones F42-1…4 todas A): la protoestrella ya existía
-   (F3). Gravedad del cursor conectada (`scene/math/gravity`: sube y baja suave en ≈ 0,25 s, se apaga donde estaba,
-   0 con movimiento reducido; `uGrav`/`uMouse`). El ratón se mide sobre el lienzo (sale de la deuda). El panel sigue
-   *sticky* todo el capítulo. Contraste del panel de About con el ratón sobre cada línea: 8,8:1, igual que sin
-   gravedad.
-3. **AUD-F4-1** lanzada y entregada (`_claude/cadena/aud-f4-1/auditoria.md`): sin decidir.
+**Hecho esta sesión** (vivas S31 en `_claude/cadena/hecho/2026-11-18/decisiones-vivas-S31.md`):
+1. **AUD-F4-1** corregida (PR #85, `6e89a84`; vivas #1–#6): P1 medido (con el destello del scroll parado, el texto
+   del hero quedaba a 1,1–2:1) → el destello del scroll es un golpe que se apaga solo y se rearma arriba
+   (**ADR-031**). El bucle del DOM persigue `m` también pasado el hero; `setScrollTarget` ignora lo que no es
+   finito; contratos de CSS anclados a su regla; parejas del tope del paso y del `wdth` de reposo; docs.
+2. **AUD-F4-2** corregida (PR #86, `de51d37`; vivas #7–#12): los e2e de la gravedad recargan de verdad, exigen la
+   nebulosa y miran una celda de control (la mutación `uGrav = 0` los hace fallar); docs; contraste medido en Alto
+   con la gravedad (panel ≥ 6,2:1, raíl ≥ 4,66:1) en `design-system.md` → «Garantía de lectura».
+3. **F4.3a** (PR #87, `94c1012`; vivas #13–#17): **ADR-032** (chunk de la escena a 260 KB, con topes por paso),
+   `scene/math/projection` (comparada con Three) y `scene/config/constellationLayout` (posiciones buscadas en
+   pantalla a 1280×720; test de reglas y de no solapamiento).
+4. **F4.3b** (PR #88, `4effc0f`; vivas #18–#23): `scene/Constellations` (estrellas con halo de tamaño fijo y
+   líneas), `scene/ConstellationLabels` (capa del DOM en `body`, `--z-labels`; textos de `SceneMount` solo en el
+   viaje; `fitLabels` oculta las que no caben en cualquier tamaño y `m`), `uiStore.activeSkillGroup`, `SceneFrame`
+   con la pose de la cámara, paleta de constelaciones. Fotos y captura de la galaxia rehechas.
+5. **AUD-F4-3A** corregida (PR #89, `7ebff3b`; vivas #24–#26): `react-query` y las estrellas de `ai` en su fila
+   (figuras reconocibles; test en pantalla: ninguna línea a < 12 px de otra estrella ni tachando una etiqueta);
+   `STAR_LABEL_KEEP_OUT` con test de pareja contra los tokens; tokens en px para la letra de las etiquetas
+   (`--text-star-label`); peso medido con `source-map-explorer` y explicado en ADR-032 (252 594 B).
 
 **Incidencias y lecciones:**
-- **El nombre ensanchado desbordaba en móvil** (`wdth` 150 + espaciado en `nowrap`: 421 px en 375): lo vio
-  `npm run visual` de Víctor (las capturas de móvil). Arreglo: `overflow-x: clip` en el `<h1>` y el e2e de «sin
-  scroll horizontal» mira también tras bajar. Lección: el e2e de desborde solo miraba el reposo.
-- **e2e nuevos que fallaron en el CI** (Firefox y WebKit): Firefox no tiene WebGL2 en el CI (los e2e con escena se
-  saltan con `browserHasWebGL2`, ahora en `tests/e2e/support/helpers.ts`); el pico del destello en WebKit, 0,798 (el
-  umbral se deduce del peor frame, con el paso topado a 0,1 s: > 0,75).
-- **WebKit hace las capturas a densidad 2** (`devices['Desktop Safari']`): el e2e de la gravedad contaba las celdas
-  en píxeles de la imagen y medía fuera de la nebulosa. Dos hipótesis a ciegas fallaron; el informe del CI
-  (`playwright-report-webkit`, con el trace) lo aclaró y se reprodujo en Chromium con densidad 2. Lección: un e2e
-  que lee píxeles cuenta con `deviceScaleFactor`, y ante un fallo solo en el CI, pedir el informe antes de la
-  segunda hipótesis.
-- **Capturas en el contenedor:** `visual:run` falla en todo el texto por el suavizado de las letras: no vale como
-  referencia; `npm run visual` va en Docker en el equipo de Víctor. Las fotos fijas sí salen idénticas.
-- El esquema de F4.1 decía que la vibración del shader no respetaba el movimiento reducido: sí lo hace (`uTime` se
-  congela). No se tocó el shader.
-- **Contenedor:** Node 24 con `npm i -g node@24.22.0`; Chromium 1243 enlazado como 1248; árbol por `tar` y vuelta con
-  md5 de la base y de cada archivo; `git stash -u` en la copia tras cada entrega (el aviso de «cambios sin commit»).
+- **Claves del buzón en docs:** el pre-push falló (`code-references.test.ts`) porque escribí «AUD-F4-3A» en dos
+  docs después de pasar `npm run check`. Lección: tras el último cambio, otra vez `npm run check`, aunque sea de
+  docs.
+- **Reglas de los hooks (compilador de React):** no dejan cambiar props ni valores de `useMemo` dentro de
+  `useFrame`: el trabajo de cada frame va en funciones fuera del componente (`aimCamera`, `stepConstellations`).
+- **Peso por paquete:** mi primera cuenta casera sobre los mapas de fuente se quedaba corta (three 152,7 KB frente
+  a 167,9). La buena: `source-map-explorer --gzip --no-border-checks`.
+- **Posiciones de las constelaciones:** las regiones del doc eran de la cámara del prototipo y no cabían (~510×285
+  px para 31 etiquetas): se buscaron en pantalla y se llevaron a la escena. Las de arriba flotan más allá del disco
+  de la galaxia (escrito en `constelaciones-y-placas.md`).
+- **Contenedor:** el árbol se trae por `tar` (sin `node_modules`, `.env` de `.env.example`, `react-router
+  typegen`) y vuelve con md5 de la base y de cada archivo; los cambios se escriben con `cat` (el equipo no deja
+  borrar, y `tar` sobre archivos existentes falla).
 
 **Deuda anotada:**
-- **F4.3 / F4.5 · gravedad por capítulo:** hoy la misma intensidad en todos (F4.2). F4.3 deja quietas las
-  constelaciones (`02-galaxia.md`) y F4.5 la suaviza sobre la Tierra (`04-tierra.md`).
+- **F4.5 · gravedad sobre la Tierra:** hoy la misma intensidad en todos los capítulos (F4.2); F4.5 la suaviza
+  sobre la Tierra (`04-tierra.md`). Las constelaciones no son partículas: la gravedad no las mueve (F4.3b).
 - **Colores repetidos:** `--color-flash` y `--color-singularity` ya tienen test de pareja con `scenePalette`
   (F4.1); `--gradient-space` sigue repitiendo a mano el violeta y el turquesa de la nebulosa.
 - **F6 · Big Bang (ADR-030):** el `wdth` del `<h1>` cambia por frame mientras se carga o se baja por el hero:
@@ -69,6 +70,19 @@ temblor, nombre con `wdth`, halo) y la gravedad del cursor sobre la nebulosa. 12
   en ventanas ≥ 900 px más estrechas que 1,25 y en las más anchas que 2,4; puntos más gordos al escalar). En F6, con
   un móvil real sin WebGL: el encaje con la barra de direcciones visible y escondida (ya lo mide `@container`), el
   fundido entre capítulos y AVIF 4:4:4 en Safari.
+- **F4.3c · lo que mide la escena a mano:** `STAR_LABEL_KEEP_OUT` lleva medidos el ancho del raíl (154 en
+  escritorio con el español, 52 por debajo) y el HUD (247 × 62); el panel, la barra y el alto del raíl ya salen de
+  los tokens (test de pareja). El e2e de F4.3c tiene que compararlos con la página real.
+- **F4.3 · etiquetas de las estrellas:** sobre el núcleo brillante de la galaxia se leen peor (decorativas,
+  `aria-hidden`; la lista accesible es la del panel). A 390×844 se ven ~13 de 31. Que lo mire AUD-F4-3B.
+- **`npm run visual` en Docker:** la primera tanda de 4 capturas de escritorio puede pasarse de 30 s en `page.goto`
+  (arranque en frío; en el contenedor, 15–19 s también con `main`): repetir. Si se repite, valorar menos workers o
+  más tiempo solo en `visual`. `visual:update` rehace todas y puede meter ruido (≤ 4/255) en capturas que no
+  cambian (`chapter-0-start`, `chapter-4-contact`): devolverlas con `git restore` antes del commit.
+- **F6 · hero con la letra al 200 % (AUD-F4-1-4):** a 390 px el nombre ya no cabe en su columna y ahora se corta
+  (`overflow-x: clip`) en vez de dar scroll de lado. Junto al resto del texto al 200 %.
+- **F6 · iPhone real (AUD-F4-1-13):** con el bucle del Big Bang, el halo es fijo a `50svh` y el lienzo a toda la
+  ventana: con la barra de direcciones escondida pueden no ser concéntricos (solo en `m` < 0,12).
 - **F4 · fotos fijas:** cada paso que cambie lo que se ve (formas, shaders, cámara, placas, el Sol) pide
   `npm run stills` en el mismo PR; una carpeta nueva de `scene/` que cambie las fotos va a `STILLS_SOURCES`
   (`tests/stills/fingerprint.ts`).
@@ -77,14 +91,13 @@ temblor, nombre con `wdth`, halo) y la gravedad del cursor sobre la nebulosa. 12
   desde `SceneRoot`). Lo recuerdan §13, «hecho» y el roadmap.
 - **WebKit y el `<picture>`:** que WebKit pidiera el `src` del `<img>` antes de entrar en el `<picture>` es deducido
   (no hay WebKit en el contenedor); el arreglo lo vigila el e2e de escritorio sin WebGL en el CI.
-- **Peso de la escena:** 249 066 B de 250 000 gzip (F4.1 −72 B; F4.2, la gravedad, +166 B): quedan ~0,9 KB. R3F
-  importa Three.js entero: las constelaciones (F4.3) y el Sol (F4.5) no caben. **Decidir al empezar F4.3:** qué más
-  se puede ahorrar o subir el límite con un ADR (sangría y líneas vacías del GLSL solo darían ~77 B y romperían las
-  líneas de los errores).
+- **Peso de la escena:** 252 594 B de 260 000 (ADR-032). Topes que quedan: F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, ~2 KB de
+  margen; cada paso apunta lo que pesó en `rendimiento.md`. Por paquete se mide con
+  `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
 - **Degradación en caliente:** un navegador que limita los frames a 30 (ahorro de batería) baja a Bajo en
   escritorio: aceptado y escrito en `rendimiento.md`.
-- **e2e de Chromium:** ~7 min en el contenedor (218), en Bajo en los tres motores (los dos de la degradación
+- **e2e de Chromium:** ~6–7 min en el contenedor (219), en Bajo en los tres motores (los dos de la degradación
   arrancan en Alto con los frames retrasados por el test). SwiftShader pinta sin parar mientras la página está a la
   vista: mirar los tiempos del CI. En la tanda completa del contenedor, «1280×720: loading the hero with slow fonts
   keeps CLS under 0.1» se pasó una vez de 30 s en `page.goto` (y pasó 3 de 3 suelto): vigilarlo en el CI.
@@ -162,11 +175,9 @@ temblor, nombre con `wdth`, halo) y la gravedad del cursor sobre la nebulosa. 12
 - El `useLayoutEffect` del HUD (sin parpadeo al cambiar de idioma) no tiene test: mirarlo con Performance en F6.
 - El e2e de alto contraste y el de copiar al portapapeles solo corren en Chromium.
 - ADR-022 (entre features, solo contratos sin React) no lo vigila ESLint: se revisa en las auditorías.
-- Grupos de Skills enfocables (`tabindex`) solo en **F4.3**, cuando enciendan su constelación.
+- Grupos de Skills enfocables (`tabindex`) en **F4.3c**, cuando enciendan su constelación.
 - Iconos de GitHub y LinkedIn: hoy enlaces de texto + icono externo; decidir si se dibujan en F6.
 - **WebKit descarga dos veces las fuentes precargadas** (bug 194589): en F6, medir en un Safari real.
-- Contraste AA sobre el velo de los paneles (`--color-veil`) encima de la escena: con la cámara de F3.4 ya hay
-  partículas detrás de los paneles en escritorio; medirlo con las capturas de F3.6 y en F4 (ADR-015).
 - La lista de valores neutros del test de colores obliga a ampliarla con un valor legítimo nuevo (a propósito).
 - `@lhci/cli` y el script `lhci` se instalan en F6.
 - **F7:** que `/es/*` reciba la 404 ES y que las 404 salgan con estado 404 real en Vercel (en `preview` salen con
@@ -180,21 +191,22 @@ temblor, nombre con `wdth`, halo) y la gravedad del cursor sobre la nebulosa. 12
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **AUD-F4-1:** Víctor pega el mensaje de la Mesa con lo que corrige (y su respuesta a AUD-F4-1-P1: el destello
-   del scroll se queda encendido si se para en `m` 0,05–0,15); el Taller lo corrige en un commit aparte.
-3. **AUD-F4-2** a la Mesa: base `5ba0a20` · hasta `0347fce` (PR #83; vivas S30 #20–#36).
-4. **F4.3 · Galaxia** (roadmap F4): antes del esquema, decidir el peso de la escena (deuda de arriba) y leer
-   `docs/02-experiencia/capitulos/02-galaxia.md` y `docs/04-escena/constelaciones-y-placas.md`. Si cambia lo que se
-   ve: `npm run stills` en el mismo PR.
+2. **AUD-F4-3B** a la Mesa: base `94c1012` · hasta `7ebff3b` (F4.3b, PR #88, y la corrección de AUD-F4-3A, PR #89;
+   vivas S31 #18–#26).
+3. **F4.3c** (vivas S31 #15 y #18): grupos de Skills enfocables; ratón, foco y toque escriben
+   `activeSkillGroup` (tocar otro cambia, tocar fuera apaga); en Skills la sección deja pasar el ratón y solo el
+   panel lo recoge (F43-2-A); las etiquetas reciben el ratón con presencia > 0,6 y marcan su grupo; e2e de la
+   interacción y de no solapamiento sobre la página real (compara `STAR_LABEL_KEEP_OUT`). Después, F4.4 (tortuga).
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»), CV en PDF EN/ES.
 **Limpieza manual del usuario:**
 - Ramas locales ya fusionadas (todas menos `main`): las de las listas de los cierres 25 y 29 (en
-  `docs/_historial/estado/2026-10.md`) que sigan, más `feat/f4-1-singularity`, `feat/f4-2-nebula` y la de este cierre,
-  `docs/session-close-2026-11-01`, cuando se fusione (`git branch -D <rama>`: con squash, `-d` no las reconoce como
-  fusionadas). Para verlas: `git branch`.
-- En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` (también `playwright-report-webkit/`) y, dentro de `_claude/cadena/hecho/`, los
+  `docs/_historial/estado/2026-10.md`) y del 30 (en `2026-11.md`) que sigan, más `fix/aud-f4-1`, `fix/aud-f4-2`,
+  `fix/aud-f4-3a`, `feat/f4-3a-constellation-layout`, `feat/f4-3b-constellations`, `docs/session-close-2026-11-01`
+  y la de este cierre, `docs/session-close-2026-11-18`, cuando se fusione (`git branch -D <rama>`). Para verlas:
+  `git branch`.
+- En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js` ni
   `hecho/2026-10-28/encuadre/`, que se reutilizan).
 - Perfiles temporales de las pruebas sin WebGL: `$env:TEMP\cosmos-sin-webgl` y `$env:TEMP\cosmos-swiftshader`.
