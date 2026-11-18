@@ -26,7 +26,7 @@ import {
   fitLabels,
   keepOutZones,
   type LabelBox,
-  type Rect,
+  type KeepOutZone,
 } from '../math/labelFit/labelFit';
 import {
   createScreenPoint,
@@ -135,7 +135,7 @@ export interface ConstellationWork {
   readonly point: ScreenPoint;
   readonly viewport: { width: number; height: number; fov: number };
   /** Lo que tapa la interfaz, para el tamaño y el encuadre con que se calculó. */
-  zones: readonly Rect[];
+  zones: readonly KeepOutZone[];
   zonesFor: string;
   /** Alguna etiqueta podía verse en el frame anterior (hay que ocultarlas al irse el capítulo). */
   shown: boolean;

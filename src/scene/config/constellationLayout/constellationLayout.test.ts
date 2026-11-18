@@ -1,20 +1,35 @@
+// @vitest-environment node
+// Lee `tokens.css` del disco: no necesita DOM (y el URL de jsdom no acepta rutas file:).
+
+import { readFileSync } from 'node:fs';
+
 import { describe, expect, it } from 'vitest';
 
 import { skillGroups } from '~/content/skills';
-import { LOCALES, type Label, type Locale } from '~/content/types';
+import { LOCALES } from '~/content/types';
+import { CHAPTER_INDICES } from '~/content/chapters';
+import { localize } from '~/lib/i18n/localize/localize';
 
 import { cameraFov, cameraPose, createCameraPose, createParallax } from '../../math/camera/camera';
-import { createScreenPoint, projectToScreen } from '../../math/projection/projection';
-import { keepOutZones } from '../../math/labelFit/labelFit';
+import { keepOutZones, overlapsRect, type Rect } from '../../math/labelFit/labelFit';
+import {
+  createScreenPoint,
+  projectToScreen,
+  type ScreenPoint,
+} from '../../math/projection/projection';
+import type { ScenePoint } from '../sceneConfig';
 import {
   CONSTELLATION_LINKS,
   CONSTELLATION_STARS,
   STAR_LABEL_BOX,
+  STAR_LABEL_KEEP_OUT,
   starLabelWidth,
 } from './constellationLayout';
 
 const MIN_STAR_DISTANCE = 1.2;
 const FLOAT = { min: 0.9, max: 1.5 };
+/** Lo más cerca que una línea puede pasar de una estrella que no es suya, en pantalla. */
+const MIN_LINE_GAP_PX = 12;
 
 /** Los tamaños que vigila la aceptación, con barra de scroll clásica (15 px menos de lienzo) y sin ella. */
 const VIEWPORTS = [
@@ -33,24 +48,78 @@ const PARALLAXES = [
   [-1, -1],
 ] as const;
 
-type Rect = readonly [left: number, top: number, right: number, bottom: number];
-
-function overlaps(a: Rect, b: Rect): boolean {
-  return a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
-}
-
-function text(label: Label, locale: Locale): string {
-  return typeof label === 'string' ? label : label[locale];
-}
-
-function star(id: string): readonly [number, number, number] {
+function star(id: string): ScenePoint {
   const position = CONSTELLATION_STARS[id];
   if (position === undefined) throw new Error(`Sin posición: ${id}`);
   return position;
 }
 
-const skills = skillGroups.flatMap((group) =>
-  group.skills.map((skill) => ({ group: group.id, ...skill })),
+const skills = skillGroups.flatMap((group) => group.skills);
+
+/** Cada estrella en pantalla, en reposo en la galaxia (m = 2, escritorio), con ese tamaño y ese paralaje. */
+function screenAtRest(
+  width: number,
+  height: number,
+  [px, py]: readonly [number, number],
+): Map<string, ScreenPoint> {
+  const parallax = createParallax();
+  parallax.x = px;
+  parallax.y = py;
+  const pose = cameraPose(2, true, parallax, createCameraPose());
+  const viewport = { width, height, fov: cameraFov(width / height) };
+  return new Map(
+    skills.map(({ id }) => [id, projectToScreen(star(id), pose, viewport, createScreenPoint())]),
+  );
+}
+
+/** La caja de la etiqueta de una estrella en pantalla, con su texto. */
+function labelRect(point: ScreenPoint, text: string): Rect {
+  const left = point.x + STAR_LABEL_BOX.offsetPx;
+  const half = STAR_LABEL_BOX.heightPx / 2;
+  return [left, point.y - half, left + starLabelWidth(text), point.y + half];
+}
+
+/** Solo el texto de la caja (sin el trazo ni el relleno): lo que no puede tachar una línea. */
+function textRect([left, top, right, bottom]: Rect): Rect {
+  const { startPx, endPx, padBlockPx } = STAR_LABEL_BOX;
+  return [left + startPx, top + padBlockPx, right - endPx, bottom - padBlockPx];
+}
+
+/** Distancia de un punto a un segmento, en píxeles. */
+function distanceToSegment(p: ScreenPoint, a: ScreenPoint, b: ScreenPoint): number {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy)));
+  return Math.hypot(p.x - a.x - t * dx, p.y - a.y - t * dy);
+}
+
+/** ¿Pasa el segmento por el rectángulo? (recorte de Liang–Barsky). */
+function segmentCrosses(a: ScreenPoint, b: ScreenPoint, [left, top, right, bottom]: Rect): boolean {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  let from = 0;
+  let to = 1;
+  for (const [p, q] of [
+    [-dx, a.x - left],
+    [dx, right - a.x],
+    [-dy, a.y - top],
+    [dy, bottom - a.y],
+  ] as const) {
+    if (p === 0) {
+      if (q < 0) return false;
+    } else if (p < 0) {
+      from = Math.max(from, q / p);
+    } else {
+      to = Math.min(to, q / p);
+    }
+    if (from > to) return false;
+  }
+  return true;
+}
+
+/** Las 30 líneas, con su grupo. */
+const LINES = skillGroups.flatMap((group) =>
+  CONSTELLATION_LINKS[group.id].map(([a, b]) => ({ group: group.id, a, b })),
 );
 
 describe('constellationLayout', () => {
@@ -78,88 +147,149 @@ describe('constellationLayout', () => {
     }
   });
 
-  it('links stars of the same group only, and every star of a group is on its figure', () => {
+  it('each group is one figure: lines between two different stars of the group, no repeats, all joined', () => {
     for (const group of skillGroups) {
-      const ids = new Set(group.skills.map(({ id }) => id));
-      const linked = new Set(CONSTELLATION_LINKS[group.id].flat());
-      expect(
-        [...linked].filter((id) => !ids.has(id)),
-        group.id,
-      ).toEqual([]);
-      expect(
-        [...ids].filter((id) => !linked.has(id)),
-        group.id,
-      ).toEqual([]);
+      const ids = group.skills.map(({ id }) => id);
+      const links = CONSTELLATION_LINKS[group.id];
+      for (const [a, b] of links) {
+        expect(a, group.id).not.toBe(b);
+        expect(ids, group.id).toContain(a);
+        expect(ids, group.id).toContain(b);
+      }
+      const pairs = links.map(([a, b]) => [a, b].sort().join('·'));
+      expect(new Set(pairs).size, group.id).toBe(pairs.length);
+      // Todas unidas: desde la primera se llega a todas por sus líneas.
+      const reached = new Set([ids[0]]);
+      for (let grew = true; grew;) {
+        grew = false;
+        for (const [a, b] of links) {
+          if (reached.has(a) !== reached.has(b)) {
+            reached.add(a);
+            reached.add(b);
+            grew = true;
+          }
+        }
+      }
+      expect([...reached].sort(), group.id).toEqual([...ids].sort());
     }
   });
 
   it('no line of one group crosses a line of another (seen from above, on the X–Z plane)', () => {
-    const segments = skillGroups.flatMap((group) =>
-      CONSTELLATION_LINKS[group.id].map(([a, b]) => ({ group: group.id, a: star(a), b: star(b) })),
-    );
-    const side = (p: readonly number[], q: readonly number[], r: readonly number[]): number =>
-      ((q[0] ?? 0) - (p[0] ?? 0)) * ((r[2] ?? 0) - (p[2] ?? 0)) -
-      ((q[2] ?? 0) - (p[2] ?? 0)) * ((r[0] ?? 0) - (p[0] ?? 0));
-    for (const [index, s] of segments.entries()) {
-      for (const t of segments.slice(index + 1)) {
+    const side = (p: ScenePoint, q: ScenePoint, r: ScenePoint): number =>
+      (q[0] - p[0]) * (r[2] - p[2]) - (q[2] - p[2]) * (r[0] - p[0]);
+    for (const [index, s] of LINES.entries()) {
+      for (const t of LINES.slice(index + 1)) {
         if (s.group === t.group) continue;
+        const [sa, sb, ta, tb] = [star(s.a), star(s.b), star(t.a), star(t.b)];
         const crosses =
-          side(s.a, s.b, t.a) * side(s.a, s.b, t.b) < 0 &&
-          side(t.a, t.b, s.a) * side(t.a, t.b, s.b) < 0;
+          side(sa, sb, ta) * side(sa, sb, tb) < 0 && side(ta, tb, sa) * side(ta, tb, sb) < 0;
         expect(crosses, `${s.group} × ${t.group}`).toBe(false);
       }
     }
   });
 
-  it('the label box is 22 px high and grows 6.6 px per letter', () => {
+  it('the label box is 22 px high and grows 6.6 px per letter, composed or not', () => {
     expect(STAR_LABEL_BOX.heightPx).toBe(22);
     expect(starLabelWidth('Vite') - starLabelWidth('Vit')).toBeCloseTo(6.6, 10);
     expect(starLabelWidth('Máquinas')).toBeCloseTo(14 + 8 * 6.6 + 6, 10);
+    // «á» como «a» + acento combinante (dos unidades): la misma caja.
+    expect(starLabelWidth('Máquinas')).toBe(starLabelWidth('Máquinas'));
+    expect(starLabelWidth('Vite', 10) - starLabelWidth('Vit', 10)).toBeCloseTo(6, 10);
   });
 
-  // Regla 2: proyectadas con la cámara de la galaxia, ninguna etiqueta pisa otra, ni el panel, la barra, el raíl o el
-  // HUD, y todas caben en el lienzo; en inglés y en español, con el ratón quieto y en las esquinas.
+  it('every label, EN and ES, is one letter per unit once composed, and within the Latin set of Plex Mono', () => {
+    for (const skill of skills) {
+      for (const locale of LOCALES) {
+        const text = localize(locale, skill.label).normalize('NFC');
+        expect(text, skill.id).not.toMatch(/\p{M}/u);
+        // La parte latina de la fuente (`fonts.css`, U+0000–00FF y algunos más): ni emojis ni otros alfabetos.
+        expect(text, skill.id).toMatch(/^[ -ÿ]+$/);
+      }
+    }
+  });
+
+  it('what it keeps clear of the interface comes from the tokens where it can (panel, bar, rail height)', () => {
+    const tokens = readFileSync(new URL('../../../styles/tokens.css', import.meta.url), 'utf8');
+    const root = tokens.slice(
+      tokens.indexOf(':root {'),
+      tokens.indexOf('}', tokens.indexOf(':root {')),
+    );
+    const px = (name: string): number => {
+      const value = new RegExp(`${name}:\\s*(\\d+)px;`).exec(root)?.[1];
+      if (value === undefined) throw new Error(`${name} no es un valor en px del :root`);
+      return Number(value);
+    };
+    // En escritorio el `--gutter` es `--space-5` (el de móvil, `--space-4`, va en su media query).
+    expect(root).toContain('--gutter: max(var(--space-5),');
+    expect(STAR_LABEL_KEEP_OUT.wide.panelRight).toBe(px('--space-5') + px('--panel-w'));
+    expect(STAR_LABEL_KEEP_OUT.wide.barBottom).toBe(px('--topbar-h'));
+    expect(STAR_LABEL_KEEP_OUT.narrow.barBottom).toBe(px('--topbar-h'));
+    // El raíl: un enlace de `--target-min` por capítulo, centrado.
+    const railHalf = (CHAPTER_INDICES.length * px('--target-min')) / 2;
+    expect(STAR_LABEL_KEEP_OUT.wide.rail.halfHeight).toBe(railHalf);
+    expect(STAR_LABEL_KEEP_OUT.narrow.rail.halfHeight).toBe(railHalf);
+  });
+
+  // Regla 2, en reposo (m = 2): proyectadas con la cámara de la galaxia, delante de ella, ninguna etiqueta pisa otra,
+  // ni el panel, la barra, el raíl o el HUD, y todas caben en el lienzo; en inglés y en español, con el ratón quieto y
+  // en las esquinas. Fuera del reposo o de estos tamaños, la escena oculta la que no cabe (`fitLabels`).
   for (const { width, height } of VIEWPORTS) {
     for (const locale of LOCALES) {
-      it(`at ${String(width)}×${String(height)} (${locale}) every label fits, apart from the rest`, () => {
-        const viewport = { width, height, fov: cameraFov(width / height) };
-        // Lo que tapa la interfaz (`STAR_LABEL_KEEP_OUT`) y el borde del lienzo, con su margen.
-        const covered = keepOutZones(width, height, true);
-        const parallax = createParallax();
-        const pose = createCameraPose();
-        const point = createScreenPoint();
-        for (const [px, py] of PARALLAXES) {
-          parallax.x = px;
-          parallax.y = py;
-          cameraPose(2, true, parallax, pose);
+      it(`at rest (m = 2), ${String(width)}×${String(height)} (${locale}): every label fits, apart from the rest`, () => {
+        const zones = keepOutZones(width, height, true);
+        for (const parallax of PARALLAXES) {
+          const screen = screenAtRest(width, height, parallax);
+          const where = `parallax ${parallax.join(', ')}`;
           const labels = skills.map(({ id, label }) => {
-            projectToScreen(star(id), pose, viewport, point);
-            const left = point.x + STAR_LABEL_BOX.offsetPx;
-            const half = STAR_LABEL_BOX.heightPx / 2;
-            return {
-              id,
-              rect: [
-                left,
-                point.y - half,
-                left + starLabelWidth(text(label, locale)),
-                point.y + half,
-              ] as Rect,
-            };
+            const point = screen.get(id) ?? createScreenPoint();
+            expect(point.inFront, `${id} · ${where}`).toBe(true);
+            return { id, rect: labelRect(point, localize(locale, label)) };
           });
-          const where = `parallax ${String(px)}, ${String(py)}`;
           for (const { id, rect } of labels) {
-            expect(
-              covered.filter((zone) => overlaps(rect, zone)),
-              `${id} · ${where}`,
-            ).toEqual([]);
+            const box = { left: rect[0], top: rect[1], right: rect[2], bottom: rect[3] };
+            const covered = zones
+              .filter((zone) => overlapsRect(box, zone.rect))
+              .map(({ name }) => name);
+            expect(covered, `${id} · ${where}`).toEqual([]);
           }
           for (const [index, a] of labels.entries()) {
             for (const b of labels.slice(index + 1)) {
-              expect(overlaps(a.rect, b.rect), `${a.id} · ${b.id} · ${where}`).toBe(false);
+              const box = { left: a.rect[0], top: a.rect[1], right: a.rect[2], bottom: a.rect[3] };
+              expect(overlapsRect(box, b.rect), `${a.id} · ${b.id} · ${where}`).toBe(false);
             }
           }
         }
       });
     }
+  }
+
+  // Regla 3 en pantalla, en reposo: cada figura se reconoce (ninguna línea roza una estrella que no es suya: un
+  // triángulo no se queda en una raya) y ninguna línea tacha el texto de una etiqueta que no es de sus estrellas.
+  for (const { width, height } of VIEWPORTS) {
+    it(`at rest (m = 2), ${String(width)}×${String(height)}: no line grazes another star or strikes a label`, () => {
+      for (const parallax of PARALLAXES) {
+        const screen = screenAtRest(width, height, parallax);
+        const where = `parallax ${parallax.join(', ')}`;
+        for (const { a, b } of LINES) {
+          const [pa, pb] = [screen.get(a), screen.get(b)];
+          if (pa === undefined || pb === undefined) throw new Error(`${a} · ${b}`);
+          for (const skill of skills) {
+            if (skill.id === a || skill.id === b) continue;
+            const point = screen.get(skill.id) ?? createScreenPoint();
+            expect(
+              distanceToSegment(point, pa, pb),
+              `${a}–${b} · ${skill.id} · ${where}`,
+            ).toBeGreaterThanOrEqual(MIN_LINE_GAP_PX);
+            for (const locale of LOCALES) {
+              const text = textRect(labelRect(point, localize(locale, skill.label)));
+              expect(
+                segmentCrosses(pa, pb, text),
+                `${a}–${b} × ${skill.id} (${locale}) · ${where}`,
+              ).toBe(false);
+            }
+          }
+        }
+      }
+    });
   }
 });

@@ -1,5 +1,6 @@
 // Invariantes del contenido real (docs/01-contenido/modelo-de-datos.md → «Reglas que comprueban los
-// tests»). La regla 6 (cada skill tiene posición en la escena) llega en F4. Las funciones `find…` están
+// tests»). La regla 6 (cada skill tiene posición en la escena) la comprueba `scene/config/constellationLayout`. Las
+// funciones `find…` están
 // probadas con casos rotos en `validate.test.ts`; lo que se comprueba aquí en línea (capítulos, idiomas,
 // galerías de las fichas, qué proyectos tienen imágenes) es una lista escrita a mano a propósito.
 

@@ -1,3 +1,4 @@
+import { CAMERA_LENS, type ScenePoint } from '../../config/sceneConfig';
 import type { CameraPose } from '../camera/camera';
 
 /**
@@ -13,7 +14,10 @@ export interface ScreenPoint {
   x: number;
   /** Píxeles CSS desde arriba del lienzo. */
   y: number;
-  /** Delante de la cámara: si no, `x` e `y` no valen. */
+  /**
+   * Más allá del plano cercano de la cámara (`CAMERA_LENS.near`), donde Three lo pinta: si no, `x` e `y` no valen.
+   * Con la cámara mirando en vertical, `x` e `y` no son números (no pasa en el viaje).
+   */
   inFront: boolean;
 }
 
@@ -32,8 +36,8 @@ const DEG_TO_RAD = Math.PI / 180;
 
 /** El punto `[x, y, z]` de la escena, visto con `pose`, en píxeles del lienzo. */
 export function projectToScreen(
-  [x, y, z]: readonly [number, number, number],
-  pose: Readonly<CameraPose>,
+  point: ScenePoint,
+  pose: CameraPose,
   viewport: Viewport,
   out: ScreenPoint,
 ): ScreenPoint {
@@ -55,9 +59,10 @@ export function projectToScreen(
   const uy = rz * fx - rx * fz;
   const uz = rx * fy;
 
-  const dx = x - eye.x;
-  const dy = y - eye.y;
-  const dz = z - eye.z;
+  // Por índice, sin desestructurar: corre 31 veces por frame (las etiquetas).
+  const dx = point[0] - eye.x;
+  const dy = point[1] - eye.y;
+  const dz = point[2] - eye.z;
   const depth = dx * fx + dy * fy + dz * fz;
   const halfHeight = Math.tan((viewport.fov / 2) * DEG_TO_RAD) * depth;
   const aspect = viewport.width / viewport.height;
@@ -65,6 +70,6 @@ export function projectToScreen(
   const ndcY = (dx * ux + dy * uy + dz * uz) / halfHeight;
   out.x = ((ndcX + 1) / 2) * viewport.width;
   out.y = ((1 - ndcY) / 2) * viewport.height;
-  out.inFront = depth > 0;
+  out.inFront = depth > CAMERA_LENS.near;
   return out;
 }

@@ -20,7 +20,7 @@ export const CONSTELLATION_STARS: Readonly<Record<string, ScenePoint>> = {
   apache: [-2.2, 1.21, -3.54],
   // libraries: arriba a la derecha
   'react-ts': [5.3, 1.44, -15.77],
-  'react-query': [6.42, 1.02, -13.93],
+  'react-query': [7.92, 1.02, -13.93],
   zustand: [6.63, 1.1, -11.21],
   'react-router': [3.55, 1.47, -8.26],
   'react-hook-form': [4.41, 1.04, -7.13],
@@ -39,17 +39,18 @@ export const CONSTELLATION_STARS: Readonly<Record<string, ScenePoint>> = {
   figma: [0.79, 0.98, 7.29],
   vms: [1.58, 1.42, 8.19],
   // ai: abajo a la izquierda
-  'ai-pair': [-2.97, 1.26, 2.52],
-  'ai-agents': [-4.39, 0.98, 3.42],
-  'ai-prompting': [-3.94, 1.1, 4.58],
-  'ai-review': [-4.15, 1.49, 5.82],
-  claude: [-3.06, 1.12, 6.41],
-  chatgpt: [-4.15, 1.08, 7.18],
+  'ai-pair': [-5.43, 1.26, 2.52],
+  'ai-agents': [-4.37, 0.98, 3.42],
+  'ai-prompting': [-3.92, 1.1, 4.58],
+  'ai-review': [-4.99, 1.49, 5.82],
+  claude: [-3.91, 1.12, 6.41],
+  chatgpt: [-4.84, 1.08, 7.18],
 };
 
 /**
- * Las líneas de cada constelación, por pares de `Skill.id` del mismo grupo: una figura por grupo (rama, cadena con
- * un triángulo, cadena cerrada al final, un rombo con su cola).
+ * Las líneas de cada constelación, por pares de `Skill.id` del mismo grupo: una figura por grupo (web, una rama;
+ * libraries, un triángulo con su cadena; tools, una cadena cerrada al final; ai, un rombo con su cola). Ninguna
+ * línea pasa cerca de una estrella que no es suya ni tacha el texto de una etiqueta: lo comprueba su test.
  */
 export const CONSTELLATION_LINKS: Readonly<
   Record<SkillGroupId, readonly (readonly [string, string])[]>
@@ -98,8 +99,9 @@ export const CONSTELLATION_LINKS: Readonly<
  * La caja de la etiqueta de una estrella (docs/03-diseno/componentes.md → «Etiqueta de estrella»), en píxeles CSS:
  * mono de 11 px en escritorio y 10 por debajo de 900 px (cada letra, 0,6 em: IBM Plex Mono), con el trazo y su
  * hueco a la izquierda (`startPx`), un poco de aire a la derecha y 22 de alto (16 de línea + 3 arriba y abajo).
- * Empieza `offsetPx` a la derecha de la estrella, centrada en su altura. El CSS de la etiqueta
- * (`scene/ConstellationLabels`) la sigue: lo comprueba su test.
+ * Empieza `offsetPx` a la derecha de la estrella, centrada en su altura. Sin mayúsculas ni espacio entre letras. El
+ * CSS de la etiqueta (`scene/ConstellationLabels`, con los tokens en px `--text-star-label`) la sigue: lo comprueba
+ * su test.
  */
 export const STAR_LABEL_BOX = {
   fontPx: 11,
@@ -123,12 +125,15 @@ export function starLabelWidth(text: string, fontPx: number = STAR_LABEL_BOX.fon
 }
 
 /**
- * Lo que la interfaz tapa por encima de la escena y donde no puede quedar una etiqueta, en píxeles CSS del lienzo
- * (medido en Chromium en F4.3a y F4.3b, EN y ES; el e2e de F4.3c lo compara con la página real). En escritorio
- * (`wide`, desde 900 px): el panel a la izquierda (`--gutter` + `--panel-w`), la barra de arriba, el raíl (centrado
- * en vertical, contado desde el borde derecho, con el ancho del español) y el HUD abajo a la derecha. Por debajo:
- * la barra, el raíl (sin textos) y el HUD abajo a la izquierda (entre 520 y 899 px; por debajo no hay). Con
- * `marginPx` alrededor.
+ * Lo que la interfaz tapa por encima de la escena y donde no puede quedar una etiqueta, en píxeles CSS del lienzo.
+ * En escritorio (`wide`, desde 900 px): el panel a la izquierda, la barra de arriba, el raíl (centrado en vertical,
+ * contado desde el borde derecho) y el HUD abajo a la derecha. Por debajo: la barra, el raíl (sin textos) y el HUD
+ * abajo a la izquierda (entre 520 y 899 px; por debajo no hay). Con `marginPx` alrededor.
+ * - De los tokens (lo comprueba su test con `tokens.css`): el panel (`--gutter` de escritorio, `--space-5`, más
+ *   `--panel-w`), la barra (`--topbar-h`) y el alto del raíl (un enlace de `--target-min` por capítulo).
+ * - Medido en Chromium (F4.3a y F4.3b, EN y ES), porque depende del ancho de sus textos: lo que ocupan desde el
+ *   borde el raíl (154 en escritorio, con el español; 52 por debajo) y el HUD (247 de ancho, 62 de alto). El e2e de
+ *   F4.3c lo comparará con la página real.
  */
 export const STAR_LABEL_KEEP_OUT = {
   marginPx: 8,

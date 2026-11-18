@@ -44,14 +44,12 @@ describe('projectToScreen', () => {
     expect([half.x, half.y]).toEqual([expect.closeTo(375, 10), expect.closeTo(312.5, 10)]);
   });
 
-  it('says when a point is behind the camera', () => {
-    const out = projectToScreen(
-      [0, 0, 5],
-      looking([0, 0, 0], [0, 0, -1]),
-      VIEW,
-      createScreenPoint(),
-    );
-    expect(out.inFront).toBe(false);
+  it('says when a point is behind the camera, at it, or before its near plane (Three does not paint it)', () => {
+    const pose = looking([0, 0, 0], [0, 0, -1]);
+    expect(projectToScreen([0, 0, 5], pose, VIEW, createScreenPoint()).inFront).toBe(false);
+    expect(projectToScreen([1, 0, 0], pose, VIEW, createScreenPoint()).inFront).toBe(false);
+    expect(projectToScreen([0, 0, -0.05], pose, VIEW, createScreenPoint()).inFront).toBe(false);
+    expect(projectToScreen([0, 0, -0.2], pose, VIEW, createScreenPoint()).inFront).toBe(true);
   });
 
   it('writes into the same object', () => {

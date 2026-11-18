@@ -207,7 +207,7 @@ export interface DemoCredential {
    Vitest comprueba la regla sobre su sustituto de los presets; `project-images.spec.ts`, sobre cada `<picture>`
    y el `og:image` de las fichas del build.
 6. Cada `Skill.id` es único entre todos los grupos (desde F2.2) y existe en el mapa de posiciones de la escena
-   (`docs/04-escena/`, **desde F4**).
+   (desde F4.3a: lo comprueba el test de `scene/config/constellationLayout`, no los de contenido).
 7. Los textos `en` y `es` tienen exactamente las mismas claves (el compilador y un test) y, en cada clave, los
    mismos huecos `{x}` (en cualquier orden).
 8. Además: `LOCALES` = `en`, `es`, con EN primero; las 4 constelaciones en su orden y ninguna vacía; formación con

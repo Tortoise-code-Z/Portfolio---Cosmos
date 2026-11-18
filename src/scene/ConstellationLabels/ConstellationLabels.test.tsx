@@ -66,25 +66,26 @@ describe('ConstellationLabels', () => {
       `padding: ${String(padBlockPx)}px ${String(endPx)}px ${String(padBlockPx)}px ${String(startPx)}px;`,
     );
     expect(label).toContain(`line-height: ${String(lineHeightPx)}px;`);
-    expect(label).toContain('font-size: var(--text-micro);');
+    expect(label).toContain('font-size: var(--text-star-label);');
+    expect(label).not.toMatch(/text-transform|letter-spacing/);
     expect(label).toContain('font-family: var(--font-mono);');
     expect(label).toContain('visibility: hidden;');
     expect(rule('.label::before')).toContain('inline-size: 6px;');
     expect(css).toMatch(
-      /@media \(width < 900px\) \{\s+\.label \{\s+font-size: var\(--text-nano\);/,
+      /@media \(width < 900px\) \{\s+\.label \{\s+font-size: var\(--text-star-label-narrow\);/,
     );
     expect(rule('.layer')).toContain('z-index: var(--z-labels);');
     expect(rule('.layer')).toContain('pointer-events: none;');
   });
 
-  it('the letter sizes are the ones of the tokens (11 px and 10 px at the root size)', () => {
+  it('its letter sizes are px tokens equal to the box (11 and 10): they do not grow with the browser text size', () => {
     const tokens = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), '../../styles/tokens.css'),
       'utf8',
     );
-    const rem = (name: string): number =>
-      Number(new RegExp(`${name}:\\s*([\\d.]+)rem;`).exec(tokens)?.[1]) * 16;
-    expect(rem('--text-micro')).toBe(STAR_LABEL_BOX.fontPx);
-    expect(rem('--text-nano')).toBe(STAR_LABEL_BOX.narrowFontPx);
+    const px = (name: string): number =>
+      Number(new RegExp(`${name}:\\s*(\\d+)px;`).exec(tokens)?.[1]);
+    expect(px('--text-star-label')).toBe(STAR_LABEL_BOX.fontPx);
+    expect(px('--text-star-label-narrow')).toBe(STAR_LABEL_BOX.narrowFontPx);
   });
 });
