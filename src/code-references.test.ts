@@ -28,15 +28,15 @@ const CONFIG_FILE = /\.(?:ts|js|json)$/;
 /** Imágenes y fuentes: binarios, sin texto que leer (y con bytes que casarían por azar). */
 const BINARY_FILE = /\.(?:png|jpe?g|webp|avif|gif|ico|woff2?|ttf|otf)$/i;
 /**
- * Vivas («viva S5 #1», «Viva-S5», «viva #9», «S22 #20»), encargos («AUD-F2-3-1»), claves de pregunta («F25-1-A»,
- * sin opción «F33-6», y de letras «CAM-1-B», «FIX-1»; no «ADR-027» ni «UTF-8»), opciones sueltas («la opción A»,
- * también en mayúscula) y el buzón (`_claude/`, el archivo de las vivas).
+ * Vivas («viva S5 #1», «Viva-S5», «viva #9», «S22 #20»), encargos («AUD-F2-3-1», también sin fase: «AUD-DOCS-MAIN»),
+ * claves de pregunta («F25-1-A», sin opción «F33-6», y de letras «CAM-1-B», «FIX-1»; no «ADR-027» ni «UTF-8»),
+ * opciones sueltas («la opción A», también en mayúscula) y el buzón (`_claude/`, el archivo de las vivas).
  */
 const OFF_REPO_ALTERNATIVES = [
   String.raw`\b[Vv]ivas?[ -]S\d`,
   String.raw`\b[Vv]ivas? #\d`,
   String.raw`\bS\d{1,3} #\d`,
-  String.raw`\b(?:EST|AUD)-F\d`,
+  String.raw`\b(?:EST|AUD)-[A-Z0-9]`,
   String.raw`\b[A-Z]+\d+-\d+-[A-Z]\b`,
   String.raw`\b[A-Z]+\d{2,}-\d+\b`,
   String.raw`\b(?!ADR-|UTF-)[A-Z]{3,}-\d+(?:-[A-Z])?\b`,
@@ -67,7 +67,10 @@ function offRepoReferences(files: readonly { path: string; text: string }[]): st
 /** Citas al buzón, una por línea: entre todas, cada alternativa de la regex tiene alguna que solo casa ella. */
 const OFF_REPO_EXAMPLES = [
   { path: 'a.ts', text: '// (viva S5 #1)\n// (vivas S4 #16–#31)' },
-  { path: 'b.ts', text: '// EST-F2-3-12\n// AUD-F2-3-1\n// _claude/cadena/TABLERO.md' },
+  {
+    path: 'b.ts',
+    text: '// EST-F2-3-12\n// AUD-F2-3-1\n// AUD-DOCS-MAIN\n// _claude/cadena/TABLERO.md',
+  },
   { path: 'd.ts', text: '// F25-1-A\n// como dice la opción B' },
   { path: 'f.ts', text: '// F33-6 (sin opción)\n// lo decidió la viva #9' },
   {
@@ -87,7 +90,7 @@ describe('el código no cita notas de fuera del repo', () => {
         text: '// Tamaños: H1-2 · UTF-8 · ES-419 · F2.5-1 · ADR-027 · WCAG 2.1 · F3.3 · S22 · #20 · AB-1',
       },
     ]);
-    expect(found).toHaveLength(19);
+    expect(found).toHaveLength(20);
     expect(found.some((line) => line.startsWith('c.ts') || line.startsWith('e.ts'))).toBe(false);
   });
 

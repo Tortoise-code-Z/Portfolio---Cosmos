@@ -70,7 +70,9 @@ export default defineConfig({
     restoreMocks: true,
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.{ts,tsx}'],
+      // Y el criterio de los commits de solo docs (ADR-033): de él depende que no entre código en `main` sin checks.
+      // `docs-only.ts` no: corre en un proceso hijo, que v8 no ve.
+      include: ['src/**/*.{ts,tsx}', 'scripts/docsOnly.ts'],
       // Fuera de la cobertura: root.tsx (el documento HTML solo lo pintan los e2e; su lógica, `meta`,
       // `ErrorBoundary` y `HydrateFallback`, la prueba root.test.tsx), routes.ts (configuración) y la entrada
       // del worker de las formas (solo conecta el mensaje con `handleShapesRequest`, que sí se prueba).
@@ -92,6 +94,7 @@ export default defineConfig({
         'src/scene/{frameLoop,sceneClock,sceneMaterials,particleGeometry,voidColour,pause,pointer,contextLoss,fpsMeter,useHotDegradation,Constellations,ConstellationLabels}/**':
           STRICT,
         'src/scene/shaders/**': STRICT,
+        'scripts/docsOnly.ts': STRICT,
       },
     },
   },

@@ -1,10 +1,11 @@
 # A `main` solo llegan por push los commits de documentación (ADR-033); todo lo demás, por PR. El criterio está en
-# `scripts/docs-only.ts`, y ante cualquier duda (una rama nueva, un commit que no está en local) el push se para.
+# `scripts/docsOnly.ts` (con `--each`, commit a commit y sin merges), y ante cualquier duda (una rama nueva, un commit
+# que no está en local, historia reescrita) el push se para. Nunca `--no-verify` ni `HUSKY=0`.
 # Git da una línea por rama: <ref local> <hash local> <ref remota> <hash remoto>.
 while read -r local_ref local_sha remote_ref remote_sha; do
-  if [ "$remote_ref" = refs/heads/main ] && ! node scripts/docs-only.ts "$remote_sha" "$local_sha"; then
-    echo "pre-push: only docs (.md outside src/, tests/ and public/) go straight to main; the rest, through a PR." >&2
-    echo "pre-push: if a PR was just merged, run git pull first." >&2
+  if [ "$remote_ref" = refs/heads/main ] && ! node scripts/docs-only.ts --each "$remote_sha" "$local_sha"; then
+    echo "pre-push: only docs commits (.md outside src/, tests/ and public/) go straight to main; the rest, through a PR." >&2
+    echo "pre-push: if main moved on GitHub, run git pull --rebase first." >&2
     exit 1
   fi
 done
