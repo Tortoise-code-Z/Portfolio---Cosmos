@@ -42,7 +42,8 @@ puntero ──► │ scene/pointer ──► SceneFrame.pointer (lo escribe cad
    bucle de `SceneRoot` (sobre `scene/frameLoop`) los lee cada frame y deja su `m` suavizada, la carga
    (`SceneFrame.charge` → `uCharge`), el reloj y lo demás en un `SceneFrame` compartido, que leen los `useFrame`. El ratón y si es
    escritorio los escriben sus observadores (`scene/pointer`, `watchMediaQuery`) directamente en el
-   `SceneFrame`. React solo renderiza cuando cambia algo estructural (idioma, nivel de rendimiento, ruta).
+   `SceneFrame`. `CameraRig` escribe en él la pose y el campo de visión de la cámara, y su `useFrame` va antes que
+   los demás por su prioridad (−1): las etiquetas proyectan con ellos en el mismo frame. React solo renderiza cuando cambia algo estructural (idioma, nivel de rendimiento, ruta).
 3. **Lógica pura separada del render.** Mapeo de scroll, interpolación de cámara, generadores, proyección y
    formato del HUD son funciones puras en TypeScript, testeadas con Vitest sin WebGL.
 4. **Universo determinista.** Los generadores usan un PRNG con semilla fija: el universo es idéntico en cada

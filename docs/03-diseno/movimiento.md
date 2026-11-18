@@ -41,6 +41,7 @@ ese evento para terminar de cerrarse se quedaría colgado con movimiento reducid
 | Suavizado de `m` en la escena y en los efectos del Big Bang `k` (`M_SMOOTHING`, `lib/scroll/smoothM`) | 3,4 (12 con movimiento reducido) | `scroll-y-escena.md` |
 | Carga de detonación | 1,5 s para llenar; descarga 1,8/s (también tras detonar) | Capítulo 0 |
 | Gravedad del cursor (`GRAVITY`, `sceneConfig`) | sube y baja a ritmo 10 (≈ 0,25 s; de golpe con frames de 0,1 s); 0 con movimiento reducido | Capítulo 1 · `particulas-y-shaders.md` |
+| Encendido de una constelación (`CONSTELLATION_LOOK.hotRate`, `scene/config/constellationLayout`) | ritmo 8 (≈ 0,125 s para encenderse o apagarse); instantáneo con movimiento reducido | Capítulo 2 · `constelaciones-y-placas.md` |
 | Destello | dos golpes que bajan 1,6/s (≈ 0,6 s): 0,75 al empezar a bajar (al cruzar `m` 0,02; se rearma de vuelta en `m` < 0,01 con el golpe apagado) y 0,95 al detonar; manda el más fuerte (ADR-031) | Capítulo 0 |
 | Temblor | hasta 9 px con el destello + 3 px por carga (el lienzo y el punto o halo CSS, nunca el texto) | Capítulo 0 |
 | Nombre del hero (`wdth`) | 62 en reposo; −12 con la carga (mín. 50); +88 en `m` 0–0,35 (máx. 150); espaciado 0,25 em por unidad de `m` | Capítulo 0 |

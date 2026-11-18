@@ -112,12 +112,14 @@
 
 ## Escena ↔ interfaz
 
-### Etiqueta de estrella (`StarLabel`)
+### Etiqueta de estrella (`scene/ConstellationLabels`)
 - Mono 11 px (10 px por debajo de 900 px; `--text-star-label` y `--text-star-label-narrow`, en px a propósito),
   sin mayúsculas ni espacio entre letras, `--color-dim`, con un trazo de 6 px a la izquierda que apunta a la
   estrella. *Hot*: ámbar. Caja: 3 px arriba y abajo, 14 a la izquierda (trazo de 6 y hueco de 8) y 6 a la derecha,
   línea de 16 px, a 4 px de la estrella (`STAR_LABEL_BOX`, con su test de pareja).
-- Posicionada por proyección 3D → 2D en cada frame; opacidad según el peso del capítulo (0,6 en reposo, 1 en su
+- Halo oscuro alrededor de las letras (`--halo-star-label`: dos sombras de `--color-void`), para leerse también
+  sobre el núcleo de la galaxia. Sin selección; con alto contraste, la capa se oculta (la lista es la del panel).
+- Posicionada por proyección 3D → 2D en cada frame; opacidad según el peso del capítulo (0,8 en reposo, 1 en su
   grupo activo). Si no cabe (la interfaz, el borde u otra etiqueta), se oculta.
 
 ### Pin de placa (`PlatePin`)

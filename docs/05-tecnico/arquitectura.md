@@ -235,7 +235,9 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
    `lib` no importa `stores`, así que el destino le llega por parámetro.
 3. El bucle de la escena lee `mTarget` en cada frame y suaviza su propia `m` (`smoothM` de `lib/scroll`, con el tiempo
    real del frame; en su primer frame arranca en `mTarget`), que deja en el `SceneFrame` compartido; los `useFrame`
-   de cada pieza (uniforms, cámara y, en F4, etiquetas) la leen de ahí (ADR-028). `sceneStore.m` sigue siendo
+   de cada pieza (uniforms, cámara y etiquetas) la leen de ahí (ADR-028). `CameraRig` además **escribe** en el frame
+   su pose y su campo de visión, y por eso su `useFrame` va antes que nadie (prioridad −1, `CAMERA_RIG_PRIORITY`):
+   las etiquetas de las constelaciones proyectan con ellos. `sceneStore.m` sigue siendo
    `mTarget`. Con la página oculta o la misión rápida abierta, el bucle se pausa (`scene/pause`). Los efectos del
    Big Bang en el DOM (`features/journey/useBigBang`) llevan otra copia con el mismo `smoothM` y la escriben, ya
    convertida en destello, temblor, nombre y halo, como variables CSS privadas en `<html>` (`--_bang-*`); los leen el
@@ -273,8 +275,9 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   `SceneMount` pone `scene-on` en `<html>` (el punto CSS del hero se funde).
 - `SceneRoot` monta el `<Canvas>` fijo detrás del contenido (`--z-scene`), `aria-hidden`, sin puntero (R3F pone
   `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. Pinta con su propio
-  bucle (`frameloop="never"` + `scene/frameLoop`, ADR-027) las partículas (`Particles`) y las estrellas de fondo
-  (`BackgroundStars`); la cámara la mueve `CameraRig` (`docs/04-escena/camara-y-encuadre.md`), con el ratón de
+  bucle (`frameloop="never"` + `scene/frameLoop`, ADR-027) las partículas (`Particles`), las estrellas de fondo
+  (`BackgroundStars`) y las constelaciones (`Constellations`), con sus etiquetas en una capa del DOM aparte, montada
+  en `body` (`ConstellationLabels`, `--z-labels`); la cámara la mueve `CameraRig` (`docs/04-escena/camara-y-encuadre.md`), con el ratón de
   `scene/pointer` y si es escritorio de `watchMediaQuery`; con el mismo ratón, la gravedad del cursor
   (`math/gravity`). Al montar pide las formas al worker; si falla, las genera
   una vez en el hilo principal a nivel Bajo, y si eso también falla, Apagado (`docs/04-escena/rendimiento.md` →
@@ -283,8 +286,8 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 - `scene/{shapes,math,config,worker}` es código puro: lo que corre en el worker o se prueba sin WebGL. ESLint
   le prohíbe Three, React, Zustand, `stores`, los módulos de la escena que usan Three, React o un store, más
   `contextLoss`, que vive con el lienzo (por ruta relativa: `SceneRoot`, `CameraRig`, `Particles`,
-  `BackgroundStars`, `sceneMaterials`, `particleGeometry`, `useSceneShapes`, `useHotDegradation`, `contextLoss`,
-  `voidColour`, `pause`; `pointer`, `frameLoop`, `sceneClock`, `fpsMeter` y `shaders` no, son DOM o cálculo sin
+  `BackgroundStars`, `Constellations`, `ConstellationLabels`, `sceneMaterials`, `particleGeometry`,
+  `useSceneShapes`, `useHotDegradation`, `contextLoss`, `voidColour`, `pause`; `pointer`, `frameLoop`, `sceneClock`, `fpsMeter` y `shaders` no, son DOM o cálculo sin
   dependencias), los datos de `content` (solo sus tipos) y cualquier `import()` (un import así engordaría el
   worker sin avisar), y prohíbe `Math.random` en toda la escena, también escrito
   `globalThis.Math.random` (ADR-011: el azar con semilla de `scene/shapes/prng`). **Un módulo nuevo de `scene/`

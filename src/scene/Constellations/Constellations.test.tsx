@@ -12,10 +12,18 @@ import {
 import {
   CONSTELLATION_LINKS,
   CONSTELLATION_LOOK,
+  CONSTELLATION_STARS,
+  STAR_LABEL_BOX,
 } from '../config/constellationLayout/constellationLayout';
 import { cameraFov, cameraPose, createParallax } from '../math/camera/camera';
+import { createScreenPoint, projectToScreen } from '../math/projection/projection';
 import { createSceneFrame, type SceneFrame } from '../sceneMaterials/sceneMaterials';
-import { Constellations, useConstellations, type ConstellationsProps } from './Constellations';
+import {
+  Constellations,
+  SKILLS,
+  useConstellations,
+  type ConstellationsProps,
+} from './Constellations';
 
 /** `useFrame` necesita el lienzo de R3F: aquí se guarda el callback y se le da el tamaño del lienzo a mano. */
 const frameCallbacks = vi.hoisted(
@@ -44,6 +52,20 @@ const TEXTS: Readonly<Record<string, string>> = Object.fromEntries(
     ]),
   ),
 );
+
+/** El frame de la galaxia en móvil (390×844), con su campo de visión y su pose. */
+function phoneFrame(): SceneFrame {
+  const frame = galaxyFrame(2, false);
+  frame.aspect = 390 / 844;
+  frame.fov = cameraFov(frame.aspect);
+  cameraPose(2, false, createParallax(), frame.camera);
+  return frame;
+}
+
+/** Las etiquetas con `visibility: visible`, en el orden del panel. */
+function shownLabels(labels: StarLabelElements): string[] {
+  return Object.keys(TEXTS).filter((id) => labels.get(id)?.style.visibility === 'visible');
+}
 
 /** El frame de la galaxia en escritorio, con la pose que dejaría la cámara. */
 function galaxyFrame(m = 2, wide = true): SceneFrame {
@@ -74,16 +96,33 @@ const label = (labels: StarLabelElements, id: string): HTMLElement => {
 };
 
 describe('useConstellations', () => {
-  it('one constellation per group: its stars and two points per line', () => {
+  it('one constellation per group: its stars and, per line, the two stars it joins', () => {
     const { result } = setup(galaxyFrame());
     expect(result.current.map(({ group }) => group)).toEqual(skillGroups.map(({ id }) => id));
+    const at = (id: string): readonly number[] => CONSTELLATION_STARS[id] ?? [];
     for (const [index, group] of skillGroups.entries()) {
       const mesh = result.current[index];
-      expect(mesh?.stars.geometry.getAttribute('position').count).toBe(group.skills.length);
-      expect(mesh?.lines.geometry.getAttribute('position').count).toBe(
-        CONSTELLATION_LINKS[group.id].length * 2,
+      expect(Array.from(mesh?.stars.geometry.getAttribute('position').array ?? [])).toEqual(
+        group.skills.flatMap(({ id }) => at(id)).map(Math.fround),
+      );
+      expect(Array.from(mesh?.lines.geometry.getAttribute('position').array ?? [])).toEqual(
+        CONSTELLATION_LINKS[group.id].flatMap(([a, b]) => [...at(a), ...at(b)]).map(Math.fround),
       );
     }
+  });
+
+  it('the labels follow the order of the panel', () => {
+    expect(SKILLS.map(({ id }) => id)).toEqual(
+      skillGroups.flatMap((group) => group.skills.map(({ id }) => id)),
+    );
+  });
+
+  it('gives the stars the pixel ratio of the frame (their size stays the same on screen)', () => {
+    const frame = galaxyFrame();
+    frame.pixelRatio = 2;
+    const { result } = setup(frame);
+    paint();
+    for (const mesh of result.current) expect(mesh.starUniforms.uPR.value).toBe(2);
   });
 
   it('at the galaxy, at rest: the stars and lines of every group at their resting look', () => {
@@ -121,15 +160,68 @@ describe('useConstellations', () => {
     expect(label(labels, 'html').style.visibility).toBe('');
   });
 
-  it('places every label right of its star at 1280×720, visible, at the resting opacity', () => {
-    const { labels } = setup(galaxyFrame());
+  it('places every label right of its star at 1280×720, centred on it, visible, at the resting opacity', () => {
+    const frame = galaxyFrame();
+    const { labels } = setup(frame);
     paint();
+    const viewport = { width: 1280, height: 720, fov: frame.fov };
     for (const id of Object.keys(TEXTS)) {
       const element = label(labels, id);
+      const star = projectToScreen(
+        CONSTELLATION_STARS[id] ?? [0, 0, 0],
+        frame.camera,
+        viewport,
+        createScreenPoint(),
+      );
+      const x = Math.round(star.x + STAR_LABEL_BOX.offsetPx);
+      const y = Math.round(star.y - STAR_LABEL_BOX.heightPx / 2);
       expect(element.style.visibility, id).toBe('visible');
-      expect(element.style.transform, id).toMatch(/^translate\(\d+px, \d+px\)$/);
-      expect(element.style.opacity, id).toBe('0.6');
+      expect(element.style.transform, id).toBe(`translate(${String(x)}px, ${String(y)}px)`);
+      expect(element.style.opacity, id).toBe(String(CONSTELLATION_LOOK.labelOpacity.rest));
       expect(element).not.toHaveAttribute('data-hot');
+    }
+  });
+
+  it('each label takes the opacity of its own group', () => {
+    const frame = galaxyFrame();
+    frame.reducedMotion = true;
+    const { labels } = setup(frame);
+    act(() => {
+      setActiveSkillGroup('ai');
+    });
+    paint();
+    expect(Number(label(labels, 'claude').style.opacity)).toBeGreaterThan(
+      CONSTELLATION_LOOK.labelOpacity.rest,
+    );
+    expect(label(labels, 'git').style.opacity).toBe(String(CONSTELLATION_LOOK.labelOpacity.rest));
+  });
+
+  it('back from a project page, the labels born again are written whole (they start hidden by their CSS)', () => {
+    const frame = galaxyFrame();
+    const { labels, layer, rerender } = setup(frame);
+    paint();
+    expect(label(labels, 'html').style.visibility).toBe('visible');
+    // En una ficha la capa se desmonta (sin textos) y la escena sigue pintando con el capítulo presente.
+    layer.rerender(<ConstellationLabels texts={null} elements={labels} />);
+    rerender({ frame, texts: null, labels });
+    paint();
+    expect(labels.size).toBe(0);
+    // Atrás: vuelven, nuevas.
+    layer.rerender(<ConstellationLabels texts={TEXTS} elements={labels} />);
+    rerender({ frame, texts: TEXTS, labels });
+    paint();
+    const html = label(labels, 'html');
+    expect(html.style.visibility).toBe('visible');
+    expect(html.style.opacity).toBe(String(CONSTELLATION_LOOK.labelOpacity.rest));
+    expect(html.style.transform).toMatch(/^translate\(\d+px, \d+px\)$/);
+  });
+
+  it('a canvas without a size places nothing (never a NaN position)', () => {
+    const { labels } = setup(galaxyFrame());
+    paint(0, 0);
+    for (const id of Object.keys(TEXTS)) {
+      expect(label(labels, id).style.visibility, id).not.toBe('visible');
+      expect(label(labels, id).style.transform, id).not.toContain('NaN');
     }
   });
 
@@ -157,21 +249,43 @@ describe('useConstellations', () => {
     expect(write).not.toHaveBeenCalled();
   });
 
-  it('on a phone, the labels that do not fit are hidden, and the chapter leaving hides them all', () => {
-    const frame = galaxyFrame(2, false);
-    frame.aspect = 390 / 844;
-    frame.fov = cameraFov(frame.aspect);
-    cameraPose(2, false, createParallax(), frame.camera);
+  it('on a phone, only the labels that fit show, first come in the order of the panel; the chapter leaving hides them all', () => {
+    const frame = phoneFrame();
     const { labels } = setup(frame);
     paint(390, 844);
-    // Una etiqueta que nunca se ha visto sigue oculta por su CSS (sin `visibility` escrita).
-    const shown = (): string[] =>
-      Object.keys(TEXTS).filter((id) => label(labels, id).style.visibility === 'visible');
-    expect(shown().length).toBeGreaterThan(0);
-    expect(shown().length).toBeLessThan(Object.keys(TEXTS).length);
+    // Con el campo de visión de móvil, su letra (10 px) y lo que tapa la interfaz por debajo de 900 px.
+    expect(shownLabels(labels)).toEqual([
+      'html',
+      'javascript',
+      'php',
+      'apache',
+      'zod',
+      'tailwind',
+      'git',
+      'vite',
+      'docker',
+      'vms',
+      'ai-pair',
+      'ai-review',
+      'chatgpt',
+    ]);
     frame.m = 3;
     paint(390, 844);
-    expect(shown()).toEqual([]);
+    expect(shownLabels(labels)).toEqual([]);
+  });
+
+  it('going from desktop to a phone recomputes what the interface covers', () => {
+    const frame = galaxyFrame();
+    const { labels } = setup(frame);
+    paint(1280, 720);
+    expect(shownLabels(labels)).toHaveLength(Object.keys(TEXTS).length);
+    const phone = phoneFrame();
+    frame.wide = false;
+    frame.aspect = phone.aspect;
+    frame.fov = phone.fov;
+    cameraPose(2, false, createParallax(), frame.camera);
+    paint(390, 844);
+    expect(shownLabels(labels)).toHaveLength(13);
   });
 
   it('without texts (outside the journey) there are no labels to place, but the stars still shine', () => {

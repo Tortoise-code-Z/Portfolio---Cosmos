@@ -1,7 +1,14 @@
 import { AdditiveBlending } from 'three';
 import { describe, expect, it } from 'vitest';
 
+import constellationLinesFragment from '../shaders/constellations/constellationLines.frag.glsl?raw';
+import constellationsVertex from '../shaders/constellations/constellations.vert.glsl?raw';
+import constellationStarsFragment from '../shaders/constellations/constellationStars.frag.glsl?raw';
 import { glslHeader } from '../shaders/glslHeader/glslHeader';
+import particlesFragment from '../shaders/particles/particles.frag.glsl?raw';
+import particlesVertex from '../shaders/particles/particles.vert.glsl?raw';
+import starsFragment from '../shaders/stars/stars.frag.glsl?raw';
+import starsVertex from '../shaders/stars/stars.vert.glsl?raw';
 import {
   createConstellationLinesMaterial,
   createConstellationStarsMaterial,
@@ -119,21 +126,31 @@ describe('star uniforms', () => {
 });
 
 describe('materials', () => {
-  for (const [name, material, uniforms] of [
-    ['particles', createParticleMaterial, createParticleUniforms],
-    ['stars', createStarsMaterial, createStarUniforms],
+  for (const [name, material, uniforms, vertex, fragment] of [
+    [
+      'particles',
+      createParticleMaterial,
+      createParticleUniforms,
+      particlesVertex,
+      particlesFragment,
+    ],
+    ['stars', createStarsMaterial, createStarUniforms, starsVertex, starsFragment],
     [
       'constellation stars',
       createConstellationStarsMaterial,
       () => createConstellationUniforms(false),
+      constellationsVertex,
+      constellationStarsFragment,
     ],
     [
       'constellation lines',
       createConstellationLinesMaterial,
       () => createConstellationUniforms(true),
+      constellationsVertex,
+      constellationLinesFragment,
     ],
   ] as const) {
-    it(`${name}: additive light, no depth, the header first and the uniforms shared`, () => {
+    it(`${name}: additive light, no depth, its own shaders with the header first and the uniforms shared`, () => {
       const own = uniforms();
       const created = (material as (u: typeof own) => ReturnType<typeof createParticleMaterial>)(
         own,
@@ -142,7 +159,8 @@ describe('materials', () => {
       expect(created.transparent).toBe(true);
       expect(created.depthWrite).toBe(false);
       expect(created.depthTest).toBe(false);
-      expect(created.vertexShader.startsWith(glslHeader())).toBe(true);
+      expect(created.vertexShader).toBe(glslHeader() + vertex);
+      expect(created.fragmentShader).toBe(fragment);
       for (const [key, uniform] of Object.entries(own)) expect(created.uniforms[key]).toBe(uniform);
     });
   }

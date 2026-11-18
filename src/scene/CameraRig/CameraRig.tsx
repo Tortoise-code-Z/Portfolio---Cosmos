@@ -37,11 +37,18 @@ function aimCamera(frame: SceneFrame, parallax: Parallax): CameraPose {
 }
 
 /**
+ * La prioridad de su `useFrame`: R3F los corre de menor a mayor, así que la cámara se mueve antes que lo que proyecta
+ * con su pose (las etiquetas de las constelaciones, los pins de F4.4). Negativa: una prioridad mayor que 0 le quitaría
+ * a R3F el pintado automático.
+ */
+export const CAMERA_RIG_PRIORITY = -1;
+
+/**
  * La cámara del viaje (docs/04-escena/camara-y-encuadre.md): en cada frame, antes de pintar, coloca la cámara
  * del `<Canvas>` según `m`, el encuadre de escritorio y el paralaje del ratón (`math/camera`), y ajusta el campo
- * de visión al aspecto (solo cuando cambia: `updateProjectionMatrix` no es gratis). Deja la pose en el frame: va la
- * primera dentro del `<Canvas>`, así que sus `useFrame` corren antes que los demás. Sin estado de React ni objetos
- * nuevos por frame (ADR-004). No pinta nada.
+ * de visión al aspecto (solo cuando cambia: `updateProjectionMatrix` no es gratis). Deja la pose en el frame, y su
+ * `useFrame` corre antes que los demás por su prioridad (`CAMERA_RIG_PRIORITY`), no por su sitio en el JSX. Sin estado
+ * de React ni objetos nuevos por frame (ADR-004). No pinta nada.
  */
 export function CameraRig({ frame }: CameraRigProps): null {
   const camera = useThree((state) => state.camera);
@@ -58,7 +65,7 @@ export function CameraRig({ frame }: CameraRigProps): null {
     const pose = aimCamera(frame, parallax);
     camera.position.set(pose.position.x, pose.position.y, pose.position.z);
     camera.lookAt(lookAt.set(pose.target.x, pose.target.y, pose.target.z));
-  });
+  }, CAMERA_RIG_PRIORITY);
 
   return null;
 }

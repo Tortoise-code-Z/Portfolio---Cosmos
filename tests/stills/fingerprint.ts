@@ -12,7 +12,7 @@ import { assignPlates } from '../../src/scene/config/plateSlots/plateSlots.ts';
  * parado: `uTime` = 0), las constelaciones (F4.3, sin sus etiquetas: son del DOM), cómo se sacan las fotos y las placas
  * de la tortuga (una por proyecto). `npm run stills` la guarda en
  * `src/assets/scene-stills/stills.json` y `budgets.spec.ts` la compara: si cambia algo de esto sin rehacer las fotos
- * (F4: constelaciones, Sol, cámara), el e2e falla y lo dice. Si F4 crea una carpeta nueva en `scene/` que cambie lo
+ * (las constelaciones, el Sol de F4.5, la cámara), el e2e falla y lo dice. Si F4 crea una carpeta nueva en `scene/` que cambie lo
  * que se ve, va también aquí.
  */
 export const STILLS_SOURCES = [

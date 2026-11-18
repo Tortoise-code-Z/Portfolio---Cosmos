@@ -1,6 +1,4 @@
 import { describe, expect, it } from 'vitest';
-
-import { CONSTELLATION_LOOK } from '../../config/constellationLayout/constellationLayout';
 import {
   chapterPresence,
   constellationLook,
@@ -21,11 +19,12 @@ describe('chapterPresence', () => {
 
 describe('followHot', () => {
   it('lights up and goes out smoothly at rate 8', () => {
-    expect(followHot(0, true, 0.05, false)).toBeCloseTo(0.05 * CONSTELLATION_LOOK.hotRate, 10);
+    // La cifra de la especificación, escrita aquí: con el ritmo de la config, cualquier ritmo pasaría.
+    expect(followHot(0, true, 0.05, false)).toBeCloseTo(0.4, 10);
     let hot = 0;
     for (let frame = 0; frame < 60; frame += 1) hot = followHot(hot, true, 1 / 60, false);
     expect(hot).toBe(1);
-    expect(followHot(1, false, 0.05, false)).toBeCloseTo(1 - 0.05 * CONSTELLATION_LOOK.hotRate, 10);
+    expect(followHot(1, false, 0.05, false)).toBeCloseTo(0.6, 10);
   });
 
   it('with reduced motion, at once', () => {
@@ -39,9 +38,9 @@ describe('followHot', () => {
 });
 
 describe('constellationLook', () => {
-  it('at rest: 22 px stars at 0.65, lines at 0.22, labels at 0.6 (by the presence)', () => {
+  it('at rest: 22 px stars at 0.65, lines at 0.22, labels at 0.8 (by the presence)', () => {
     const look = constellationLook(1, 0, createConstellationLook());
-    expect(look).toEqual({ starPx: 22, starOpacity: 0.65, lineOpacity: 0.22, labelOpacity: 0.6 });
+    expect(look).toEqual({ starPx: 22, starOpacity: 0.65, lineOpacity: 0.22, labelOpacity: 0.8 });
     expect(constellationLook(0.5, 0, look).starOpacity).toBeCloseTo(0.325, 10);
   });
 

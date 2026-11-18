@@ -52,7 +52,9 @@ escena en Alto y la gravedad del cursor (el ratón encima de cada línea), en EN
 percentil 98 del fondo de cada línea (texto transparente en la captura): el panel de About da ≥ 6,2 : 1 a 900 px y
 ≥ 8,8 : 1 a 1280; las etiquetas del raíl, que no llevan velo, ≥ 4,66 : 1 (la inactiva es `--color-dim` al 70 %:
 justo por encima de AA, no bajarla). Una partícula suelta justo detrás de una letra baja ese punto (hasta 4 : 1 en
-el panel a 900 px y por debajo de 2 : 1 en el raíl): son puntos que pasan, no zonas de lectura.
+el panel a 900 px y por debajo de 2 : 1 en el raíl): son puntos que pasan, no zonas de lectura. Las etiquetas de
+las estrellas (decorativas: la lista accesible es la del panel) van en reposo a `--color-dim` al 80 % (5,9 : 1
+sobre el vacío) y con un halo oscuro (`--halo-star-label`) que las separa de los brazos y del núcleo de la galaxia.
 
 Reglas:
 - El ámbar es **el único** acento de estado (activo, foco, hover). El turquesa nunca indica estado.
@@ -182,6 +184,8 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
   diálogo no hace saltar la página a lo ancho.
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
   (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`).
+  Las etiquetas de las estrellas llevan un halo oscuro (`--halo-star-label`, dos sombras de `--color-void`) para
+  leerse sobre el núcleo de la galaxia: es contraste, no brillo.
 - Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins, botones de
   contorno y avisos. La barra lleva además un velo (`--color-veil-chrome`) para no depender de lo que pase por debajo.
 - Deshabilitado: `--opacity-disabled` (0,4). Apagado sin estar deshabilitado (texto de los capítulos inactivos del

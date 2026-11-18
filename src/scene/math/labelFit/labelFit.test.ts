@@ -31,12 +31,32 @@ describe('keepOutZones', () => {
     expect(inside(zones, 800, 720 - m + 1)).toBe('bottom edge');
   });
 
+  it('on desktop, each zone ends where it says, to the pixel', () => {
+    const zones = keepOutZones(1265, 720, true);
+    const m = STAR_LABEL_KEEP_OUT.marginPx;
+    const railLeft = 1265 - 154 - m;
+    expect(inside(zones, railLeft + 1, 360)).toBe('rail');
+    expect(inside(zones, railLeft - 1, 360)).toBeUndefined();
+    expect(inside(zones, railLeft + 1, 360 - 110 - m + 1)).toBe('rail');
+    expect(inside(zones, railLeft + 1, 360 - 110 - m - 1)).toBeUndefined();
+    const hudLeft = 1265 - 247 - m;
+    const hudTop = 720 - 62 - m;
+    expect(inside(zones, hudLeft + 1, hudTop + 1)).toBe('HUD');
+    expect(inside(zones, hudLeft - 1, hudTop + 1)).toBeUndefined();
+    expect(inside(zones, hudLeft + 1, hudTop - 1)).toBeUndefined();
+  });
+
   it('below 900 px: no panel beside the scene, the HUD at the bottom left', () => {
     const zones = keepOutZones(600, 900, false);
+    const m = STAR_LABEL_KEEP_OUT.marginPx;
     expect(inside(zones, 300, 400)).toBeUndefined();
     expect(inside(zones, 100, 900 - 62)).toBe('HUD');
     expect(inside(zones, 400, 900 - 62)).toBeUndefined();
+    expect(inside(zones, 247 + m - 1, 900 - 62)).toBe('HUD');
+    expect(inside(zones, 247 + m + 1, 900 - 62)).toBeUndefined();
     expect(inside(zones, 600 - 52, 450)).toBe('rail');
+    expect(inside(zones, 600 - 52 - m + 1, 450)).toBe('rail');
+    expect(inside(zones, 600 - 52 - m - 1, 450)).toBeUndefined();
   });
 });
 
@@ -55,10 +75,16 @@ describe('fitLabels', () => {
     expect(boxes.map(({ visible }) => visible)).toEqual([true, false]);
   });
 
-  it('between two that overlap, the later one goes (the panel order wins), and a hidden one does not block', () => {
+  it('between two that overlap, the later one goes (the panel order wins), and one not wanted does not block', () => {
     const boxes = [box(10, 10, 100, false), box(50, 15), box(60, 20), box(500, 20)];
     fitLabels(boxes, nothing);
     expect(boxes.map(({ visible }) => visible)).toEqual([false, true, false, true]);
+  });
+
+  it('one hidden under a zone does not block the next one (it is not on screen)', () => {
+    const boxes = [box(10, 10), box(80, 15)];
+    fitLabels(boxes, [{ name: 'panel', rect: [0, 0, 60, 100] }]);
+    expect(boxes.map(({ visible }) => visible)).toEqual([false, true]);
   });
 
   it('decides again every time (a label that fits again comes back)', () => {

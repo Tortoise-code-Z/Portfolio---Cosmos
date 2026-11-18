@@ -49,8 +49,9 @@ export const CONSTELLATION_STARS: Readonly<Record<string, ScenePoint>> = {
 
 /**
  * Las líneas de cada constelación, por pares de `Skill.id` del mismo grupo: una figura por grupo (web, una rama;
- * libraries, un triángulo con su cadena; tools, una cadena cerrada al final; ai, un rombo con su cola). Ninguna
- * línea pasa cerca de una estrella que no es suya ni tacha el texto de una etiqueta: lo comprueba su test.
+ * libraries, un triángulo con su cadena; tools, una cadena cerrada al final; ai, una cometa con su cola). Ninguna
+ * línea pasa cerca de una estrella que no es suya ni tacha el texto de la etiqueta de otra estrella (las de sus dos
+ * extremos pueden rozarla): lo comprueba su test.
  */
 export const CONSTELLATION_LINKS: Readonly<
   Record<SkillGroupId, readonly (readonly [string, string])[]>
@@ -113,6 +114,8 @@ export const STAR_LABEL_BOX = {
   padBlockPx: 3,
   heightPx: 22,
   offsetPx: 4,
+  /** El trazo que apunta a la estrella, dentro de `startPx`. */
+  strokePx: 6,
 } as const;
 
 /**
@@ -128,7 +131,8 @@ export function starLabelWidth(text: string, fontPx: number = STAR_LABEL_BOX.fon
  * Lo que la interfaz tapa por encima de la escena y donde no puede quedar una etiqueta, en píxeles CSS del lienzo.
  * En escritorio (`wide`, desde 900 px): el panel a la izquierda, la barra de arriba, el raíl (centrado en vertical,
  * contado desde el borde derecho) y el HUD abajo a la derecha. Por debajo: la barra, el raíl (sin textos) y el HUD
- * abajo a la izquierda (entre 520 y 899 px; por debajo no hay). Con `marginPx` alrededor.
+ * abajo a la izquierda (se ve entre 520 y 899 px; por debajo no hay, pero su zona se reserva siempre, por
+ * prudencia: a 360, 390 y 430 px no oculta ninguna etiqueta más). Con `marginPx` alrededor.
  * - De los tokens (lo comprueba su test con `tokens.css`): el panel (`--gutter` de escritorio, `--space-5`, más
  *   `--panel-w`), la barra (`--topbar-h`) y el alto del raíl (un enlace de `--target-min` por capítulo).
  * - Medido en Chromium (F4.3a y F4.3b, EN y ES), porque depende del ancho de sus textos: lo que ocupan desde el
@@ -161,7 +165,8 @@ export const CONSTELLATION_LOOK = {
   hotScale: 1.55,
   starOpacity: { rest: 0.65, hot: 1 },
   lineOpacity: { rest: 0.22, hot: 0.9 },
-  labelOpacity: { rest: 0.6, hot: 1 },
+  // En reposo, 0,8 (y con su halo, `--halo-star-label`): `--color-dim` a 0,6 daba 3,7 : 1 sobre el vacío.
+  labelOpacity: { rest: 0.8, hot: 1 },
   hotRate: 8,
   /** Presencia del capítulo 2: `clamp(1 − |m − 2| · fade, 0, 1)`. */
   presenceFade: 1.8,

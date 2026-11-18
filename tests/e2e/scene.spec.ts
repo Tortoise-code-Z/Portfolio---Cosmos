@@ -285,6 +285,9 @@ test.describe('the scene with WebGL', () => {
     page,
   }) => {
     const errors = collectErrors(page);
+    // Fuera la página del `beforeEach` antes de apuntar: su escena llega cuando el navegador queda libre y, en un
+    // equipo cargado, su descarga caería en la lista (los dos chunks, dos veces).
+    await page.goto('about:blank');
     const requests = sceneRequests(page);
     await page.goto('/', { waitUntil: 'networkidle' });
     // Montada de verdad: el renderer existe (`data-ready`), no solo el `<canvas>` que R3F pinta antes.
