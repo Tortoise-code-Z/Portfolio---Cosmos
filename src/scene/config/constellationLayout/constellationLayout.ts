@@ -135,22 +135,23 @@ export function starLabelWidth(text: string, fontPx: number = STAR_LABEL_BOX.fon
  * prudencia: a 360, 390 y 430 px no oculta ninguna etiqueta más). Con `marginPx` alrededor.
  * - De los tokens (lo comprueba su test con `tokens.css`): el panel (`--gutter` de escritorio, `--space-5`, más
  *   `--panel-w`), la barra (`--topbar-h`) y el alto del raíl (un enlace de `--target-min` por capítulo).
- * - Medido en Chromium (F4.3a y F4.3b, EN y ES), porque depende del ancho de sus textos: lo que ocupan desde el
- *   borde el raíl (154 en escritorio, con el español; 52 por debajo) y el HUD (247 de ancho, 62 de alto). El e2e de
- *   F4.3c lo comparará con la página real.
+ * - Medido, porque depende del ancho de sus textos: lo que ocupan desde el borde el raíl (en escritorio, con el
+ *   español, 154 en Chromium y 154,02 en WebKit; 52 por debajo) y el HUD (62 de alto; de ancho, 247 en Chromium en
+ *   local y 251,3 en el del CI: su «≈» y sus superíndices salen con la mono del sistema). Se reserva con holgura
+ *   (158 y 256). El e2e de F4.3c (`constellations.spec.ts`) lo compara con la página real en los tres motores.
  */
 export const STAR_LABEL_KEEP_OUT = {
   marginPx: 8,
   wide: {
     panelRight: 564,
     barBottom: 64,
-    rail: { fromRight: 154, halfHeight: 110 },
-    hud: { fromRight: 247, fromBottom: 62 },
+    rail: { fromRight: 158, halfHeight: 110 },
+    hud: { fromRight: 256, fromBottom: 62 },
   },
   narrow: {
     barBottom: 64,
     rail: { fromRight: 52, halfHeight: 110 },
-    hud: { fromLeft: 247, fromBottom: 62 },
+    hud: { fromLeft: 256, fromBottom: 62 },
   },
 } as const;
 

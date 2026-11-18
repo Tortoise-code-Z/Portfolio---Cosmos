@@ -300,8 +300,10 @@ test.describe('the constellations of Skills', () => {
     await page.evaluate(() => {
       document.getElementById('skills')?.scrollIntoView({ behavior: 'instant' });
     });
-    await expect(starLabel(page, 'html')).toBeVisible();
-    await expect(page.locator('[data-constellation-labels] [data-live]').first()).toBeAttached();
+    // Cualquiera: la escena tarda en volver a su sitio (su `m` va suavizada) y la más alta es la última en caber.
+    await expect(page.locator('[data-constellation-labels] [data-live]').first()).toBeVisible({
+      timeout: 10_000,
+    });
     await expectLit(page, null);
     expect(errors).toEqual([]);
   });
