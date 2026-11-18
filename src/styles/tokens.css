@@ -187,6 +187,8 @@
   --focus-offset: 3px;
   --glow-star: 0 0 12px var(--color-star);
   --glow-singularity: 0 0 18px 4px var(--color-singularity);
+  /* Halo oscuro de las etiquetas de las estrellas: se leen también sobre el núcleo brillante de la galaxia. */
+  --halo-star-label: 0 0 2px var(--color-void), 0 0 4px var(--color-void);
   --blur-chrome: 6px;
   --opacity-disabled: 0.4;
   --target-min: 44px;

@@ -700,6 +700,11 @@
 - Consecuencias: el chunk se descarga en diferido, después de la primera pintura, y solo con WebGL2 por GPU: quien
   no ve la escena, Lighthouse y PageSpeed no lo descargan (ADR-029), así que sus notas no cambian. A un visitante con
   escena le cuesta ~11 KB más como mucho (10 934 B sobre lo medido en F4.2). `budgets.spec.ts` lo vigila igual.
+- Nota (2026-11-18, tras auditar F4.3b): el desglose por paquete del Contexto va en **KiB** (1 024 B, lo que da
+  `source-map-explorer`: 167,9 + 53,6 + 3,5 + 13,7 + ~8 = 246,7 KiB = 252 594 B); el límite, los topes y lo gastado,
+  en KB de 1 000 B (`budgets.spec.ts`). «10 KB antes de las constelaciones» salía de otro método (gzip por paquete) y
+  no se compara con los 13,7 KiB. Los 3,6 KB de F4.3 fueron F4.3a + F4.3b; las correcciones de su auditoría
+  gastaron 144 B y **F4.3c tiene ≤ 1 KB**, los dos del margen (quedan ~0,75 KB tras F4.4 y F4.5).
 - Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).
 
 ## ADR-033 · Los commits de solo documentación van directos a `main`

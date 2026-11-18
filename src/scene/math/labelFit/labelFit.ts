@@ -96,8 +96,8 @@ function clear(boxes: readonly LabelBox[], index: number, zones: readonly KeepOu
 }
 
 /**
- * Decide qué etiquetas se ven, en su orden: la que pisa algo ya visible se oculta, no la anterior. Bucles a mano:
- * corre en cada frame y no crea nada (ADR-004).
+ * Decide qué etiquetas se ven, en su orden: la que pisa algo ya visible se oculta, no la anterior. Corre en cada
+ * frame y no crea nada (ADR-004): cambia las cajas que recibe, y sus bucles recorren arrays sin copiarlos.
  */
 export function fitLabels(boxes: readonly LabelBox[], zones: readonly KeepOutZone[]): void {
   for (let index = 0; index < boxes.length; index += 1) {

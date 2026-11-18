@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { skillGroups } from '~/content/skills';
 
 import { STAR_LABEL_BOX } from '../config/constellationLayout/constellationLayout';
+import { WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
 import { ConstellationLabels, createStarLabelElements, registerLabel } from './ConstellationLabels';
 
 /** Su CSS, del disco (con jsdom, `new URL` no lleva a rutas `file:`). */
@@ -51,10 +52,20 @@ describe('ConstellationLabels', () => {
     expect(elements.has('vms')).toBe(true);
   });
 
-  it('without texts, nothing', () => {
+  it('without texts, nothing (the layer goes to body, so look there); and it leaves when they go', () => {
+    const layer = (): Element | null => document.body.querySelector('[data-constellation-labels]');
     const elements = createStarLabelElements();
-    const { container } = render(<ConstellationLabels texts={null} elements={elements} />);
-    expect(container).toBeEmptyDOMElement();
+    const { rerender, unmount } = render(<ConstellationLabels texts={null} elements={elements} />);
+    expect(layer()).toBeNull();
+    expect(elements.size).toBe(0);
+    rerender(<ConstellationLabels texts={texts} elements={elements} />);
+    expect(layer()).not.toBeNull();
+    rerender(<ConstellationLabels texts={null} elements={elements} />);
+    expect(layer()).toBeNull();
+    expect(elements.size).toBe(0);
+    rerender(<ConstellationLabels texts={texts} elements={elements} />);
+    unmount();
+    expect(layer()).toBeNull();
     expect(elements.size).toBe(0);
   });
 
@@ -70,12 +81,24 @@ describe('ConstellationLabels', () => {
     expect(label).not.toMatch(/text-transform|letter-spacing/);
     expect(label).toContain('font-family: var(--font-mono);');
     expect(label).toContain('visibility: hidden;');
-    expect(rule('.label::before')).toContain('inline-size: 6px;');
+    expect(rule('.label::before')).toContain(`inline-size: ${String(STAR_LABEL_BOX.strokePx)}px;`);
+    expect(STAR_LABEL_BOX.strokePx).toBeLessThan(startPx);
+    // El corte de la letra pequeña es el de la escena (`frame.wide`, que elige su ancho).
+    const wideFrom = /\(width >= (\d+)px\)/.exec(WIDE_LAYOUT_QUERY)?.[1] ?? 'none';
     expect(css).toMatch(
-      /@media \(width < 900px\) \{\s+\.label \{\s+font-size: var\(--text-star-label-narrow\);/,
+      new RegExp(
+        String.raw`@media \(width < ${wideFrom}px\) \{\s+\.label \{\s+font-size: var\(--text-star-label-narrow\);`,
+      ),
     );
     expect(rule('.layer')).toContain('z-index: var(--z-labels);');
     expect(rule('.layer')).toContain('pointer-events: none;');
+  });
+
+  it('readable over the bright core (a dark halo), not selectable, hidden in high contrast, no layer of its own', () => {
+    expect(rule('.label')).toContain('text-shadow: var(--halo-star-label);');
+    expect(rule('.layer')).toContain('user-select: none;');
+    expect(css).toMatch(/@media \(forced-colors: active\) \{\s+\.layer \{\s+display: none;/);
+    expect(css).not.toContain('will-change');
   });
 
   it('its letter sizes are px tokens equal to the box (11 and 10): they do not grow with the browser text size', () => {

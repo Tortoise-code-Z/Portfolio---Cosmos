@@ -198,14 +198,18 @@ test.describe('the journey (home)', () => {
           ),
         )
         .toBe(150);
-      // El peor caso es con todo el espaciado (0,25 em, en `m` 1), que llega después del `wdth`.
+      // El peor caso es con todo el espaciado (0,25 em, en `m` 1), que llega después del `wdth`. El bucle del Big Bang
+      // lo persigue frame a frame: con pocos frames (la escena por software y varios tests a la vez) tarda más de los
+      // 5 s por defecto en llegar.
       await expect
-        .poll(() =>
-          page.evaluate(() => {
-            const title = document.querySelector('h1') ?? document.body;
-            const { fontSize, letterSpacing } = getComputedStyle(title);
-            return Number.parseFloat(letterSpacing) / Number.parseFloat(fontSize);
-          }),
+        .poll(
+          () =>
+            page.evaluate(() => {
+              const title = document.querySelector('h1') ?? document.body;
+              const { fontSize, letterSpacing } = getComputedStyle(title);
+              return Number.parseFloat(letterSpacing) / Number.parseFloat(fontSize);
+            }),
+          { timeout: 15_000 },
         )
         .toBeCloseTo(0.25, 2);
       expect(

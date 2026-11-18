@@ -1,8 +1,8 @@
 /*
  * Etiquetas de las estrellas (docs/03-diseno/componentes.md → «Etiqueta de estrella»; constelaciones-y-placas.md):
- * una capa fija entre el destello y el contenido (`--z-labels`), decorativa y sin puntero. Cada etiqueta la
- * coloca la escena en cada frame (`transform`, opacidad, `visibility` y `data-hot`); hasta entonces, oculta. Su
- * caja sigue `STAR_LABEL_BOX` (scene/config/constellationLayout): lo comprueba su test.
+ * una capa fija entre el destello y el contenido (`--z-labels`), decorativa: sin puntero y sin selección (Ctrl+A no
+ * las copia). Cada etiqueta la coloca la escena en cada frame (`transform`, opacidad, `visibility` y `data-hot`);
+ * hasta entonces, oculta. Su caja sigue `STAR_LABEL_BOX` (scene/config/constellationLayout): lo comprueba su test.
  */
 .layer {
   position: fixed;
@@ -10,6 +10,7 @@
   z-index: var(--z-labels);
   overflow: hidden;
   pointer-events: none;
+  user-select: none;
 }
 
 .label {
@@ -23,10 +24,10 @@
   font-weight: var(--weight-mono);
   line-height: 16px;
   white-space: nowrap;
+  text-shadow: var(--halo-star-label);
   opacity: 0;
   visibility: hidden;
   transition: color var(--dur-fast) var(--ease-out);
-  will-change: transform, opacity;
 }
 
 /* El trazo que apunta a la estrella, a la izquierda y a media altura. */
@@ -35,7 +36,7 @@
   inset-block-start: 50%;
   inset-inline-start: 0;
   inline-size: 6px;
-  block-size: 1px;
+  block-size: var(--border-width);
   background-color: currentcolor;
   content: '';
 }
@@ -48,5 +49,12 @@
 @media (width < 900px) {
   .label {
     font-size: var(--text-star-label-narrow);
+  }
+}
+
+/* Alto contraste: el sistema fuerza los colores y quita el halo; decorativas, la lista accesible es la del panel. */
+@media (forced-colors: active) {
+  .layer {
+    display: none;
   }
 }

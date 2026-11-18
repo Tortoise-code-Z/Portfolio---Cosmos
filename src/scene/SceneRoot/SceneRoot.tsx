@@ -77,7 +77,8 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * con Three.js y React Three Fiber, después de la primera pintura: el JS inicial no la incluye. Fija detrás del
  * contenido, decorativa (`aria-hidden`) y sin puntero. Pide las formas al montar (`useSceneShapes`: worker y,
  * si falla, reintento) y las pinta (`Particles`), con las estrellas de fondo y las constelaciones (con sus etiquetas
- * en una capa del DOM aparte, `ConstellationLabels`); la cámara la lleva `CameraRig`, la primera del `<Canvas>`.
+ * en una capa del DOM aparte, `ConstellationLabels`); la cámara la lleva `CameraRig`, que se mueve antes que las
+ * demás piezas por la prioridad de su `useFrame` (`CAMERA_RIG_PRIORITY`), no por su sitio en el JSX.
  *
  * Los frames los pide su propio bucle (`frameloop="never"` + `startFrameLoop`, ADR-027): antes de cada
  * `advance()` rellena el frame compartido (`m` suavizado, la carga de la detonación, la gravedad del cursor, reloj,

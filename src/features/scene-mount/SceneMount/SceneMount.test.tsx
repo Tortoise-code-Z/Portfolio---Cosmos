@@ -1,7 +1,7 @@
 import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useEffect, type ReactNode } from 'react';
-import { MemoryRouter } from 'react-router';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
@@ -119,10 +119,39 @@ describe('SceneMount', () => {
     expect(scene.skillLabels?.vms).toBe('Virtual machines');
     expect(scene.skillLabels?.r3f).toBe('Three.js / React Three Fiber');
     expect(Object.keys(scene.skillLabels ?? {})).toHaveLength(31);
-    cleanup();
-    renderMount('/es');
+  });
+
+  it('follows the page without remounting (as in the site): another language, then a project page', async () => {
+    const router = createMemoryRouter(
+      [
+        {
+          path: '*',
+          element: (
+            <>
+              <p>The page</p>
+              <SceneMount />
+            </>
+          ),
+        },
+      ],
+      { initialEntries: ['/'] },
+    );
+    render(<RouterProvider router={router} />);
+    await idle();
     await screen.findByTestId('scene');
+    expect(scene.skillLabels?.vms).toBe('Virtual machines');
+    await act(async () => {
+      await router.navigate('/es');
+    });
     expect(scene.skillLabels?.vms).toBe('Máquinas virtuales');
+    await act(async () => {
+      await router.navigate('/projects/chessmate');
+    });
+    expect(scene.skillLabels).toBeNull();
+    await act(async () => {
+      await router.navigate('/');
+    });
+    expect(scene.skillLabels?.vms).toBe('Virtual machines');
   });
 
   it('outside the journey (a project page), no labels', async () => {
