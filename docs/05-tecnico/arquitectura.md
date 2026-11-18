@@ -109,7 +109,8 @@ cosmos-portfolio/
 │                                 huella (fingerprint.ts)
 ├─ scripts/                     ← lo que va en Docker (calidad.md): en el equipo, visual.ts y stills.ts lanzan la
 │                                 imagen (playwrightImage.ts); dentro corren prepare-in-docker.sh,
-│                                 visual-in-docker.sh y stills-in-docker.sh
+│                                 visual-in-docker.sh y stills-in-docker.sh. Y el criterio de los commits de solo
+│                                 docs (ADR-033): docsOnly.ts, con su test, y la orden docs-only.ts
 ├─ docs/                        ← esta documentación
 ├─ .github/workflows/ci.yml
 └─ (configs) react-router.config.ts · vite.config.ts · vitest.config.ts · playwright.config.ts · playwright.visual.config.ts · playwright.stills.config.ts ·

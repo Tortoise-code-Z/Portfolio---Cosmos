@@ -3,7 +3,8 @@
 > Fases en orden. Cada fase termina con: `npm run check` y CI en verde, auditoría con mirada fresca
 > (`code-audit` o la Mesa), `STATE.md`/`DECISIONS.md` al día y una etiqueta de versión.
 > Dentro de cada fase se trabaja con el ciclo: `session-start` → esquema → **Visto Bueno** → pasos pequeños
-> con commit → auditoría → `session-close`. Una rama y un PR por tarea.
+> con commit → auditoría → `session-close`. Una rama y un PR por tarea (los commits de solo documentación van
+> directos a `main`, ADR-033).
 
 ## Principio de orden
 

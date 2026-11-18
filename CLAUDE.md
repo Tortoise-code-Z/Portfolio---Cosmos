@@ -17,8 +17,8 @@ Versiones exactas y conflictos → `docs/05-tecnico/stack.md`.
   (fotos fijas del modo sin WebGL, en Docker: `npm run stills`) · `tests/setup.ts` (Vitest) · tests unitarios junto
   al archivo (`*.test.ts(x)`).
 - `scripts/` (lo que va en Docker: `visual.ts` y `stills.ts` lanzan la imagen con `playwrightImage.ts`; dentro corren
-  sus `*-in-docker.sh`).
-- Archivos con el mismo nombre (`x.ts` + `x.test.ts`…) van juntos en su carpeta `x/` (ADR-018).
+  sus `*-in-docker.sh`; y el criterio de los commits de solo docs, `docsOnly.ts` y la orden `docs-only.ts`, ADR-033).
+- Archivos con el mismo nombre (`x.ts` + `x.test.ts`…) van juntos en su carpeta `x/` en `src/` y `tests/` (ADR-018).
 - `public/` estáticos · `build/client/` salida que se despliega · `.github/workflows/ci.yml`.
 - Capas y lo que puede importar cada una → `docs/05-tecnico/arquitectura.md` (las vigila ESLint).
 
@@ -46,7 +46,8 @@ Si dos documentos chocan: `DECISIONS.md` > `docs/00-vision/brief.md` > doc espec
 
 ## Cómo trabajar aquí
 - Método: esquema → «Visto Bueno» → ejecución paso a paso. Reglas completas en `DEVELOPMENT_RULES.md`.
-- Git lo ejecuta Víctor en PowerShell; Claude le da siempre los comandos y el PR listo (título + descripción).
+- Git lo ejecuta Víctor en PowerShell; Claude le da siempre los comandos y el PR listo (título + descripción). Los
+  commits de solo documentación van directos a `main`, sin PR (ADR-033; `DEVELOPMENT_RULES.md` §10).
 - Con Víctor se habla **siempre en español**; los commits y los PR van en inglés (`DEVELOPMENT_RULES.md` §10).
 - Primero la web útil, después el espectáculo: si se quita la escena 3D, el sitio sigue completo (P1).
 - Carga solo los docs del Mapa que toque el paso actual; no leas `docs/` entero.

@@ -727,4 +727,20 @@
   (GitHub lo marca como «Bypassed rule violations»): el pre-push es lo que impide que pase código. En `main` los
   commits de docs no van en squash: uno por push, con mensaje `docs: …`. Vercel compara con su último despliegue y
   clona con 10 commits de historia: si ese despliegue queda más atrás, despliega (lado seguro).
-- Detalle: `docs/05-tecnico/git-y-despliegue.md` («Ramas y commits»), `DEVELOPMENT_RULES.md` §10 y §13.
+- Nota (2026-11-18, tras auditarlo): precisiones y cambios del mismo día.
+  - El criterio y sus tests están en `scripts/docsOnly.ts` y `scripts/docsOnly.test.ts`; `scripts/docs-only.ts` es
+    la orden que lo usa (sale con 0 si son solo docs).
+  - El **pre-push** mira cada commit, no solo el árbol final (`--each`): lo para si un commit toca algo que no sea
+    doc aunque otro lo quite después (quedaría en la historia pública de `main`), si hay un merge (`git pull
+    --rebase` antes del push) o si el remoto no es antecesor del local. El CI y Vercel siguen mirando el árbol final,
+    que es lo que se prueba y se despliega.
+  - En `main` corren también `Changes` y el resumen de los e2e (que acepta los saltados solo en un push de solo
+    docs), y cada commit tiene su grupo de concurrencia: un push de docs no cancela el run del merge anterior. Si
+    `Changes` falla, Build, E2E y Visual corren igual.
+  - Vercel compara con el último despliegue **correcto de esa rama**: tampoco rehace la preview de un PR con un
+    commit de solo docs.
+  - El pre-push solo protege donde hay hooks instalados: lo saltan `--no-verify`, `HUSKY=0`, un clon sin `npm ci`
+    y el editor web de GitHub. Por eso la norma lo prohíbe; si pasara, el CI del push correría entero (a toro
+    pasado) y Vercel desplegaría.
+- Detalle: `docs/05-tecnico/git-y-despliegue.md` («Ramas y commits», «Hooks locales», «CI» y «Despliegue
+  (Vercel)»), `DEVELOPMENT_RULES.md` §10 y §13.

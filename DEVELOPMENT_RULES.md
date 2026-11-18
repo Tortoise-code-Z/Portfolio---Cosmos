@@ -16,7 +16,8 @@ libre de errores evitables.
 2. **Visto Bueno:** se espera la aprobación explícita. Si hay cambios, se ajusta el esquema antes de seguir.
 3. **Ejecución paso a paso:** un paso, verificable, y no se avanza hasta confirmarlo.
 
-No se salta por tener el código delante ni por parecer obvio. Una rama y un PR por tarea (`docs/06-roadmap/roadmap.md`).
+No se salta por tener el código delante ni por parecer obvio. Una rama y un PR por tarea (`docs/06-roadmap/roadmap.md`),
+salvo los commits de solo documentación, que van directos a `main` (§10, ADR-033).
 
 ### 2.1 «En cristiano»
 
@@ -110,12 +111,19 @@ Detalle en `docs/05-tecnico/calidad.md` y `docs/05-tecnico/git-y-despliegue.md`.
 
 - Ramas cortas por tarea (`feat/`, `fix/`, `chore/`, `docs/`, `test/`, `refactor/`); `main` protegida, solo por PR
   con CI en verde; fusión squash.
+- **Excepción: los commits de solo documentación van directos a `main` (ADR-033).** Solo docs = archivos `.md`
+  fuera de `src/`, `tests/` y `public/`; si el commit lleva cualquier otra cosa, va por PR. Uno por push, con
+  mensaje `docs: …`, `npm run check` antes y `git pull --rebase` antes del push. Solo desde el equipo de Víctor con
+  los hooks instalados: **nunca** `--no-verify`, `HUSKY=0` ni el editor web de GitHub (el pre-push es el guardián
+  que lo para si se cuela algo que no es doc). Detalle en `docs/05-tecnico/git-y-despliegue.md` → «Ramas y
+  commits».
 - **Conventional Commits en inglés**, pequeños y atómicos (`feat(scene): add turtle shape generator`).
 - Nunca se commitea código que no compila, tests rotos, `.env`, `node_modules`, `build/` ni informes.
 - **Claude prepara siempre los PR (preferencia de Víctor):** al terminar cada tarea entrega, listos para pegar en
   GitHub, el **título** (formato Conventional Commits, en inglés) y la **descripción** en inglés con: qué cambia,
   por qué (ADR si los hay), cómo probarlo, checklist de la definición de «hecho» y notas o deuda. También da los
-  comandos de commit y push. Víctor solo los copia y pega.
+  comandos de commit y push. Víctor solo los copia y pega. Con solo docs (ADR-033), en vez del PR: los comandos
+  de `git pull --rebase`, commit y push a `main`.
 - Si Claude cambia archivos **después** de dar los comandos de commit, lo avisa y vuelve a dar los comandos;
   ningún commit con mensaje vacío o «.».
 - **Al abrir el PR, se pega siempre el título que da Claude.** Con varios commits, GitHub propone el nombre de la
@@ -124,7 +132,7 @@ Detalle en `docs/05-tecnico/calidad.md` y `docs/05-tecnico/git-y-despliegue.md`.
 ## 11. Definición de «hecho»
 
 1. La definición de «hecho» de `docs/05-tecnico/calidad.md` (check, build, visual, stills y `dev`, según lo que
-   toque): una sola lista.
+   toque; con solo docs, `npm run check`): una sola lista.
 2. Tests del comportamiento añadido, con casos límite (pirámide y cobertura en `docs/05-tecnico/calidad.md`).
 3. Accesibilidad revisada (teclado, foco, lector) si toca interfaz.
 4. Auditoría con mirada fresca (`code-audit` o la Mesa), idealmente en contexto separado, antes de cerrar la fase.
@@ -157,7 +165,7 @@ Método general en las skills `taller` y `mesa`; aquí, solo lo propio del proye
   git con `.git/info/exclude` en el equipo de Víctor (no se añade a `.gitignore`).
 - **Zona horaria:** `Europe/Dublin`.
 - **Git:** lo ejecuta Víctor. Claude solo lee, con `--no-optional-locks` y sin `git status`.
-- **Comprobaciones antes de cada commit:** `npm run check` y build; `npm run e2e:chromium` si toca interfaz o estilos
+- **Comprobaciones antes de cada commit:** `npm run check` y build (con solo docs, ADR-033: solo `npm run check`); `npm run e2e:chromium` si toca interfaz o estilos
   (el CI lo repite en los tres navegadores); `npm run visual` (Docker) si cambia algo visible y, si es a propósito,
   `npm run visual:update` y sus PNG (`Visual regression` es un check obligatorio de `main`); `npm run stills`
   (Docker) si cambian formas, shaders, cámara, niveles o proyectos (las placas), mirar las fotos y commitearlas
@@ -173,4 +181,7 @@ Método general en las skills `taller` y `mesa`; aquí, solo lo propio del proye
   prueben lo que dicen, casos límite, sin fragilidad) · documentación y ADR (coherencia entre docs y con el código).
 - **No es hallazgo:** la deuda anotada en `STATE.md`, lo planificado para pasos o fases posteriores del roadmap y lo
   que las decisiones vivas citadas en el encargo dan por decidido.
-- **Rama del cierre:** `docs/session-close-AAAA-MM-DD` (con sufijo `-2`, `-3`… si hay varias el mismo día).
+- **Commit del cierre:** directo a `main` (ADR-033): el cierre solo toca docs (`STATE.md`, su historial,
+  `DECISIONS.md` y los docs del Mapa), así que no lleva rama ni PR. Si el cierre trae algo que no sea doc (una
+  captura, un test), va por PR en `docs/session-close-AAAA-MM-DD` (con sufijo `-2`, `-3`… si hay varias el mismo
+  día).
