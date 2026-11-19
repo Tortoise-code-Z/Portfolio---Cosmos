@@ -136,7 +136,9 @@ Etiqueta `v0.3.0`.
 
 El portfolio acompaña al CV en las candidaturas desde el 25 nov 2026, y el pulido acaba el 1 dic. Antes de seguir con
 la escena, el contenido se alinea con el CV y el viaje gana dos interludios y un epílogo que rompen su ritmo (panel
-de texto sobre la escena, cinco veces seguidas). Un PR por paso, en este orden:
+de texto sobre la escena, cinco veces seguidas). Diseño aprobado: «transmisiones» por canal de color
+(`docs/03-diseno/design-system.md` → «Transmisiones»; spec de cada una en `docs/02-experiencia/capitulos/`). Un PR
+por paso, en este orden:
 
 1. **Alinear el contenido con el CV** (objetivo: 20 nov): email `victorperez@tortoisecode.dev`; formación «Advanced
    Course in Web Programming (Full-Stack)», Master.D, ene 2023 – oct 2024, 975 h; bio nueva (Física en 2019 con

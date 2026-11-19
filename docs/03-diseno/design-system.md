@@ -195,6 +195,35 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
   (el punto activo del raíl) se pinta con un color del sistema (`Highlight`); los colores del sistema son los
   únicos literales permitidos fuera de `tokens.css`.
 
+## Transmisiones (interludios y epílogo)
+
+Excepción al «la interfaz es sobria»: las dos secciones entre capítulos (Mission log, Mission control) y el epílogo
+(Crew file) son **transmisiones** que toman la pantalla entera (ADR-034). Diseño aprobado el 2026-11-19. Se
+mantienen el radio 0, la tipografía mono (IBM Plex Mono) y el tema oscuro (ADR-015); cambian la composición y el
+color, uno por **canal**:
+
+| Canal | Sección | Color | Atenuado | Brillante | Fondo |
+|---|---|---|---|---|---|
+| 01 · ámbar | Mission log | `#ffb547` | `#b98636` | `#ffd79a` | `#070503` |
+| 02 · azul | Mission control | `#7cc4ff` | `#4f86bd` | `#d6ecff` | `#02060d` |
+| 03 · verde | Crew file | `#6dff9f` | `#3f9a62` | `#d5ffe4` | `#010603` |
+
+(Valores de la propuesta: pasan a tokens `--color-channel-*` en el paso C.2, con su contraste AA medido sobre su
+fondo. Lectura del color: ámbar = estrellas y nebulosa; azul = espacio profundo y el océano de la tortuga; verde =
+la Tierra, la vida y el fósforo de los terminales.)
+
+Lenguaje común de las tres:
+
+- **Terminal:** franja de canal arriba con «Skip transmission ↓», líneas de barrido finas sobre todo, brillo
+  (`text-shadow`) solo en títulos y datos clave, teletipo con cursor, onda de señal abajo.
+- **Plano técnico:** cuadrícula doble (120 px y 24 px) en el color del canal muy tenue, cajas de línea fina, números
+  en círculo que enlazan pieza ↔ entrada, líneas discontinuas para lo que vuelve atrás y cotas.
+- Todo el texto es DOM; barrido, brillo, cursor, onda y cuadrícula son decoración y se apagan o quedan quietos con
+  movimiento reducido. Área táctil ≥ 44 px también aquí.
+
+Spec de cada una: `docs/02-experiencia/capitulos/` (`interludio-1-mission-log.md`,
+`interludio-2-mission-control.md`, `05-crew-file.md`).
+
 ## Capas (z-index)
 
 | Token | Valor | Capa |

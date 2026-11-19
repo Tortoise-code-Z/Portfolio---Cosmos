@@ -3,65 +3,65 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F4 · paso 3 (galaxia) hecho** (`main` en `fc4363f`) · **en marcha la fase C** («Contenido y
-secciones nuevas», ADR-034, va antes de F4.4): el contenido se alinea con el CV (candidaturas desde el 25 nov) y el
-viaje gana dos interludios y un epílogo con el retrato de Víctor en partículas.
+**Dónde estamos:** **Fase C planificada y diseñada** (`main` en `22f8ec7`; ADR-034) · siguiente: **C.1 · alinear el
+contenido con el CV** (objetivo: 20 nov) y **AUD-F4-3C a la Mesa**.
 
-_Última actualización: 2026-11-19 (**CIERRE DE SESIÓN · 33**, empezada el 2026-11-18) · F4.3c: el panel de Skills y
-las etiquetas de las estrellas encienden su constelación (ratón, foco, toque), con e2e de la interacción y del no
-solapamiento sobre la página real; el e2e de WebKit pilló un fallo real (etiquetas que volvían ocultas) y quedó
-corregido. 1389 unitarios; 234 e2e de Chromium en verde; CI en verde en los tres motores._
+_Última actualización: 2026-11-19 (**CIERRE DE SESIÓN · 34**) · parón en F4 para la búsqueda de empleo: el CV que
+Víctor envía desde el 25 nov enlaza al portfolio y este lo contradecía (948 h, email antiguo, sin experiencia). Plan
+de la fase C con su ADR, prueba del retrato en partículas y diseño de las secciones nuevas («transmisiones»)
+aprobados. Solo docs en el repo; nada de código._
 
-**Hecho esta sesión** (vivas S33 en `_claude/cadena/hecho/2026-11-19/decisiones-vivas-S33.md`):
-1. **F4.3c** (PR #94, `d0c022a`; vivas #1–#4):
-   - `uiStore`: `releaseActiveSkillGroup` (apaga solo si sigue encendido: manda el último gesto) y `selectSceneOn`.
-   - Panel de Skills: con la escena encendida, cada grupo es enfocable (nombrado por su título) y lo encienden el
-     ratón, el foco y un toque; un toque limpio fuera (`click` en la captura del documento) apaga; al desmontarse el
-     viaje o apagarse la escena, se apaga. `data-hot` con el estilo de `:hover` y del foco.
-   - El ratón llega a las etiquetas: `<main>` y el capítulo de Skills con `pointer-events: none`, el panel y los
-     demás capítulos con `auto` (`ChapterSection` con `passThrough`). Con la sección sola no bastaba: lo hereda de
-     `<main>`.
-   - Etiquetas: `data-live` con el capítulo a más de 0,6 (`interactiveFrom`); solo esas reciben el puntero; el
-     ratón o un toque encienden su grupo.
-   - e2e nuevo `tests/e2e/constellations.spec.ts`; el test de Tab del viaje espera a la escena y cuenta los grupos;
-     `hud` pasa a `tests/e2e/support/helpers.ts`. Peso +172 B (252 910 B).
-2. **Arreglos del CI en el mismo PR** (vivas #5–#7): el HUD en español mide 251,3 px en el Chromium del CI (247 en
-   local: sus glifos de la mono del sistema) y el raíl 154,02 en WebKit, así que `STAR_LABEL_KEEP_OUT` reserva 256 y
-   158 (en reposo se siguen viendo todas a 1280×720 y 1440×900, EN y ES); los tests de `labelFit` leen las cifras de
-   la configuración; el e2e de la vuelta espera cualquier etiqueta viva; el de Tab vuelve a mirar unos frames.
-3. **Fallo real que pilló WebKit** (vivas #8–#10): tras misión rápida → ficha → Atrás, las etiquetas volvían
-   colocadas pero ocultas. La escena solo olvidaba lo escrito si pintaba un frame con la capa desmontada, y con la
-   misión rápida abierta a la ida y a la vuelta está en pausa todo ese rato (hueco del arreglo de AUD-F4-3B). Ahora
-   cada etiqueta recuerda en qué elemento escribió (`WrittenLabel.element`); test unitario que desmonta y monta sin
-   frame en medio (falla con el código viejo).
+**Hecho esta sesión** (vivas S34 en `_claude/cadena/hecho/2026-11-19/decisiones-vivas-S34.md`):
+1. **Análisis de `trabajo-ofertas`** (proyecto de claude.ai, fuente de verdad sobre Víctor: `HANDOFF_PORTFOLIO.md`,
+   `perfil/PERFIL.md`, `cv/CV_base_EN.md`) frente a `src/content/`. Decisiones de Víctor (vivas #3–#6): titular
+   «Frontend Developer» (se queda); skills: sale Bootstrap, entran Next.js, NestJS, Electron, n8n, npm, pnpm y GLSL,
+   se quedan Vitest, Playwright y Virtual machines; el CV en inglés para EN y ES; bio con su origen (Física 2019,
+   Python; vuelta en 2022); AstroHub usa `password_hash()`.
+2. **Fase C en el roadmap y ADR-034** (commit `22f8ec7`): C.1 alinear con el CV → C.2 interludios + Mission log →
+   C.3 galaxia de skills → C.4 Mission control → C.5 Cosmos completo → C.6 epílogo con el retrato; F4.4, F4.5 y F5
+   después.
+3. **Prueba del retrato** (artefacto privado; scripts y datos en `_claude/retrato/`): Depth Anything V2 (ONNX) sobre
+   una foto → color + profundidad + contornos (~150 KB). Elegido: holograma «Escáner» con fallos de señal, ~135 k
+   partículas, robot ↔ realista 74 %, relieve 44 %.
+4. **Diseño de las secciones nuevas** (lienzo privado; copia y capturas PNG en `_claude/diseno/`): tras tres direcciones y una
+   mezcla, aprobadas las «transmisiones» a pantalla completa por canal de color: Mission log ámbar, Mission control
+   azul, Crew file verde; escritorio y móvil, encajadas entre capturas reales de los capítulos. Spec:
+   `docs/02-experiencia/capitulos/interludio-1-mission-log.md`, `interludio-2-mission-control.md`, `05-crew-file.md`;
+   `docs/03-diseno/design-system.md` → «Transmisiones»; nota en ADR-034; Mapa de `CLAUDE.md`.
+5. **`trabajo-ofertas`** (permisos del handoff): `STATE.md` («Para revisar por el chat de mentor» y «Chat del
+   portfolio: estado») y una entrada en `BITACORA.md`.
 
 **Incidencias y lecciones:**
-- **Zonas protegidas:** las herramientas remotas no escriben en `.husky/` ni en `.github/workflows/`. Esos archivos
-  se dejan en `_claude/cadena/tmp/` y Víctor los copia con `Copy-Item` antes del commit.
-- **Contenedor:** nodejs.org no está permitido; Node 24 se instala desde npm (`node-linux-x64@24.22.0`, enlazado en
-  el `PATH`). Los navegadores de Playwright no se descargan, pero hay un Chrome en `/usr/bin/google-chrome`: con una
-  config local (sin commitear) que lo pase como `executablePath`, los e2e de Chromium corren en el contenedor (234
-  en ~7,5 min). Firefox, WebKit, `visual` y `stills` los pasa Víctor (o el CI).
-- **La huella de las fotos fijas** cambia con cualquier cambio en `STILLS_SOURCES`, también de comentarios: tocar
-  `scene/config`, `Constellations` o `CameraRig` pide `npm run stills` y commitear `stills.json`.
-- **Cobertura y `noUncheckedIndexedAccess`:** los bucles por índice añaden ramas (`=== undefined`) que la cobertura
-  del 90 % cuenta, y ESLint pide `for…of` en los recorridos simples: en el código por frame, `for…of` sobre arrays
-  (sin copiarlos) y un contador cuando hace falta el índice.
-- **e2e en Windows:** con Docker en marcha a la vez o el equipo cargado, la tanda completa saca timeouts en serie
-  (las formas del worker pasan de 6 s, las páginas de 30 s). Lección: pasar antes los fallidos solos
-  (`npm run e2e:chromium -- --last-failed`) y nada de Docker en paralelo.
-- **Medidas a mano de la interfaz:** lo medido en Chromium en local no vale para el CI (los glifos de la mono del
-  sistema cambian de ancho entre máquinas y motores). Reservar con holgura y que un e2e lo compare en los tres
-  motores.
-- **Un test que demuestra un arreglo tiene que recorrer el camino que fallaba:** el de AUD-F4-3B pintaba un frame en
-  medio y no veía el caso de la pausa. Lo pilló el e2e en WebKit.
-- **Trazas del CI:** las trazas de un fallo van en el artefacto `playwright-report-<motor>` de la ejecución (sección
-  «Artifacts» de Actions). Víctor lo baja y lo deja en la carpeta; Claude no necesita acceso a GitHub (los
-  registros de texto, «logs_*.zip», no traen trazas).
-- ⚠ El texto exacto del aviso de GitHub al saltar la regla de `main` sigue sin apuntar (el doc dice «lo avisa como
-  una regla saltada»): si Víctor lo ve en la salida de un push, ajustar `git-y-despliegue.md`.
+- **Push del cierre parado por el pre-push (bien parado):** un commit intermedio añadió por error
+  `playwright-report-webkit.zip` (un `git add` sin la lista exacta) y el siguiente lo borró; el hook mira commit a
+  commit (`--each`), así que lo frenó aunque el resultado final fuera solo docs. Se rehízo con `git reset --soft` al
+  último commit publicado y un único commit. Lección: siempre `git add` con la lista exacta de archivos.
+- **Información de terceros:** un esquema del producto de la empresa de las prácticas (deducido del CV) llegó al
+  boceto; Víctor lo paró: es privado del cliente. Lección: en lo público, solo lo que ya dice el CV; nada de cómo
+  está hecho el producto de otro.
+- **Retrato desde una foto:** el filtro bilateral con umbral fino hace terrazas en la profundidad (mejor un
+  gaussiano dentro de la máscara); hay que desproyectar cada punto con la cámara para que de frente no se abran
+  grietas; con mezcla normal, los puntos tienen que escribir profundidad (o lo de atrás tapa lo de delante); en
+  mezcla aditiva, alfa ~0,3. El modelo base de Depth Anything da bastante más detalle que el pequeño.
+- **Bocetos con capturas reales:** las de `tests/visual/__screenshots__/desktop/` sirven tal cual para encajar
+  diseños nuevos en el viaje.
+- **Contenedor:** el build del repo corre con Node 24 instalado desde npm (`node-linux-x64@24.22.0`); GitHub
+  Releases es accesible (modelos ONNX), Hugging Face y jsdelivr no.
 
 **Deuda anotada:**
+- **Fase C · privacidad de Studios Demanzon:** el sitio no enseña cómo está construido el producto de la empresa
+  (arquitectura ni conexiones): solo herramientas, para qué y las viñetas del CV (nota de ADR-034). Vale también
+  para la ficha, el README y las capturas.
+- **Fase C · lo provisional del diseño** (docs de cada sección → «Pendiente»): redacción EN/ES de las tres
+  transmisiones; viñetas acortadas del registro contra el CV; frase del CTO solo con su permiso; nivel de inglés
+  visible o no; cifras de Mission control sacadas del repo en el build (o redondeadas), nunca a mano.
+- **Fase C · colores de canal:** los valores de `design-system.md` → «Transmisiones» son propuesta; pasan a tokens
+  en C.2 con el contraste AA medido sobre su fondo.
+- **C.6 · retrato:** sale de una sola foto (relieve, no cabeza completa): giro limitado (~±25°). Mejora posible: un
+  escaneo 3D con una app del móvil (KIRI Engine o Scaniverse) y convertir el modelo a partículas. La foto y los
+  datos del retrato no entran al repo hasta C.6 (copia y scripts en `_claude/retrato/`).
+- **`.gitignore`:** lo privado vive en `_claude/` (excluido con `.git/info/exclude`). Si Víctor lo quiere también
+  explícito en `.gitignore`, va en el PR de C.1 (no es solo docs, ADR-033).
 - **F4.5 · gravedad sobre la Tierra:** hoy la misma intensidad en todos los capítulos (F4.2); F4.5 la suaviza
   sobre la Tierra (`04-tierra.md`). Las constelaciones no son partículas: la gravedad no las mueve (F4.3b).
 - **Colores repetidos:** `--color-flash` y `--color-singularity` ya tienen test de pareja con `scenePalette`
@@ -216,31 +216,38 @@ corregido. 1389 unitarios; 234 e2e de Chromium en verde; CI en verde en los tres
 - Si alguna ruta lanza un 404 desde un `loader` (`throw data(null, { status: 404 })`), choca con
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
 
-**Siguiente paso (sesión 34 en curso; plan en `docs/06-roadmap/roadmap.md` → «C · Contenido y secciones nuevas»):**
-1. Prueba del retrato en partículas fuera del repo (con una foto de Víctor) y bocetos de Mission log, Mission
-   control y Crew file.
-2. **C.1 · alinear el contenido con el CV** (objetivo: 20 nov): esquema → VB.
-3. **AUD-F4-3C a la Mesa** (en la cola del tablero, con su mensaje): base `05b14ab` · hasta `d0c022a` (PR #94). La
-   galaxia de skills (C.3) espera a su corrección.
-4. Después, C.2 a C.6 en su orden; luego F4.4 · Tortuga.
-5. Víctor: preguntar a Ángel (CTO de Studios Demanzon) si se puede citar una frase de su carta en el Mission log;
-   mirar las líneas de las constelaciones en su pantalla (deuda «líneas … en retina»); redirigir el portfolio
-   antiguo de Vercel a tortoisecode.dev (un `vercel.json` con un 308 en ese proyecto).
+**Siguiente paso (próxima sesión, conversación nueva):**
+1. Arrancar con `session-start` (y la skill `taller`).
+2. **C.1 · alinear el contenido con el CV** (objetivo: 20 nov): esquema → VB. Primero, la bio nueva EN/ES para que
+   Víctor la apruebe (Física 2019 con Python, vuelta en 2022, el curso de 975 h con Distinction, las prácticas, la IA
+   como acelerador). Toca `src/content/profile.ts`, `projects/astrohub.ts`, `projects/cosmos.ts`,
+   `public/Victor_Perez_CV.pdf` (copia de `trabajo-ofertas/cv/`) y `docs/01-contenido/`; tests y e2e que esperan 948
+   o el email antiguo; `npm run visual:update`.
+3. **AUD-F4-3C a la Mesa** (en la cola del tablero), en un chat nuevo:
+   `Usa la skill mesa. Encargo para la Mesa · AUD-F4-3C · base 05b14ab · hasta d0c022a` — Audita F4.3c (PR #94).
+   Especificación: `02-galaxia.md`, `constelaciones-y-placas.md`, roadmap F4.3 y vivas S33 #1–#10. Un auditor por
+   ámbito: estilos e interfaz · lógica (uiStore) · escena 3D · tests · documentación y ADR. No es hallazgo: deuda de
+   STATE.md, el roadmap (incluida la fase C: las skills y sus estrellas cambian en C.3) y lo decidido en las vivas.
+   Entrega: `_claude/cadena/aud-f4-3c/auditoria.md`.
+4. Después, C.2 a C.6 en su orden (C.3 tras corregir AUD-F4-3C); luego F4.4 · Tortuga.
+5. Víctor: preguntar a Ángel (CTO de Studios Demanzon) por la frase de su carta; redirigir el portfolio antiguo de
+   Vercel a tortoisecode.dev (un `vercel.json` con un 308 en ese proyecto); mirar las líneas de las constelaciones en
+   su pantalla (deuda «líneas … en retina»).
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
-«Try it»), CV en PDF EN/ES.
+«Try it»). ~~CV en PDF EN/ES~~: el inglés sirve para los dos (C.1).
 **Limpieza manual del usuario:**
+- `_claude/tmp/repo-s34.tgz` (copia del repo para el build del contenedor, 18 MB): borrarlo.
 - Ramas locales ya fusionadas (todas menos `main`): las de las listas de los cierres 25 y 29 (en
   `docs/_historial/estado/2026-10.md`) y de los cierres 30 y 31 (en `2026-11.md`) que sigan, más
   `chore/docs-direct-to-main`, `fix/aud-docs-main`, `fix/aud-f4-3b` y `feat/f4-3c-skills-interaction`
-  (`git branch -D <rama>`). Para verlas:
-  `git branch`.
+  (`git branch -D <rama>`). Para verlas: `git branch`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js` ni
   `hecho/2026-10-28/encuadre/`, que se reutilizan). Mover a mano `_claude/cadena/aud-f4-1/` a
-  `_claude/cadena/hecho/2026-11-18/` (desde aquí da «Permission denied»).
-- En la raíz del repo, los zips del CI de S33 (`logs_120249887476.zip` y `playwright-report-webkit.zip`): borrarlos
-  (no van a git; ya están descomprimidos en `_claude/cadena/tmp/`).
+  `_claude/cadena/hecho/2026-11-18/` (desde aquí da «Permission denied»). No borrar `_claude/diseno/` ni
+  `_claude/retrato/` (privados, para la fase C).
+- En la raíz del repo, los zips del CI de S33 (`logs_120249887476.zip` y `playwright-report-webkit.zip`): borrarlos.
 - Perfiles temporales de las pruebas sin WebGL: `$env:TEMP\cosmos-sin-webgl` y `$env:TEMP\cosmos-swiftshader`.
 - Si alguna vez falla `npm ci` dentro de Docker: `docker volume rm cosmos-portfolio-visual-node-modules`.
 

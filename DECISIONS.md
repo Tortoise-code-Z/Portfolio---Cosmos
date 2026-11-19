@@ -785,5 +785,12 @@
   posiciones que caben en el mismo hueco, y unos bytes de la escena). F5 pasa seguramente a después del 1 dic. Hay
   que vigilar que la página no se alargue más y que cada sección nueva funcione sin WebGL, con movimiento reducido
   y con lector de pantalla (P1).
+- Nota (2026-11-19, misma sesión): diseño aprobado. Las secciones nuevas son «transmisiones» a pantalla completa,
+  cada una en su canal de color (Mission log ámbar, Mission control azul, Crew file verde), con lenguaje de
+  terminal y de plano técnico; todo sigue oscuro (ADR-015 se mantiene). El Mission log no muestra cómo está
+  construido el producto de la empresa de las prácticas (es información suya): enseña las herramientas usadas y para
+  qué, con el registro de lo hecho. El retrato del epílogo: holograma de líneas de escáner en el verde del canal,
+  con el giro limitado. Spec en `docs/03-diseno/design-system.md` → «Transmisiones» y en los docs de cada sección.
 - Detalle: `docs/06-roadmap/roadmap.md` → «C · Contenido y secciones nuevas»; cada sección, en su doc de
-  `docs/02-experiencia/capitulos/` cuando se haga su paso.
+  `docs/02-experiencia/capitulos/` (`interludio-1-mission-log.md`, `interludio-2-mission-control.md`,
+  `05-crew-file.md`) y el sistema visual en `docs/03-diseno/design-system.md` → «Transmisiones».

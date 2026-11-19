@@ -28,7 +28,7 @@ Versiones exactas y conflictos → `docs/05-tecnico/stack.md`.
 - Contenido y textos EN/ES, modelo de datos tipado → `docs/01-contenido/` (empieza por `README.md`)
   - Proyectos (fichas) → `docs/01-contenido/proyectos/<slug>.md`
 - Experiencia: scroll y `m`, navegación, estados y accesibilidad → `docs/02-experiencia/`
-  - Un archivo por capítulo (0–4) → `docs/02-experiencia/capitulos/`
+  - Un archivo por capítulo (0–5) y por interludio (Mission log, Mission control) → `docs/02-experiencia/capitulos/`
   - Página de proyecto → `docs/02-experiencia/pagina-proyecto.md`
 - Diseño: tokens, tipografía, componentes, movimiento → `docs/03-diseno/` (empieza por `design-system.md`)
 - Escena 3D: partículas, shaders, formas, cámara, constelaciones, placas, rendimiento → `docs/04-escena/`
