@@ -110,6 +110,11 @@ export function selectSceneLevel({ sceneLevel }: UiState): SceneLevel | null {
   return sceneLevel;
 }
 
+/** La escena está encendida: con nivel elegido y con WebGL (ni `null` ni `off`). */
+export function selectSceneOn({ sceneLevel }: UiState): boolean {
+  return sceneLevel !== null && sceneLevel !== 'off';
+}
+
 /** Lo escribe la sugerencia de idioma al aparecer y al contestarse. */
 export function setLanguageNoticeOpen(languageNoticeOpen: boolean): void {
   if (useUiStore.getState().languageNoticeOpen === languageNoticeOpen) return;
@@ -120,10 +125,19 @@ export function selectLanguageNoticeOpen({ languageNoticeOpen }: UiState): boole
   return languageNoticeOpen;
 }
 
-/** Enciende un grupo de skills (o ninguno, con `null`). */
+/** Enciende un grupo de skills (o ninguno, con `null`): manda el último gesto, venga de donde venga. */
 export function setActiveSkillGroup(activeSkillGroup: SkillGroupId | null): void {
   if (useUiStore.getState().activeSkillGroup === activeSkillGroup) return;
   useUiStore.setState({ activeSkillGroup });
+}
+
+/**
+ * Suelta un grupo (al salir el ratón o perder el foco): lo apaga solo si sigue siendo el encendido. Si otro gesto
+ * ya encendió otro grupo, ese se queda (docs/02-experiencia/capitulos/02-galaxia.md → «Interacciones»).
+ */
+export function releaseActiveSkillGroup(id: SkillGroupId): void {
+  if (useUiStore.getState().activeSkillGroup !== id) return;
+  useUiStore.setState({ activeSkillGroup: null });
 }
 
 export function selectActiveSkillGroup({ activeSkillGroup }: UiState): SkillGroupId | null {

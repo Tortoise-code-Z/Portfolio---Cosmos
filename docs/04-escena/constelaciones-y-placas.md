@@ -49,8 +49,13 @@ misma cuenta que la cámara; un test la compara con la de Three) y la caja de la
 11 px, 0,6 em por letra, sin mayúsculas ni espacio entre letras, 14 px a la izquierda (trazo de 6 y hueco de 8), 6 a
 la derecha, 22 de alto, a 4 px de la estrella), con lo que tapa la interfaz (`STAR_LABEL_KEEP_OUT`: de los tokens
 el panel, la barra y el alto del raíl; medidos, el ancho del raíl y el HUD), en inglés y en español, con barra de
-scroll clásica y sin ella, y con el paralaje en reposo y en sus cuatro esquinas. El e2e de F4.3c lo medirá sobre la
-página de verdad.
+scroll clásica y sin ella, y con el paralaje en reposo y en sus cuatro esquinas. El e2e de F4.3c lo mide sobre la
+página de verdad (`tests/e2e/constellations.spec.ts`): a 1280×720, 1440×900 y 390×844 las etiquetas visibles no
+se pisan ni pisan la barra, el raíl, el HUD o el panel, ni salen del lienzo, y la barra, el raíl, el HUD y el panel
+reales caben en `STAR_LABEL_KEEP_OUT` (EN y ES, a 1280×720, 768×1024 y 390×844), en los tres motores del CI. Lo
+medido se reserva con holgura: el raíl de escritorio ocupa 154 px desde el borde en Chromium y 154,02 en WebKit (se
+reservan 158), y el HUD 247 de ancho en Chromium en local y 251,3 en el del CI (se reservan 256), porque su «≈» y sus
+superíndices salen con la mono del sistema.
 
 Las más altas de `web` y `libraries` (de `typescript` y `react-hook-form` hacia arriba) quedan más allá del disco de
 la galaxia (radio ~8,35; `html` a 16,8 del centro): flotan sobre el cielo oscuro, por encima de la galaxia en
@@ -89,16 +94,20 @@ panel).
 
 - Elementos del DOM (`scene/ConstellationLabels`), uno por skill en el orden del panel, en una capa fija propia
   (`--z-labels`: entre el destello y `main`) montada en `body` con un portal: dentro del envoltorio del lienzo
-  quedarían por debajo del destello. Decorativas (`aria-hidden`) y, hasta F4.3c, sin puntero.
+  quedarían por debajo del destello. Decorativas (`aria-hidden`): el teclado y el lector usan el panel. Desde F4.3c,
+  con el capítulo a más de `interactiveFrom` (0,6), las visibles reciben el puntero (`data-live`, solo al cambiar;
+  se olvida con lo demás si la capa se desmonta): el ratón encima enciende su grupo y un toque también. Para que
+  les llegue, el capítulo de Skills y `main` dejan pasar el ratón y solo el panel lo recoge.
 - Sus textos llegan ya traducidos por props (`SceneMount` → `SceneRoot`): la escena solo lee del contenido los ids
   y el orden. Solo en el viaje: en las fichas y la 404, sin etiquetas.
 - En cada frame, `CameraRig` deja en el `SceneFrame` su pose y su campo de visión antes que nadie (su `useFrame` va
   con prioridad −1, `CAMERA_RIG_PRIORITY`: no depende de su sitio en el JSX); las constelaciones proyectan cada estrella con ellos (`scene/math/projection`), colocan su etiqueta por
   `transform` y ocultan las que no caben (`scene/math/labelFit`: la que pisa lo que tapa la interfaz,
   `STAR_LABEL_KEEP_OUT`, el borde del lienzo u otra ya visible; manda el orden del panel; una proyección que no da
-  un número no se coloca). Solo escriben lo que cambia, y nada con el capítulo lejos. Si la capa se desmonta (una
-  ficha) con el capítulo presente, olvidan lo escrito: las etiquetas que nacen al volver, ocultas por su CSS, se
-  escriben enteras.
+  un número no se coloca). Solo escriben lo que cambia, y nada con el capítulo lejos. Cada etiqueta recuerda en qué
+  elemento escribió: si es otro (la capa se desmonta en una ficha y nace de nuevo al volver), lo escrito se olvida
+  y la nueva, oculta por su CSS, se escribe entera, también si la escena no pintó ningún frame mientras no estaba
+  (con la misión rápida abierta a la ida y a la vuelta, la escena está en pausa).
 - Sin selección (`user-select: none`: Ctrl+A no las copia).
 - Mono de 11 px; por debajo de 900 px, 10 px (`--text-star-label-narrow`, en px a propósito). A 1280×720 y 1440×900 se ven las 31; en anchos
   medios y en móvil, las que caben (a 390×844, unas 13): la lista del panel sigue completa.

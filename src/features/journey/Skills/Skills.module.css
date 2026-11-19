@@ -36,11 +36,18 @@
   color: var(--color-ink);
 }
 
-/* «Hot» sin escena: con el puntero encima. El encendido con foco y toque llega en F4 con la constelación. */
-.group:hover {
+/*
+ * «Hot»: con el puntero encima (también sin escena) y, con la escena encendida, el grupo encendido (`data-hot`: ratón,
+ * foco o toque, sobre el panel o sobre una etiqueta) y el que tiene el foco del teclado.
+ */
+.group:hover,
+.group:focus-visible,
+.group[data-hot] {
   border-color: var(--color-star);
 }
 
-.group:hover .groupTitle {
+.group:hover .groupTitle,
+.group:focus-visible .groupTitle,
+.group[data-hot] .groupTitle {
   color: var(--color-star);
 }

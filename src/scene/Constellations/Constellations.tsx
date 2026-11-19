@@ -9,6 +9,7 @@ import { useUiStore } from '~/stores/uiStore/uiStore';
 import type { StarLabelElements } from '../ConstellationLabels/ConstellationLabels';
 import {
   CONSTELLATION_LINKS,
+  CONSTELLATION_LOOK,
   CONSTELLATION_STARS,
   STAR_LABEL_BOX,
   starLabelWidth,
@@ -109,22 +110,32 @@ export function labelWidths(texts: Readonly<Record<string, string>> | null): Lab
   };
 }
 
-/** Lo último escrito en una etiqueta: solo se reescribe lo que cambia. */
+/** Lo último escrito en una etiqueta, y en qué elemento: solo se reescribe lo que cambia. */
 interface WrittenLabel {
+  /**
+   * El elemento en que se escribió. Si en un frame es otro (la capa se desmontó al ir a una ficha y nació de nuevo
+   * al volver), lo escrito no vale: se olvida y se escribe entero. No depende de pintar un frame mientras no está
+   * (con la misión rápida abierta a la ida y a la vuelta, la escena está en pausa todo ese rato).
+   */
+  element: HTMLElement | null;
   x: number;
   y: number;
   opacity: number;
   visible: boolean;
   hot: boolean;
+  /** Responde al ratón (`data-live`): visible y con el capítulo a más de `interactiveFrom` (F4.3c). */
+  live: boolean;
 }
 
-/** «Nada escrito»: así nace un elemento (su CSS lo oculta), y así vuelve a quedar si se desmonta. */
-function forgetWritten(written: WrittenLabel): void {
+/** «Nada escrito» en `element`: así nace un elemento (su CSS lo oculta). */
+function forgetWritten(written: WrittenLabel, element: HTMLElement | null): void {
+  written.element = element;
   written.x = Number.NaN;
   written.y = Number.NaN;
   written.opacity = -1;
   written.visible = false;
   written.hot = false;
+  written.live = false;
 }
 
 /** Una etiqueta durante la visita: su skill, su caja en este frame y lo último escrito. */
@@ -171,8 +182,16 @@ export function createConstellationWork(
   labelElements: StarLabelElements,
 ): ConstellationWork {
   const labels = SKILLS.map((skill) => {
-    const written: WrittenLabel = { x: 0, y: 0, opacity: 0, visible: false, hot: false };
-    forgetWritten(written);
+    const written: WrittenLabel = {
+      element: null,
+      x: 0,
+      y: 0,
+      opacity: 0,
+      visible: false,
+      hot: false,
+      live: false,
+    };
+    forgetWritten(written, null);
     return { ...skill, box: createLabelBox(), written };
   });
   return {
@@ -271,16 +290,15 @@ function placeLabels(
       labels.has(slot.id);
   }
   fitLabels(work.boxes, work.zones);
+  const interactive = presence > CONSTELLATION_LOOK.interactiveFrom;
   for (const slot of work.labels) {
     const element = labels.get(slot.id);
-    if (element === undefined) {
-      // Sin elemento (una ficha: la capa se desmonta), lo escrito se olvida: el que nazca al volver empieza oculto
-      // por su CSS, y hay que escribirlo entero.
-      forgetWritten(slot.written);
-      continue;
-    }
+    // Sin elemento (una ficha: la capa se desmonta), nada que escribir.
+    if (element === undefined) continue;
+    // Uno nuevo (nacido al volver, oculto por su CSS): se escribe entero.
+    if (slot.written.element !== element) forgetWritten(slot.written, element);
     const opacity = work.groups[slot.group]?.labelOpacity ?? 0;
-    writeLabel(element, slot, opacity, meshes[slot.group]?.group === active);
+    writeLabel(element, slot, opacity, meshes[slot.group]?.group === active, interactive);
   }
 }
 
@@ -289,10 +307,16 @@ function writeLabel(
   { box, written }: LabelSlot,
   opacity: number,
   hot: boolean,
+  interactive: boolean,
 ): void {
   if (written.visible !== box.visible) {
     written.visible = box.visible;
     element.style.visibility = box.visible ? 'visible' : 'hidden';
+  }
+  const live = box.visible && interactive;
+  if (written.live !== live) {
+    written.live = live;
+    element.toggleAttribute('data-live', live);
   }
   if (!box.visible) return;
   const x = Math.round(box.left);
@@ -338,7 +362,8 @@ export function runConstellationsFrame(
  * presencia del capítulo 2 (con la `m` de la escena), lo encendido de cada grupo (el activo de
  * `uiStore.activeSkillGroup`; al instante con movimiento reducido) y, de ahí, el tamaño y la opacidad de estrellas y
  * líneas. Coloca las etiquetas: las proyecta con la pose de la cámara de este frame (la deja `CameraRig`, que va
- * antes), oculta las que no caben (`fitLabels`, contra lo que tapa la interfaz) y escribe solo lo que cambia. Sin
+ * antes), oculta las que no caben (`fitLabels`, contra lo que tapa la interfaz) y escribe solo lo que cambia; con el
+ * capítulo a más de `interactiveFrom`, las visibles responden al ratón (`data-live`). Sin
  * estado de React ni objetos nuevos por frame (ADR-004): el paso de cada frame se rellena en `work.step`. Libera la
  * GPU al desmontar. Va aparte del componente para probarlo sin WebGL.
  */

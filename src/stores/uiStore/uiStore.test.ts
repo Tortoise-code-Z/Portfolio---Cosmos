@@ -3,10 +3,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   closeQuickMission,
   openQuickMission,
+  releaseActiveSkillGroup,
   selectActiveSkillGroup,
   selectLanguageNoticeOpen,
   selectQuickMissionOpen,
   selectSceneLevel,
+  selectSceneOn,
   setActiveSkillGroup,
   setLanguageNoticeOpen,
   lowerSceneLevel,
@@ -112,6 +114,14 @@ describe('uiStore', () => {
     unsubscribe();
   });
 
+  it('the scene is on only with a chosen level and WebGL', () => {
+    expect(selectSceneOn(useUiStore.getState())).toBe(false);
+    setSceneLevel('low');
+    expect(selectSceneOn(useUiStore.getState())).toBe(true);
+    turnSceneOff();
+    expect(selectSceneOn(useUiStore.getState())).toBe(false);
+  });
+
   it('knows whether the language suggestion is showing', () => {
     expect(selectLanguageNoticeOpen(useUiStore.getState())).toBe(false);
     setLanguageNoticeOpen(true);
@@ -128,6 +138,21 @@ describe('uiStore', () => {
     setActiveSkillGroup(null);
     expect(selectActiveSkillGroup(useUiStore.getState())).toBeNull();
     expect(listener).toHaveBeenCalledTimes(2);
+    unsubscribe();
+  });
+
+  it('releases a skill group only while it is still the lit one (the last gesture wins)', () => {
+    setActiveSkillGroup('web');
+    setActiveSkillGroup('ai');
+    const listener = vi.fn();
+    const unsubscribe = useUiStore.subscribe(listener);
+    releaseActiveSkillGroup('web');
+    expect(selectActiveSkillGroup(useUiStore.getState())).toBe('ai');
+    expect(listener).not.toHaveBeenCalled();
+    releaseActiveSkillGroup('ai');
+    expect(selectActiveSkillGroup(useUiStore.getState())).toBeNull();
+    releaseActiveSkillGroup('ai');
+    expect(listener).toHaveBeenCalledTimes(1);
     unsubscribe();
   });
 });

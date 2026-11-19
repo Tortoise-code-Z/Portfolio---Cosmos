@@ -17,6 +17,9 @@ function box(left: number, top: number, width = 100, wanted = true): LabelBox {
 const inside = (zones: readonly KeepOutZone[], x: number, y: number): string | undefined =>
   zones.find(({ rect: [l, t, r, b] }) => x > l && x < r && y > t && y < b)?.name;
 
+/** Lo medido de la interfaz (raíl y HUD): se lee de la configuración, no se repite aquí. */
+const { wide, narrow } = STAR_LABEL_KEEP_OUT;
+
 describe('keepOutZones', () => {
   it('on desktop: the panel, the bar, the rail (centred), the HUD and the edges, with a margin', () => {
     const zones = keepOutZones(1265, 720, true);
@@ -24,9 +27,9 @@ describe('keepOutZones', () => {
     expect(inside(zones, 564 + m - 1, 400)).toBe('panel');
     expect(inside(zones, 564 + m + 1, 400)).toBeUndefined();
     expect(inside(zones, 800, 64 + m - 1)).toBe('top bar');
-    expect(inside(zones, 1265 - 154 - m + 1, 360)).toBe('rail'); // a media altura
-    expect(inside(zones, 1265 - 154 - m + 1, 150)).toBeUndefined(); // por encima del raíl
-    expect(inside(zones, 1265 - 247 - m + 1, 720 - 62 - m + 1)).toBe('HUD');
+    expect(inside(zones, 1265 - wide.rail.fromRight - m + 1, 360)).toBe('rail'); // a media altura
+    expect(inside(zones, 1265 - wide.rail.fromRight - m + 1, 150)).toBeUndefined(); // por encima del raíl
+    expect(inside(zones, 1265 - wide.hud.fromRight - m + 1, 720 - 62 - m + 1)).toBe('HUD');
     expect(inside(zones, 1265 - m + 1, 150)).toBe('right edge');
     expect(inside(zones, 800, 720 - m + 1)).toBe('bottom edge');
   });
@@ -34,12 +37,12 @@ describe('keepOutZones', () => {
   it('on desktop, each zone ends where it says, to the pixel', () => {
     const zones = keepOutZones(1265, 720, true);
     const m = STAR_LABEL_KEEP_OUT.marginPx;
-    const railLeft = 1265 - 154 - m;
+    const railLeft = 1265 - wide.rail.fromRight - m;
     expect(inside(zones, railLeft + 1, 360)).toBe('rail');
     expect(inside(zones, railLeft - 1, 360)).toBeUndefined();
     expect(inside(zones, railLeft + 1, 360 - 110 - m + 1)).toBe('rail');
     expect(inside(zones, railLeft + 1, 360 - 110 - m - 1)).toBeUndefined();
-    const hudLeft = 1265 - 247 - m;
+    const hudLeft = 1265 - wide.hud.fromRight - m;
     const hudTop = 720 - 62 - m;
     expect(inside(zones, hudLeft + 1, hudTop + 1)).toBe('HUD');
     expect(inside(zones, hudLeft - 1, hudTop + 1)).toBeUndefined();
@@ -52,8 +55,8 @@ describe('keepOutZones', () => {
     expect(inside(zones, 300, 400)).toBeUndefined();
     expect(inside(zones, 100, 900 - 62)).toBe('HUD');
     expect(inside(zones, 400, 900 - 62)).toBeUndefined();
-    expect(inside(zones, 247 + m - 1, 900 - 62)).toBe('HUD');
-    expect(inside(zones, 247 + m + 1, 900 - 62)).toBeUndefined();
+    expect(inside(zones, narrow.hud.fromLeft + m - 1, 900 - 62)).toBe('HUD');
+    expect(inside(zones, narrow.hud.fromLeft + m + 1, 900 - 62)).toBeUndefined();
     expect(inside(zones, 600 - 52, 450)).toBe('rail');
     expect(inside(zones, 600 - 52 - m + 1, 450)).toBe('rail');
     expect(inside(zones, 600 - 52 - m - 1, 450)).toBeUndefined();

@@ -1,16 +1,12 @@
 import { expect, type Page } from '@playwright/test';
 
+import { hud } from './support/helpers.ts';
 import { test } from './support/test.ts';
 
 /**
  * La interfaz fija del viaje (F2 · paso 5): HUD, raíl y barra superior conectados al scroll.
  * Detalle en docs/02-experiencia/navegacion.md y scroll-y-escena.md, y docs/03-diseno/componentes.md.
  */
-
-const hud = (page: Page): ReturnType<Page['locator']> =>
-  page.locator('[aria-hidden="true"]', {
-    hasText: /^t [=≈]/,
-  });
 
 /** Alto que tapa la barra fija arriba (`scroll-padding-block-start`). */
 const barHeight = (page: Page): Promise<number> =>

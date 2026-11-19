@@ -29,6 +29,12 @@ export function projectBySlug(slug: string): ProjectEntry {
   return project;
 }
 
+/** El HUD (decorativo, `aria-hidden`): el único bloque oculto al lector que empieza por el tiempo cósmico. */
+export const hud = (page: Page): ReturnType<Page['locator']> =>
+  page.locator('[aria-hidden="true"]', {
+    hasText: /^t [=≈]/,
+  });
+
 /** La escena montada de verdad: `SceneRoot` lo marca cuando existe el renderer (no basta el `<canvas>`). */
 export const SCENE_READY = '[data-ready="true"]:has(canvas)';
 

@@ -225,10 +225,14 @@ test.describe('the journey (home)', () => {
   }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/', { waitUntil: 'networkidle' });
-    // Se marca cada enlace y botón de main para saber cuáles visita el Tab (con lo que haya delante,
-    // como la barra superior de F2.5, el recorrido sigue hasta salir de main).
+    // Con la escena decidida: con ella, los grupos de Skills entran en el Tab (F4.3c); sin ella, no.
+    await settleScene(page);
+    // Se marca cada enlace, botón y grupo enfocable de main para saber cuáles visita el Tab (con lo que haya
+    // delante, como la barra superior de F2.5, el recorrido sigue hasta salir de main).
     const total = await page.evaluate(() => {
-      const focusables = [...document.querySelectorAll('main a[href], main button')];
+      const focusables = [
+        ...document.querySelectorAll('main a[href], main button, main [tabindex="0"]'),
+      ];
       focusables.forEach((element, index) => {
         element.setAttribute('data-tab-check', String(index));
       });
@@ -237,9 +241,9 @@ test.describe('the journey (home)', () => {
     const visited = new Set<string>();
     const hidden: string[] = [];
     const MAX_TABS = total + 20;
-    for (let tab = 0; tab < MAX_TABS; tab += 1) {
-      await page.keyboard.press('Tab');
-      const focused = await page.evaluate(() => {
+    /** Lo enfocado y si se ve entero con su anillo, sin quedar bajo la barra. */
+    const readFocused = () =>
+      page.evaluate(() => {
         const element = document.activeElement;
         if (element === null || element === document.body) return null;
         const box = element.getBoundingClientRect();
@@ -256,6 +260,20 @@ test.describe('the journey (home)', () => {
           visible: box.top - ring >= bar && box.bottom + ring <= window.innerHeight,
         };
       });
+    for (let tab = 0; tab < MAX_TABS; tab += 1) {
+      await page.keyboard.press('Tab');
+      let focused = await readFocused();
+      // WebKit puede terminar de traerlo a la vista unos frames después del Tab: se vuelve a mirar antes de darlo
+      // por tapado (si de verdad queda tapado, sigue fallando).
+      for (let frame = 0; frame < 10 && focused !== null && !focused.visible; frame += 1) {
+        await page.evaluate(
+          () =>
+            new Promise((resolve) => {
+              requestAnimationFrame(() => requestAnimationFrame(resolve));
+            }),
+        );
+        focused = await readFocused();
+      }
       if (focused === null) break;
       if (focused.id === null) {
         if (visited.size > 0) break; // Ha salido de main: recorrido completo.

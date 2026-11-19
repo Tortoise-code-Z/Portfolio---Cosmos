@@ -121,15 +121,25 @@
   sobre el núcleo de la galaxia. Sin selección; con alto contraste, la capa se oculta (la lista es la del panel).
 - Posicionada por proyección 3D → 2D en cada frame; opacidad según el peso del capítulo (0,8 en reposo, 1 en su
   grupo activo). Si no cabe (la interfaz, el borde u otra etiqueta), se oculta.
+- Con el capítulo a más de 0,6 de peso (`CONSTELLATION_LOOK.interactiveFrom`), las visibles reciben el puntero
+  (`data-live`): el ratón encima enciende su grupo (salir lo suelta) y un toque también. El resto de la capa, sin
+  puntero.
 
 ### Pin de placa (`PlatePin`)
 - Tallo vertical de 46 px (degradado ámbar a transparente) + etiqueta con borde y velo. *Hot*: borde y texto ámbar.
 
 ### Grupo de habilidades (`SkillGroup`)
 - Bloque con borde izquierdo de 1 px; título mono en `--color-dim` y skills en texto normal. *Hot*: borde y
-  título ámbar. Es enfocable (`tabindex="0"`) para encender la constelación con teclado **desde F4.3**: sin
-  escena no enciende nada, así que hasta entonces no entra en el orden de tabulación y solo se resalta al pasar el
-  puntero.
+  título ámbar, con el puntero encima, con el foco del teclado y en el grupo encendido (`data-hot`).
+- **Con la escena encendida** (F4.3c) enciende su constelación: es enfocable (`tabindex="0"`, nombrado por su
+  título con `aria-labelledby`) y lo encienden el ratón (entrar enciende, salir suelta), el foco y un toque; soltar
+  apaga solo si sigue siendo el encendido (manda el último gesto). Un toque limpio fuera (un `click`) apaga;
+  deslizar o salir del capítulo, no. Una etiqueta de la escena con el ratón encima también lo marca. Al ir a una
+  ficha o al apagarse la escena, se apaga.
+- **Sin escena** (sin nivel aún o sin WebGL) no enciende nada: no entra en el orden de tabulación y solo se resalta
+  al pasar el puntero.
+- La sección del capítulo deja pasar el ratón a las etiquetas de la escena (debajo de `main`): `main` y la sección
+  van con `pointer-events: none` y solo el panel lo recoge (`ChapterSection` con `passThrough`).
 
 ### Fila de proyecto (`ProjectRow`)
 - Borde izquierdo de 1 px; nombre en display (`--text-h3`), año alineado a la derecha en mono, metadatos en mono
