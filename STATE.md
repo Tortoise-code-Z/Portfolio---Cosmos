@@ -3,47 +3,60 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F4 · paso 3 (galaxia) a falta de F4.3c** (`main` en `6e6f7cd`: los commits de solo docs ya
-van directos a `main`, ADR-033; AUD-F4-3B corregida en el PR #93) · siguiente: **F4.3c** (panel, táctil y e2e), con
-el esquema ya aprobado.
+**Dónde estamos:** **F4 · paso 3 (galaxia) hecho** (`main` en `d0c022a`: F4.3c en el PR #94) · siguiente:
+**AUD-F4-3C a la Mesa** y **F4.4** (tortuga).
 
-_Última actualización: 2026-11-18 (**CIERRE DE SESIÓN · 32**) · norma nueva: la documentación va directa a `main`,
-con un guardián en el pre-push, el CI que se salta lo pesado y Vercel que no despliega; AUD-DOCS-MAIN y AUD-F4-3B
-corregidas. 1369 unitarios y 219 e2e de Chromium en verde._
+_Última actualización: 2026-11-19 (**CIERRE DE SESIÓN · 33**, empezada el 2026-11-18) · F4.3c: el panel de Skills y
+las etiquetas de las estrellas encienden su constelación (ratón, foco, toque), con e2e de la interacción y del no
+solapamiento sobre la página real; el e2e de WebKit pilló un fallo real (etiquetas que volvían ocultas) y quedó
+corregido. 1389 unitarios; 234 e2e de Chromium en verde; CI en verde en los tres motores._
 
-**Hecho esta sesión** (vivas S32 en `_claude/cadena/hecho/2026-11-18/decisiones-vivas-S32.md`):
-1. **ADR-033 · commits de solo docs directos a `main`** (PR #91, `8ac8b8a`; vivas #1–#4): `.md` fuera de `src/`,
-   `tests/` y `public/`. Un criterio, `scripts/docsOnly.ts` (con `docs-only.ts`), en tres sitios: el pre-push
-   (guardián), el job `Changes` del CI (en un push de solo docs se saltan Build, E2E y Visual; `quality` sigue) y el
-   `ignoreCommand` de Vercel. Todo falla hacia el lado seguro.
-2. **AUD-DOCS-MAIN** corregida (PR #92, `a058ed5`; vivas #7–#8): el guardián mira cada commit (`--each`: nada de
-   código que entre y salga, ni merges —`git pull --rebase`—, ni historia reescrita); un grupo de concurrencia por
-   commit en `main`; E2E y Visual corren aunque falle `Changes`; los tests sin `GIT_*`, sin hooks y sin depender del
-   orden; `scripts/docsOnly.ts` al 90 % de cobertura; el test de citas pilla claves de encargo sin fase.
-3. **La norma escrita, primer push directo** (`4dc0875`; vivas #9–#11): `DEVELOPMENT_RULES.md` §2, §10, §11 y §13
-   (el cierre de sesión va directo a `main`), `git-y-despliegue.md`, `calidad.md`, `arquitectura.md`, `roadmap.md`,
-   `CLAUDE.md` y una nota en ADR-033. Comprobado en real: guardián en el push, `Changes` con lo pesado saltado y el
-   resumen de los e2e en verde, y Vercel sin desplegar.
-4. **AUD-F4-3B** corregida (PR #93, `6e6f7cd`; vivas #14–#16): las etiquetas vuelven al volver de una ficha
-   (`forgetWritten`); `CameraRig` primero por prioridad (`CAMERA_RIG_PRIORITY = -1`); el paso del frame en
-   `work.step` (nada nuevo por frame); proyecciones no finitas sin colocar; etiquetas al 0,8 en reposo con halo oscuro
-   (`--halo-star-label`), sin selección y ocultas con alto contraste; tests que ahora pillan errores reales (cada
-   arreglo con su test que falla si se deshace); lote de docs y nota en ADR-032 (KiB frente a KB; **F4.3c ≤ 1 KB**).
-   Fotos fijas (solo cambia la huella), capturas de chapter-2 rehechas y tres de ruido devueltas a las de `94c1012`.
-5. **F4.3c · esquema con VB** (viva #13), sin escribir: ver «Siguiente paso».
+**Hecho esta sesión** (vivas S33 en `_claude/cadena/hecho/2026-11-19/decisiones-vivas-S33.md`):
+1. **F4.3c** (PR #94, `d0c022a`; vivas #1–#4):
+   - `uiStore`: `releaseActiveSkillGroup` (apaga solo si sigue encendido: manda el último gesto) y `selectSceneOn`.
+   - Panel de Skills: con la escena encendida, cada grupo es enfocable (nombrado por su título) y lo encienden el
+     ratón, el foco y un toque; un toque limpio fuera (`click` en la captura del documento) apaga; al desmontarse el
+     viaje o apagarse la escena, se apaga. `data-hot` con el estilo de `:hover` y del foco.
+   - El ratón llega a las etiquetas: `<main>` y el capítulo de Skills con `pointer-events: none`, el panel y los
+     demás capítulos con `auto` (`ChapterSection` con `passThrough`). Con la sección sola no bastaba: lo hereda de
+     `<main>`.
+   - Etiquetas: `data-live` con el capítulo a más de 0,6 (`interactiveFrom`); solo esas reciben el puntero; el
+     ratón o un toque encienden su grupo.
+   - e2e nuevo `tests/e2e/constellations.spec.ts`; el test de Tab del viaje espera a la escena y cuenta los grupos;
+     `hud` pasa a `tests/e2e/support/helpers.ts`. Peso +172 B (252 910 B).
+2. **Arreglos del CI en el mismo PR** (vivas #5–#7): el HUD en español mide 251,3 px en el Chromium del CI (247 en
+   local: sus glifos de la mono del sistema) y el raíl 154,02 en WebKit, así que `STAR_LABEL_KEEP_OUT` reserva 256 y
+   158 (en reposo se siguen viendo todas a 1280×720 y 1440×900, EN y ES); los tests de `labelFit` leen las cifras de
+   la configuración; el e2e de la vuelta espera cualquier etiqueta viva; el de Tab vuelve a mirar unos frames.
+3. **Fallo real que pilló WebKit** (vivas #8–#10): tras misión rápida → ficha → Atrás, las etiquetas volvían
+   colocadas pero ocultas. La escena solo olvidaba lo escrito si pintaba un frame con la capa desmontada, y con la
+   misión rápida abierta a la ida y a la vuelta está en pausa todo ese rato (hueco del arreglo de AUD-F4-3B). Ahora
+   cada etiqueta recuerda en qué elemento escribió (`WrittenLabel.element`); test unitario que desmonta y monta sin
+   frame en medio (falla con el código viejo).
 
 **Incidencias y lecciones:**
 - **Zonas protegidas:** las herramientas remotas no escriben en `.husky/` ni en `.github/workflows/`. Esos archivos
   se dejan en `_claude/cadena/tmp/` y Víctor los copia con `Copy-Item` antes del commit.
 - **Contenedor:** nodejs.org no está permitido; Node 24 se instala desde npm (`node-linux-x64@24.22.0`, enlazado en
-  el `PATH`). Los navegadores de Playwright tampoco se descargan: e2e, `visual` y `stills` los pasa Víctor.
+  el `PATH`). Los navegadores de Playwright no se descargan, pero hay un Chrome en `/usr/bin/google-chrome`: con una
+  config local (sin commitear) que lo pase como `executablePath`, los e2e de Chromium corren en el contenedor (234
+  en ~7,5 min). Firefox, WebKit, `visual` y `stills` los pasa Víctor (o el CI).
 - **La huella de las fotos fijas** cambia con cualquier cambio en `STILLS_SOURCES`, también de comentarios: tocar
   `scene/config`, `Constellations` o `CameraRig` pide `npm run stills` y commitear `stills.json`.
 - **Cobertura y `noUncheckedIndexedAccess`:** los bucles por índice añaden ramas (`=== undefined`) que la cobertura
   del 90 % cuenta, y ESLint pide `for…of` en los recorridos simples: en el código por frame, `for…of` sobre arrays
   (sin copiarlos) y un contador cuando hace falta el índice.
-- **e2e en Windows:** dos carreras de carga (ver la deuda). Lección: si un e2e falla en una tanda completa, pasarlo
-  solo antes de tocar código.
+- **e2e en Windows:** con Docker en marcha a la vez o el equipo cargado, la tanda completa saca timeouts en serie
+  (las formas del worker pasan de 6 s, las páginas de 30 s). Lección: pasar antes los fallidos solos
+  (`npm run e2e:chromium -- --last-failed`) y nada de Docker en paralelo.
+- **Medidas a mano de la interfaz:** lo medido en Chromium en local no vale para el CI (los glifos de la mono del
+  sistema cambian de ancho entre máquinas y motores). Reservar con holgura y que un e2e lo compare en los tres
+  motores.
+- **Un test que demuestra un arreglo tiene que recorrer el camino que fallaba:** el de AUD-F4-3B pintaba un frame en
+  medio y no veía el caso de la pausa. Lo pilló el e2e en WebKit.
+- **Trazas del CI:** las trazas de un fallo van en el artefacto `playwright-report-<motor>` de la ejecución (sección
+  «Artifacts» de Actions). Víctor lo baja y lo deja en la carpeta; Claude no necesita acceso a GitHub (los
+  registros de texto, «logs_*.zip», no traen trazas).
 - ⚠ El texto exacto del aviso de GitHub al saltar la regla de `main` sigue sin apuntar (el doc dice «lo avisa como
   una regla saltada»): si Víctor lo ve en la salida de un push, ajustar `git-y-despliegue.md`.
 
@@ -55,9 +68,10 @@ corregidas. 1369 unitarios y 219 e2e de Chromium en verde._
 - **F6 · Big Bang (ADR-030):** el `wdth` del `<h1>` cambia por frame mientras se carga o se baja por el hero:
   medir el CLS. Las variables `--_bang-*` van en `<html>`: cada escritura recalcula el estilo de toda la página
   mientras dura el hero; medirlo con Performance (y, si pesa, escribirlas más abajo).
-- **WebKit (CI) · test de Tab** («1280×720: every focusable element… comes into view with Tab»): ha fallado dos
-  veces y pasado al reintento («View project Cosmos», el email de Contacto). No parece de F4 (pasado el hero el
-  bucle del Big Bang no escribe nada); a la tercera, mirar si el foco se mide a mitad de un scroll suave.
+- **WebKit (CI) · test de Tab** («1280×720: every focusable element… comes into view with Tab»): falló tres veces
+  y pasó al reintento (la tercera, en S33, con el grupo de IA de Skills y «View project Chessmate»). Desde F4.3c,
+  si lo enfocado no se ve, vuelve a mirarlo unos frames antes de darlo por tapado. Si vuelve a fallar, ya no es
+  que se mida a mitad del desplazamiento: mirar `scroll-padding` en WebKit.
 - **e2e en el equipo de Víctor (S32):** la primera tanda completa de Chromium en Windows sacó dos carreras de carga
   que pasaban solas (el recuento de chunks de `scene.spec.ts`, que contaba la descarga tardía de la página del
   `beforeEach`, y el espaciado del nombre en `journey.spec.ts`, que tardaba más de 5 s con pocos frames). Blindadas
@@ -76,19 +90,21 @@ corregidas. 1369 unitarios y 219 e2e de Chromium en verde._
   en ventanas ≥ 900 px más estrechas que 1,25 y en las más anchas que 2,4; puntos más gordos al escalar). En F6, con
   un móvil real sin WebGL: el encaje con la barra de direcciones visible y escondida (ya lo mide `@container`), el
   fundido entre capítulos y AVIF 4:4:4 en Safari.
-- **F4.3c · lo que mide la escena a mano:** `STAR_LABEL_KEEP_OUT` lleva medidos el ancho del raíl (154 en
-  escritorio con el español, 52 por debajo) y el HUD (247 × 62); el panel, la barra y el alto del raíl ya salen de
-  los tokens (test de pareja). El e2e de F4.3c tiene que compararlos con la página real. Y anotar allí (o para el
-  iPhone real de F6) que con la zona segura en horizontal (`--gutter` con `env(safe-area-inset-*)`, un iPhone grande
-  ≥ 900 px con muesca) el panel crece ~35 px y `STAR_LABEL_KEEP_OUT` no: una etiqueta podría quedar bajo su velo.
+- **F6 · zona segura en horizontal (F4.3c):** en un iPhone grande ≥ 900 px con muesca, `--gutter` suma
+  `env(safe-area-inset-*)` y el panel crece ~35 px, pero `STAR_LABEL_KEEP_OUT` no: una etiqueta podría quedar bajo su
+  velo. Mirarlo con el iPhone real. (Lo demás que la escena reserva a mano ya lo compara el e2e de F4.3c con la
+  página real en los tres motores.)
+- **F4.3c · deslizar no apaga:** solo lo cubre el test unitario (Playwright no simula un deslizamiento táctil);
+  mirarlo en un móvil real (F6).
 - **F4.3 · líneas de las constelaciones en retina (pregunta abierta):** WebGL pinta las líneas de 1 px del
   dispositivo: a DPR 2 son 0,5 px CSS y, en reposo (0,22), dan la mitad de luz que en Bajo. Víctor lo mira en su
   pantalla (Alto, DPR 1 y 2) y decide: aceptarlo y escribirlo en «Estados», o multiplicar `uOpacity` de las líneas
   por `min(uPR, 2)` (unos bytes de GLSL).
-- **`npm run visual` en Docker:** la primera tanda de 4 capturas de escritorio puede pasarse de 30 s en `page.goto`
-  (arranque en frío; en el contenedor, 15–19 s también con `main`): repetir. Si se repite, valorar menos workers o
-  más tiempo solo en `visual`. `visual:update` rehace todas y puede meter ruido (≤ 4/255) en capturas que no
-  cambian (`chapter-0-start`, `chapter-4-contact`): devolverlas con `git restore` antes del commit.
+- **`npm run visual` en Docker:** la primera tanda de 4 capturas de escritorio se pasa de 30 s en `page.goto`
+  (arranque en frío). En S33 se repitió dos veces seguidas en el equipo de Víctor; con `npm run visual --
+  --workers=1` pasa. En la cola: un PR pequeño que limite los workers o dé más tiempo solo en `visual`.
+  `visual:update` rehace todas y puede meter ruido (≤ 4/255) en capturas que no cambian (`chapter-0-start`,
+  `chapter-4-contact`): devolverlas con `git restore` antes del commit.
 - **F6 · hero con la letra al 200 % (AUD-F4-1-4):** a 390 px el nombre ya no cabe en su columna y ahora se corta
   (`overflow-x: clip`) en vez de dar scroll de lado. Junto al resto del texto al 200 %.
 - **F6 · iPhone real (AUD-F4-1-13):** con el bucle del Big Bang, el halo es fijo a `50svh` y el lienzo a toda la
@@ -101,9 +117,10 @@ corregidas. 1369 unitarios y 219 e2e de Chromium en verde._
   desde `SceneRoot`). Lo recuerdan §13, «hecho» y el roadmap.
 - **WebKit y el `<picture>`:** que WebKit pidiera el `src` del `<img>` antes de entrar en el `<picture>` es deducido
   (no hay WebKit en el contenedor); el arreglo lo vigila el e2e de escritorio sin WebGL en el CI.
-- **Peso de la escena:** 252 738 B de 260 000 (ADR-032 y su nota). Topes que quedan: F4.3c ≤ 1 KB, F4.4 ≤ 2,5 KB
-  y F4.5 ≤ 3 KB, ~0,75 KB de margen; cada paso apunta lo que pesó en `rendimiento.md`. Por paquete se mide con
-  `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con `sourcemap: true` (sin commitear).
+- **Peso de la escena:** 252 910 B de 260 000 (ADR-032 y su nota; F4.3c pesó 172 B de su tope de 1 KB). Topes que
+  quedan: F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, ~1,6 KB de margen; cada paso apunta lo que pesó en `rendimiento.md`. Por
+  paquete se mide con `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con
+  `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
 - **Degradación en caliente:** un navegador que limita los frames a 30 (ahorro de batería) baja a Bajo en
   escritorio: aceptado y escrito en `rendimiento.md`.
@@ -185,7 +202,6 @@ corregidas. 1369 unitarios y 219 e2e de Chromium en verde._
 - El `useLayoutEffect` del HUD (sin parpadeo al cambiar de idioma) no tiene test: mirarlo con Performance en F6.
 - El e2e de alto contraste y el de copiar al portapapeles solo corren en Chromium.
 - ADR-022 (entre features, solo contratos sin React) no lo vigila ESLint: se revisa en las auditorías.
-- Grupos de Skills enfocables (`tabindex`) en **F4.3c**, cuando enciendan su constelación.
 - Iconos de GitHub y LinkedIn: hoy enlaces de texto + icono externo; decidir si se dibujan en F6.
 - **WebKit descarga dos veces las fuentes precargadas** (bug 194589): en F6, medir en un Safari real.
 - La lista de valores neutros del test de colores obliga a ampliarla con un valor legítimo nuevo (a propósito).
@@ -201,38 +217,27 @@ corregidas. 1369 unitarios y 219 e2e de Chromium en verde._
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **F4.3c**, con el esquema aprobado (vivas S32 #13; ≤ 1 KB del chunk de la escena):
-   - `uiStore`: `setActiveSkillGroup(id)` y `releaseActiveSkillGroup(id)` (apaga solo si ese grupo sigue activo),
-     con su selector. **F43C-1-A:** manda el último gesto.
-   - Panel (`features/journey/Skills`): ratón (entrar enciende, salir suelta; solo `mouse`), foco (`focusin` /
-     `focusout`) y toque. **F43C-2-A:** grupos enfocables (`tabIndex={0}`, `aria-labelledby` con su título) **solo
-     con la escena encendida**. **F43C-3-B:** tocar fuera apaga solo con un toque limpio (`click`); deslizar o salir
-     del capítulo no. `data-hot` en el grupo activo, con el estilo de `:hover` y foco visible. La sección del
-     capítulo con `pointer-events: none` y el panel con `auto` (F43-2-A).
-   - Etiquetas: `data-live` cuando la presencia pasa de `CONSTELLATION_LOOK.interactiveFrom` (0,6), solo al cambiar
-     (convive con `forgetWritten`); CSS `pointer-events: auto` solo en `.label[data-live]`; el ratón sobre una
-     etiqueta enciende su grupo. Siguen `aria-hidden`.
-   - Al ir a una ficha y volver, apagar `activeSkillGroup` (o recogerlo, como `visitedProject`).
-   - e2e (`tests/e2e/constellations.spec.ts`, solo con WebGL2): ratón, Tab y toque encienden solo su grupo; tocar
-     otro cambia y tocar fuera apaga; la etiqueta marca su grupo en el panel; a 1280×720, 1440×900 y 390×844 las
-     etiquetas visibles no se pisan ni pisan el raíl, el panel, la barra o el HUD, ni salen de la pantalla; el raíl y
-     el HUD reales caben en `STAR_LABEL_KEEP_OUT`; quick mission → proyecto → Atrás, etiquetas visibles.
-   - Docs: `componentes.md`, `constelaciones-y-placas.md` (fuera «hasta F4.3c, sin puntero»), `calidad.md`,
-     `roadmap.md` (F4.3 hecho), `rendimiento.md` (lo que pese).
-3. AUD-F4-3C a la Mesa. Después, F4.4 (tortuga).
-4. Víctor: mirar las líneas de las constelaciones en su pantalla (deuda «líneas … en retina») y decidir.
+2. **AUD-F4-3C a la Mesa** (en la cola del tablero, con su mensaje): base `05b14ab` · hasta `d0c022a` (PR #94;
+   vivas S33 hasta #10). Ámbitos: estilos e interfaz, lógica (`uiStore`), escena 3D, tests y docs.
+3. Mientras se audita, un PR pequeño: `npm run visual` en Docker con menos workers o más tiempo para el arranque en
+   frío (deuda «`npm run visual` en Docker»).
+4. **F4.4 · Tortuga** (roadmap; ≤ 2,5 KB del chunk de la escena): esquema → VB.
+5. Víctor: mirar las líneas de las constelaciones en su pantalla (deuda «líneas … en retina») y decidir.
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»), CV en PDF EN/ES.
 **Limpieza manual del usuario:**
 - Ramas locales ya fusionadas (todas menos `main`): las de las listas de los cierres 25 y 29 (en
   `docs/_historial/estado/2026-10.md`) y de los cierres 30 y 31 (en `2026-11.md`) que sigan, más
-  `chore/docs-direct-to-main`, `fix/aud-docs-main` y `fix/aud-f4-3b` (`git branch -D <rama>`). Para verlas:
+  `chore/docs-direct-to-main`, `fix/aud-docs-main`, `fix/aud-f4-3b` y `feat/f4-3c-skills-interaction`
+  (`git branch -D <rama>`). Para verlas:
   `git branch`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js` ni
   `hecho/2026-10-28/encuadre/`, que se reutilizan). Mover a mano `_claude/cadena/aud-f4-1/` a
   `_claude/cadena/hecho/2026-11-18/` (desde aquí da «Permission denied»).
+- En la raíz del repo, los zips del CI de S33 (`logs_120249887476.zip` y `playwright-report-webkit.zip`): borrarlos
+  (no van a git; ya están descomprimidos en `_claude/cadena/tmp/`).
 - Perfiles temporales de las pruebas sin WebGL: `$env:TEMP\cosmos-sin-webgl` y `$env:TEMP\cosmos-swiftshader`.
 - Si alguna vez falla `npm ci` dentro de Docker: `docker volume rm cosmos-portfolio-visual-node-modules`.
 
