@@ -104,9 +104,10 @@ panel).
   con prioridad −1, `CAMERA_RIG_PRIORITY`: no depende de su sitio en el JSX); las constelaciones proyectan cada estrella con ellos (`scene/math/projection`), colocan su etiqueta por
   `transform` y ocultan las que no caben (`scene/math/labelFit`: la que pisa lo que tapa la interfaz,
   `STAR_LABEL_KEEP_OUT`, el borde del lienzo u otra ya visible; manda el orden del panel; una proyección que no da
-  un número no se coloca). Solo escriben lo que cambia, y nada con el capítulo lejos. Si la capa se desmonta (una
-  ficha) con el capítulo presente, olvidan lo escrito: las etiquetas que nacen al volver, ocultas por su CSS, se
-  escriben enteras.
+  un número no se coloca). Solo escriben lo que cambia, y nada con el capítulo lejos. Cada etiqueta recuerda en qué
+  elemento escribió: si es otro (la capa se desmonta en una ficha y nace de nuevo al volver), lo escrito se olvida
+  y la nueva, oculta por su CSS, se escribe entera, también si la escena no pintó ningún frame mientras no estaba
+  (con la misión rápida abierta a la ida y a la vuelta, la escena está en pausa).
 - Sin selección (`user-select: none`: Ctrl+A no las copia).
 - Mono de 11 px; por debajo de 900 px, 10 px (`--text-star-label-narrow`, en px a propósito). A 1280×720 y 1440×900 se ven las 31; en anchos
   medios y en móvil, las que caben (a 390×844, unas 13): la lista del panel sigue completa.

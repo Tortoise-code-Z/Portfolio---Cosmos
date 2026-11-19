@@ -217,6 +217,23 @@ describe('useConstellations', () => {
     expect(html).toHaveAttribute('data-live');
   });
 
+  it('labels born again with no frame in between (the scene paused all along) are written whole', () => {
+    const frame = galaxyFrame();
+    const { labels, layer } = setup(frame);
+    paint();
+    expect(label(labels, 'html').style.visibility).toBe('visible');
+    // Misión rápida abierta a la ida y a la vuelta: la escena no pinta mientras la capa no está.
+    layer.rerender(<ConstellationLabels texts={null} elements={labels} />);
+    layer.rerender(<ConstellationLabels texts={TEXTS} elements={labels} />);
+    paint();
+    for (const id of Object.keys(TEXTS)) {
+      const element = label(labels, id);
+      expect(element.style.visibility, id).toBe('visible');
+      expect(element.style.opacity, id).toBe(String(CONSTELLATION_LOOK.labelOpacity.rest));
+      expect(element, id).toHaveAttribute('data-live');
+    }
+  });
+
   it('the visible labels take the mouse (data-live) only with the chapter past interactiveFrom', () => {
     const frame = galaxyFrame();
     const { labels } = setup(frame);

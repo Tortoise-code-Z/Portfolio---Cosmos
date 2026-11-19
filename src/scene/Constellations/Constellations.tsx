@@ -110,8 +110,14 @@ export function labelWidths(texts: Readonly<Record<string, string>> | null): Lab
   };
 }
 
-/** Lo último escrito en una etiqueta: solo se reescribe lo que cambia. */
+/** Lo último escrito en una etiqueta, y en qué elemento: solo se reescribe lo que cambia. */
 interface WrittenLabel {
+  /**
+   * El elemento en que se escribió. Si en un frame es otro (la capa se desmontó al ir a una ficha y nació de nuevo
+   * al volver), lo escrito no vale: se olvida y se escribe entero. No depende de pintar un frame mientras no está
+   * (con la misión rápida abierta a la ida y a la vuelta, la escena está en pausa todo ese rato).
+   */
+  element: HTMLElement | null;
   x: number;
   y: number;
   opacity: number;
@@ -121,8 +127,9 @@ interface WrittenLabel {
   live: boolean;
 }
 
-/** «Nada escrito»: así nace un elemento (su CSS lo oculta), y así vuelve a quedar si se desmonta. */
-function forgetWritten(written: WrittenLabel): void {
+/** «Nada escrito» en `element`: así nace un elemento (su CSS lo oculta). */
+function forgetWritten(written: WrittenLabel, element: HTMLElement | null): void {
+  written.element = element;
   written.x = Number.NaN;
   written.y = Number.NaN;
   written.opacity = -1;
@@ -176,6 +183,7 @@ export function createConstellationWork(
 ): ConstellationWork {
   const labels = SKILLS.map((skill) => {
     const written: WrittenLabel = {
+      element: null,
       x: 0,
       y: 0,
       opacity: 0,
@@ -183,7 +191,7 @@ export function createConstellationWork(
       hot: false,
       live: false,
     };
-    forgetWritten(written);
+    forgetWritten(written, null);
     return { ...skill, box: createLabelBox(), written };
   });
   return {
@@ -285,12 +293,10 @@ function placeLabels(
   const interactive = presence > CONSTELLATION_LOOK.interactiveFrom;
   for (const slot of work.labels) {
     const element = labels.get(slot.id);
-    if (element === undefined) {
-      // Sin elemento (una ficha: la capa se desmonta), lo escrito se olvida: el que nazca al volver empieza oculto
-      // por su CSS, y hay que escribirlo entero.
-      forgetWritten(slot.written);
-      continue;
-    }
+    // Sin elemento (una ficha: la capa se desmonta), nada que escribir.
+    if (element === undefined) continue;
+    // Uno nuevo (nacido al volver, oculto por su CSS): se escribe entero.
+    if (slot.written.element !== element) forgetWritten(slot.written, element);
     const opacity = work.groups[slot.group]?.labelOpacity ?? 0;
     writeLabel(element, slot, opacity, meshes[slot.group]?.group === active, interactive);
   }
