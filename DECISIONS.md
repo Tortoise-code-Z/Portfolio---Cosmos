@@ -749,3 +749,41 @@
     pasado) y Vercel desplegaría.
 - Detalle: `docs/05-tecnico/git-y-despliegue.md` («Ramas y commits», «Hooks locales», «CI» y «Despliegue
   (Vercel)»), `DEVELOPMENT_RULES.md` §10 y §13.
+
+## ADR-034 · El contenido se alinea con el CV y el viaje gana dos interludios y un epílogo
+- Estado: Aceptada (el retrato del epílogo, condicionado a una prueba previa fuera del repo)
+- Fecha: 2026-11-19
+- Contexto: desde el 25 nov 2026 el portfolio acompaña al CV en las candidaturas, y quien lo recibe compara los dos.
+  El contenido no cuadraba con el CV: 948 h en vez de 975, un email antiguo, sin la experiencia de las prácticas
+  (Software Developer Intern en Studios Demanzon, jul – oct 2026), sin el permiso de trabajo y sin CV descargable.
+  Además, el viaje tiene un solo ritmo: panel de texto sobre la escena que cambia, cinco veces seguidas. El pulido
+  acaba el 1 dic 2026, así que F4.4, F4.5 y F5 no caben enteras antes.
+- Decisión:
+  1. **El CV manda sobre los datos de Víctor.** El sitio no afirma nada que el CV no respalde, salvo lo que Víctor
+     confirma y queda escrito en `docs/01-contenido/` (el titular «Frontend Developer»; Vitest y Playwright, que
+     Cosmos usa de verdad; las máquinas virtuales; GLSL). El PDF del CV vive en `public/` y se vuelve a copiar cada
+     vez que cambia; el inglés sirve para los dos idiomas mientras no haya uno en español.
+  2. **Interludio**, un tipo de sección nuevo entre capítulos: el mismo sistema de tokens y tipografía con otra
+     composición (documento a todo el ancho). Detrás se queda la forma del capítulo recién leído, quieta y atenuada;
+     el cambio a la forma siguiente ocurre al salir. Mientras dura, las estrellas y las placas no reciben el puntero
+     y el HUD para el reloj. Hay dos, separados: **Mission log** (la experiencia) tras About y **Mission control**
+     (cómo trabaja Víctor: plan, Visto Bueno, construcción, auditoría y CI) tras la tortuga, que desemboca en la
+     Tierra. El bloque «Strengths» sale de About.
+  3. **Epílogo · Crew file**, capítulo 5 bajo la Tierra: el retrato de Víctor en partículas como sexta forma, la
+     ficha con la formación (que se muda de Contacto), el permiso de trabajo y «Download CV». El retrato es un dato
+     que se carga aparte (una imagen de color y profundidad sacada de una foto), no una fórmula: solo el código que
+     lo carga cuenta en el chunk de la escena (ADR-032). Sin WebGL, una foto fija, como el resto (ADR-029). Publicar
+     su cara es decisión de Víctor.
+  4. Todo esto es la fase **C** del roadmap y va antes de F4.4.
+- Alternativas descartadas: la experiencia como un bloque más dentro de About (no rompe el ritmo y la deja al nivel
+  de la bio); los dos interludios seguidos, tras About y tras Skills (demasiado juntos); más de dos interludios (la
+  página ya mide unos 950 vh); el retrato como foto normal (pierde el cierre del viaje con las mismas partículas);
+  una cabeza en 3D completa (de una sola foto sale un relieve, no la parte de atrás); mantener el orden de F4 (el
+  sitio seguiría contradiciendo al CV durante las candidaturas).
+- Consecuencias: `mapM` aprende tramos que mantienen `m`; los capítulos pasan de 0–4 a 0–5, con lo que se mueven el
+  raíl, las anclas, el HUD, la misión rápida, las fotos fijas y las capturas. La galaxia cambia sus estrellas (más
+  posiciones que caben en el mismo hueco, y unos bytes de la escena). F5 pasa seguramente a después del 1 dic. Hay
+  que vigilar que la página no se alargue más y que cada sección nueva funcione sin WebGL, con movimiento reducido
+  y con lector de pantalla (P1).
+- Detalle: `docs/06-roadmap/roadmap.md` → «C · Contenido y secciones nuevas»; cada sección, en su doc de
+  `docs/02-experiencia/capitulos/` cuando se haga su paso.

@@ -117,6 +117,8 @@ no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierr
    *(En tres PR: F4.3a, el peso de la escena (ADR-032: 260 KB) y las posiciones con su test de no solapamiento;
    F4.3b, la escena, las etiquetas y el grupo activo, con las fotos y la captura de la galaxia; F4.3c, el panel, el
    táctil y los e2e de la interacción. Hecho: F4.3a (PR #87), F4.3b (PR #88) y F4.3c (PR #94).)*
+*(Los pasos 4 y 5 esperan a la fase C, «Contenido y secciones nuevas», que va entre F4.3 y F4.4: ADR-034.)*
+
 4. **Tortuga:** placas por huecos, pins, ciclo automático, resaltado sincronizado con las filas.
 5. **Tierra:** día/noche, amanecer, luces de ciudad, atmósfera y Sol.
 
@@ -129,6 +131,36 @@ fotos nuevas en el mismo PR (ADR-029; el e2e de su huella lo recuerda). Si el pa
 
 **Hecho cuando:** cada capítulo cumple sus criterios de aceptación de `docs/02-experiencia/capitulos/`.
 Etiqueta `v0.3.0`.
+
+## C · Contenido y secciones nuevas (entre F4.3 y F4.4; ADR-034)
+
+El portfolio acompaña al CV en las candidaturas desde el 25 nov 2026, y el pulido acaba el 1 dic. Antes de seguir con
+la escena, el contenido se alinea con el CV y el viaje gana dos interludios y un epílogo que rompen su ritmo (panel
+de texto sobre la escena, cinco veces seguidas). Un PR por paso, en este orden:
+
+1. **Alinear el contenido con el CV** (objetivo: 20 nov): email `victorperez@tortoisecode.dev`; formación «Advanced
+   Course in Web Programming (Full-Stack)», Master.D, ene 2023 – oct 2024, 975 h; bio nueva (Física en 2019 con
+   Python, vuelta en 2022, el curso y las prácticas); el nombre del curso en AstroHub; la frase del flujo con IA en
+   Cosmos; el CV en PDF en `public/` y su enlace en los dos idiomas (el PDF es el inglés). Cada vez que cambie el
+   CV, se vuelve a copiar.
+2. **Interludios y Mission log** (objetivo: 23 nov): el tipo de sección «interludio» (`mapM` con tramos que mantienen
+   `m`, raíl, anclas, HUD con el reloj parado, misión rápida) y el primero, tras About: la experiencia (Software
+   Developer Intern, Studios Demanzon, jul – oct 2026) como registro de misión, con el permiso de trabajo y la
+   disponibilidad en Contacto. «Strengths» sale de About. Si el 24 nov no está, la experiencia entra provisional en
+   About y en la misión rápida.
+3. **Galaxia de skills** (objetivo: 25 nov, con la auditoría de F4.3c ya corregida): sale Bootstrap; entran Next.js,
+   NestJS, Electron, n8n, npm, pnpm y GLSL. Posiciones, líneas, test de no solapamiento, fotos fijas y peso.
+4. **Mission control** (objetivo: 27 nov): segundo interludio, tras la tortuga: cómo trabajo, en una cuenta atrás
+   (plan, Visto Bueno, construcción, auditoría, CI en verde) que desemboca en la Tierra («Touchdown»).
+5. **Cosmos completo** (objetivo: 29 nov): ficha con proceso y puntos técnicos reales; README del repo en inglés y
+   su descripción de GitHub (lo que F6 tenía para Cosmos se adelanta aquí).
+6. **Epílogo · Crew file** (objetivo: 1 dic): capítulo 5 bajo la Tierra; el retrato de Víctor en partículas (forma 6,
+   cargada como dato), la ficha con la formación (se muda de Contacto) y «Download CV». Antes de tocar el repo, una
+   prueba del retrato fuera de él; si no convence, el epílogo se queda con la ficha.
+
+**Hecho cuando:** el sitio no contradice el CV, los dos interludios y el epílogo cumplen sus criterios (un doc por
+sección en `docs/02-experiencia/capitulos/`, escrito en su paso) en escritorio y móvil, sin WebGL y con movimiento
+reducido. Después siguen F4.4 y F4.5; F5 pasa seguramente a después del 1 dic.
 
 ## F5 · Transiciones a proyectos
 
@@ -145,11 +177,12 @@ Etiqueta `v0.3.0`.
 
 - Movimiento reducido completo, táctil, encuadre en los 6 tamaños de referencia, degradación de nivel en caliente.
 - Presupuestos de Lighthouse CI activados en CI; revisión con NVDA; pruebas en un móvil real.
-- Ficha de **Cosmos** con datos reales (proceso, retos, capturas; revisar el stack); imágenes Open Graph EN/ES; favicon.
+- Ficha de **Cosmos** con datos reales (proceso, retos, capturas; revisar el stack): adelantada a C.5. Imágenes Open
+  Graph EN/ES; favicon.
 - SEO de las fichas: la meta description es el `summary` tal cual y la de Cosmos pasa de 220 (EN) y 228 (ES)
   caracteres (los buscadores cortan hacia 155–160); decidir si se acorta o se añade un `metaDescription`.
-- README del repo en inglés con capturas y arquitectura; con él, la nota de la ficha de Cosmos vuelve a citarlo
-  (`docs/01-contenido/proyectos/cosmos.md` → Notes, ⏳).
+- README del repo en inglés con capturas y arquitectura (adelantado a C.5); con él, la nota de la ficha de Cosmos
+  vuelve a citarlo (`docs/01-contenido/proyectos/cosmos.md` → Notes, ⏳).
 
 **Hecho cuando:** todas las métricas del brief se cumplen medidas en producción de preview. Etiqueta `v0.9.0`.
 
@@ -169,7 +202,7 @@ Etiqueta `v0.3.0`.
 | ✔ Confirmar si el curso de Hola Mundo está terminado (sí: F2 · paso 2) | F2 (contenido) |
 | ✔ Decidir si las estrellas de IA son prácticas o herramientas concretas (las dos: F2 · paso 2) | F2 (contenido) · F4.3 |
 | Comprobar que el README de Chessmate incluye el script de consola | F2 (página de Chessmate) |
-| CV en PDF, EN y ES | F2 o más tarde (el enlace aparece al existir) |
+| CV en PDF, EN y ES (el inglés sirve para los dos idiomas: C.1) | F2 o más tarde (el enlace aparece al existir) |
 | ✔ Dominio propio (D2: `tortoisecode.dev`, comprado en F3) · analítica (D5) | F7 |
 
 ## Backlog después de la v1

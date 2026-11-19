@@ -3,8 +3,9 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F4 · paso 3 (galaxia) hecho** (`main` en `d0c022a`: F4.3c en el PR #94) · siguiente:
-**AUD-F4-3C a la Mesa** y **F4.4** (tortuga).
+**Dónde estamos:** **F4 · paso 3 (galaxia) hecho** (`main` en `fc4363f`) · **en marcha la fase C** («Contenido y
+secciones nuevas», ADR-034, va antes de F4.4): el contenido se alinea con el CV (candidaturas desde el 25 nov) y el
+viaje gana dos interludios y un epílogo con el retrato de Víctor en partículas.
 
 _Última actualización: 2026-11-19 (**CIERRE DE SESIÓN · 33**, empezada el 2026-11-18) · F4.3c: el panel de Skills y
 las etiquetas de las estrellas encienden su constelación (ratón, foco, toque), con e2e de la interacción y del no
@@ -215,14 +216,16 @@ corregido. 1389 unitarios; 234 e2e de Chromium en verde; CI en verde en los tres
 - Si alguna ruta lanza un 404 desde un `loader` (`throw data(null, { status: 404 })`), choca con
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
 
-**Siguiente paso (próxima sesión, conversación nueva):**
-1. Arrancar con `session-start` (y la skill `taller`).
-2. **AUD-F4-3C a la Mesa** (en la cola del tablero, con su mensaje): base `05b14ab` · hasta `d0c022a` (PR #94;
-   vivas S33 hasta #10). Ámbitos: estilos e interfaz, lógica (`uiStore`), escena 3D, tests y docs.
-3. Mientras se audita, un PR pequeño: `npm run visual` en Docker con menos workers o más tiempo para el arranque en
-   frío (deuda «`npm run visual` en Docker»).
-4. **F4.4 · Tortuga** (roadmap; ≤ 2,5 KB del chunk de la escena): esquema → VB.
-5. Víctor: mirar las líneas de las constelaciones en su pantalla (deuda «líneas … en retina») y decidir.
+**Siguiente paso (sesión 34 en curso; plan en `docs/06-roadmap/roadmap.md` → «C · Contenido y secciones nuevas»):**
+1. Prueba del retrato en partículas fuera del repo (con una foto de Víctor) y bocetos de Mission log, Mission
+   control y Crew file.
+2. **C.1 · alinear el contenido con el CV** (objetivo: 20 nov): esquema → VB.
+3. **AUD-F4-3C a la Mesa** (en la cola del tablero, con su mensaje): base `05b14ab` · hasta `d0c022a` (PR #94). La
+   galaxia de skills (C.3) espera a su corrección.
+4. Después, C.2 a C.6 en su orden; luego F4.4 · Tortuga.
+5. Víctor: preguntar a Ángel (CTO de Studios Demanzon) si se puede citar una frase de su carta en el Mission log;
+   mirar las líneas de las constelaciones en su pantalla (deuda «líneas … en retina»); redirigir el portfolio
+   antiguo de Vercel a tortoisecode.dev (un `vercel.json` con un 308 en ese proyecto).
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»), CV en PDF EN/ES.
