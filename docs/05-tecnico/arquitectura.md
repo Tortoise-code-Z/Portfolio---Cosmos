@@ -299,8 +299,17 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   `no-restricted-syntax` prohíbe fuera de ahí los `import()` de `scene/` o de Three y cualquier `import()`
   cuya ruta no sea una cadena fija (una plantilla o una variable no se pueden comprobar).
 - El lienzo vive en `root.tsx` (persistente entre rutas). El viaje (`routes/journey/journey.tsx`) le escribe
-  `mTarget` en `sceneStore` (`setScrollTarget`); el proyecto activo (`uiStore`, F4.4) y la atenuación de las fichas
-  (F5) llegan después.
+  `mTarget` en `sceneStore` (`setScrollTarget`), y el panel de Skills y las etiquetas, el grupo encendido
+  (`uiStore.activeSkillGroup`, F4.3c), que la escena lee en cada frame; el proyecto activo (`uiStore`, F4.4) y la
+  atenuación de las fichas (F5) llegan después.
+- **Puntero del viaje** (F4.3c): las etiquetas de las constelaciones están en su capa, debajo de `<main>`
+  (`--z-labels` < `--z-content`). En el viaje, `<main>` y los capítulos (`ChapterSection`) van sin puntero; lo
+  recogen los hijos directos de cada capítulo (el panel, el contenido del hero) y todo hijo directo de `<main>` que no
+  sea un capítulo, así que una sección nueva (un interludio de la fase C) nace con puntero sin hacer nada
+  (`ChapterSection.module.css`, con `:where` para que la regla propia de un hijo siga mandando). Un toque limpio en
+  cualquier sitio apaga el grupo encendido: un `click` escuchado en la fase de captura del documento, mientras la
+  escena está encendida; si cae en un grupo o una etiqueta, su propio `click` lo vuelve a encender (manda el último
+  gesto). Al desmontarse el viaje o apagarse la escena, se apaga.
 
 ## Configuración y entorno
 

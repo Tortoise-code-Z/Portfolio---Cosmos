@@ -50,7 +50,8 @@ interface SkillGroupItemProps {
 
 /**
  * Un grupo del panel (docs/03-diseno/componentes.md → «Grupo de habilidades»). Con la escena encendida es enfocable
- * (`aria-labelledby` con su título) y lo encienden el ratón (solo `mouse`: entrar enciende, salir suelta), el foco y el toque; soltar apaga
+ * (`aria-labelledby` con su título) y lo encienden el ratón (solo `mouse`: entrar enciende, salir suelta), el foco del
+ * teclado y el toque; soltar apaga
  * solo si sigue siendo el encendido (manda el último gesto). Sin escena no entra en el Tab y no escribe nada.
  */
 function SkillGroupItem({ group, sceneOn, hot }: SkillGroupItemProps): ReactNode {
@@ -65,7 +66,7 @@ function SkillGroupItem({ group, sceneOn, hot }: SkillGroupItemProps): ReactNode
   };
 
   return (
-    // El teclado lo enciende con el foco (`onFocus`); el `click` es el camino del toque.
+    // El teclado lo enciende con el foco (`onFocus`, solo `:focus-visible`); el `click` es el camino del toque.
     // eslint-disable-next-line jsx-a11y-x/no-noninteractive-element-interactions, jsx-a11y-x/click-events-have-key-events
     <li
       className={styles.group}
@@ -80,8 +81,14 @@ function SkillGroupItem({ group, sceneOn, hot }: SkillGroupItemProps): ReactNode
       onPointerLeave={(event: PointerEvent) => {
         if (event.pointerType === 'mouse') release();
       }}
-      onFocus={light}
-      onBlur={(event: FocusEvent) => {
+      // Solo el foco del teclado enciende: el del puntero ya lo cubren `pointerenter` y `click`, y el que devuelve el
+      // navegador al volver a la pestaña no es un gesto (el navegador recuerda la modalidad: `:focus-visible`).
+      onFocus={(event: FocusEvent<HTMLLIElement>) => {
+        if (event.currentTarget.matches(':focus-visible')) light();
+      }}
+      // Irse a otra ventana o pestaña no es soltar: el foco sigue en el grupo.
+      onBlur={(event: FocusEvent<HTMLLIElement>) => {
+        if (!document.hasFocus()) return;
         if (!event.currentTarget.contains(event.relatedTarget)) release();
       }}
       onClick={light}
@@ -102,7 +109,7 @@ function SkillGroupItem({ group, sceneOn, hot }: SkillGroupItemProps): ReactNode
  * Capítulo 2 · Galaxia · Habilidades (docs/02-experiencia/capitulos/02-galaxia.md). El panel es la versión completa
  * y accesible: los 4 grupos con todas sus skills. Con la escena encendida, cada grupo enciende su constelación
  * (`uiStore.activeSkillGroup`, que la escena lee en cada frame); sin escena, un grupo solo se resalta con el puntero.
- * La sección deja pasar el ratón a las etiquetas de la escena; solo el panel lo recoge.
+ * Como todo capítulo, la sección deja pasar el ratón a las etiquetas de la escena; solo el panel lo recoge.
  */
 export function Skills(): ReactNode {
   const t = useT();
@@ -111,7 +118,7 @@ export function Skills(): ReactNode {
   useTapOutsideTurnsOff(sceneOn);
 
   return (
-    <ChapterSection index={2} labelledBy={TITLE_ID} passThrough>
+    <ChapterSection index={2} labelledBy={TITLE_ID}>
       <ChapterPanel>
         <Eyebrow text={t('skills.eyebrow')} />
         <h2 id={TITLE_ID} tabIndex={-1}>

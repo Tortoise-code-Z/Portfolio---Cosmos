@@ -50,12 +50,14 @@ misma cuenta que la cámara; un test la compara con la de Three) y la caja de la
 la derecha, 22 de alto, a 4 px de la estrella), con lo que tapa la interfaz (`STAR_LABEL_KEEP_OUT`: de los tokens
 el panel, la barra y el alto del raíl; medidos, el ancho del raíl y el HUD), en inglés y en español, con barra de
 scroll clásica y sin ella, y con el paralaje en reposo y en sus cuatro esquinas. El e2e de F4.3c lo mide sobre la
-página de verdad (`tests/e2e/constellations.spec.ts`): a 1280×720, 1440×900 y 390×844 las etiquetas visibles no
-se pisan ni pisan la barra, el raíl, el HUD o el panel, ni salen del lienzo, y la barra, el raíl, el HUD y el panel
+página de verdad (`tests/e2e/constellations.spec.ts`): a 1280×720, 1440×900 y 390×844, en EN y ES, las etiquetas
+visibles no se pisan ni pisan la barra, el raíl, el HUD o el panel, ni salen del lienzo, y la barra, el raíl, el HUD y el panel
 reales caben en `STAR_LABEL_KEEP_OUT` (EN y ES, a 1280×720, 768×1024 y 390×844), en los tres motores del CI. Lo
 medido se reserva con holgura: el raíl de escritorio ocupa 154 px desde el borde en Chromium y 154,02 en WebKit (se
 reservan 158), y el HUD 247 de ancho en Chromium en local y 251,3 en el del CI (se reservan 256), porque su «≈» y sus
-superíndices salen con la mono del sistema.
+superíndices salen con la mono del sistema. El HUD se mide en reposo (m = 2): al salir de la galaxia (m ≥ 2,5)
+enseña ya la línea del capítulo 3, más larga, y puede pasar de los 256 reservados; ahí las etiquetas tienen opacidad
+≤ 0,08 y no se ven. Aceptado: no se ensancha la zona prohibida por un caso invisible.
 
 Las más altas de `web` y `libraries` (de `typescript` y `react-hook-form` hacia arriba) quedan más allá del disco de
 la galaxia (radio ~8,35; `html` a 16,8 del centro): flotan sobre el cielo oscuro, por encima de la galaxia en
@@ -97,7 +99,9 @@ panel).
   quedarían por debajo del destello. Decorativas (`aria-hidden`): el teclado y el lector usan el panel. Desde F4.3c,
   con el capítulo a más de `interactiveFrom` (0,6), las visibles reciben el puntero (`data-live`, solo al cambiar;
   se olvida con lo demás si la capa se desmonta): el ratón encima enciende su grupo y un toque también. Para que
-  les llegue, el capítulo de Skills y `main` dejan pasar el ratón y solo el panel lo recoge.
+  les llegue, `main` y los capítulos dejan pasar el ratón y solo lo recogen sus hijos directos, como el panel
+  (`docs/05-tecnico/arquitectura.md` → «Puntero del viaje»): también mientras la galaxia entra o sale, con About o
+  Projects aún en pantalla.
 - Sus textos llegan ya traducidos por props (`SceneMount` → `SceneRoot`): la escena solo lee del contenido los ids
   y el orden. Solo en el viaje: en las fichas y la 404, sin etiquetas.
 - En cada frame, `CameraRig` deja en el `SceneFrame` su pose y su campo de visión antes que nadie (su `useFrame` va

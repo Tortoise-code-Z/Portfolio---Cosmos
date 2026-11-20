@@ -30,15 +30,17 @@
 }
 
 /*
- * Un capítulo que deja pasar el ratón a las etiquetas de la escena (F4.3c): están en su capa, debajo de `<main>`
- * (`--z-labels`). `<main>` y ese capítulo no lo recogen; los demás capítulos y los hijos directos del que lo deja
- * pasar (el panel), sí.
+ * Puntero del viaje (docs/05-tecnico/arquitectura.md → «Puntero del viaje»): las etiquetas de la escena están en su
+ * capa, debajo de `<main>` (`--z-labels`). `<main>` y los capítulos dejan pasar el ratón (también por sus márgenes y
+ * mientras entran o salen de la pantalla); lo recogen los hijos directos de cada capítulo (el panel, el contenido del
+ * hero) y todo hijo directo de `<main>` que no sea un capítulo (una sección nueva nace con puntero). Con `:where`, sin
+ * especificidad: la regla propia de un hijo (`pointer-events: none` en un adorno) sigue mandando.
  */
-:global(main):has(> .chapter[data-pass-through]) {
+:global(main):has(> .chapter) {
   pointer-events: none;
 }
 
-.chapter:not([data-pass-through]),
-.chapter[data-pass-through] > * {
+:where(:global(main)) > :where(:not(.chapter)),
+:where(.chapter) > :where(*) {
   pointer-events: auto;
 }

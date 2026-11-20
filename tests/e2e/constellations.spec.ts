@@ -87,6 +87,11 @@ async function openSkills(page: Page, viewport: Viewport = DESKTOP, path = '/'):
     timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
   });
   await expect(page.locator('[data-constellation-labels] [data-live]').first()).toBeAttached();
+  await labelsStill(page);
+}
+
+/** Espera a que las etiquetas visibles no se muevan entre dos lecturas (la `m` de la escena llega suavizada). */
+async function labelsStill(page: Page): Promise<void> {
   let previous = '';
   await expect
     .poll(async () => {
@@ -96,6 +101,24 @@ async function openSkills(page: Page, viewport: Viewport = DESKTOP, path = '/'):
       return still;
     })
     .toBe(true);
+}
+
+/**
+ * Las etiquetas vivas (`data-live`) y visibles cuyo centro se queda `<main>` o un capítulo: el puntero no les llega.
+ * Lo que pinta la interfaz encima (un panel, la barra) no cuenta: eso lo vigila el test de solapamiento.
+ */
+async function liveLabelsTakenByAChapter(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const main = document.querySelector('main');
+    return [...document.querySelectorAll<HTMLElement>('[data-constellation-labels] [data-live]')]
+      .filter((el) => el.style.visibility === 'visible' && Number(el.style.opacity) > 0)
+      .filter((el) => {
+        const { left, top, width, height } = el.getBoundingClientRect();
+        const hit = document.elementFromPoint(left + width / 2, top + height / 2);
+        return hit !== null && (hit === main || hit.parentElement === main);
+      })
+      .map((el) => el.dataset.skill ?? '');
+  });
 }
 
 function overlaps(a: Rect, b: Rect): boolean {
@@ -173,6 +196,33 @@ test.describe('the constellations of Skills', () => {
     await expectLit(page, null);
   });
 
+  test('a group clicked with the mouse does not light again by itself when the browser gives the focus back', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(
+      browserName !== 'chromium',
+      'How a programmatic focus inherits the last modality (:focus-visible): Chromium',
+    );
+    await openSkills(page);
+    // El clic le da el foco (es enfocable); apartar el ratón lo apaga, pero el foco se queda.
+    await panelGroup(page, 'web').click();
+    await expectLit(page, 'web');
+    await page.mouse.move(4, DESKTOP.height / 2);
+    await expectLit(page, null);
+    await expect(panelGroup(page, 'web')).toBeFocused();
+    // Lo que hace el navegador al volver a la pestaña: quitar y devolver el foco, sin gesto (headless no lo hace con
+    // `bringToFront`; se reproduce a mano, con la modalidad del último gesto, el ratón).
+    await page.evaluate(() => {
+      const group = document.activeElement;
+      if (!(group instanceof HTMLElement)) throw new Error('No focused group');
+      group.blur();
+      group.focus();
+    });
+    await expect(panelGroup(page, 'web')).toBeFocused();
+    await expectLit(page, null);
+  });
+
   test('the mouse over a label marks its group in the panel (the chapter lets it through); leaving lets it go', async ({
     page,
   }) => {
@@ -184,6 +234,31 @@ test.describe('the constellations of Skills', () => {
     await expectLit(page, 'ai');
     await page.mouse.move(4, DESKTOP.height / 2);
     await expectLit(page, null);
+  });
+
+  test('while the galaxy comes in and goes out, no chapter takes the mouse from a live label', async ({
+    page,
+  }) => {
+    await openSkills(page);
+    const viewportHeight = DESKTOP.height;
+    const { top, bottom } = await page.evaluate(() => {
+      const rect = document.getElementById('skills')?.getBoundingClientRect();
+      if (rect === undefined) throw new Error('No #skills');
+      return { top: rect.top + window.scrollY, bottom: rect.bottom + window.scrollY };
+    });
+    let checked = 0;
+    // De About entrando (la galaxia aún abajo) a Projects entrando (la galaxia saliendo), a cuartos de pantalla.
+    for (let y = top - viewportHeight; y <= bottom; y += viewportHeight / 4) {
+      await page.evaluate((to) => {
+        window.scrollTo({ top: to, behavior: 'instant' });
+      }, y);
+      await labelsStill(page);
+      checked += await page.locator('[data-constellation-labels] [data-live]').count();
+      expect(await liveLabelsTakenByAChapter(page), `scrolled to ${String(Math.round(y))}`).toEqual(
+        [],
+      );
+    }
+    expect(checked).toBeGreaterThan(0);
   });
 
   test.describe('on a touch screen', () => {
@@ -201,45 +276,52 @@ test.describe('the constellations of Skills', () => {
       await expectLit(page, 'tools');
       await page.locator('#skills-title').tap();
       await expectLit(page, null);
+      // El «fuera» de verdad en el móvil: la escena, al margen del panel (cae en la página, no en un elemento).
+      await panelGroup(page, 'web').tap();
+      await expectLit(page, 'web');
+      await page.touchscreen.tap(4, DESKTOP.height / 2);
+      await expectLit(page, null);
     });
   });
 
-  for (const viewport of [
-    { width: 1280, height: 720 },
-    { width: 1440, height: 900 },
-    { width: 390, height: 844 },
-  ]) {
-    test(`at ${String(viewport.width)}×${String(viewport.height)}, the labels shown never overlap each other, the interface or the edges`, async ({
-      page,
-    }) => {
-      await openSkills(page, viewport);
-      const labels = await shownLabels(page);
-      expect(labels.length).toBeGreaterThan(0);
-      if (viewport.width >= 900) {
-        // En reposo, en escritorio, se ven todas (02-galaxia.md → «Layout»).
-        expect(labels).toHaveLength(skillGroups.flatMap((group) => group.skills).length);
-      }
-      const canvas = await canvasSize(page);
-      const ui = await interfaceRects(page);
-      const zones = [
-        ['bar', ui.bar],
-        ['rail', ui.rail],
-        ['HUD', ui.hud],
-        ['panel', ui.panel],
-      ] as const;
-      for (const [index, { id, rect }] of labels.entries()) {
-        expect(rect[0], `${id}: left edge`).toBeGreaterThanOrEqual(0);
-        expect(rect[1], `${id}: top edge`).toBeGreaterThanOrEqual(0);
-        expect(rect[2], `${id}: right edge`).toBeLessThanOrEqual(canvas.width);
-        expect(rect[3], `${id}: bottom edge`).toBeLessThanOrEqual(canvas.height);
-        for (const [name, zone] of zones) {
-          if (zone !== null) expect(overlaps(rect, zone), `${id} over the ${name}`).toBe(false);
+  for (const path of ['/', '/es']) {
+    for (const viewport of [
+      { width: 1280, height: 720 },
+      { width: 1440, height: 900 },
+      { width: 390, height: 844 },
+    ]) {
+      test(`${path} at ${String(viewport.width)}×${String(viewport.height)}, the labels shown never overlap each other, the interface or the edges`, async ({
+        page,
+      }) => {
+        await openSkills(page, viewport, path);
+        const labels = await shownLabels(page);
+        expect(labels.length).toBeGreaterThan(0);
+        if (viewport.width >= 900) {
+          // En reposo, en escritorio, se ven todas (02-galaxia.md → «Layout»).
+          expect(labels).toHaveLength(skillGroups.flatMap((group) => group.skills).length);
         }
-        for (const other of labels.slice(index + 1)) {
-          expect(overlaps(rect, other.rect), `${id} over ${other.id}`).toBe(false);
+        const canvas = await canvasSize(page);
+        const ui = await interfaceRects(page);
+        const zones = [
+          ['bar', ui.bar],
+          ['rail', ui.rail],
+          ['HUD', ui.hud],
+          ['panel', ui.panel],
+        ] as const;
+        for (const [index, { id, rect }] of labels.entries()) {
+          expect(rect[0], `${id}: left edge`).toBeGreaterThanOrEqual(0);
+          expect(rect[1], `${id}: top edge`).toBeGreaterThanOrEqual(0);
+          expect(rect[2], `${id}: right edge`).toBeLessThanOrEqual(canvas.width);
+          expect(rect[3], `${id}: bottom edge`).toBeLessThanOrEqual(canvas.height);
+          for (const [name, zone] of zones) {
+            if (zone !== null) expect(overlaps(rect, zone), `${id} over the ${name}`).toBe(false);
+          }
+          for (const other of labels.slice(index + 1)) {
+            expect(overlaps(rect, other.rect), `${id} over ${other.id}`).toBe(false);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   for (const path of ['/', '/es']) {
@@ -281,31 +363,56 @@ test.describe('the constellations of Skills', () => {
     }
   }
 
-  test('quick mission → a project → Back: the labels are there again, and none is lit', async ({
-    page,
-  }) => {
-    const errors = collectErrors(page);
-    await openSkills(page);
-    await panelGroup(page, 'web').hover();
-    await expectLit(page, 'web');
-    await page.getByRole('banner').getByRole('button', { name: 'Quick mission' }).click();
-    const dialog = page.getByRole('dialog');
-    await dialog.getByRole('link', { name: 'View project Chessmate' }).click();
-    await expect(page).toHaveURL(/\/projects\/chessmate$/);
-    await expect(page.locator('[data-constellation-labels]')).toHaveCount(0);
-    await page.goBack();
-    await expect(dialog).toBeVisible();
-    await dialog.getByRole('button', { name: 'Close quick mission' }).click();
-    // La misma página (sin recargar): el viaje vuelve a montarse y la escena sigue la de antes.
-    await page.evaluate(() => {
-      document.getElementById('skills')?.scrollIntoView({ behavior: 'instant' });
+  test.describe('on a touch screen, through the browser history', () => {
+    test.use({ hasTouch: true });
+
+    test('a group lit when the journey goes away (Forward to a project) is off when it comes back', async ({
+      page,
+    }) => {
+      const errors = collectErrors(page);
+      /** De vuelta en el viaje (misma página, sin recargar): a `#skills`, con las etiquetas en su sitio. */
+      const backToSkills = async (): Promise<void> => {
+        await expect(page).toHaveURL(/\/(?:#skills)?$/);
+        await page.locator('#skills').waitFor();
+        await page.evaluate(() => {
+          document.getElementById('skills')?.scrollIntoView({ behavior: 'instant' });
+        });
+        // La escena tarda en volver a su sitio (su `m` va suavizada).
+        await expect(page.locator('[data-constellation-labels] [data-live]').first()).toBeVisible({
+          timeout: 10_000,
+        });
+      };
+      /** Sigue siendo el mismo documento: el viaje se desmonta y se monta, no se recarga ni vuelve de la caché. */
+      const sameDocument = async (): Promise<void> => {
+        expect(await page.evaluate(() => 'cosmosSameDocument' in window)).toBe(true);
+      };
+      await openSkills(page);
+      await page.evaluate(() => {
+        Object.assign(window, { cosmosSameDocument: true });
+      });
+      // Una ficha en el historial (navegación dentro de la página) y de vuelta: así hay un «Adelante».
+      const view = page.getByRole('link', { name: 'View project Chessmate' });
+      await view.scrollIntoViewIfNeeded();
+      await view.tap();
+      await expect(page).toHaveURL(/\/projects\/chessmate$/);
+      await sameDocument();
+      await page.goBack();
+      await backToSkills();
+      // Un toque enciende y deja encendido (no hay `pointerleave` de ratón); el historial no es un gesto.
+      await panelGroup(page, 'web').tap();
+      await expectLit(page, 'web');
+      await page.goForward();
+      await expect(page).toHaveURL(/\/projects\/chessmate$/);
+      await expect(page.locator('[data-constellation-labels]')).toHaveCount(0);
+      // WebKit deja un ratón simulado donde fue el toque: al volver, el grupo nuevo nacería debajo y el navegador le
+      // daría un `pointerenter` de ratón (lo encendería un gesto, no el historial). Se aparta en la ficha.
+      await page.mouse.move(4, DESKTOP.height / 2);
+      await page.goBack();
+      await backToSkills();
+      await sameDocument();
+      await expectLit(page, null);
+      expect(errors).toEqual([]);
     });
-    // Cualquiera: la escena tarda en volver a su sitio (su `m` va suavizada) y la más alta es la última en caber.
-    await expect(page.locator('[data-constellation-labels] [data-live]').first()).toBeVisible({
-      timeout: 10_000,
-    });
-    await expectLit(page, null);
-    expect(errors).toEqual([]);
   });
 });
 
