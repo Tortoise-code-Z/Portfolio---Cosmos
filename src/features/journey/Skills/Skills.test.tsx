@@ -1,6 +1,10 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { skillGroups } from '~/content/skills';
 import type { SkillGroupId } from '~/content/types';
@@ -36,7 +40,20 @@ function lit(): SkillGroupId | null {
   return selectActiveSkillGroup(useUiStore.getState());
 }
 
+/**
+ * jsdom no sabe de dónde viene el foco (`:focus-visible` no distingue teclado de puntero): el test lo dice. Lo de
+ * verdad (clic, otra pestaña y volver) lo prueba `constellations.spec.ts` en el navegador.
+ */
+function focusFromKeyboard(fromKeyboard: boolean): void {
+  // eslint-disable-next-line @typescript-eslint/unbound-method -- el original, para llamarlo con su `this` (`call`)
+  const matches = Element.prototype.matches;
+  vi.spyOn(Element.prototype, 'matches').mockImplementation(function (this: Element, selector) {
+    return selector === ':focus-visible' ? fromKeyboard : matches.call(this, selector);
+  });
+}
+
 afterEach(() => {
+  vi.restoreAllMocks();
   useUiStore.setState(useUiStore.getInitialState(), true);
 });
 
@@ -72,10 +89,19 @@ describe('Skills', () => {
     );
   });
 
-  it('lets the mouse through to the scene labels: the chapter is marked, the panel is its only child', () => {
+  it('amber means lit: with the scene, only `data-hot` paints it (the keyboard focus shows its ring); without it, hover (CSS)', () => {
+    const css = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'Skills.module.css'),
+      'utf8',
+    );
+    expect(css).not.toContain('.group:focus-visible');
+    expect(css).toContain('.group:not([tabindex]):hover,\n.group[data-hot] {');
+    expect(css).not.toMatch(/\n\.group:hover/);
+  });
+
+  it('lets the mouse through to the scene labels: the panel is the only child of the chapter (the only one that takes it)', () => {
     renderAt('/');
     const region = screen.getByRole('region', { name: 'My galaxy of tools' });
-    expect(region).toHaveAttribute('data-pass-through', '');
     expect(region.children).toHaveLength(1);
   });
 
@@ -129,6 +155,7 @@ describe('Skills', () => {
 
     it('the last gesture wins: leaving a group that is no longer lit keeps the other one', () => {
       setSceneLevel('high');
+      focusFromKeyboard(true);
       renderAt('/');
       fireEvent.focus(groupItem('tools'));
       fireEvent.pointerEnter(groupItem('ai'), { pointerType: 'mouse' });
@@ -141,6 +168,9 @@ describe('Skills', () => {
 
     it('focus lights a group and losing it lets it go', () => {
       setSceneLevel('medium');
+      focusFromKeyboard(true);
+      // En jsdom, `blur()` deja el documento «sin foco»; en un navegador sigue teniéndolo (la ventana no se ha ido).
+      vi.spyOn(document, 'hasFocus').mockReturnValue(true);
       renderAt('/');
       const libraries = groupItem('libraries');
       act(() => {
@@ -159,11 +189,36 @@ describe('Skills', () => {
 
     it('focus moving inside the group does not let it go', () => {
       setSceneLevel('high');
+      focusFromKeyboard(true);
       renderAt('/');
       const web = groupItem('web');
       fireEvent.focus(web);
       fireEvent.blur(web, { relatedTarget: within(web).getByRole('heading', { level: 3 }) });
       expect(lit()).toBe('web');
+    });
+
+    it('only the keyboard focus lights: the pointer focus, or the one the browser gives back on returning to the tab, does not', () => {
+      setSceneLevel('high');
+      focusFromKeyboard(false);
+      renderAt('/');
+      act(() => {
+        groupItem('web').focus();
+      });
+      expect(lit()).toBeNull();
+    });
+
+    it('leaving the window is not letting go: a blur while the document has no focus keeps the group', () => {
+      setSceneLevel('high');
+      focusFromKeyboard(true);
+      renderAt('/');
+      const tools = groupItem('tools');
+      act(() => {
+        tools.focus();
+      });
+      expect(lit()).toBe('tools');
+      vi.spyOn(document, 'hasFocus').mockReturnValue(false);
+      fireEvent.blur(tools);
+      expect(lit()).toBe('tools');
     });
 
     it('a tap lights a group, another tap switches, a tap outside turns it off', () => {

@@ -1,3 +1,7 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
@@ -32,21 +36,21 @@ describe('ChapterSection', () => {
     expect(screen.getByRole('region', { name: 'Name' })).not.toHaveAttribute('id');
   });
 
-  it('marks the chapter that lets the mouse through to the scene labels (and only that one)', () => {
+  it('the journey lets the mouse through to the scene labels: main and the chapters do not take it, their direct children and any other child of main do (CSS)', () => {
+    const css = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ChapterSection.module.css'),
+      'utf8',
+    );
+    expect(css).toMatch(/\n:global\(main\):has\(> \.chapter\) \{\n {2}pointer-events: none;/);
+    expect(css).toMatch(
+      /\n:where\(:global\(main\)\) > :where\(:not\(\.chapter\)\),\n:where\(\.chapter\) > :where\(\*\) \{\n {2}pointer-events: auto;/,
+    );
+    // Sin prop ni marca: la regla vale para todos los capítulos.
     render(
-      <>
-        <ChapterSection index={2} labelledBy="a" passThrough>
-          <h2 id="a">Through</h2>
-        </ChapterSection>
-        <ChapterSection index={3} labelledBy="b">
-          <h2 id="b">Solid</h2>
-        </ChapterSection>
-      </>,
+      <ChapterSection index={2} labelledBy="a">
+        <h2 id="a">Any</h2>
+      </ChapterSection>,
     );
-    expect(screen.getByRole('region', { name: 'Through' })).toHaveAttribute(
-      'data-pass-through',
-      '',
-    );
-    expect(screen.getByRole('region', { name: 'Solid' })).not.toHaveAttribute('data-pass-through');
+    expect(screen.getByRole('region', { name: 'Any' })).not.toHaveAttribute('data-pass-through');
   });
 });

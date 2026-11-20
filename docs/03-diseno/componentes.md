@@ -132,16 +132,21 @@
 
 ### Grupo de habilidades (`SkillGroup`)
 - Bloque con borde izquierdo de 1 px; título mono en `--color-dim` y skills en texto normal. *Hot*: borde y
-  título ámbar, con el puntero encima, con el foco del teclado y en el grupo encendido (`data-hot`).
+  título ámbar. El ámbar dice siempre «esta constelación está encendida»: con la escena, solo el grupo encendido
+  (`data-hot`); el foco del teclado se ve con su anillo, como en todo el sitio. Sin escena, con el puntero encima.
 - **Con la escena encendida** (F4.3c) enciende su constelación: es enfocable (`tabindex="0"`, nombrado por su
-  título con `aria-labelledby`) y lo encienden el ratón (entrar enciende, salir suelta), el foco y un toque; soltar
+  título con `aria-labelledby`) y lo encienden el ratón (entrar enciende, salir suelta), el foco del teclado
+  (`:focus-visible`: ni el foco del puntero ni el que devuelve el navegador al volver a la pestaña; irse a otra
+  ventana tampoco suelta) y un toque; soltar
   apaga solo si sigue siendo el encendido (manda el último gesto). Un toque limpio fuera (un `click`) apaga;
   deslizar o salir del capítulo, no. Una etiqueta de la escena con el ratón encima también lo marca. Al ir a una
   ficha o al apagarse la escena, se apaga.
 - **Sin escena** (sin nivel aún o sin WebGL) no enciende nada: no entra en el orden de tabulación y solo se resalta
   al pasar el puntero.
-- La sección del capítulo deja pasar el ratón a las etiquetas de la escena (debajo de `main`): `main` y la sección
-  van con `pointer-events: none` y solo el panel lo recoge (`ChapterSection` con `passThrough`).
+- Como todo capítulo, la sección deja pasar el ratón a las etiquetas de la escena (debajo de `main`): `main` y las
+  secciones van con `pointer-events: none` y solo lo recogen sus hijos directos, aquí el panel
+  (`docs/05-tecnico/arquitectura.md` → «Puntero del viaje»). El lector de pantalla dice al tabular solo el título
+  del grupo; las skills se leen al recorrer la página (comprobarlo con NVDA en F6).
 
 ### Fila de proyecto (`ProjectRow`)
 - Borde izquierdo de 1 px; nombre en display (`--text-h3`), año alineado a la derecha en mono, metadatos en mono

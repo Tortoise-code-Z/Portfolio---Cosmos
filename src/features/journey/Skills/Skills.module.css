@@ -37,17 +37,16 @@
 }
 
 /*
- * «Hot»: con el puntero encima (también sin escena) y, con la escena encendida, el grupo encendido (`data-hot`: ratón,
- * foco o toque, sobre el panel o sobre una etiqueta) y el que tiene el foco del teclado.
+ * «Hot»: el ámbar dice siempre «esta constelación está encendida». Con la escena, solo el grupo encendido
+ * (`data-hot`: ratón, foco del teclado o toque, sobre el panel o sobre una etiqueta); el foco del teclado se ve con
+ * su anillo, como en todo el sitio. Sin escena (el grupo no es enfocable: sin `tabindex`), el puntero encima.
  */
-.group:hover,
-.group:focus-visible,
+.group:not([tabindex]):hover,
 .group[data-hot] {
   border-color: var(--color-star);
 }
 
-.group:hover .groupTitle,
-.group:focus-visible .groupTitle,
+.group:not([tabindex]):hover .groupTitle,
 .group[data-hot] .groupTitle {
   color: var(--color-star);
 }
