@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 
 import { profile } from '~/content/profile';
 import type { Locale } from '~/content/types';
+import { cx } from '~/lib/css/cx/cx';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
 import { openQuickMission } from '~/stores/uiStore/uiStore';
 import { ButtonOutline } from '~/ui/ButtonOutline/ButtonOutline';
@@ -53,7 +54,7 @@ export function TopBar({ pathFor }: TopBarProps): ReactNode {
           {t('nav.contact')}
         </Link>
         {cv !== null && (
-          <a href={cv} className={styles.link}>
+          <a href={cv} className={cx(styles.link, styles.cv)}>
             {t('nav.cv')}
           </a>
         )}

@@ -77,7 +77,9 @@
 - **Texto ampliado:** la barra es un contenedor (`container: topbar`). El chip pide además que la barra mida
   52em y la etiqueta larga, 28em: con el texto al 100 % mandan md y sm (caben también con una barra de scroll
   clásica); con el texto al 200 % los `em` crecen con él y ceden el chip y luego la etiqueta larga antes de que
-  las acciones salgan de la pantalla (WCAG 1.4.4). Lo prueba `chrome.spec.ts` a 960 px.
+  las acciones salgan de la pantalla (WCAG 1.4.4). Lo prueba `chrome.spec.ts` a 960 px. «CV» (desde C.1, cuando
+  existe el PDF) cede si la barra mide menos de 10.5em: con el texto al 200 %, por debajo de ~340 px; sigue en
+  Contacto y en la misión rápida. Lo prueba `project-page.spec.ts` a 320 px con el texto al 200 %.
 - El selector de idioma `EN / ES` (`LanguageSwitch`) es un par de enlaces en un grupo con nombre («Language»),
   cada uno nombrado en su idioma («English», «Español», con `lang`); el activo, subrayado ámbar y
   `aria-current="true"`. Un clic normal en el activo no navega.
@@ -167,7 +169,8 @@
   El nombre del diálogo es el título; el rótulo va en `aria-describedby` (el lector dice los dos al abrir).
   Ocupa también el hueco de la barra de scroll que reserva la página (`100vw`).
 - Título `h2` «Víctor Pérez · Frontend Developer» (escala de `h3` por debajo de sm) y secciones con su `h3` en mono
-  ámbar: About (bio y fortalezas), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Skills, Education
+  ámbar: About (la bio; las fortalezas salieron en C.1 para que los proyectos empiecen en la primera pantalla a
+  390 px), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Skills, Education
   (título, centro, periodo y horas; las habilidades de cada curso solo en Contacto), Availability (si
   `openToWork`) y Contact (email con su `CopyButton`, GitHub, LinkedIn, CV).
 - Marcado propio y compacto: lee `src/content/` como los capítulos, pero no reutiliza sus componentes (ADR-022).

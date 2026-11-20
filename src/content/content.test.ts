@@ -3,6 +3,10 @@
 // funciones `find…` están probadas con casos rotos en `validate.test.ts`; lo que se comprueba aquí en línea
 // (capítulos, idiomas, galerías de las fichas, qué proyectos tienen imágenes) es una lista escrita a mano a propósito.
 
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { describe, expect, it } from 'vitest';
 
 import { CHAPTER_ANCHORS, CHAPTER_INDICES, CHAPTER_MORPH_START } from './chapters';
@@ -33,6 +37,12 @@ import {
   findUiProblems,
   findUrlProblems,
 } from './validate/validate';
+
+/**
+ * `public/`, donde vive el CV (`profile.cv` es su ruta en el sitio). Con `join` y no con `new URL(…,
+ * import.meta.url)`: Vite reescribe ese patrón como la URL de un asset.
+ */
+const PUBLIC_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public');
 
 /** Una captura de la galería como la escribe su ficha: archivo (sin extensión), alt EN y alt ES. */
 type ExpectedImage = readonly [file: string, en: string, es: string];
@@ -152,6 +162,15 @@ describe('contenido', () => {
   it('las cuatro constelaciones, cada una con estrellas', () => {
     expect(skillGroups.map((group) => group.id)).toEqual(['web', 'libraries', 'tools', 'ai']);
     for (const group of skillGroups) expect(group.skills.length).toBeGreaterThan(0);
+  });
+
+  it('el CV de cada idioma, si lo hay, es un PDF que existe en public/ (el inglés sirve para los dos)', () => {
+    for (const locale of LOCALES) {
+      const cv = profile.cv[locale];
+      if (cv === null) continue;
+      expect(cv).toMatch(/^\/[\w.-]+\.pdf$/);
+      expect(readFileSync(join(PUBLIC_DIR, cv)).subarray(0, 5).toString()).toBe('%PDF-');
+    }
   });
 
   it('formación con ids únicos y horas enteras positivas', () => {

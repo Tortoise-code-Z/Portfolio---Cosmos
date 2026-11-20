@@ -125,7 +125,7 @@ describe('findUrlProblems', () => {
 });
 
 describe('findEmailProblems', () => {
-  it.each([['a.b@mail.com'], ['victorperez.brmte@passmail.com'], ['a@sub.mail.com']])(
+  it.each([['a.b@mail.com'], ['victorperez@tortoisecode.dev'], ['a@sub.mail.com']])(
     'acepta «%s»',
     (email) => {
       expect(findEmailProblems(email, 'email')).toEqual([]);

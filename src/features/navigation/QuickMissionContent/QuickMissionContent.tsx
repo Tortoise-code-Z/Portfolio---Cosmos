@@ -36,12 +36,13 @@ export function QuickMissionContent(): ReactNode {
     <div className={styles.grid}>
       <section className={styles.section}>
         <h3 className={styles.heading}>{t('quick.about')}</h3>
+        {/*
+         * Solo la bio: las fortalezas no van aquí desde C.1 (con la bio alineada con el CV, los proyectos se
+         * salían de la primera pantalla a 390 px; ADR-034 las saca también de About en C.2).
+         */}
         {profile.bio[locale].map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>
         ))}
-        <p className={styles.meta}>
-          {`${t('about.strengths')}: ${profile.strengths.map((item) => localize(locale, item)).join(SEPARATOR)}`}
-        </p>
       </section>
 
       <section className={styles.section}>
@@ -74,8 +75,9 @@ export function QuickMissionContent(): ReactNode {
               <span className={styles.meta}>
                 {[
                   item.school,
-                  item.period,
+                  localize(locale, item.period),
                   t('education.hours', { n: formatNumber(locale, item.hours) }),
+                  ...(item.grade === undefined ? [] : [localize(locale, item.grade)]),
                 ].join(SEPARATOR)}
               </span>
             </li>

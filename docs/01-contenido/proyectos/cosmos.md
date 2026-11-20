@@ -42,12 +42,17 @@ Con la escena (desde F3.7):
    present day, and each stage of the universe is a section of the site.
 2. The goal was a site that is visually striking and still easy to follow: all the content lives in the HTML, and
    a quick-mission mode shows everything on one page.
+3. I built it with an AI-assisted workflow (Claude), which I used to learn Three.js and shaders as I went.
 
 **ES**
 1. Cosmos es mi portfolio personal, pensado como una historia: el scroll hace avanzar el tiempo desde el Big Bang
    hasta hoy, y cada etapa del universo es una sección de la web.
 2. El objetivo era una web visualmente brutal y a la vez fácil de seguir: todo el contenido vive en el HTML, y un
    modo misión rápida lo muestra todo en una página.
+3. La he hecho con un flujo de trabajo asistido por IA (Claude), con el que he aprendido Three.js y shaders sobre
+   la marcha.
+
+El párrafo 3 es la frase del CV (C.1, ADR-034): el flujo con IA se dice con naturalidad, como en el CV.
 
 ## Features
 

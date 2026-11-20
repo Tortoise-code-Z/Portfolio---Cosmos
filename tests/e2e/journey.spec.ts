@@ -319,6 +319,29 @@ test.describe('the journey (home)', () => {
     }
   });
 
+  test('the CV: the same English PDF from the top bar and Touchdown in both languages, and it is served', async ({
+    page,
+  }) => {
+    const CV = '/Victor_Perez_CV.pdf';
+    for (const [path, download] of [
+      ['/', 'Download CV (PDF)'],
+      ['/es', 'Descargar CV (PDF, en inglés)'],
+    ] as const) {
+      await page.goto(path);
+      await expect(page.getByRole('banner').getByRole('link', { name: 'CV' })).toHaveAttribute(
+        'href',
+        CV,
+      );
+      const link = page.getByRole('link', { name: download });
+      await expect(link).toHaveAttribute('href', CV);
+      await expect(link).toHaveAttribute('download');
+    }
+    const response = await page.request.get(CV);
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toContain('application/pdf');
+    expect((await response.body()).subarray(0, 5).toString()).toBe('%PDF-');
+  });
+
   for (const viewport of [REFERENCE_VIEWPORTS[0], REFERENCE_VIEWPORTS[2]]) {
     test(`${String(viewport.width)}×${String(viewport.height)}: loading the hero with slow fonts keeps CLS under 0.1`, async ({
       page,
@@ -645,9 +668,10 @@ test.describe('without JavaScript', () => {
       'href',
       '/es/projects/chessmate',
     );
-    await expect(
-      page.getByRole('link', { name: 'victorperez.brmte@passmail.com' }),
-    ).toHaveAttribute('href', 'mailto:victorperez.brmte@passmail.com');
+    await expect(page.getByRole('link', { name: 'victorperez@tortoisecode.dev' })).toHaveAttribute(
+      'href',
+      'mailto:victorperez@tortoisecode.dev',
+    );
   });
 
   test('the dark background does not depend on JavaScript (P1)', async ({ page }) => {

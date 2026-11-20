@@ -60,9 +60,11 @@ export interface Education {
   readonly id: string;
   readonly title: Localized;
   readonly school: string;
-  /** Curso académico o año: '2023/24', '2025'. */
-  readonly period: string;
+  /** Fechas como las dice el CV: 'Jan 2023 – Oct 2024' / 'ene 2023 – oct 2024', o solo el año. */
+  readonly period: Localized;
   readonly hours: number;
+  /** Nota final en palabras, como en el CV ('Distinction'); nunca la numérica. Sin nota, se omite. */
+  readonly grade?: Localized;
   readonly status: 'completed' | 'in-progress';
   readonly skills: readonly string[];
 }

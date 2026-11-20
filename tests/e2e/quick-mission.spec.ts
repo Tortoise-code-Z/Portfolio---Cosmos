@@ -212,7 +212,7 @@ test.describe('quick mission', () => {
     await expect(dialog.getByRole('button', { name: 'Copied' })).toBeFocused();
     await expect(dialog.getByRole('status')).toHaveText('Copied');
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-      'victorperez.brmte@passmail.com',
+      'victorperez@tortoisecode.dev',
     );
   });
 });
@@ -231,7 +231,7 @@ test.describe('copy the email in Contact', () => {
     await expect(contact.getByRole('button', { name: 'Select and copy it' })).toBeVisible();
     await expect(contact.getByRole('status')).toHaveText('Select and copy it');
     expect(await page.evaluate(() => window.getSelection()?.toString())).toBe(
-      'victorperez.brmte@passmail.com',
+      'victorperez@tortoisecode.dev',
     );
     // Vuelve a «Copy» a los 1,8 s.
     await expect(contact.getByRole('button', { name: 'Copy email' })).toBeVisible({

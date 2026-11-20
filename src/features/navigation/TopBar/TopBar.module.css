@@ -101,6 +101,17 @@
   }
 }
 
+/*
+ * «CV» cede en la barra cuando mide menos de 10.5em: solo pasa con el texto ampliado en las pantallas más estrechas
+ * (al 200 %, por debajo de ~340 px), donde ya no cabría con EN / ES y «Rápida». El CV sigue en Contacto y en la
+ * misión rápida.
+ */
+@container topbar (width < 10.5em) {
+  .cv {
+    display: none;
+  }
+}
+
 @container topbar (width < 28em) {
   .quickFull {
     display: none;

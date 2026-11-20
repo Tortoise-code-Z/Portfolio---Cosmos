@@ -12,7 +12,7 @@
 | name | AstroHub |
 | year | 2024 |
 | role | `fullstack` |
-| context | `course` (proyecto final del módulo web, Fullstack MasterD) |
+| context | `course` (proyecto final del curso de Master.D) |
 | links.code | https://github.com/Tortoise-code-Z/Astrohub |
 | links.demo | `null` (se ejecuta en local con XAMPP) |
 | links.readme | https://github.com/Tortoise-code-Z/Astrohub#readme |
@@ -24,16 +24,16 @@
 
 ## Summary
 
-- EN: My final project for the Full-Stack program: a space-themed web app with users, roles, news and
+- EN: My final project for the full-stack web programming course: a space-themed web app with users, roles, news and
   astronomy appointments, built with HTML, CSS, JavaScript, PHP and MySQL.
-- ES: Mi proyecto final del curso Fullstack: una web temática del espacio con usuarios, roles, noticias y citas
+- ES: Mi proyecto final del curso de programación web full-stack: una web temática del espacio con usuarios, roles, noticias y citas
   astronómicas, hecha con HTML, CSS, JavaScript, PHP y MySQL.
 
 ## About
 
 **EN**
-1. AstroHub is a dynamic, complete web application built as the final project of the web development module of
-   the MasterD Full-Stack program.
+1. AstroHub is a dynamic, complete web application built as the final project of the Advanced Course in Web
+   Programming (Full-Stack) at Master.D.
 2. Inspired by the universe and space exploration, it combines front end, back end and database.
 3. It supports user registration, profile management, news administration and astronomy appointments, all built
    with HTML, CSS, JavaScript, PHP and MySQL.
@@ -41,8 +41,8 @@
    panels.
 
 **ES**
-1. AstroHub es una aplicación web dinámica y completa, desarrollada como proyecto final del módulo de desarrollo
-   web del curso Fullstack de MasterD.
+1. AstroHub es una aplicación web dinámica y completa, desarrollada como proyecto final del Curso Superior en
+   Programación de Páginas Web (Full-Stack) de Master.D.
 2. Inspirada en el universo y la exploración espacial, combina frontend, backend y base de datos.
 3. Permite registro de usuarios, gestión de perfiles, administración de noticias y control de citas
    astronómicas, todo con HTML, CSS, JavaScript, PHP y MySQL.

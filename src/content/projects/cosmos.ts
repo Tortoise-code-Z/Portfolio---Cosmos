@@ -25,10 +25,12 @@ export const cosmos: ProjectEntry = {
     en: [
       'Cosmos is my personal portfolio, designed as a story: scrolling moves time forward from the Big Bang to the present day, and each stage of the universe is a section of the site.',
       'The goal was a site that is visually striking and still easy to follow: all the content lives in the HTML, and a quick-mission mode shows everything on one page.',
+      'I built it with an AI-assisted workflow (Claude), which I used to learn Three.js and shaders as I went.',
     ],
     es: [
       'Cosmos es mi portfolio personal, pensado como una historia: el scroll hace avanzar el tiempo desde el Big Bang hasta hoy, y cada etapa del universo es una sección de la web.',
       'El objetivo era una web visualmente brutal y a la vez fácil de seguir: todo el contenido vive en el HTML, y un modo misión rápida lo muestra todo en una página.',
+      'La he hecho con un flujo de trabajo asistido por IA (Claude), con el que he aprendido Three.js y shaders sobre la marcha.',
     ],
   },
   features: [

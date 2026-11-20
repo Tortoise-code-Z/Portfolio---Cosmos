@@ -204,7 +204,7 @@ reducido. Después siguen F4.4 y F4.5; F5 pasa seguramente a después del 1 dic.
 | ✔ Confirmar si el curso de Hola Mundo está terminado (sí: F2 · paso 2) | F2 (contenido) |
 | ✔ Decidir si las estrellas de IA son prácticas o herramientas concretas (las dos: F2 · paso 2) | F2 (contenido) · F4.3 |
 | Comprobar que el README de Chessmate incluye el script de consola | F2 (página de Chessmate) |
-| CV en PDF, EN y ES (el inglés sirve para los dos idiomas: C.1) | F2 o más tarde (el enlace aparece al existir) |
+| ✔ CV en PDF (el inglés sirve para los dos idiomas; en `public/` desde C.1, copia del CV maestro) | F2 o más tarde (el enlace aparece al existir) |
 | ✔ Dominio propio (D2: `tortoisecode.dev`, comprado en F3) · analítica (D5) | F7 |
 
 ## Backlog después de la v1

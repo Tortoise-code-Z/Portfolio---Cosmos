@@ -132,7 +132,7 @@ del texto.
 | `availability.mode.hybrid` | hybrid | híbrido |
 | `availability.mode.onsite` | on-site | presencial |
 | `contact.availability.relocation` | Open to relocation | Abierto a reubicarme |
-| `contact.cv` | Download CV (PDF) | Descargar CV (PDF) |
+| `contact.cv` | Download CV (PDF) | Descargar CV (PDF, en inglés) |
 | `education.title` | Completed orbits · education | Órbitas completadas · formación |
 | `education.hours` | {n} h | {n} h |
 | `footer.line` | Víctor Pérez · Frontend Developer · {year} | Víctor Pérez · Desarrollador Frontend · {year} |

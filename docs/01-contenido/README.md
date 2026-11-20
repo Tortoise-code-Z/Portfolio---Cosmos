@@ -32,8 +32,8 @@
 
 ## Correcciones respecto al sitio actual
 
-- **Nota del curso Fullstack:** no se muestra en ningún sitio (decisión de la fase de documentación). En su lugar, la bio destaca
-  las 948 horas de formación intensiva.
+- **Nota del curso de Master.D:** al principio no se mostraba. Desde C.1 (alineado con el CV, ADR-034) se ve en
+  palabras, «Distinction» / «Sobresaliente», nunca la numérica; las horas son 975, las del diploma.
 - **Curso de React + TypeScript (Hola Mundo):** el dato actual mezcla «terminado» con «En progreso».
   Se marca como **completado (2025, 13 h)**, confirmado por Víctor (F2 · paso 2).
 - El email del pie de la web actual enlaza a la home; en la nueva se muestra como texto copiable con botón «Copy».
