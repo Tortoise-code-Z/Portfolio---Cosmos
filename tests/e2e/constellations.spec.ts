@@ -382,12 +382,20 @@ test.describe('the constellations of Skills', () => {
           timeout: 10_000,
         });
       };
+      /** Sigue siendo el mismo documento: el viaje se desmonta y se monta, no se recarga ni vuelve de la caché. */
+      const sameDocument = async (): Promise<void> => {
+        expect(await page.evaluate(() => 'cosmosSameDocument' in window)).toBe(true);
+      };
       await openSkills(page);
+      await page.evaluate(() => {
+        Object.assign(window, { cosmosSameDocument: true });
+      });
       // Una ficha en el historial (navegación dentro de la página) y de vuelta: así hay un «Adelante».
       const view = page.getByRole('link', { name: 'View project Chessmate' });
       await view.scrollIntoViewIfNeeded();
       await view.tap();
       await expect(page).toHaveURL(/\/projects\/chessmate$/);
+      await sameDocument();
       await page.goBack();
       await backToSkills();
       // Un toque enciende y deja encendido (no hay `pointerleave` de ratón); el historial no es un gesto.
@@ -396,8 +404,12 @@ test.describe('the constellations of Skills', () => {
       await page.goForward();
       await expect(page).toHaveURL(/\/projects\/chessmate$/);
       await expect(page.locator('[data-constellation-labels]')).toHaveCount(0);
+      // WebKit deja un ratón simulado donde fue el toque: al volver, el grupo nuevo nacería debajo y el navegador le
+      // daría un `pointerenter` de ratón (lo encendería un gesto, no el historial). Se aparta en la ficha.
+      await page.mouse.move(4, DESKTOP.height / 2);
       await page.goBack();
       await backToSkills();
+      await sameDocument();
       await expectLit(page, null);
       expect(errors).toEqual([]);
     });
