@@ -104,7 +104,7 @@ export interface Profile {
     readonly github: string;                 // URL
     readonly linkedin: string;               // URL
   };
-  readonly cv: Localized<string | null>;     // ruta al PDF por idioma; null = aún no existe (no se muestra)
+  readonly cv: Localized<string | null>;     // ruta al PDF por idioma ('/Victor_Perez_CV.pdf'); null = no se muestra
   readonly education: readonly Education[];
 }
 
@@ -112,8 +112,9 @@ export interface Education {
   readonly id: string;
   readonly title: Localized;
   readonly school: string;
-  readonly period: string;                   // '2023/24'
+  readonly period: Localized;                // como el CV: 'Jan 2023 – Oct 2024' / 'ene 2023 – oct 2024'
   readonly hours: number;
+  readonly grade?: Localized;                // nota en palabras ('Distinction'); nunca la numérica
   readonly status: 'completed' | 'in-progress';
   readonly skills: readonly string[];
 }
@@ -211,7 +212,7 @@ export interface DemoCredential {
 7. Los textos `en` y `es` tienen exactamente las mismas claves (el compilador y un test) y, en cada clave, los
    mismos huecos `{x}` (en cualquier orden).
 8. Además: `LOCALES` = `en`, `es`, con EN primero; las 4 constelaciones en su orden y ninguna vacía; formación con
-   ids únicos y horas enteras positivas; y al menos un elemento en las listas que la interfaz siempre pinta
+   ids únicos y horas enteras positivas; cada `cv` que no es `null`, un PDF que existe en `public/`; y al menos un elemento en las listas que la interfaz siempre pinta
    (`bio`, `strengths`, `availability.modes`, y por proyecto `about`, `features`, `stack.core` y `tryIt.steps`).
    `process` y `highlights` sí pueden ir vacíos: la sección no se pinta.
 

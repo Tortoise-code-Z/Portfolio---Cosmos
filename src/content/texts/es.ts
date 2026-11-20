@@ -80,7 +80,7 @@ export const es: UiTexts = {
   'availability.mode.hybrid': 'híbrido',
   'availability.mode.onsite': 'presencial',
   'contact.availability.relocation': 'Abierto a reubicarme',
-  'contact.cv': 'Descargar CV (PDF)',
+  'contact.cv': 'Descargar CV (PDF, en inglés)',
   'education.title': 'Órbitas completadas · formación',
   'education.hours': '{n} h',
   'footer.line': 'Víctor Pérez · Desarrollador Frontend · {year}',

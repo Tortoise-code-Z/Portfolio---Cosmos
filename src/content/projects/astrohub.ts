@@ -16,18 +16,18 @@ export const astrohub: ProjectEntry = {
   role: 'fullstack',
   context: 'course',
   summary: {
-    en: 'My final project for the Full-Stack program: a space-themed web app with users, roles, news and astronomy appointments, built with HTML, CSS, JavaScript, PHP and MySQL.',
-    es: 'Mi proyecto final del curso Fullstack: una web temática del espacio con usuarios, roles, noticias y citas astronómicas, hecha con HTML, CSS, JavaScript, PHP y MySQL.',
+    en: 'My final project for the full-stack web programming course: a space-themed web app with users, roles, news and astronomy appointments, built with HTML, CSS, JavaScript, PHP and MySQL.',
+    es: 'Mi proyecto final del curso de programación web full-stack: una web temática del espacio con usuarios, roles, noticias y citas astronómicas, hecha con HTML, CSS, JavaScript, PHP y MySQL.',
   },
   about: {
     en: [
-      'AstroHub is a dynamic, complete web application built as the final project of the web development module of the MasterD Full-Stack program.',
+      'AstroHub is a dynamic, complete web application built as the final project of the Advanced Course in Web Programming (Full-Stack) at Master.D.',
       'Inspired by the universe and space exploration, it combines front end, back end and database.',
       'It supports user registration, profile management, news administration and astronomy appointments, all built with HTML, CSS, JavaScript, PHP and MySQL.',
       'It was tested and run locally with XAMPP, covering both the public site and the internal user and admin panels.',
     ],
     es: [
-      'AstroHub es una aplicación web dinámica y completa, desarrollada como proyecto final del módulo de desarrollo web del curso Fullstack de MasterD.',
+      'AstroHub es una aplicación web dinámica y completa, desarrollada como proyecto final del Curso Superior en Programación de Páginas Web (Full-Stack) de Master.D.',
       'Inspirada en el universo y la exploración espacial, combina frontend, backend y base de datos.',
       'Permite registro de usuarios, gestión de perfiles, administración de noticias y control de citas astronómicas, todo con HTML, CSS, JavaScript, PHP y MySQL.',
       'Se probó y ejecutó en local con XAMPP, integrando la parte pública y los paneles internos de usuario y administrador.',

@@ -92,7 +92,11 @@ export function Contact(): ReactNode {
             <li key={item.id} className={styles.orbit}>
               <span className={styles.orbitTitle}>{item.title[locale]}</span>
               <span className={styles.orbitWhen}>
-                {`${item.period} · ${t('education.hours', { n: formatNumber(locale, item.hours) })}`}
+                {[
+                  localize(locale, item.period),
+                  t('education.hours', { n: formatNumber(locale, item.hours) }),
+                  ...(item.grade === undefined ? [] : [localize(locale, item.grade)]),
+                ].join(' · ')}
               </span>
               <span className={styles.orbitDetail}>
                 {`${item.school} · ${item.skills.join(', ')}`}

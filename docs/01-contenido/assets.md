@@ -70,10 +70,14 @@
 
 ## CV en PDF
 
-- **Estado:** por hacer (decisión D3).
-- Recomendado: **dos versiones**, `cv-victor-perez-en.pdf` y `cv-victor-perez-es.pdf`, con el contenido de
-  `perfil.md` y los proyectos. Destino: `public/cv/`.
-- Mientras no existan, `profile.cv` vale `null` y la interfaz **no muestra** el enlace.
+- **Estado:** hecho en C.1 (ADR-034). `public/Victor_Perez_CV.pdf`, el CV en inglés (2 páginas), sirve para los
+  dos idiomas; en ES el enlace avisa: «Descargar CV (PDF, en inglés)». Sale en la barra superior («CV»), en
+  Contacto y en la misión rápida.
+- **Es una copia:** el CV maestro vive fuera del repo (el proyecto de búsqueda de empleo de Víctor). **Cada vez que
+  cambie el CV, se vuelve a copiar aquí** con el mismo nombre (un `public/` estático, sin hash: la URL no cambia).
+- Un test de contenido comprueba que cada `profile.cv` apunta a un PDF que existe en `public/`, y un e2e que se
+  sirve como `application/pdf`. Si algún día hay CV en español, `profile.cv.es` apunta a él y la etiqueta ES
+  vuelve a «Descargar CV (PDF)».
 
 ## Prototipo de referencia
 

@@ -65,11 +65,11 @@ describe('QuickMissionContent', () => {
     expect(sectionTitles()).toEqual(titles);
   });
 
-  it('about: the whole bio and the strengths', () => {
+  it('about: the whole bio, without the strengths (they leave the site in C.2)', () => {
     renderContent();
     const about = section('About');
     for (const paragraph of profile.bio.en) expect(about).toHaveTextContent(paragraph);
-    expect(about).toHaveTextContent('Strengths: Hard-working · Communication · Perseverance');
+    expect(about).not.toHaveTextContent('Strengths');
   });
 
   it('projects: in reading order, each with year, metadata, summary and its three links', () => {
@@ -116,12 +116,15 @@ describe('QuickMissionContent', () => {
     );
   });
 
-  it('education: title, school, period and formatted hours', () => {
+  it('education: title, school, period, formatted hours and grade', () => {
     renderContent('/es');
     const items = within(section('Formación')).getAllByRole('listitem');
     expect(items).toHaveLength(profile.education.length);
-    expect(items[0]).toHaveTextContent('Curso de programación Fullstack');
-    expect(items[0]).toHaveTextContent('MasterD · 2023/24 · 948 h');
+    expect(items[0]).toHaveTextContent(
+      'Curso Superior en Programación de Páginas Web (Full-Stack)',
+    );
+    expect(items[0]).toHaveTextContent('Master.D · ene 2023 – oct 2024 · 975 h · Sobresaliente');
+    expect(items[1]).toHaveTextContent(/Hola Mundo · 2025 · 13 h$/);
   });
 
   it('availability comes from the profile, and the section goes away when not open to work', () => {
