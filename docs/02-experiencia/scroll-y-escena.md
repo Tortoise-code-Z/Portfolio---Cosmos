@@ -20,24 +20,35 @@ cabe, la sección crece y nunca lo recorta (P1); `useChapterLayout` mide la altu
 | Capítulo | Altura escritorio | Altura móvil | Ventana de morph hacia el siguiente |
 |---|---|---|---|
 | 0 · Singularidad | 150 vh | 150 vh | del 0 % al 100 % de la sección (la explosión empieza al primer scroll) |
-| 1 · Nebulosa | 210 vh | 230 vh | del 52 % al 100 % |
+| 1 · Nebulosa | 150 vh | 170 vh | — (quieta: cambia en la cola del Mission log) |
+| ✦ Mission log | ≥ 100 svh (según contenido) + cola de 100 vh | igual | en la cola, del 0 % al 100 % |
 | 2 · Galaxia | 220 vh | 240 vh | del 52 % al 100 % |
 | 3 · Tortuga | 240 vh | 260 vh | del 55 % al 100 % |
 | 4 · Tierra | ≥ 130 vh (según contenido) | ≥ 130 vh | — (última) |
 
+### Tramos del viaje
+
+Desde la fase C (ADR-034), `m` no se mide por capítulos sino por **tramos** (`JOURNEY_SEGMENTS` en
+`src/content/chapters.ts`): cada capítulo es uno y cada interludio aporta dos, su pantalla y su cola. Cada tramo dice
+qué forma enseña (`base`) y desde qué fracción cambia a la siguiente (`morphStart`; `null`: quieta todo el tramo).
+About y la pantalla del Mission log se quedan en la nebulosa (`m` = 1: el reloj del HUD se para solo); en la cola,
+vacía y sin puntero, la nebulosa cambia a galaxia, y Skills llega con la galaxia ya formada.
+
 **Cálculo de `m`** (función pura, testeable):
 
 ```
-para el capítulo i que contiene la posición y:
-  f = (y − inicio_i) / altura_i
-  m = i + smoothstep(ventana_i, 1, f)
+para el tramo k que contiene la posición y:
+  f = (y − inicio_k) / altura_k
+  m = base_k + smoothstep(ventana_k, 1, f)      (o base_k si el tramo no cambia o es el último)
 ```
 
-Así, cada forma **se queda quieta** mientras lees la primera mitad de su capítulo y solo cambia en la segunda.
+Así, cada forma **se queda quieta** mientras lees la primera parte de su capítulo y solo cambia en la segunda (o en la
+cola de un interludio). Un tramo empieza 1 px antes de su borde: un ancla redondeada al píxel ya cae en él.
 
 La posición `y` es la de scroll y los capítulos se miden **bajo la barra fija**: cada uno empieza en el scroll que
 lo deja justo debajo (`max(0, inicio − barra)`, `toScrollLayout`). Un ancla da el índice exacto de su capítulo y,
-arriba del todo, `m` sigue siendo 0 (la barra no adelanta la explosión). Código: `src/lib/scroll/` (`mapM`,
+arriba del todo, `m` sigue siendo 0 (la barra no adelanta la explosión). Con `m` llega el tramo: si es de un
+interludio, `sceneStore.interlude` lo dice y el raíl lo marca. Código: `src/lib/scroll/` (`mapM`, `segmentAt`,
 `useChapterLayout`, `useScrollTarget`) y `src/stores/sceneStore/`.
 
 ## Suavizado
@@ -70,7 +81,7 @@ arriba del todo, `m` sigue siendo 0 (la barra no adelanta la explosión). Códig
 
 | Elemento | Comportamiento |
 |---|---|
-| Raíl | Capítulo activo = `round(m)` |
+| Raíl | Capítulo activo = `round(m)`; un interludio, mientras se lee y `round(m)` es aún el capítulo de antes |
 | HUD · reloj | `t = 0 s` hasta `m` 0,004; después, tiempo cósmico interpolado en escala logarítmica entre capítulos (0 → 1 → 2): del tiempo de Planck (10⁻⁴³ s) a 200 Ma y a 1000 Ma. Se cuenta en segundos (potencias de 10) mientras el valor redondeado no llegue a 2 años (nunca «1 years»); después, años y millones con 2 cifras significativas, y la unidad se elige con el valor ya redondeado (999.999 años ya es «1 million»); 1000 Ma hasta `m` 2,5; `∞` de 2,5 a 3,5 (la tortuga es el capítulo activo); 13.800 Ma desde 3,5 |
 | HUD · escala | La del capítulo activo |
 | Hero · nombre | Ancho tipográfico (eje `wdth`): la carga lo comprime de 62 a 50; la explosión lo ensancha hasta 150 (`m` de 0 a 0,35) y separa sus letras (hasta 0,25 em en `m` 1); se va con el scroll. Con la `m` suavizada del hero (ADR-030), también sin WebGL |

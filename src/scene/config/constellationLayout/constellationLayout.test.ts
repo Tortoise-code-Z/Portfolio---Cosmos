@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import { skillGroups } from '~/content/skills';
 import { LOCALES } from '~/content/types';
-import { CHAPTER_INDICES } from '~/content/chapters';
+import { CHAPTER_INDICES, INTERLUDES } from '~/content/chapters';
 import { localize } from '~/lib/i18n/localize/localize';
 
 import { cameraFov, cameraPose, createCameraPose, createParallax } from '../../math/camera/camera';
@@ -224,8 +224,8 @@ describe('constellationLayout', () => {
     expect(STAR_LABEL_KEEP_OUT.wide.panelRight).toBe(px('--space-5') + px('--panel-w'));
     expect(STAR_LABEL_KEEP_OUT.wide.barBottom).toBe(px('--topbar-h'));
     expect(STAR_LABEL_KEEP_OUT.narrow.barBottom).toBe(px('--topbar-h'));
-    // El raíl: un enlace de `--target-min` por capítulo, centrado.
-    const railHalf = (CHAPTER_INDICES.length * px('--target-min')) / 2;
+    // El raíl: un enlace de `--target-min` por capítulo y por interludio, centrado.
+    const railHalf = ((CHAPTER_INDICES.length + INTERLUDES.length) * px('--target-min')) / 2;
     expect(STAR_LABEL_KEEP_OUT.wide.rail.halfHeight).toBe(railHalf);
     expect(STAR_LABEL_KEEP_OUT.narrow.rail.halfHeight).toBe(railHalf);
   });

@@ -1,6 +1,11 @@
 import { createStore } from 'zustand/vanilla';
 
-import { CHAPTER_INDICES, type ChapterIndex } from '~/content/chapters';
+import {
+  CHAPTER_INDICES,
+  INTERLUDE,
+  type ChapterIndex,
+  type InterludeId,
+} from '~/content/chapters';
 import { clamp } from '~/lib/math/clamp/clamp';
 
 /**
@@ -22,9 +27,19 @@ export interface SceneState {
    * descarga (como `mTarget` con el scroll) y la leen la escena (`uCharge`) y los efectos del Big Bang en el DOM.
    */
   readonly charge: number;
+  /**
+   * El interludio en cuyo tramo se lee (su pantalla o su cola), o `null`: lo escribe el scroll con `m`. La escena no
+   * lo necesita (en un interludio, `m` se queda en la forma del capítulo anterior); el raíl, sí.
+   */
+  readonly interlude: InterludeId | null;
 }
 
-export const sceneStore = createStore<SceneState>()(() => ({ mTarget: 0, m: 0, charge: 0 }));
+export const sceneStore = createStore<SceneState>()(() => ({
+  mTarget: 0,
+  m: 0,
+  charge: 0,
+  interlude: null,
+}));
 
 /**
  * Lo que pide el scroll. `m` lo sigue sin suavizado (la escena suaviza el suyo, ADR-028). Un valor que no es un
@@ -33,6 +48,12 @@ export const sceneStore = createStore<SceneState>()(() => ({ mTarget: 0, m: 0, c
 export function setScrollTarget(mTarget: number): void {
   if (!Number.isFinite(mTarget) || sceneStore.getState().mTarget === mTarget) return;
   sceneStore.setState({ mTarget, m: mTarget });
+}
+
+/** El interludio que se está leyendo (o `null`), con el scroll. */
+export function setReadingInterlude(interlude: InterludeId | null): void {
+  if (sceneStore.getState().interlude === interlude) return;
+  sceneStore.setState({ interlude });
 }
 
 /** La carga de la detonación (se queda entre 0 y 1). */
@@ -51,4 +72,17 @@ export function activeChapter(m: number): ChapterIndex {
 /** Selector del capítulo activo, para `useStore(sceneStore, selectActiveChapter)`: re-renderiza solo al cambiar. */
 export function selectActiveChapter({ m }: SceneState): ChapterIndex {
   return activeChapter(m);
+}
+
+/**
+ * Lo que marca el raíl: el interludio mientras se lee (su pantalla y la primera mitad de su cola, mientras la forma
+ * sigue siendo la del capítulo de antes) o, si no, el capítulo activo. Una cadena: re-renderiza solo al cambiar.
+ */
+export function selectActiveStop({
+  m,
+  interlude,
+}: SceneState): `chapter-${ChapterIndex}` | InterludeId {
+  const chapter = activeChapter(m);
+  if (interlude !== null && INTERLUDE[interlude].after === chapter) return interlude;
+  return `chapter-${String(chapter)}` as `chapter-${ChapterIndex}`;
 }

@@ -71,13 +71,23 @@ describe('Contact', () => {
   );
 
   it.each([
-    ['/', 'Open to work', 'Remote, hybrid, or on-site', 'Open to relocation', 'Killarney, Ireland'],
+    [
+      '/',
+      'Open to work',
+      'Available immediately',
+      'Remote, hybrid, or on-site',
+      'Open to relocation',
+      'Killarney, Ireland',
+      'EU citizen – full right to work in Ireland',
+    ],
     [
       '/es',
       'Disponible',
+      'Disponible de inmediato',
       'Remoto, híbrido o presencial',
       'Abierto a reubicarme',
       'Killarney, Irlanda',
+      'Ciudadano de la UE, con permiso de trabajo en Irlanda',
     ],
   ])('%s: availability comes from the profile', (path, ...lines) => {
     const region = renderAt(path);

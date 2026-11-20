@@ -30,6 +30,24 @@ const CHAPTERS = {
   ],
 } as const;
 
+/** Los títulos `h2` del viaje en orden: los capítulos y, tras About, el Mission log (fase C). */
+const HEADINGS = {
+  en: [
+    'A star born from curiosity',
+    'Mission 01',
+    'My galaxy of tools',
+    'What I carry on my shell',
+    'Touchdown',
+  ],
+  es: [
+    'Una estrella que nace de la curiosidad',
+    'Misión 01',
+    'Mi galaxia de herramientas',
+    'Lo que llevo a cuestas',
+    'Aterrizaje',
+  ],
+} as const;
+
 /** Tamaños de referencia de docs/02-experiencia (encuadre y solapes). */
 const REFERENCE_VIEWPORTS = [
   { width: 1280, height: 720 },
@@ -58,13 +76,17 @@ test.describe('the journey (home)', () => {
     ['/', 'en'],
     ['/es', 'es'],
   ] as const) {
-    test(`${path}: one h1, the four chapters in order and no console errors`, async ({ page }) => {
+    test(`${path}: one h1, the four chapters and the Mission log in order, and no console errors`, async ({
+      page,
+    }) => {
       const errors = collectErrors(page);
       await page.goto(path, { waitUntil: 'networkidle' });
       await expect(page.locator('html')).toHaveAttribute('lang', locale);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText('Víctor Pérez');
-      await expect(page.getByRole('heading', { level: 2 })).toHaveText(
-        CHAPTERS[locale].map(([, title]) => title),
+      await expect(page.getByRole('heading', { level: 2 })).toHaveText(HEADINGS[locale]);
+      await expect(page.getByRole('region', { name: HEADINGS[locale][1] })).toHaveAttribute(
+        'id',
+        'mission-log',
       );
       for (const [id, title] of CHAPTERS[locale]) {
         await expect(page.getByRole('region', { name: title })).toHaveAttribute('id', id);
@@ -305,7 +327,7 @@ test.describe('the journey (home)', () => {
     page,
   }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
-    const lists = await page.locator('main ul').count();
+    const lists = await page.locator('main :is(ul, ol)').count();
     expect(lists).toBeGreaterThan(0);
     await expect(page.locator('main').getByRole('list')).toHaveCount(lists);
   });
@@ -661,9 +683,7 @@ test.describe('without JavaScript', () => {
     await page.goto('/es');
     await expect(page.locator('html')).toHaveAttribute('lang', 'es');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Víctor Pérez');
-    await expect(page.getByRole('heading', { level: 2 })).toHaveText(
-      CHAPTERS.es.map(([, title]) => title),
-    );
+    await expect(page.getByRole('heading', { level: 2 })).toHaveText(HEADINGS.es);
     await expect(page.getByRole('link', { name: 'Ver proyecto Chessmate' })).toHaveAttribute(
       'href',
       '/es/projects/chessmate',

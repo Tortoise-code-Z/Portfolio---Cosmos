@@ -1,0 +1,223 @@
+/*
+ * Transmisión (interludios y epílogo, fase C · ADR-034): docs/03-diseno/design-system.md → «Transmisiones» y
+ * docs/03-diseno/componentes.md → «Transmisión». Pantalla completa en el color de su canal, con lenguaje de terminal
+ * (franja del canal, barrido, brillo, teletipo, cursor, onda) sobre una cuadrícula de plano técnico. Todo el texto es
+ * DOM; lo demás es decoración y con movimiento reducido se queda quieto.
+ */
+.amber {
+  --_ch: var(--color-channel-amber);
+  --_ch-dim: var(--color-channel-amber-dim);
+  --_ch-bright: var(--color-channel-amber-bright);
+  --_ch-veil: var(--color-channel-amber-veil);
+  --_ch-line: var(--color-channel-amber-line);
+  --_ch-glow: var(--color-channel-amber-glow);
+  --_ch-grid-bg: var(--gradient-channel-amber-grid);
+  --_ch-sweep: var(--gradient-channel-amber-sweep);
+}
+
+.transmission {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-block-size: var(--interlude-min-h);
+  overflow: hidden;
+  color: var(--_ch);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-mono);
+  /* Velo del canal sobre la escena (la forma de antes, atenuada) y cuadrícula doble de plano: 120 px y 24 px. */
+  background: var(--_ch-grid-bg), var(--_ch-veil);
+}
+
+/* Líneas de barrido finas sobre todo (decoración: sin puntero). */
+.transmission::after {
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-scanlines);
+  content: '';
+  pointer-events: none;
+}
+
+/* El barrido de entrada: una banda de luz que baja una vez al encenderse. */
+.transmission::before {
+  position: absolute;
+  z-index: 1;
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: 18%;
+  background: var(--_ch-sweep);
+  content: '';
+  pointer-events: none;
+  translate: 0 -120%;
+  visibility: hidden;
+}
+
+.transmission[data-on]::before {
+  visibility: visible;
+  animation: transmission-sweep var(--dur-sweep) var(--ease-in-out) both;
+}
+
+@keyframes transmission-sweep {
+  from {
+    translate: 0 -120%;
+  }
+
+  to {
+    translate: 0 620%;
+  }
+}
+
+.strip {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding-inline: var(--gutter) calc(var(--gutter) + var(--rail-room));
+  border-block-end: var(--border-width) solid var(--_ch-line);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.channel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--_ch-dim);
+}
+
+/* Indicador de señal: cuatro barras de altura creciente (la última, apagada). */
+.signal {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  block-size: 10px;
+}
+
+.signal > span {
+  inline-size: 3px;
+  background-color: var(--_ch);
+}
+
+.signal > span:nth-child(1) {
+  block-size: 30%;
+}
+
+.signal > span:nth-child(2) {
+  block-size: 55%;
+}
+
+.signal > span:nth-child(3) {
+  block-size: 80%;
+}
+
+.signal > span:nth-child(4) {
+  block-size: 100%;
+  background-color: var(--_ch-dim);
+}
+
+.skip {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  min-block-size: var(--target-min);
+  color: var(--_ch);
+  text-decoration: none;
+}
+
+.skip:hover {
+  color: var(--_ch-bright);
+}
+
+.body {
+  position: relative;
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  align-content: start;
+  padding: var(--space-7) calc(var(--gutter) + var(--rail-room)) var(--space-6) var(--gutter);
+}
+
+.incoming {
+  color: var(--_ch-dim);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+  letter-spacing: var(--tracking-micro);
+  text-transform: uppercase;
+}
+
+.title {
+  margin-block-start: calc(-1 * var(--space-4));
+  color: var(--_ch-bright);
+  font-family: var(--font-mono);
+  font-size: var(--text-h1);
+  font-weight: var(--weight-mono-strong);
+  line-height: var(--leading-h1);
+  letter-spacing: var(--tracking-micro);
+  text-transform: uppercase;
+  text-shadow: 0 0 18px var(--_ch-glow);
+}
+
+.footer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) calc(var(--gutter) + var(--rail-room)) var(--space-6) var(--gutter);
+  color: var(--_ch-dim);
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.wave {
+  flex: 1;
+  max-inline-size: 360px;
+  block-size: var(--space-5);
+  fill: none;
+  stroke: var(--_ch-line);
+  stroke-width: 1.5;
+}
+
+/* La cola: recorrido vacío en el que la escena cambia de forma. Sin puntero: las estrellas de debajo lo reciben. */
+.tail {
+  block-size: var(--interlude-tail);
+  pointer-events: none;
+}
+
+/*
+ * Teletipo: con la sección armada, cada línea (`[data-line]`, con su orden en `--_line`) espera tapada y se escribe
+ * de izquierda a derecha al encenderse. Sin armar (sin JavaScript, movimiento reducido) se ve entera.
+ */
+.transmission[data-armed] [data-line] {
+  clip-path: inset(0 100% 0 0);
+}
+
+.transmission[data-armed][data-on] [data-line] {
+  clip-path: inset(0);
+  transition: clip-path var(--dur-teletype-line) steps(24, end);
+  transition-delay: calc(var(--_line, 0) * var(--dur-teletype-step));
+}
+
+@media (width >= 900px) {
+  .body {
+    padding-block-start: var(--space-8);
+  }
+}
+
+/* Alto contraste: el sistema pinta sus colores; fuera la cuadrícula, el barrido y el brillo. */
+@media (forced-colors: active) {
+  .transmission,
+  .transmission::after,
+  .transmission::before {
+    background: none;
+  }
+
+  .title {
+    text-shadow: none;
+  }
+}

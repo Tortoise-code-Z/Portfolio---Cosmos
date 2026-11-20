@@ -4,7 +4,7 @@
 
 - **Inglés sin prefijo** (`/`), **español con `/es`**. Cada página declara su alternativa con `hreflang`.
 - Los capítulos del viaje son anclas con el mismo id en los dos idiomas: `#about`, `#skills`, `#projects`,
-  `#contact` (el inicio no lleva ancla).
+  `#contact` (el inicio no lleva ancla). Los interludios (fase C), también: `#mission-log`.
 - Al pasar de un capítulo a otro la URL **no** se reescribe en cada scroll (ensucia el historial); solo cambia
   cuando el usuario usa el raíl o un enlace, con `replaceState` (sin entrada nueva en el historial; el inicio queda
   sin ancla).

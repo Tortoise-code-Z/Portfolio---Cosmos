@@ -20,7 +20,7 @@
 ### Eyebrow
 - Una línea `--text-label` en mono: **sección** en ámbar + `· escena · tiempo` en `--color-dim`.
 
-### Título de capítulo (`h2`) · Párrafo · Lista de etiquetas (fortalezas)
+### Título de capítulo (`h2`) · Párrafo · Lista de etiquetas (el stack de las fichas)
 - Títulos según escala. Párrafos `--color-ink-soft`.
 - Etiqueta: mono 12 px, borde 1 px `--color-faint`, relleno `--space-2`/`--space-3` (8/12 px, en la rejilla de 4),
   sin radio.
@@ -97,14 +97,33 @@
 - Con movimiento reducido el punto no respira.
 
 ### Raíl (`ChapterRail`)
-- Columna de 5 enlaces alineados a la derecha: texto (sección en Geologica 500 a 13 px + escena en mono 10 px,
-  `--text-nano`) y punto de 7 px. Los enlaces miden lo que el más ancho: los puntos forman una columna.
+- Columna de enlaces alineados a la derecha, uno por capítulo y uno por interludio en su sitio (fase C: el Mission
+  log, entre About y Skills): texto (sección en Geologica 500 a 13 px + escena en mono 10 px, `--text-nano`) y punto de
+  7 px; el de un interludio, un rombo del mismo tamaño. Los enlaces miden lo que el más ancho: los puntos forman una
+  columna. Un interludio es el activo mientras se lee (su pantalla y la primera mitad de su cola).
 - Activo: punto ámbar relleno, escala 1,4 y halo; texto opaco. Inactivos: texto al 70 % (`--opacity-muted`, que
   cumple AA: 8,7:1 la sección y 4,7:1 la escena). Al pasar el puntero o con el foco del teclado, texto opaco.
 - En alto contraste (`forced-colors`) el punto activo se rellena con `Highlight`: no solo es más grande.
 - Nombre accesible = `aria-label` con el texto completo («About · Nebula»), también en escritorio.
 - Por debajo de md (900 px): solo puntos, cada enlace de 44 × 44 px, a 8 px del borde (el anillo de foco cabe).
 - Solo se repinta cuando cambia el capítulo activo, no con cada píxel de scroll.
+
+### Transmisión (`Transmission`, fase C)
+- Sección a todo el ancho, hija directa de `<main>` (recoge el puntero; las estrellas de debajo, no), de al menos una
+  ventana de alto (`--interlude-min-h`), con el velo de su canal (`--color-channel-*-veil`: la forma de antes se ve
+  atenuada), la cuadrícula doble de plano y líneas de barrido. Deja libre a la derecha lo que ocupa el raíl
+  (`--rail-room`).
+- Franja del canal arriba: indicador de señal y nombre del canal, y «Skip transmission ↓», un enlace de verdad al
+  capítulo siguiente (salta con el foco en su título, como el raíl; ≥ 44 px).
+- Rótulo «▸ Incoming transmission», título `h2` en mono con brillo (enfocable por código, como los capítulos), el
+  contenido de cada transmisión y un pie con la onda de señal y el reloj parado.
+- Entrada: con JavaScript y sin movimiento reducido, la sección se arma al montar (`data-armed`: las líneas del
+  teletipo, `[data-line]`, esperan tapadas) y se enciende una vez al entrar en la pantalla (`data-on`): barrido de
+  luz y líneas una tras otra (`--dur-teletype-*`). Sin JavaScript o con movimiento reducido no se arma: todo quieto
+  y visible. El texto está entero en el DOM siempre.
+- Le sigue su cola (`--interlude-tail`): un tramo vacío, `aria-hidden` y sin puntero, en el que la escena cambia a la
+  forma del capítulo siguiente.
+- Alto contraste: fuera la cuadrícula, el velo, el barrido y el brillo; el texto, en los colores del sistema.
 
 ### HUD (`CosmicHud`)
 - Dos líneas en mono: reloj (13 px, valores en ámbar) y escala (11 px, `--color-dim`). `aria-hidden`, sin
@@ -174,8 +193,7 @@
   El nombre del diálogo es el título; el rótulo va en `aria-describedby` (el lector dice los dos al abrir).
   Ocupa también el hueco de la barra de scroll que reserva la página (`100vw`).
 - Título `h2` «Víctor Pérez · Frontend Developer» (escala de `h3` por debajo de sm) y secciones con su `h3` en mono
-  ámbar: About (la bio; las fortalezas salieron en C.1 para que los proyectos empiecen en la primera pantalla a
-  390 px), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Skills, Education
+  ámbar: About (la bio), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Skills, Education
   (título, centro, periodo y horas; las habilidades de cada curso solo en Contacto), Availability (si
   `openToWork`) y Contact (email con su `CopyButton`, GitHub, LinkedIn, CV).
 - Marcado propio y compacto: lee `src/content/` como los capítulos, pero no reutiliza sus componentes (ADR-022).

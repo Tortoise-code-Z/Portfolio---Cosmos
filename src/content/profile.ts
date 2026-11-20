@@ -14,25 +14,25 @@ export const profile: Profile = {
   bio: {
     en: [
       'I first wrote code in 2019, in a scientific computing module with Python during my first year of Physics. I came back to it on my own in 2022, and curiosity turned into a career: in 2024 I finished a 975-hour full-stack web programming course with a Distinction.',
-      'In 2026 I completed a three-month remote internship at Studios Demanzon, building React and Next.js interfaces for a B2B game launcher and working with NestJS, Docker and Electron.',
+      'In 2026 I completed a three-month remote internship at Studios Demanzon, building React and Next.js interfaces and working with NestJS, Docker and Electron.',
       'I work on both sides, but the front end is where I feel most at home: turning designs into precise interfaces with React and TypeScript. I use AI (Claude) every day to move faster, and I read and understand every change before it goes in.',
     ],
     es: [
       'Escribí mi primer código en 2019, en una asignatura de computación científica con Python durante mi primer año de Física. Lo retomé por mi cuenta en 2022 y la curiosidad se convirtió en profesión: en 2024 terminé un curso de programación web full-stack de 975 horas con Sobresaliente.',
-      'En 2026 hice tres meses de prácticas en remoto en Studios Demanzon: interfaces con React y Next.js para un lanzador de juegos B2B, y trabajo con NestJS, Docker y Electron.',
+      'En 2026 hice tres meses de prácticas en remoto en Studios Demanzon: interfaces con React y Next.js, y trabajo con NestJS, Docker y Electron.',
       'Trabajo en los dos lados, pero donde más cómodo me siento es en el frontend: convertir diseños en interfaces precisas con React y TypeScript. Uso IA (Claude) a diario para ir más rápido, y leo y entiendo cada cambio antes de que entre.',
     ],
   },
-  strengths: [
-    { en: 'Hard-working', es: 'Trabajador' },
-    { en: 'Communication', es: 'Comunicación' },
-    { en: 'Perseverance', es: 'Perseverancia' },
-  ],
   location: { city: 'Killarney', country: { en: 'Ireland', es: 'Irlanda' } },
   availability: {
     openToWork: true,
     modes: ['remote', 'hybrid', 'onsite'],
     openToRelocation: true,
+    workPermit: {
+      en: 'EU citizen – full right to work in Ireland',
+      es: 'Ciudadano de la UE, con permiso de trabajo en Irlanda',
+    },
+    availableNow: true,
   },
   contact: {
     email: 'victorperez@tortoisecode.dev',

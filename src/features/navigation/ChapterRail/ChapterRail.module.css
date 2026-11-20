@@ -72,6 +72,20 @@
     border-color var(--dur-base) var(--ease-out);
 }
 
+/* Un interludio: un rombo del mismo tamaño que el punto (un cuadrado girado). */
+.diamond {
+  flex: none;
+  inline-size: var(--rail-dot-size);
+  block-size: var(--rail-dot-size);
+  border: var(--border-width) solid var(--color-ink);
+  rotate: 45deg;
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+
+.link[aria-current='step'] .diamond,
 .link[aria-current='step'] .dot {
   border-color: var(--color-star);
   background-color: var(--color-star);
@@ -81,6 +95,7 @@
 
 /* Alto contraste (Windows): el sistema quita fondos y sombras; el activo se rellena con su color. */
 @media (forced-colors: active) {
+  .link[aria-current='step'] .diamond,
   .link[aria-current='step'] .dot {
     border-color: Highlight;
     background-color: Highlight;

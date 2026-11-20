@@ -47,6 +47,7 @@
 | `chapter.2` | Skills · Galaxy | Habilidades · Galaxia |
 | `chapter.3` | Projects · Cosmic turtle | Proyectos · Tortuga cósmica |
 | `chapter.4` | Contact · Earth | Contacto · Tierra |
+| `interlude.1` | Mission log · transmission | Bitácora · transmisión |
 | `rail.label` | Chapters | Capítulos |
 
 Cada `chapter.N` es el nombre accesible del botón del raíl. Su texto visible se parte por « · »: la sección encima
@@ -93,7 +94,25 @@ del texto.
 | `about.eyebrow` | About · nebula · t ≈ 200 million years | Sobre mí · nebulosa · t ≈ 200 millones de años |
 | `about.title` | A star born from curiosity | Una estrella que nace de la curiosidad |
 | `about.body` | → `profile.bio` | → `profile.bio` |
-| `about.strengths` | Strengths | Fortalezas |
+
+## Interludio 1 · Mission log (transmisión, canal ámbar)
+
+Los datos de la misión están en `experiencia.md`; aquí, los rótulos.
+
+| Clave | EN | ES |
+|---|---|---|
+| `missionLog.channel` | Channel 01 · amber | Canal 01 · ámbar |
+| `missionLog.incoming` | Incoming transmission · source located | Transmisión entrante · origen localizado |
+| `missionLog.title` | Mission 01 | Misión 01 |
+| `missionLog.source` / `.role` / `.position` / `.window` / `.status` | Source / Role / Position / Window / Status | Origen / Puesto / Posición / Ventana / Estado |
+| `missionLog.manifest` | Payload manifest | Manifiesto de carga |
+| `missionLog.entries` | Log entries {list} | Entradas del diario {list} |
+| `missionLog.log` | Flight log | Diario de vuelo |
+| `missionLog.reference` | Reference | Referencia |
+| `missionLog.clock` | t ≈ 200 million years | t ≈ 200 millones de años |
+| `interlude.skip` | Skip transmission | Saltar transmisión |
+| `interlude.clock` | cosmic clock paused | reloj cósmico en pausa |
+| `interlude.end` | End of transmission | Fin de la transmisión |
 
 ## Capítulo 2 · Habilidades (Galaxia)
 
@@ -132,6 +151,7 @@ del texto.
 | `availability.mode.hybrid` | hybrid | híbrido |
 | `availability.mode.onsite` | on-site | presencial |
 | `contact.availability.relocation` | Open to relocation | Abierto a reubicarme |
+| `contact.availability.now` | Available immediately | Disponible de inmediato |
 | `contact.cv` | Download CV (PDF) | Descargar CV (PDF, en inglés) |
 | `education.title` | Completed orbits · education | Órbitas completadas · formación |
 | `education.hours` | {n} h | {n} h |
@@ -150,6 +170,7 @@ del texto.
 | `quick.education` | Education | Formación |
 | `quick.contact` | Contact | Contacto |
 | `quick.availability` | Availability | Disponibilidad |
+| `quick.experience` | Experience | Experiencia |
 
 ## Página de proyecto
 

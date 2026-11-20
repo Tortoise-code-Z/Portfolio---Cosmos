@@ -16,19 +16,20 @@ function renderAt(path: string): void {
 
 describe('About', () => {
   it.each([
-    ['/', 'en', 'A star born from curiosity', 'Strengths', 'Hard-working'],
-    ['/es', 'es', 'Una estrella que nace de la curiosidad', 'Fortalezas', 'Trabajador'],
-  ] as const)('%s: region #about, bio and strengths', (path, locale, title, label, strength) => {
-    renderAt(path);
-    const region = screen.getByRole('region', { name: title });
-    expect(region).toHaveAttribute('id', 'about');
-    for (const paragraph of profile.bio[locale]) {
-      expect(within(region).getByText(paragraph)).toBeInTheDocument();
-    }
-    const strengths = within(region).getByRole('list', { name: label });
-    expect(within(strengths).getAllByRole('listitem')).toHaveLength(profile.strengths.length);
-    expect(within(strengths).getByText(strength)).toBeInTheDocument();
-  });
+    ['/', 'en', 'A star born from curiosity'],
+    ['/es', 'es', 'Una estrella que nace de la curiosidad'],
+  ] as const)(
+    '%s: region #about with the whole bio, and no strengths (phase C)',
+    (path, locale, title) => {
+      renderAt(path);
+      const region = screen.getByRole('region', { name: title });
+      expect(region).toHaveAttribute('id', 'about');
+      for (const paragraph of profile.bio[locale]) {
+        expect(within(region).getByText(paragraph)).toBeInTheDocument();
+      }
+      expect(within(region).queryByRole('list')).toBeNull();
+    },
+  );
 
   it('the title is an h2 under the page h1, focusable by script only (the hero jumps here)', () => {
     renderAt('/');

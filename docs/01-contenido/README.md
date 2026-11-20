@@ -8,7 +8,8 @@
 | Archivo | Qué contiene |
 |---|---|
 | `modelo-de-datos.md` | Tipos TypeScript del contenido, reglas de validación y dónde vive en el código |
-| `perfil.md` | Datos personales: identidad, bio, fortalezas, disponibilidad, contacto, formación |
+| `perfil.md` | Datos personales: identidad, bio, disponibilidad y permiso de trabajo, contacto, formación |
+| `experiencia.md` | La experiencia (las prácticas) como misión: ficha, manifiesto, registro y referencia |
 | `habilidades.md` | Grupos de habilidades (las constelaciones) |
 | `textos-sitio.md` | Todos los textos de interfaz EN/ES: capítulos, navegación, HUD, modo misión rápida, 404, SEO |
 | `proyectos/chessmate.md` | Ficha completa de Chessmate (EN/ES) |

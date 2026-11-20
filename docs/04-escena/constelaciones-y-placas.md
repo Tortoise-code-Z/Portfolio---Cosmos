@@ -114,7 +114,8 @@ panel).
   (con la misión rápida abierta a la ida y a la vuelta, la escena está en pausa).
 - Sin selección (`user-select: none`: Ctrl+A no las copia).
 - Mono de 11 px; por debajo de 900 px, 10 px (`--text-star-label-narrow`, en px a propósito). A 1280×720 y 1440×900 se ven las 31; en anchos
-  medios y en móvil, las que caben (a 390×844, unas 13): la lista del panel sigue completa.
+  medios y en móvil, las que caben (a 390×844, unas 12 desde que el raíl tiene el rombo del Mission log): la lista
+  del panel sigue completa.
 
 ## Placas de proyecto (capítulo 3)
 

@@ -1,16 +1,17 @@
 import { useRef, type ReactNode } from 'react';
 import { useLocation } from 'react-router';
 
-import { CHAPTER_MORPH_START } from '~/content/chapters';
+import { JOURNEY_SEGMENTS } from '~/content/chapters';
 import { profile } from '~/content/profile';
 import { skillGroups } from '~/content/skills';
 import { NotFoundPage } from '~/features/errors/NotFoundPage/NotFoundPage';
 import { CosmicHud } from '~/features/hud/CosmicHud/CosmicHud';
 import { About } from '~/features/journey/About/About';
 import { BigBangFlash } from '~/features/journey/BigBangFlash/BigBangFlash';
-import { CHAPTER_SELECTOR } from '~/features/journey/chapterDom/chapterDom';
+import { JOURNEY_SEGMENT_SELECTOR } from '~/features/journey/chapterDom/chapterDom';
 import { Contact } from '~/features/journey/Contact/Contact';
 import { Hero } from '~/features/journey/Hero/Hero';
+import { MissionLog } from '~/features/journey/MissionLog/MissionLog';
 import { Projects } from '~/features/journey/Projects/Projects';
 import { Skills } from '~/features/journey/Skills/Skills';
 import { ChapterRail } from '~/features/navigation/ChapterRail/ChapterRail';
@@ -24,7 +25,7 @@ import { localeFromPathname } from '~/lib/i18n/locale/locale';
 import { isLowerCasePathname } from '~/lib/i18n/paths/paths';
 import { useScrollTarget } from '~/lib/scroll/useScrollTarget/useScrollTarget';
 import { homeMeta, notFoundMeta } from '~/lib/seo/meta/meta';
-import { setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import { setReadingInterlude, setScrollTarget } from '~/stores/sceneStore/sceneStore';
 
 import type { Route } from './+types/journey';
 
@@ -35,10 +36,19 @@ export function meta({ location }: Route.MetaArgs): Route.MetaDescriptors {
   return homeMeta({ origin: SITE_ORIGIN, locale, profile, skillGroups });
 }
 
+/** Con `m`, el tramo: si es de un interludio, el raíl lo marca. */
+function onScrollTarget(m: number, segment: number): void {
+  setScrollTarget(m);
+  const reading = JOURNEY_SEGMENTS[segment];
+  setReadingInterlude(
+    reading === undefined || reading.kind === 'chapter' ? null : reading.interlude,
+  );
+}
+
 const SCROLL_TARGET = {
-  selector: CHAPTER_SELECTOR,
-  morphStart: CHAPTER_MORPH_START,
-  onTarget: setScrollTarget,
+  selector: JOURNEY_SEGMENT_SELECTOR,
+  steps: JOURNEY_SEGMENTS,
+  onTarget: onScrollTarget,
 } as const;
 
 /**
@@ -74,6 +84,7 @@ function JourneyPage(): ReactNode {
       <main ref={mainRef}>
         <Hero />
         <About />
+        <MissionLog />
         <Skills />
         <Projects />
         <Contact />

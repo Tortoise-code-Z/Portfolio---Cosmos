@@ -1,9 +1,10 @@
 import { fireEvent, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { chapterSteps } from '../mapM/mapM';
 import { useScrollTarget } from './useScrollTarget';
 
-const WINDOWS = [0, 0.52];
+const STEPS = chapterSteps([0, 0.52], 3);
 
 function setScrollY(y: number): void {
   Object.defineProperty(window, 'scrollY', { configurable: true, value: y });
@@ -45,10 +46,10 @@ describe('useScrollTarget', () => {
     renderHook(() => {
       useScrollTarget(
         { current: journey() },
-        { selector: '[data-chapter]', morphStart: WINDOWS, onTarget },
+        { selector: '[data-chapter]', steps: STEPS, onTarget },
       );
     });
-    expect(onTarget).toHaveBeenLastCalledWith(1);
+    expect(onTarget).toHaveBeenLastCalledWith(1, 1);
   });
 
   it('maps every scroll to m, and stops listening on unmount', () => {
@@ -56,13 +57,13 @@ describe('useScrollTarget', () => {
     const { unmount } = renderHook(() => {
       useScrollTarget(
         { current: journey() },
-        { selector: '[data-chapter]', morphStart: WINDOWS, onTarget },
+        { selector: '[data-chapter]', steps: STEPS, onTarget },
       );
     });
     scrollTo(500);
-    expect(onTarget).toHaveBeenLastCalledWith(0.5);
+    expect(onTarget).toHaveBeenLastCalledWith(0.5, 0);
     scrollTo(3500);
-    expect(onTarget).toHaveBeenLastCalledWith(2);
+    expect(onTarget).toHaveBeenLastCalledWith(2, 2);
 
     unmount();
     onTarget.mockClear();
@@ -76,16 +77,16 @@ describe('useScrollTarget', () => {
     renderHook(() => {
       useScrollTarget(
         { current: journey() },
-        { selector: '[data-chapter]', morphStart: WINDOWS, onTarget },
+        { selector: '[data-chapter]', steps: STEPS, onTarget },
       );
     });
-    expect(onTarget).toHaveBeenLastCalledWith(0);
+    expect(onTarget).toHaveBeenLastCalledWith(0, 0);
     // Un ancla deja el capítulo 64 px por debajo del borde de la ventana: justo bajo la barra.
     scrollTo(1000 - 64);
-    expect(onTarget).toHaveBeenLastCalledWith(1);
+    expect(onTarget).toHaveBeenLastCalledWith(1, 1);
     // Arriba del todo sigue siendo la singularidad: la barra no adelanta la explosión.
     scrollTo(0);
-    expect(onTarget).toHaveBeenLastCalledWith(0);
+    expect(onTarget).toHaveBeenLastCalledWith(0, 0);
   });
 
   it('without a scroll padding (`auto`) the reading line is the top of the window', () => {
@@ -94,10 +95,10 @@ describe('useScrollTarget', () => {
     renderHook(() => {
       useScrollTarget(
         { current: journey() },
-        { selector: '[data-chapter]', morphStart: WINDOWS, onTarget },
+        { selector: '[data-chapter]', steps: STEPS, onTarget },
       );
     });
     scrollTo(1000);
-    expect(onTarget).toHaveBeenLastCalledWith(1);
+    expect(onTarget).toHaveBeenLastCalledWith(1, 1);
   });
 });

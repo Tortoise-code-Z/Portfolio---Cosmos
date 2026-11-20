@@ -4,7 +4,9 @@ import {
   activeChapter,
   sceneStore,
   selectActiveChapter,
+  selectActiveStop,
   setCharge,
+  setReadingInterlude,
   setScrollTarget,
 } from './sceneStore';
 
@@ -14,12 +16,12 @@ afterEach(() => {
 
 describe('sceneStore', () => {
   it('starts at the singularity', () => {
-    expect(sceneStore.getState()).toEqual({ mTarget: 0, m: 0, charge: 0 });
+    expect(sceneStore.getState()).toEqual({ mTarget: 0, m: 0, charge: 0, interlude: null });
   });
 
   it('m follows the scroll target as is (the scene smooths its own)', () => {
     setScrollTarget(2.4);
-    expect(sceneStore.getState()).toEqual({ mTarget: 2.4, m: 2.4, charge: 0 });
+    expect(sceneStore.getState()).toEqual({ mTarget: 2.4, m: 2.4, charge: 0, interlude: null });
   });
 
   it('does not notify when the target has not changed', () => {
@@ -39,7 +41,7 @@ describe('sceneStore', () => {
       setScrollTarget(broken);
     }
     expect(listener).not.toHaveBeenCalled();
-    expect(sceneStore.getState()).toEqual({ mTarget: 1.5, m: 1.5, charge: 0 });
+    expect(sceneStore.getState()).toEqual({ mTarget: 1.5, m: 1.5, charge: 0, interlude: null });
     unsubscribe();
   });
 });
@@ -48,7 +50,7 @@ describe('setCharge', () => {
   it('keeps the detonation charge, without touching m', () => {
     setScrollTarget(0.1);
     setCharge(0.4);
-    expect(sceneStore.getState()).toEqual({ mTarget: 0.1, m: 0.1, charge: 0.4 });
+    expect(sceneStore.getState()).toEqual({ mTarget: 0.1, m: 0.1, charge: 0.4, interlude: null });
   });
 
   it('stays between 0 and 1, and a broken value is 0', () => {
@@ -89,6 +91,41 @@ describe('activeChapter', () => {
 
 describe('selectActiveChapter', () => {
   it('reads the active chapter from the state', () => {
-    expect(selectActiveChapter({ mTarget: 3.2, m: 3.2, charge: 0 })).toBe(3);
+    expect(selectActiveChapter({ mTarget: 3.2, m: 3.2, charge: 0, interlude: null })).toBe(3);
+  });
+});
+
+describe('selectActiveStop', () => {
+  const state = (m: number, interlude: 'mission-log' | null) => ({
+    mTarget: m,
+    m,
+    charge: 0,
+    interlude,
+  });
+
+  it('is the chapter while no interlude is read', () => {
+    expect(selectActiveStop(state(1, null))).toBe('chapter-1');
+    expect(selectActiveStop(state(2.4, null))).toBe('chapter-2');
+  });
+
+  it('is the interlude while it is read and the shape is still the chapter before it', () => {
+    expect(selectActiveStop(state(1, 'mission-log'))).toBe('mission-log');
+    expect(selectActiveStop(state(1.4, 'mission-log'))).toBe('mission-log');
+  });
+
+  it('gives way to the next chapter once the tail has morphed past half way', () => {
+    expect(selectActiveStop(state(1.6, 'mission-log'))).toBe('chapter-2');
+  });
+});
+
+describe('setReadingInterlude', () => {
+  it('writes only when it changes', () => {
+    setReadingInterlude('mission-log');
+    expect(sceneStore.getState().interlude).toBe('mission-log');
+    const before = sceneStore.getState();
+    setReadingInterlude('mission-log');
+    expect(sceneStore.getState()).toBe(before);
+    setReadingInterlude(null);
+    expect(sceneStore.getState().interlude).toBeNull();
   });
 });

@@ -1,11 +1,16 @@
 import type { MouseEvent } from 'react';
 
-import { CHAPTER_ANCHORS, type ChapterIndex } from '~/content/chapters';
+import {
+  CHAPTER_ANCHORS,
+  INTERLUDE,
+  type ChapterIndex,
+  type InterludeId,
+} from '~/content/chapters';
 import type { Locale } from '~/content/types';
 import { homePath } from '~/lib/i18n/paths/paths';
 import { jumpToChapter } from '~/lib/scroll/jumpToChapter/jumpToChapter';
 
-import { findChapter } from '../../journey/chapterDom/chapterDom';
+import { findChapter, findInterlude } from '../../journey/chapterDom/chapterDom';
 
 /** Ancla de un capítulo en la URL (`#projects`); el inicio no lleva. */
 export function chapterHash(index: ChapterIndex): string {
@@ -44,5 +49,26 @@ export function onChapterLinkClick(index: ChapterIndex): (event: MouseEvent) => 
   return (event) => {
     if (!isPlainClick(event)) return;
     if (goToChapter(index)) event.preventDefault();
+  };
+}
+
+/** El ancla de un interludio (`#mission-log`). */
+export function interludeHash(id: InterludeId): string {
+  return `#${INTERLUDE[id].anchor}`;
+}
+
+/** La URL de un interludio en el idioma: el inicio con su ancla. */
+export function interludeHref(locale: Locale, id: InterludeId): string {
+  return `${homePath(locale)}${interludeHash(id)}`;
+}
+
+/** Como `onChapterLinkClick`, para un interludio: salta a su pantalla con el foco en su título. */
+export function onInterludeLinkClick(id: InterludeId): (event: MouseEvent) => void {
+  return (event) => {
+    if (!isPlainClick(event)) return;
+    const interlude = findInterlude(id);
+    if (interlude === null) return;
+    event.preventDefault();
+    jumpToChapter(interlude, { hash: interludeHash(id) });
   };
 }

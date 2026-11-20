@@ -1,0 +1,229 @@
+/*
+ * Mission log (docs/02-experiencia/capitulos/interludio-1-mission-log.md → «Layout»): ficha arriba; abajo, el
+ * manifiesto (3 × 2 en escritorio, 2 × 3 en móvil) a la izquierda y el registro a la derecha. Los colores salen del
+ * canal de la transmisión (`--_ch*`, Transmission.module.css).
+ */
+.head {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.record {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--_ch-line);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.field dt {
+  color: var(--_ch-dim);
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.field dd {
+  margin: 0;
+  color: var(--_ch-bright);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.summary {
+  max-inline-size: var(--measure);
+  color: var(--_ch);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.columns {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.heading {
+  margin-block-end: var(--space-3);
+  color: var(--_ch-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-mono);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.modules {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.module {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--_ch-line);
+}
+
+.moduleIndex {
+  color: var(--_ch-dim);
+  font-size: var(--text-nano);
+  line-height: var(--leading-nano);
+}
+
+.moduleName {
+  color: var(--_ch-bright);
+  font-size: var(--text-small);
+  font-weight: var(--weight-mono-strong);
+  line-height: var(--leading-small);
+}
+
+.modulePurpose {
+  color: var(--_ch);
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+}
+
+.moduleEntries {
+  color: var(--_ch-dim);
+  font-size: var(--text-nano);
+  line-height: var(--leading-nano);
+  letter-spacing: var(--tracking-micro);
+  text-transform: uppercase;
+}
+
+.entries {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+/* Móvil: el número a la izquierda y, a su lado, la etiqueta encima del texto. Escritorio: tres columnas alineadas. */
+.entry {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  align-items: baseline;
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.entry .entryNumber {
+  grid-row: span 2;
+  align-self: start;
+}
+
+/* El número en un círculo, como en un plano: enlaza la entrada con su módulo del manifiesto. */
+.entryNumber {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 2.2em;
+  block-size: 2.2em;
+  border: var(--border-width) solid var(--_ch-line);
+  border-radius: 50%;
+  color: var(--_ch-bright);
+  font-size: var(--text-nano);
+}
+
+.entryTag {
+  color: var(--_ch-dim);
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+}
+
+.entryText {
+  color: var(--_ch);
+}
+
+.end {
+  margin-block-start: var(--space-4);
+  color: var(--_ch-bright);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* Cursor de bloque: parpadea con el texto ya escrito (decoración; quieto con movimiento reducido). */
+.cursor {
+  display: inline-block;
+  inline-size: 0.6em;
+  block-size: 1em;
+  margin-inline-start: var(--space-1);
+  background-color: var(--_ch);
+  vertical-align: text-bottom;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cursor {
+    animation: mission-log-blink var(--dur-blink) steps(1, end) infinite;
+  }
+}
+
+@keyframes mission-log-blink {
+  50% {
+    visibility: hidden;
+  }
+}
+
+.reference {
+  max-inline-size: var(--measure);
+  margin: 0;
+  padding-inline-start: var(--space-4);
+  border-inline-start: var(--border-width) solid var(--_ch-line);
+}
+
+.reference blockquote {
+  margin: 0;
+  color: var(--_ch-bright);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.reference figcaption {
+  margin-block-start: var(--space-2);
+  color: var(--_ch-dim);
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-micro);
+  text-transform: uppercase;
+}
+
+@media (width >= 900px) {
+  .columns {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: var(--space-7);
+  }
+
+  .modules {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* La etiqueta más larga (ARREGLADO) cabe en 10 caracteres de la mono: los textos empiezan todos a la misma altura. */
+  .entry {
+    grid-template-columns: auto 10ch minmax(0, 1fr);
+  }
+
+  .entry .entryNumber {
+    grid-row: auto;
+    align-self: baseline;
+  }
+}
+
+@media (forced-colors: active) {
+  .entryNumber {
+    border-color: CanvasText;
+  }
+}
