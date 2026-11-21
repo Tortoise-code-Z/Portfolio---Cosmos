@@ -5,10 +5,11 @@
 
 ## Regla de privacidad (decisión de Víctor, fase C)
 
-La web es pública: dice **lo que hizo Víctor**, nunca qué es ni cómo está construido el producto de la empresa (ni
-arquitectura, ni conexiones entre sus partes, ni el tipo de producto). Por eso las viñetas del CV van suavizadas: sin
-«launcher», «cloud platform», «game downloads» ni «trade fairs». Un test lo vigila en el Mission log. El mismo
-criterio se ha pedido para el CV y LinkedIn.
+La web y el repo son públicos: dicen **lo que hizo Víctor**, nunca qué es ni cómo está construido el producto de la
+empresa: ni el tipo de producto, ni sus partes, ni a quién va dirigido, ni su arquitectura. Por eso las viñetas del CV
+van suavizadas. La guarda es la revisión del texto (este doc y `experience.ts`), no una lista de palabras: una lista
+escrita en un repo público diría justo lo que se calla. El test del Mission log solo comprueba que pinta lo que dice
+`experience`. El mismo criterio se ha pedido para el CV y LinkedIn.
 
 ## Ficha
 
@@ -44,7 +45,7 @@ Cada entrada del registro sale en algún módulo y cada número apunta a una ent
 | 02 | ADDED / AÑADIDO | Added a history view and multi-select actions, kept in sync across every part of the app. | Añadí un historial y acciones con selección múltiple, sincronizados en todas las partes de la app. |
 | 03 | FIXED / ARREGLADO | Fixed state and rendering bugs: buttons not updating their state, changes that only showed after a page reload, and a broken progress bar. | Arreglé bugs de estado y de renderizado: botones que no actualizaban su estado, cambios que solo se veían al recargar la página y una barra de progreso que no funcionaba. |
 | 04 | ADDED / AÑADIDO | Added offline access through email-based sign-in, and confirmation modals for destructive actions. | Añadí acceso sin conexión con inicio de sesión por email, y modales de confirmación para las acciones destructivas. |
-| 05 | AUTO / AUTO | Used n8n to translate the interface into English and keep its content available in every supported language. | Usé n8n para traducir la interfaz al inglés y tener su contenido disponible en todos los idiomas. |
+| 05 | AUTO / AUTO | Used n8n to translate the interface into English and keep its content available in every supported language. | Usé n8n para traducir la interfaz al inglés y mantener su contenido disponible en todos los idiomas que admite. |
 | 06 | BACKEND / BACKEND | Implemented backend services and business logic in NestJS, and wrote Dockerfiles to build the container images and set up their volumes. | Implementé servicios backend y lógica de negocio en NestJS, y escribí Dockerfiles para construir las imágenes de los contenedores y configurar sus volúmenes. |
 
 ## Referencia

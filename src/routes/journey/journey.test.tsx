@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { JOURNEY_SEGMENTS } from '~/content/chapters';
 import { JOURNEY_SEGMENT_SELECTOR } from '~/features/journey/chapterDom/chapterDom';
 import { sceneStore } from '~/stores/sceneStore/sceneStore';
 
@@ -58,6 +59,26 @@ describe('Journey', () => {
   it('/ES (mayúsculas) es la 404 en inglés, aunque el cliente case la ruta de /es', async () => {
     render(<Stub initialEntries={['/ES']} />);
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Lost in space');
+  });
+
+  it('los tramos del DOM van en el orden de JOURNEY_SEGMENTS (el mapeo de scroll lee uno por cada uno)', async () => {
+    render(<Stub initialEntries={['/']} />);
+    await screen.findByRole('heading', { level: 1 });
+    const inDom = [...document.querySelectorAll<HTMLElement>(JOURNEY_SEGMENT_SELECTOR)].map(
+      (element) =>
+        element.dataset.chapter ??
+        element.dataset.interlude ??
+        `${element.dataset.interludeTail ?? ''} tail`,
+    );
+    expect(inDom).toEqual(
+      JOURNEY_SEGMENTS.map((segment) =>
+        segment.kind === 'chapter'
+          ? String(segment.chapter)
+          : segment.kind === 'interlude'
+            ? segment.interlude
+            : `${segment.interlude} tail`,
+      ),
+    );
   });
 
   it('el scroll fija el m de sceneStore tramo a tramo: About y el Mission log quietos, la cola cambia', async () => {

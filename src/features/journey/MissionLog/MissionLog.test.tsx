@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
 import { experience } from '~/content/experience';
+import { localize } from '~/lib/i18n/localize/localize';
 
 import { MissionLog } from './MissionLog';
 
@@ -68,25 +69,29 @@ describe('MissionLog', () => {
     expect(within(region).getByText('Fin de la transmisión')).toBeInTheDocument();
   });
 
-  it('nothing about what the product is: no launcher, no cloud platform, no game downloads', () => {
-    for (const path of ['/', '/es']) {
-      const text = renderAt(path).textContent.toLowerCase();
-      for (const word of [
-        'launcher',
-        'lanzador',
-        'cloud',
-        'nube',
-        'game',
-        'juego',
-        'b2b',
-        'trade fair',
-        'feria',
-      ]) {
-        expect(text, `${path}: «${word}»`).not.toContain(word);
-      }
-      document.body.replaceChildren();
-    }
-  });
+  it.each(['/', '/es'] as const)(
+    '%s: paints only the content of `experience`, in its order (the text itself is reviewed there)',
+    (path) => {
+      const locale = path === '/' ? 'en' : 'es';
+      const region = renderAt(path);
+      expect(region).toHaveTextContent(localize(locale, experience.summary));
+      const modules = within(
+        within(region).getByRole('list', { name: /Payload manifest|Manifiesto de carga/ }),
+      ).getAllByRole('listitem');
+      expect(modules.map((item) => item.firstElementChild?.textContent)).toEqual(
+        experience.modules.map((module) => localize(locale, module.name)),
+      );
+      expect(modules.map((item) => item.children[1]?.textContent)).toEqual(
+        experience.modules.map((module) => localize(locale, module.purpose)),
+      );
+      const entries = within(
+        within(region).getByRole('list', { name: /Flight log|Diario de vuelo/ }),
+      ).getAllByRole('listitem');
+      expect(entries.map((item) => item.lastElementChild?.textContent)).toEqual(
+        experience.log.map((entry) => localize(locale, entry.text)),
+      );
+    },
+  );
 
   it.each([
     ['/', '“', '”', 'Ángel González, CTO, Studios Demanzon'],

@@ -24,7 +24,8 @@
   foco: se anuncia (región `status`) y va al final del orden del Tab. Sale en el viaje y en la página de proyecto
   (allí ofrece ese mismo proyecto en español).
 - El selector EN/ES de la barra superior lleva a la **misma página** en el otro idioma, conservando el capítulo en
-  el que estás (el activo según el scroll, aunque la URL no lleve su ancla) o el proyecto abierto.
+  el que estás (el activo según el scroll, aunque la URL no lleve su ancla), el interludio si lo estás leyendo (el
+  que marca el raíl con su rombo: `/es#mission-log`) o el proyecto abierto. La sugerencia de idioma hace lo mismo.
 - `lang` del documento correcto en cada página (`en` / `es`).
 
 ## Barra superior (fija)
@@ -54,8 +55,9 @@ shell», arriba, y los enlaces del pie (GitHub, LinkedIn y el email).
 
 ## Raíl de capítulos (fijo, a la derecha)
 
-- 5 puntos; en escritorio cada uno lleva **el nombre real de la sección** y, debajo, el de la escena
-  («Projects · Cosmic turtle»). En móvil, solo puntos con `aria-label`.
+- 6 paradas: un punto por capítulo (5) y un rombo por interludio (1, el Mission log, entre About y Skills); en
+  escritorio cada una lleva **el nombre real de la sección** y, debajo, el de la escena («Projects · Cosmic
+  turtle»). En móvil, solo puntos y rombo con `aria-label`.
 - El activo se marca en ámbar y con `aria-current="step"`.
 - Clic o Enter: viaja a ese capítulo (scroll suave; instantáneo con movimiento reducido), lleva el foco a su
   título (como la detonación) y deja su ancla en la URL.
@@ -76,8 +78,9 @@ shell», arriba, y los enlaces del pie (GitHub, LinkedIn y el email).
 ## Modo misión rápida
 
 - Botón siempre visible en la barra. Abre un `<dialog>` modal a pantalla completa con **todo el contenido** en
-  una página limpia: sobre mí, proyectos (con enlace a su página, demo y código), habilidades, formación,
-  disponibilidad y contacto (con su botón de copiar el email). El contenido solo se monta al abrir: el HTML
+  una página limpia: sobre mí, proyectos (con enlace a su página, demo y código), experiencia (las prácticas:
+  puesto, empresa, lugar, periodo y lo que hizo), habilidades, formación, disponibilidad (abierto a trabajar, incorporación
+  inmediata, modalidad, reubicación, ubicación y permiso de trabajo) y contacto (con su botón de copiar el email). El contenido solo se monta al abrir: el HTML
   pre-renderizado no repite el texto del viaje.
 - Foco al botón «Close quick mission» al abrir; `Esc` y ese botón cierran y devuelven el foco al botón de apertura
   (también si se entró por `/#quick`). Mientras está abierto, el resto de la página es inerte (modal).

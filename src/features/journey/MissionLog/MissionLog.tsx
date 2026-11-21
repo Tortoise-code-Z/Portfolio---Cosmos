@@ -14,9 +14,6 @@ const MANIFEST_ID = 'mission-log-manifest';
 const LOG_ID = 'mission-log-log';
 const REFERENCE_ID = 'mission-log-reference';
 
-/** Comillas de cita de cada idioma. */
-const QUOTE_MARKS = { en: ['“', '”'], es: ['«', '»'] } as const;
-
 /** Número de una entrada del registro, con dos cifras: 01, 02… */
 function entryNumber(entry: number): string {
   return String(entry).padStart(2, '0');
@@ -54,7 +51,6 @@ export function MissionLog(): ReactNode {
       incoming={t('missionLog.incoming')}
       titleId={TITLE_ID}
       title={t('missionLog.title')}
-      skipTo={2}
       clock={t('missionLog.clock')}
     >
       <div className={styles.head}>
@@ -75,11 +71,8 @@ export function MissionLog(): ReactNode {
             {t('missionLog.manifest')}
           </h3>
           <ol role="list" aria-labelledby={MANIFEST_ID} className={styles.modules}>
-            {experience.modules.map((module, index) => (
+            {experience.modules.map((module) => (
               <li key={module.id} className={styles.module}>
-                <span className={styles.moduleIndex} aria-hidden="true">
-                  {entryNumber(index + 1)}
-                </span>
                 <span className={styles.moduleName}>{localize(locale, module.name)}</span>
                 <span className={styles.modulePurpose}>{localize(locale, module.purpose)}</span>
                 <span className={styles.moduleEntries}>
@@ -127,10 +120,13 @@ export function MissionLog(): ReactNode {
             {t('missionLog.reference')}
           </h3>
           <blockquote lang={locale}>
-            <p>{`${QUOTE_MARKS[locale][0]}${localize(locale, experience.reference.quote)}${QUOTE_MARKS[locale][1]}`}</p>
+            <p>{t('missionLog.quote', { quote: localize(locale, experience.reference.quote) })}</p>
           </blockquote>
           <figcaption>
-            {`${experience.reference.author}, ${localize(locale, experience.reference.title)}`}
+            {t('missionLog.by', {
+              author: experience.reference.author,
+              title: localize(locale, experience.reference.title),
+            })}
           </figcaption>
         </figure>
       )}

@@ -12,7 +12,7 @@ import { useChapterLayout } from '../useChapterLayout/useChapterLayout';
 interface ScrollTargetOptions {
   /** Qué elementos de `root` son los tramos del viaje (capítulos y partes de los interludios), en orden. */
   readonly selector: string;
-  /** Lo que hace la escena en cada tramo (`JOURNEY_STEPS`). */
+  /** Lo que hace la escena en cada tramo (`JOURNEY_SEGMENTS`). */
   readonly steps: readonly JourneyStep[];
   /**
    * Recibe el `m` objetivo y el tramo en el que se lee (su índice): al montar, al cambiar las medidas y con cada

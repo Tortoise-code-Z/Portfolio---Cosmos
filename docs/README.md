@@ -8,7 +8,7 @@
 |---|---|---|
 | `00-vision/` | Para qué y para quién: objetivo, público, principios, métricas, alcance, riesgos | `brief.md` |
 | `01-contenido/` | Todo el texto y los datos (EN/ES), modelo de datos, proyectos, assets | `README.md` |
-| `02-experiencia/` | Scroll, navegación, los 5 capítulos, página de proyecto, estados y accesibilidad | `README.md` |
+| `02-experiencia/` | Scroll, navegación, los 5 capítulos y los interludios, página de proyecto, estados y accesibilidad | `README.md` |
 | `03-diseno/` | Design system: tokens, tipografía, componentes, movimiento | `design-system.md` |
 | `04-escena/` | Motor 3D: partículas, shaders, formas, cámara, constelaciones, placas, rendimiento | `README.md` |
 | `05-tecnico/` | Stack con versiones, arquitectura, calidad, git, CI y despliegue | `README.md` |

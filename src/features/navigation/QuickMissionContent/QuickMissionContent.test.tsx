@@ -8,8 +8,12 @@ import { skillGroups } from '~/content/skills';
 
 import { QuickMissionContent } from './QuickMissionContent';
 
-/** Perfil real con dos interruptores para probar lo que depende de los datos. */
-const state = vi.hoisted(() => ({ openToWork: true, cvEn: null as string | null }));
+/** Perfil real con tres interruptores para probar lo que depende de los datos. */
+const state = vi.hoisted(() => ({
+  openToWork: true,
+  availableNow: true,
+  cvEn: null as string | null,
+}));
 
 vi.mock('~/content/profile', async (importOriginal) => {
   const original = await importOriginal<typeof import('~/content/profile')>();
@@ -17,7 +21,11 @@ vi.mock('~/content/profile', async (importOriginal) => {
     get profile() {
       return {
         ...original.profile,
-        availability: { ...original.profile.availability, openToWork: state.openToWork },
+        availability: {
+          ...original.profile.availability,
+          openToWork: state.openToWork,
+          availableNow: state.availableNow,
+        },
         cv: { en: state.cvEn, es: null },
       };
     },
@@ -26,6 +34,7 @@ vi.mock('~/content/profile', async (importOriginal) => {
 
 afterEach(() => {
   state.openToWork = true;
+  state.availableNow = true;
   state.cvEn = null;
   window.getSelection()?.removeAllRanges();
   Reflect.deleteProperty(navigator, 'clipboard');
@@ -155,6 +164,12 @@ describe('QuickMissionContent', () => {
     expect(section('Availability')).toHaveTextContent(
       'Open to workAvailable immediatelyRemote, hybrid, or on-siteOpen to relocationKillarney, IrelandEU citizen – full right to work in Ireland',
     );
+    document.body.replaceChildren();
+    state.availableNow = false;
+    renderContent();
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Availability' }).parentElement,
+    ).not.toHaveTextContent('Available immediately');
     document.body.replaceChildren();
     state.openToWork = false;
     renderContent();

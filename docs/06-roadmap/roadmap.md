@@ -149,8 +149,7 @@ por paso, en este orden:
 2. **Interludios y Mission log** (objetivo: 23 nov): el tipo de sección «interludio» (`mapM` con tramos que mantienen
    `m`, raíl, anclas, HUD con el reloj parado, misión rápida) y el primero, tras About: la experiencia (Software
    Developer Intern, Studios Demanzon, jul – oct 2026) como registro de misión, con el permiso de trabajo y la
-   disponibilidad en Contacto. «Strengths» sale de About. Si el 24 nov no está, la experiencia entra provisional en
-   About y en la misión rápida.
+   disponibilidad en Contacto. «Strengths» sale de About.
    *(Hecho: PR #97. `m` por tramos (`JOURNEY_SEGMENTS`); la cola del interludio cambia la nebulosa a galaxia; las
    viñetas van suavizadas, sin decir qué es el producto de la empresa; la frase del CTO, con su permiso.)*
 3. **Galaxia de skills** (objetivo: 25 nov, con la auditoría de F4.3c ya corregida): sale Bootstrap; entran Next.js,

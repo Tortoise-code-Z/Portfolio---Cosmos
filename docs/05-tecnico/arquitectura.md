@@ -19,16 +19,22 @@ cosmos-portfolio/
 │  ├─ entry.client.tsx          ← (si hace falta personalizar la hidratación)
 │  ├─ routes.ts                 ← configuración de rutas EN/ES
 │  ├─ routes/                   ← una carpeta por ruta, con su test (ADR-018)
-│  │  ├─ journey/journey.tsx    ← el viaje (home): monta los 5 capítulos
+│  │  ├─ journey/journey.tsx    ← el viaje (home): monta los 5 capítulos y el interludio, en el orden de
+│  │  │                           `JOURNEY_SEGMENTS`
 │  │  ├─ project/project.tsx    ← /projects/:slug
 │  │  └─ not-found/not-found.tsx
-│  ├─ content/                  ← datos tipados (docs/01-contenido); `chapters.ts` (orden, anclas y ventanas
-│  │                              de morph de los capítulos) y `site.ts` (repo del sitio) incluidos; en
-│  │                              `projects/`, los textos (`entries.ts`) aparte de las imágenes (`media.ts`)
+│  ├─ content/                  ← datos tipados (docs/01-contenido); `chapters.ts` (orden y anclas de los
+│  │                              capítulos, `INTERLUDE` con su ancla, su capítulo de antes y el siguiente,
+│  │                              las paradas del raíl `CHAPTER_STOPS` y los tramos del viaje
+│  │                              `JOURNEY_SEGMENTS`, con la forma y la ventana de morph de cada uno),
+│  │                              `experience.ts` (la experiencia del Mission log) y `site.ts` (repo del sitio)
+│  │                              incluidos; en `projects/`, los textos (`entries.ts`) aparte de las imágenes
+│  │                              (`media.ts`)
 │  ├─ features/                 ← piezas de interfaz con lógica propia
 │  │  ├─ journey/               ← Hero, ChapterSection, ChapterPanel, Eyebrow, About, Skills, Projects,
-│  │  │                           ProjectRow, Contact, `chapterDom` (el contrato con el DOM que lee la
-│  │  │                           navegación), `useBigBang` y `BigBangFlash` (los efectos del Big Bang en el
+│  │  │                           ProjectRow, Contact, Transmission (la pantalla de un interludio, fase C) y
+│  │  │                           MissionLog (el primero), `chapterDom` (el contrato con el DOM que lee la
+│  │  │                           navegación y el mapeo de scroll), `useBigBang` y `BigBangFlash` (los efectos del Big Bang en el
 │  │  │                           DOM, ADR-030) y `shared.module.css` (piezas de texto comunes)
 │  │  ├─ navigation/            ← TopBar, ChapterRail, LanguageSwitch, SkipLink, goToChapter (salto con
 │  │  │                           ancla en la URL), AvailabilityChip, QuickMissionDialog y
@@ -76,7 +82,9 @@ cosmos-portfolio/
 │  │  ├─ history/               ← replaceHash (cambia el ancla sin entrada nueva en el historial)
 │  │  ├─ storage/               ← readStorage / writeStorage: localStorage que nunca lanza; si falla, memoria
 │  │  │                           hasta recargar y un aviso por clave (solo comodidades)
-│  │  ├─ scroll/                ← mapM y toScrollLayout (puros), useChapterLayout, useScrollTarget,
+│  │  ├─ events/                ← isPlainClick (clic normal: los saltos dentro del viaje lo comparten)
+│  │  ├─ scroll/                ← mapM, segmentAt y toScrollLayout (puros; los tramos del viaje),
+│  │  │                           useChapterLayout, useScrollTarget,
 │  │  │                           jumpToChapter (scroll + foco al título + ancla) y smoothM (el suavizado de
 │  │  │                           `m` que comparten la escena y los efectos del Big Bang, ADR-030)
 │  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
@@ -219,7 +227,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
 | `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); grupo de skills encendido (`activeSkillGroup`, desde F4.3b: lo lee la escena en cada frame con `getState()`; lo escriben el panel y las etiquetas desde F4.3c: `setActiveSkillGroup` enciende y `releaseActiveSkillGroup` apaga solo si sigue encendido; `selectSceneOn` dice si hay escena); después, proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto); desde F5, la placa visitada |
-| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028; `setScrollTarget` no deja pasar lo que no sea un número finito), la carga de la detonación (`charge`, desde F4.1: la escribe el bucle del botón del hero en cada frame mientras carga o se descarga, ADR-030) y, más adelante en F4, peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget` y `charge` y deja su `m` suavizada y la carga en el `SceneFrame` que leen los `useFrame`; los efectos del Big Bang del hero (`useBigBang`, ADR-030) por suscripción, en su propio bucle y **sin re-render**; el HUD por `getState()`/suscripción, **sin re-render**; el raíl, el idioma y las fotos fijas del modo sin WebGL eligen `selectActiveChapter` (solo se repintan al cambiar de capítulo) |
+| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028; `setScrollTarget` no deja pasar lo que no sea un número finito), el interludio que se lee (`interlude`, fase C: lo escribe el viaje con `setReadingInterlude` en la pantalla y la cola del interludio), la carga de la detonación (`charge`, desde F4.1: la escribe el bucle del botón del hero en cada frame mientras carga o se descarga, ADR-030) y, más adelante en F4, peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget` y `charge` y deja su `m` suavizada y la carga en el `SceneFrame` que leen los `useFrame`; los efectos del Big Bang del hero (`useBigBang`, ADR-030) por suscripción, en su propio bucle y **sin re-render**; el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen la parada activa (`selectActiveStop`: el interludio mientras se lee, o el capítulo `round(m)`), y el HUD la lee para esconderse en un interludio; las fotos fijas del modo sin WebGL eligen `selectActiveChapter` (solo se repintan al cambiar) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
 ningún store: se guarda en `localStorage` (`lib/storage`), la lee solo `LanguageNotice` y la escriben el aviso y
@@ -227,11 +235,15 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 
 ## Puente scroll → escena
 
-1. `useChapterLayout` mide el inicio y la altura de cada capítulo (`getBoundingClientRect` + `scrollY`) al montar,
-   con un ResizeObserver sobre `<main>` y tras `document.fonts.ready`; `useScrollTarget` las pasa a posiciones de
-   scroll bajo la barra fija (`toScrollLayout`).
-2. Un único listener de scroll pasivo calcula `mTarget = mapM(scrollY, layout)` y lo escribe en `sceneStore`
-   (`setScrollTarget`; también al montar, para una recarga a mitad del viaje). La ruta del viaje los conecta:
+1. `useChapterLayout` mide el inicio y la altura de cada tramo del viaje (`JOURNEY_SEGMENT_SELECTOR`: los capítulos
+   y, de cada interludio, su pantalla y su cola; `getBoundingClientRect` + `scrollY`) al montar, con un
+   ResizeObserver sobre `<main>` y tras `document.fonts.ready`; `useScrollTarget` las pasa a posiciones de scroll
+   bajo la barra fija (`toScrollLayout`).
+2. Un único listener de scroll pasivo busca el tramo (`segmentAt`, con 1 px de margen para un ancla redondeada) y
+   calcula `mTarget = mapM(scrollY, layout, JOURNEY_SEGMENTS)`: cada tramo tiene su forma y su ventana de morph, y un
+   interludio la deja quieta (scroll-y-escena.md → «Tramos del viaje»). Lo escribe en `sceneStore`
+   (`setScrollTarget`, y `setReadingInterlude` con el interludio del tramo; también al montar, para una recarga a
+   mitad del viaje). La ruta del viaje los conecta:
    `lib` no importa `stores`, así que el destino le llega por parámetro.
 3. El bucle de la escena lee `mTarget` en cada frame y suaviza su propia `m` (`smoothM` de `lib/scroll`, con el tiempo
    real del frame; en su primer frame arranca en `mTarget`), que deja en el `SceneFrame` compartido; los `useFrame`
@@ -243,9 +255,9 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
    convertida en destello, temblor, nombre y halo, como variables CSS privadas en `<html>` (`--_bang-*`); los leen el
    hero, el destello (`BigBangFlash`, en la ruta del viaje, fuera de `<main>`) y el lienzo, sin importarse entre
    capas (ADR-030).
-4. El raíl, el idioma y las fotos fijas (sin WebGL) eligen `round(m)` (`selectActiveChapter`); el HUD se suscribe y
-   solo toca el DOM cuando
-   cambia su texto (cambios discretos, no por frame).
+4. El raíl y el idioma eligen la parada activa (`selectActiveStop`: el interludio mientras se lee, o el capítulo
+   `round(m)`); las fotos fijas (sin WebGL), `round(m)` (`selectActiveChapter`). El HUD se suscribe y solo toca el DOM
+   cuando cambia su texto o si se esconde (en un interludio) (cambios discretos, no por frame).
 
 ## Carga de la escena
 
@@ -306,7 +318,9 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   (`--z-labels` < `--z-content`). En el viaje, `<main>` y los capítulos (`ChapterSection`) van sin puntero; lo
   recogen los hijos directos de cada capítulo (el panel, el contenido del hero) y todo hijo directo de `<main>` que no
   sea un capítulo, así que una sección nueva (un interludio de la fase C) nace con puntero sin hacer nada
-  (`ChapterSection.module.css`, con `:where` para que la regla propia de un hijo siga mandando). Un toque limpio en
+  (`ChapterSection.module.css`, con `:where` para que la regla propia de un hijo siga mandando). La excepción es la
+  cola de un interludio: también es hija directa de `<main>`, pero va sin puntero (`Transmission.module.css`,
+  `.tail`), para que las etiquetas de Skills, que asoman en su segunda mitad, lo reciban. Un toque limpio en
   cualquier sitio apaga el grupo encendido: un `click` escuchado en la fase de captura del documento, mientras la
   escena está encendida; si cae en un grupo o una etiqueta, su propio `click` lo vuelve a encender (manda el último
   gesto). Al desmontarse el viaje o apagarse la escena, se apaga.

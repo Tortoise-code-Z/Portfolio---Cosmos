@@ -102,10 +102,10 @@ panel).
   (`--z-labels`: entre el destello y `main`) montada en `body` con un portal: dentro del envoltorio del lienzo
   quedarían por debajo del destello. Decorativas (`aria-hidden`): el teclado y el lector usan el panel. Desde F4.3c,
   con el capítulo a más de `interactiveFrom` (0,6), las visibles reciben el puntero (`data-live`, solo al cambiar;
-  como lo demás, se escribe otra vez si la capa nace de nuevo: ver abajo): el ratón encima enciende su grupo y un toque también. Para que
-  les llegue, `main` y los capítulos dejan pasar el ratón y solo lo recogen sus hijos directos, como el panel
-  (`docs/05-tecnico/arquitectura.md` → «Puntero del viaje»): también mientras la galaxia entra o sale, con About o
-  Projects aún en pantalla.
+  como lo demás, se escribe otra vez si la capa nace de nuevo: ver abajo): el ratón encima enciende su grupo y un
+  toque también. Para que les llegue, `main` y los capítulos dejan pasar el ratón y solo lo recogen sus hijos
+  directos, como el panel (`docs/05-tecnico/arquitectura.md` → «Puntero del viaje»): también mientras la galaxia
+  entra (en la cola del Mission log, vacía y sin puntero) o sale (con Projects aún en pantalla).
 - Sus textos llegan ya traducidos por props (`SceneMount` → `SceneRoot`): la escena solo lee del contenido los ids
   y el orden. Solo en el viaje: en las fichas y la 404, sin etiquetas.
 - En cada frame, `CameraRig` deja en el `SceneFrame` su pose y su campo de visión antes que nadie (su `useFrame` va

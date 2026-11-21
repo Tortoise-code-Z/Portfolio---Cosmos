@@ -1,22 +1,20 @@
 import type { MouseEvent } from 'react';
 
 import {
-  CHAPTER_ANCHORS,
+  chapterHash,
   INTERLUDE,
+  isInterludeStop,
+  stopChapter,
   type ChapterIndex,
   type InterludeId,
+  type JourneyStop,
 } from '~/content/chapters';
 import type { Locale } from '~/content/types';
+import { isPlainClick } from '~/lib/events/isPlainClick/isPlainClick';
 import { homePath } from '~/lib/i18n/paths/paths';
 import { jumpToChapter } from '~/lib/scroll/jumpToChapter/jumpToChapter';
 
 import { findChapter, findInterlude } from '../../journey/chapterDom/chapterDom';
-
-/** Ancla de un capítulo en la URL (`#projects`); el inicio no lleva. */
-export function chapterHash(index: ChapterIndex): string {
-  const anchor = CHAPTER_ANCHORS[index];
-  return anchor === null ? '' : `#${anchor}`;
-}
 
 /** Dirección de un capítulo del viaje en un idioma: `/#projects`, `/es#contact`, `/es`. */
 export function chapterHref(locale: Locale, index: ChapterIndex): string {
@@ -33,11 +31,6 @@ export function goToChapter(index: ChapterIndex): boolean {
   if (chapter === null) return false;
   jumpToChapter(chapter, { hash: chapterHash(index) });
   return true;
-}
-
-/** Clic normal: botón principal y sin teclas que pidan otra pestaña o ventana. */
-export function isPlainClick(event: MouseEvent): boolean {
-  return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
 }
 
 /**
@@ -60,6 +53,16 @@ export function interludeHash(id: InterludeId): string {
 /** La URL de un interludio en el idioma: el inicio con su ancla. */
 export function interludeHref(locale: Locale, id: InterludeId): string {
   return `${homePath(locale)}${interludeHash(id)}`;
+}
+
+/**
+ * La URL de una parada del raíl en el idioma: un capítulo o un interludio. Con ella el cambio de idioma te deja
+ * donde estabas, también leyendo un interludio (navegacion.md → «Idioma»).
+ */
+export function stopHref(locale: Locale, stop: JourneyStop): string {
+  return isInterludeStop(stop)
+    ? interludeHref(locale, stop)
+    : chapterHref(locale, stopChapter(stop));
 }
 
 /** Como `onChapterLinkClick`, para un interludio: salta a su pantalla con el foco en su título. */

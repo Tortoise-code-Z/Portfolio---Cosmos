@@ -61,6 +61,15 @@ describe('LanguageNotice', () => {
     );
   });
 
+  it('reading an interlude, the link keeps it', () => {
+    sceneStore.setState({ mTarget: 1, m: 1, interlude: 'mission-log' });
+    renderNotice();
+    expect(screen.getByRole('link', { name: 'Ver en español' })).toHaveAttribute(
+      'href',
+      '/es#mission-log',
+    );
+  });
+
   it('outside the journey, the link goes to the same page in Spanish (pathFor)', () => {
     sceneStore.setState({ mTarget: 3, m: 3 });
     render(

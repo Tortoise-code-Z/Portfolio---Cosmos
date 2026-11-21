@@ -7,8 +7,12 @@ import { SITE_REPOSITORY } from '~/content/site';
 
 import { Contact } from './Contact';
 
-/** Perfil real con dos interruptores para probar lo que depende de los datos. */
-const state = vi.hoisted(() => ({ openToWork: true, cvEn: null as string | null }));
+/** Perfil real con tres interruptores para probar lo que depende de los datos. */
+const state = vi.hoisted(() => ({
+  openToWork: true,
+  availableNow: true,
+  cvEn: null as string | null,
+}));
 
 vi.mock('~/content/profile', async (importOriginal) => {
   const original = await importOriginal<typeof import('~/content/profile')>();
@@ -16,7 +20,11 @@ vi.mock('~/content/profile', async (importOriginal) => {
     get profile() {
       return {
         ...original.profile,
-        availability: { ...original.profile.availability, openToWork: state.openToWork },
+        availability: {
+          ...original.profile.availability,
+          openToWork: state.openToWork,
+          availableNow: state.availableNow,
+        },
         cv: { en: state.cvEn, es: null },
       };
     },
@@ -25,6 +33,7 @@ vi.mock('~/content/profile', async (importOriginal) => {
 
 afterEach(() => {
   state.openToWork = true;
+  state.availableNow = true;
   state.cvEn = null;
   window.getSelection()?.removeAllRanges();
   Reflect.deleteProperty(navigator, 'clipboard');
@@ -83,11 +92,11 @@ describe('Contact', () => {
     [
       '/es',
       'Disponible',
-      'Disponible de inmediato',
+      'Incorporación inmediata',
       'Remoto, híbrido o presencial',
       'Abierto a reubicarme',
       'Killarney, Irlanda',
-      'Ciudadano de la UE, con permiso de trabajo en Irlanda',
+      'Ciudadano de la UE, con pleno derecho a trabajar en Irlanda',
     ],
   ])('%s: availability comes from the profile', (path, ...lines) => {
     const region = renderAt(path);
@@ -100,6 +109,15 @@ describe('Contact', () => {
     const region = renderAt('/');
     expect(region.querySelector('[data-availability]')).toBeNull();
     expect(within(region).queryByText('Open to work')).toBeNull();
+  });
+
+  it('availableNow false leaves «Available immediately» out, and nothing else', () => {
+    state.availableNow = false;
+    const list = renderAt('/').querySelector('[data-availability]');
+    const lines = [...(list?.children ?? [])].map((item) => item.textContent);
+    expect(lines).not.toContain('Available immediately');
+    expect(lines).toContain('Open to work');
+    expect(lines).toHaveLength(5);
   });
 
   it('the CV link only appears when the PDF of the language exists', () => {

@@ -10,7 +10,7 @@
 
 .record {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(var(--record-col-min), 1fr));
   gap: var(--space-3) var(--space-5);
   margin: 0;
   padding: var(--space-4);
@@ -76,12 +76,6 @@
   border: var(--border-width) solid var(--_ch-line);
 }
 
-.moduleIndex {
-  color: var(--_ch-dim);
-  font-size: var(--text-nano);
-  line-height: var(--leading-nano);
-}
-
 .moduleName {
   color: var(--_ch-bright);
   font-size: var(--text-small);
@@ -129,8 +123,8 @@
 .entryNumber {
   display: inline-grid;
   place-items: center;
-  inline-size: 2.2em;
-  block-size: 2.2em;
+  inline-size: var(--log-number-size);
+  block-size: var(--log-number-size);
   border: var(--border-width) solid var(--_ch-line);
   border-radius: 50%;
   color: var(--_ch-bright);
@@ -156,19 +150,24 @@
   text-transform: uppercase;
 }
 
-/* Cursor de bloque: parpadea con el texto ya escrito (decoración; quieto con movimiento reducido). */
+/*
+ * Cursor de bloque: con la transmisión encendida, parpadea unas pocas veces (menos de 5 s, WCAG 2.2.2) cuando su
+ * línea ya está escrita y se queda quieto y visible. Decoración: quieto siempre sin JavaScript o con movimiento
+ * reducido.
+ */
 .cursor {
   display: inline-block;
-  inline-size: 0.6em;
-  block-size: 1em;
+  inline-size: var(--cursor-w);
+  block-size: var(--cursor-h);
   margin-inline-start: var(--space-1);
   background-color: var(--_ch);
   vertical-align: text-bottom;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .cursor {
-    animation: mission-log-blink var(--dur-blink) steps(1, end) infinite;
+  [data-on] .cursor {
+    animation: mission-log-blink var(--dur-blink) steps(1, end) var(--blink-count) both;
+    animation-delay: calc(var(--_line, 0) * var(--dur-teletype-step) + var(--dur-teletype-line));
   }
 }
 
@@ -213,7 +212,7 @@
 
   /* La etiqueta más larga (ARREGLADO) cabe en 10 caracteres de la mono: los textos empiezan todos a la misma altura. */
   .entry {
-    grid-template-columns: auto 10ch minmax(0, 1fr);
+    grid-template-columns: auto var(--log-tag-w) minmax(0, 1fr);
   }
 
   .entry .entryNumber {

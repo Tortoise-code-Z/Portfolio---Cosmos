@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { sceneStore, setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import { sceneStore, setReadingInterlude, setScrollTarget } from '~/stores/sceneStore/sceneStore';
 
 import { LANGUAGE_NOTICE_KEY } from '../LanguageNotice/LanguageNotice';
 import { LanguageSwitch } from './LanguageSwitch';
@@ -88,6 +88,18 @@ describe('LanguageSwitch', () => {
       setScrollTarget(0.1);
     });
     expect(within(group).getByRole('link', { name: 'Español' })).toHaveAttribute('href', '/es');
+  });
+
+  it('reading an interlude, keeps the interlude (not the chapter before it)', () => {
+    const group = renderSwitch('/');
+    act(() => {
+      setScrollTarget(1);
+      setReadingInterlude('mission-log');
+    });
+    expect(within(group).getByRole('link', { name: 'Español' })).toHaveAttribute(
+      'href',
+      '/es#mission-log',
+    );
   });
 
   it('the current language does not navigate on a normal click (no jump, no history entry)', async () => {

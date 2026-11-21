@@ -54,6 +54,7 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 | Iluminación de constelaciones y placas | Giro autónomo de nebulosa, galaxia y Tierra; nado de la tortuga |
 | Detonación (sin destello ni temblor) | Gravedad del cursor y paralaje de la cámara; ciclo automático de placas |
 | Nombre del hero (`wdth`, espaciado) y halo, ligados a la carga y al scroll (ADR-030) | Scroll suave en saltos (pasa a instantáneo) y vuelo de cámara a proyectos |
+| Transmisiones: su color, la cuadrícula, las líneas de barrido y el brillo del título, quietos; todo el texto a la vista | Transmisiones: el barrido de entrada, el teletipo (no se arma) y el parpadeo del cursor |
 
 ## Táctil y móvil
 

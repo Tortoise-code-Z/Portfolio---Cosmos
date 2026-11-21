@@ -20,17 +20,19 @@ function renderOff(chapter = 0): ReturnType<typeof render> {
 }
 
 const stills = (container: HTMLElement): HTMLImageElement[] => [
-  ...container.querySelectorAll<HTMLImageElement>('img[data-chapter]'),
+  ...container.querySelectorAll<HTMLImageElement>('img[data-still-chapter]'),
 ];
 const still = (container: HTMLElement, chapter: number): HTMLImageElement => {
-  const image = container.querySelector<HTMLImageElement>(`img[data-chapter="${String(chapter)}"]`);
+  const image = container.querySelector<HTMLImageElement>(
+    `img[data-still-chapter="${String(chapter)}"]`,
+  );
   if (image === null) throw new Error(`No still for chapter ${String(chapter)}`);
   return image;
 };
 const visible = (container: HTMLElement): string[] =>
   stills(container)
     .filter((image) => image.dataset.visible === 'true')
-    .map((image) => image.dataset.chapter ?? '');
+    .map((image) => image.dataset.stillChapter ?? '');
 
 /** Va al capítulo `chapter`, como el scroll del viaje (`m = mTarget`). */
 function goTo(chapter: number): void {
@@ -80,7 +82,7 @@ describe('SceneStills', () => {
     fireEvent.load(still(container, 1));
     goTo(4);
     fireEvent.load(still(container, 4));
-    expect(stills(container).map((image) => image.dataset.chapter)).toEqual(['1', '4']);
+    expect(stills(container).map((image) => image.dataset.stillChapter)).toEqual(['1', '4']);
     goTo(1);
     expect(visible(container)).toEqual(['1']);
   });

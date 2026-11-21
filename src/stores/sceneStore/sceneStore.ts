@@ -2,9 +2,11 @@ import { createStore } from 'zustand/vanilla';
 
 import {
   CHAPTER_INDICES,
+  CHAPTER_STOPS,
   INTERLUDE,
   type ChapterIndex,
   type InterludeId,
+  type JourneyStop,
 } from '~/content/chapters';
 import { clamp } from '~/lib/math/clamp/clamp';
 
@@ -78,11 +80,8 @@ export function selectActiveChapter({ m }: SceneState): ChapterIndex {
  * Lo que marca el raíl: el interludio mientras se lee (su pantalla y la primera mitad de su cola, mientras la forma
  * sigue siendo la del capítulo de antes) o, si no, el capítulo activo. Una cadena: re-renderiza solo al cambiar.
  */
-export function selectActiveStop({
-  m,
-  interlude,
-}: SceneState): `chapter-${ChapterIndex}` | InterludeId {
+export function selectActiveStop({ m, interlude }: SceneState): JourneyStop {
   const chapter = activeChapter(m);
   if (interlude !== null && INTERLUDE[interlude].after === chapter) return interlude;
-  return `chapter-${String(chapter)}` as `chapter-${ChapterIndex}`;
+  return CHAPTER_STOPS[chapter];
 }

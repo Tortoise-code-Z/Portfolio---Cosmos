@@ -99,6 +99,12 @@ describe('ChapterRail', () => {
       setReadingInterlude('mission-log');
     });
     expect(current()).toEqual(['Mission log · transmission']);
+    // El interludio lleva un rombo y los capítulos, un punto (la marca, en el último hijo del enlace).
+    const mark = (name: string): string =>
+      within(rail).getByRole('link', { name }).lastElementChild?.className ?? '';
+    expect(mark('Mission log · transmission')).toMatch(/diamond/);
+    expect(mark('Mission log · transmission')).not.toMatch(/dot/);
+    expect(mark('About · Nebula')).toMatch(/dot/);
     act(() => {
       setScrollTarget(1.6);
     });

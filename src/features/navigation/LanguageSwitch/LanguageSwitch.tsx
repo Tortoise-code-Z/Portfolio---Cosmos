@@ -4,9 +4,10 @@ import { useStore } from 'zustand';
 
 import { LOCALES, type Locale, type UiKey } from '~/content/types';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
-import { sceneStore, selectActiveChapter } from '~/stores/sceneStore/sceneStore';
+import { isPlainClick } from '~/lib/events/isPlainClick/isPlainClick';
+import { sceneStore, selectActiveStop } from '~/stores/sceneStore/sceneStore';
 
-import { chapterHref, isPlainClick } from '../goToChapter/goToChapter';
+import { stopHref } from '../goToChapter/goToChapter';
 import { rememberLanguageAnswer } from '../LanguageNotice/LanguageNotice';
 import styles from './LanguageSwitch.module.css';
 
@@ -23,19 +24,19 @@ const NAME_KEYS = {
 /**
  * Selector EN / ES de la barra (docs/02-experiencia/navegacion.md → «Idioma»; componentes.md →
  * «Barra superior»): un par de enlaces a la misma página en cada idioma, que conservan el capítulo en
- * el que estás aunque la URL no lleve su ancla (el activo según el scroll). El idioma actual va
+ * el que estás aunque la URL no lleve su ancla (el activo según el scroll; o el interludio, si lo estás leyendo). El idioma actual va
  * subrayado en ámbar y con `aria-current="true"`. Cada enlace se nombra en su propio idioma. Ir al
  * otro idioma cuenta como respuesta a la sugerencia de idioma: no vuelve a ofrecerlo.
  */
 interface LanguageSwitchProps {
-  /** La misma página en otro idioma, fuera del viaje (`/es/projects/chessmate`). Sin ella, el capítulo activo. */
+  /** La misma página en otro idioma, fuera del viaje (`/es/projects/chessmate`). Sin ella, la parada activa del viaje. */
   readonly pathFor?: ((locale: Locale) => string) | undefined;
 }
 
 export function LanguageSwitch({ pathFor }: LanguageSwitchProps): ReactNode {
   const t = useT();
   const locale = useLocale();
-  const chapter = useStore(sceneStore, selectActiveChapter);
+  const stop = useStore(sceneStore, selectActiveStop);
 
   return (
     <div role="group" aria-label={t('nav.language')} className={styles.switch}>
@@ -47,7 +48,7 @@ export function LanguageSwitch({ pathFor }: LanguageSwitchProps): ReactNode {
             </span>
           )}
           <Link
-            to={pathFor === undefined ? chapterHref(target, chapter) : pathFor(target)}
+            to={pathFor === undefined ? stopHref(target, stop) : pathFor(target)}
             className={styles.link}
             lang={target}
             hrefLang={target}

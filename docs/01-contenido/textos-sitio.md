@@ -109,9 +109,11 @@ Los datos de la misión están en `experiencia.md`; aquí, los rótulos.
 | `missionLog.entries` | Log entries {list} | Entradas del diario {list} |
 | `missionLog.log` | Flight log | Diario de vuelo |
 | `missionLog.reference` | Reference | Referencia |
+| `missionLog.quote` | “{quote}” | «{quote}» |
+| `missionLog.by` | {author}, {title} | {author}, {title} |
 | `missionLog.clock` | t ≈ 200 million years | t ≈ 200 millones de años |
 | `interlude.skip` | Skip transmission | Saltar transmisión |
-| `interlude.clock` | cosmic clock paused | reloj cósmico en pausa |
+| `interlude.clock` | {clock} · cosmic clock paused | {clock} · reloj cósmico en pausa |
 | `interlude.end` | End of transmission | Fin de la transmisión |
 
 ## Capítulo 2 · Habilidades (Galaxia)
@@ -151,7 +153,7 @@ Los datos de la misión están en `experiencia.md`; aquí, los rótulos.
 | `availability.mode.hybrid` | hybrid | híbrido |
 | `availability.mode.onsite` | on-site | presencial |
 | `contact.availability.relocation` | Open to relocation | Abierto a reubicarme |
-| `contact.availability.now` | Available immediately | Disponible de inmediato |
+| `contact.availability.now` | Available immediately | Incorporación inmediata |
 | `contact.cv` | Download CV (PDF) | Descargar CV (PDF, en inglés) |
 | `education.title` | Completed orbits · education | Órbitas completadas · formación |
 | `education.hours` | {n} h | {n} h |

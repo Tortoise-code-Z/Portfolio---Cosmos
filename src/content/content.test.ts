@@ -9,7 +9,16 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { CHAPTER_ANCHORS, CHAPTER_INDICES, INTERLUDES, JOURNEY_SEGMENTS } from './chapters';
+import {
+  CHAPTER_ANCHORS,
+  CHAPTER_INDICES,
+  CHAPTER_STOPS,
+  chapterHash,
+  INTERLUDES,
+  isInterludeStop,
+  JOURNEY_SEGMENTS,
+  stopChapter,
+} from './chapters';
 import { experience } from './experience';
 import { SHARE_IMAGE_WIDTH } from './imageWidths';
 import { profile } from './profile';
@@ -145,6 +154,32 @@ describe('contenido', () => {
         expect(next.base).toBe(segment.base + 1);
       }
     });
+  });
+
+  it('un interludio y el capítulo de antes se quedan quietos (su pantalla y él), y «Skip» lleva al capítulo siguiente', () => {
+    for (const interlude of INTERLUDES) {
+      // Con un solo interludio, el tipo ya sabe que es el suyo: se compara como texto, para cuando haya más.
+      const id: string = interlude.id;
+      const screen = JOURNEY_SEGMENTS.find(
+        (segment) => segment.kind === 'interlude' && segment.interlude === id,
+      );
+      const before = JOURNEY_SEGMENTS.find(
+        (segment) => segment.kind === 'chapter' && segment.chapter === interlude.after,
+      );
+      expect(screen?.morphStart).toBeNull();
+      expect(before?.morphStart).toBeNull();
+      expect(interlude.next).toBe(interlude.after + 1);
+    }
+  });
+
+  it('las paradas del raíl: una por capítulo y su capítulo de vuelta, y los interludios aparte', () => {
+    for (const index of CHAPTER_INDICES) {
+      expect(stopChapter(CHAPTER_STOPS[index])).toBe(index);
+      expect(isInterludeStop(CHAPTER_STOPS[index])).toBe(false);
+    }
+    for (const interlude of INTERLUDES) expect(isInterludeStop(interlude.id)).toBe(true);
+    expect(chapterHash(0)).toBe('');
+    expect(chapterHash(2)).toBe('#skills');
   });
 
   it('interludios con ancla propia, distinta de la de los capítulos', () => {

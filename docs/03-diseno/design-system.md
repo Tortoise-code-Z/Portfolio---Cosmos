@@ -45,6 +45,9 @@ activo.
 | `--color-singularity` | `#fff2d9` | Punto CSS de la singularidad (hero sin escena) | — |
 | `--gradient-singularity-halo` | radial cálido → azul → transparente | Halo CSS del punto | — |
 | `--gradient-space` | dos nubes radiales muy tenues (violeta al 9 %, turquesa al 5 %) | Fondo del espacio sin escena (`no-gl`), en la capa del lienzo | — |
+| `--gradient-channel-amber-grid` | cuadrícula doble (120 px y 24 px) en `--color-channel-amber-grid` | Plano técnico de la transmisión ámbar | — |
+| `--gradient-channel-amber-sweep` | banda vertical transparente → brillo ámbar → transparente | Barrido de entrada de la transmisión ámbar | — |
+| `--gradient-scanlines` | líneas horizontales de 1 px cada 3 px en `--color-channel-scanline` | Líneas de barrido de todas las transmisiones, debajo del texto | — |
 
 **Garantía de lectura:** el peor caso medido (texto sobre el velo encima de la zona más brillante de la escena)
 da `--color-dim` 5,9 : 1 y `--color-ink` > 10 : 1: todo el texto cumple AA. Medido otra vez al cerrar F4.2, con la
@@ -153,13 +156,22 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--topbar-h` | 64 px | Altura fija de la barra superior (sin contar la zona segura de arriba) |
 | `--scene-clear-mobile` | 70vh | Escena limpia antes del panel en móvil (< md) |
 | `--corner-size` | 14 px | Corchetes de esquina de los paneles, la portada de un proyecto y la 404 |
-| `--chapter-h-0` … `--chapter-h-4` | 150 / 210 / 220 / 240 / 130 vh (< md: 150 / 230 / 240 / 260 / 130) | Altura **mínima** de recorrido de cada capítulo (`scroll-y-escena.md`) |
+| `--chapter-h-0` … `--chapter-h-4` | 150 / 150 / 220 / 240 / 130 vh (< md: 150 / 170 / 240 / 260 / 130) | Altura **mínima** de recorrido de cada capítulo (`scroll-y-escena.md`; About es más corta desde C.2: el cambio a galaxia pasó a la cola del interludio) |
+| `--interlude-min-h` | 100svh | Alto mínimo de la pantalla de un interludio |
+| `--interlude-tail` | 100vh | La cola de un interludio: recorrido vacío en el que la escena cambia a la forma siguiente |
+| `--rail-room` | 160 px (< md: 44 px) | Lo que ocupa el raíl a la derecha: una transmisión a todo el ancho lo deja libre |
 | `--chapter-end-room` | 12vh | Aire bajo el último capítulo |
 | `--hero-room-bottom` | 12vh (< sm: 10vh) | Aire bajo el contenido del hero |
 | `--hero-indent` · `--hero-lead-measure` | 0.6em · 40ch | Sangría de la segunda línea del nombre · ancho de la frase del hero |
 | `--singularity-halo-size` · `--singularity-core-size` | 46vmin · 6 px | Halo y punto de la singularidad en CSS |
 | `--hold-ring-size` · `--hold-ring-stroke` | 26 px · 3 px | Anillo de carga del `HoldButton` |
 | `--rail-dot-size` · `--rail-dot-scale-active` | 7 px · 1,4 | Punto del raíl y su escala cuando es el activo |
+| `--signal-gap` · `--signal-h` · `--signal-bar-w` | 2 px · 10 px · 3 px | Indicador de señal de la franja de una transmisión |
+| `--caret-size` | 0.5em | Triángulo de «Incoming transmission» (SVG) |
+| `--wave-max-w` · `--wave-stroke` | 360 px · 1,5 | Onda del pie de una transmisión (ancho máximo y trazo, en unidades del SVG) |
+| `--record-col-min` | 150 px | Columna mínima de la ficha del Mission log |
+| `--log-number-size` · `--log-tag-w` | 2.2em · 10ch | Círculo del número de una entrada del registro · columna de su etiqueta (escritorio) |
+| `--cursor-w` · `--cursor-h` · `--blink-count` | 0.6em · 1em · 4 | Cursor de bloque del final del registro y cuántas veces parpadea (menos de 5 s, WCAG 2.2.2) |
 | `--chip-dot-size` · `--opacity-breathe-low` | 6 px · 0,35 | Punto del chip «Open to work» y la opacidad más baja de su respiración |
 | `--quick-col-min` | 280 px | Ancho mínimo de cada columna del modo misión rápida (`auto-fit`) |
 | `--project-col-min` | 220 px | Ancho mínimo de cada columna de las rejillas de la página de proyecto (funcionalidades, stack, galería, anterior/siguiente) |
@@ -183,7 +195,8 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
 - `scrollbar-gutter: stable` en `:root`: con barras de scroll clásicas (Windows), bloquear el scroll al abrir un
   diálogo no hace saltar la página a lo ancho.
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
-  (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`).
+  (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`), y el título de cada transmisión, el de su canal
+  (`--glow-channel-amber` = `0 0 18px --color-channel-amber-glow`).
   Las etiquetas de las estrellas llevan un halo oscuro (`--halo-star-label`, dos sombras de `--color-void`) para
   leerse sobre el núcleo de la galaxia: es contraste, no brillo.
 - Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins, botones de
@@ -209,13 +222,16 @@ color, uno por **canal**:
 | 03 · verde | Crew file | `#6dff9f` | `#3f9a62` | `#d5ffe4` | `#010603` |
 
 (Desde C.2, el ámbar es token: `--color-channel-amber`, `-dim`, `-bright` y `-bg`, más el velo, la rejilla, la
-línea y el brillo; el azul y el verde pasan a tokens en su paso. `styles.test.ts` mide el contraste AA del color, el
-atenuado y el brillante sobre el fondo de su canal. Lectura del color: ámbar = estrellas y nebulosa; azul = espacio
+línea y el brillo (`--glow-channel-amber`); el azul y el verde pasan a tokens en su paso. `styles.test.ts` mide lo
+que se pinta de verdad detrás del texto: comprueba que el velo es el `-bg` del canal con alfa ≥ 0,9 y mide el
+contraste AA del color, el atenuado y el brillante sobre ese velo encima de una escena blanca, el peor caso. Las
+líneas de barrido van debajo del texto; la cuadrícula (líneas de 1 px al 6 %) puede cruzarlo y se acepta. En alto
+contraste, la transmisión se queda con el fondo liso del sistema (`Canvas`), sin cuadrícula, barrido ni brillo. Lectura del color: ámbar = estrellas y nebulosa; azul = espacio
 profundo y el océano de la tortuga; verde = la Tierra, la vida y el fósforo de los terminales.)
 
 Lenguaje común de las tres:
 
-- **Terminal:** franja de canal arriba con «Skip transmission ↓», líneas de barrido finas sobre todo, brillo
+- **Terminal:** franja de canal arriba con «Skip transmission ↓», líneas de barrido finas sobre el fondo, brillo
   (`text-shadow`) solo en títulos y datos clave, teletipo con cursor, onda de señal abajo.
 - **Plano técnico:** cuadrícula doble (120 px y 24 px) en el color del canal muy tenue, cajas de línea fina, números
   en círculo que enlazan pieza ↔ entrada, líneas discontinuas para lo que vuelve atrás y cotas.
@@ -254,8 +270,9 @@ su propio contenido con `z-index: -1` (el brillo «hot» de la fila de proyecto)
 - Una flecha dentro de un texto (por ejemplo «Go to Courses → All courses») se pinta con el **icono SVG de
   flecha**, no con el carácter «→»: el subconjunto latino de las fuentes no trae U+2192 y saldría con la fuente del
   sistema. Lo hace `ui/ArrowText`; el carácter queda oculto a la vista para el lector de pantalla.
-- Excepción aceptada: el «≈» de los eyebrows de About y Skills (U+2248) tampoco está en el subconjunto y sale con la
-  mono del sistema. Es un solo glifo, en texto pequeño y atenuado; no compensa un icono ni ampliar el subconjunto
+- Excepción aceptada: el «≈» de los eyebrows de About y Skills y del pie de las transmisiones («t ≈ 200 million
+  years», U+2248) tampoco está en el subconjunto y sale con la mono del sistema. (El triángulo de «Incoming
+  transmission» es un SVG propio: «▸» tampoco está.) Es un solo glifo, en texto pequeño y atenuado; no compensa un icono ni ampliar el subconjunto
   (bytes del presupuesto de fuentes), y «~» cambiaría el sentido. Se mira en los tres motores en F6.
 - Misma excepción para el HUD: los superíndices `⁰ ⁴–⁹ ⁻` (U+2070–207B) del reloj y la escala («10⁻⁴³») y el «∞» de
   la tortuga (U+221E) tampoco están en el subconjunto de Plex Mono (`¹ ² ³` sí): en un mismo exponente se mezclan

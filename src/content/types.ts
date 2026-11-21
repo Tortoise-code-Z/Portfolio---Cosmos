@@ -79,8 +79,9 @@ export interface MissionReference {
 }
 
 /**
- * Una experiencia profesional como misión (docs/02-experiencia/capitulos/interludio-1-mission-log.md): solo lo que
- * dice el CV; nada de cómo está construido el producto de la empresa (nota de ADR-034).
+ * Una experiencia profesional como misión (docs/02-experiencia/capitulos/interludio-1-mission-log.md): lo que hizo
+ * Víctor, sacado del CV y suavizado; nada de qué es ni de cómo está construido el producto de la empresa (nota de
+ * ADR-034; docs/01-contenido/experiencia.md → «Regla de privacidad»).
  */
 export interface Experience {
   readonly id: string;

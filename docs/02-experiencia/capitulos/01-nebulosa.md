@@ -30,8 +30,9 @@ tu profesión.
 ## Layout
 
 - **Escritorio:** panel a la izquierda (máx. ~540 px), *sticky* durante su capítulo (si es más alto que la ventana,
-  se fija por abajo); la nebulosa a la derecha (encuadre desplazado). Se queda *sticky* todo el capítulo, también
-  mientras la forma empieza a cambiar (decidido en F4.2: no se suelta a mitad).
+  se fija por abajo); la nebulosa a la derecha (encuadre desplazado). Se queda *sticky* todo el capítulo (decidido en
+  F4.2: no se suelta a mitad). Desde C.2 la nebulosa no cambia en About: se queda quieta todo el capítulo y cambia a
+  galaxia en la cola del Mission log.
 - **Móvil:** primero ~70 vh de escena limpia; después el panel sube por encima con un fondo degradado que
   asegura el contraste. Los paneles no son *sticky* en móvil.
 - El panel lleva los corchetes de esquina del design system.
@@ -46,6 +47,6 @@ tu profesión.
 1. El texto mantiene contraste AA sobre la parte más brillante de la nebulosa: lo sostienen el fondo del panel (un
    velo radial que hacia su esquina superior derecha baja a ≈ 0,43 de opacidad) y el encuadre, que deja la nebulosa a
    la derecha.
-2. La nebulosa no se mueve mientras se lee la primera mitad del capítulo, salvo su giro lento y la gravedad del
-   cursor.
+2. La nebulosa no cambia de forma en todo el capítulo (desde C.2; antes, en su primera mitad), salvo su giro lento y
+   la gravedad del cursor.
 3. En móvil se ve la nebulosa completa antes de que suba el texto.
