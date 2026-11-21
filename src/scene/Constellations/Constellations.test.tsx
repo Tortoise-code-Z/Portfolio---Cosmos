@@ -296,17 +296,17 @@ describe('useConstellations', () => {
     expect(shownLabels(labels)).toEqual([
       'html',
       'javascript',
-      'php',
-      'apache',
+      'glsl',
+      'mysql',
       'zod',
       'tailwind',
-      'git',
+      'nestjs',
       'vite',
-      'docker',
-      // `vms` cae bajo el raíl desde que tiene un enlace más (el Mission log, fase C).
+      'playwright',
+      'n8n',
+      'vms',
       'ai-pair',
-      'ai-review',
-      'chatgpt',
+      'claude',
     ]);
     // Las que no caben, ocultas, tampoco reciben el ratón.
     for (const id of Object.keys(TEXTS)) {
@@ -330,7 +330,7 @@ describe('useConstellations', () => {
     frame.fov = phone.fov;
     cameraPose(2, false, createParallax(), frame.camera);
     paint(390, 844);
-    expect(shownLabels(labels)).toHaveLength(12);
+    expect(shownLabels(labels)).toHaveLength(13);
   });
 
   it('without texts (outside the journey) there are no labels to place, but the stars still shine', () => {

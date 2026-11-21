@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from 'react';
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { skillGroups } from '~/content/skills';
 import type { RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
 import { detectWebGL2 } from '~/lib/device/webgl2/webgl2';
 import {
@@ -118,7 +119,9 @@ describe('SceneMount', () => {
     await screen.findByTestId('scene');
     expect(scene.skillLabels?.vms).toBe('Virtual machines');
     expect(scene.skillLabels?.r3f).toBe('Three.js / React Three Fiber');
-    expect(Object.keys(scene.skillLabels ?? {})).toHaveLength(31);
+    expect(Object.keys(scene.skillLabels ?? {})).toHaveLength(
+      skillGroups.flatMap((group) => group.skills).length,
+    );
   });
 
   it('follows the page without remounting (as in the site): another language, then a project page', async () => {

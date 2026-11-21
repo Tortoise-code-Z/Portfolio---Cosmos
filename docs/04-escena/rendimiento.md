@@ -29,7 +29,8 @@
   las constelaciones y sus etiquetas, 252 535 B, y con el retoque de las figuras tras su auditoría, 252 594 B (+3 528 B: dentro de su tope). Esos 3,6 KB eran F4.3a + F4.3b. Con las correcciones de la
   auditoría de F4.3b (las etiquetas que vuelven de una ficha, la cámara primero por prioridad, nada nuevo por frame),
   252 738 B (+144 B, del margen). **F4.3c** (el puntero de las etiquetas) tenía ≤ 1 KB, también del margen: pesó
-  172 B, **252 910 B**. Quedan 7 090 B: F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, y ~1,6 KB de margen. Los generadores no cuentan ahí: van en el worker
+  172 B, **252 910 B**. **C.3** (37 estrellas en vez de 31, con sus líneas y sus etiquetas) pesó 127 B, también del
+  margen: **253 037 B**. Quedan 6 963 B: F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, y ~1,46 KB de margen. Los generadores no cuentan ahí: van en el worker
   (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
 
 ## Niveles
