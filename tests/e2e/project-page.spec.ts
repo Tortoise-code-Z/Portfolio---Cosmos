@@ -101,7 +101,8 @@ test.describe('project page', () => {
 
     await page.goBack();
     await expect(page.getByRole('link', { name: 'View project Cosmos' })).toBeFocused();
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(before);
+    // Con 1 px de margen: Firefox guarda la posición con decimales (6408,73) y la restaura redondeada (6409).
+    await expect.poll(async () => Math.abs((await scrollY()) - before)).toBeLessThanOrEqual(1);
   });
 
   test('the bar is there: Contact goes to the journey and lands below the bar', async ({
