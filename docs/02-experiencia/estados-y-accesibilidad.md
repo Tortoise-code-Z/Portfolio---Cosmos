@@ -58,7 +58,7 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 
 ## Táctil y móvil
 
-- Sin hover: los encendidos se activan con un toque y se apagan tocando fuera.
+- Sin hover: los encendidos se activan con un toque y se apagan tocando fuera (un toque limpio: deslizar no apaga).
 - Sin gravedad de cursor ni paralaje de la cámara (no hay puntero fino; solo cuenta el ratón).
 - Paneles no *sticky*; primero se ve la escena y luego sube el texto.
 - La detonación funciona manteniendo el dedo; se evita el menú contextual y la selección de texto en el botón.

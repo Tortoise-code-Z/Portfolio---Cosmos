@@ -66,7 +66,7 @@ src/scene/
   particleGeometry/ · sceneMaterials/   ← atributos · uniforms y materiales (F3.3)
   frameLoop/ · sceneClock/ ← bucle de frames propio y reloj de animación (F3.3, ADR-027)
   Constellations/          ← las 4 constelaciones (estrellas y líneas) y cómo colocan sus etiquetas (F4.3b)
-  ConstellationLabels/     ← la capa del DOM de las etiquetas, en `body` (F4.3b)
+  ConstellationLabels/     ← la capa del DOM de las etiquetas, en `body` (F4.3b; las vivas reciben el puntero a través de `main`, F4.3c)
   Sun.tsx
   CameraRig/               ← aplica la pose de math/camera a la cámara del <Canvas> en cada frame (F3.4)
   pointer/                 ← el ratón en NDC sobre el lienzo, solo `pointerType: mouse` (paralaje en F3.4; gravedad en F4.2)

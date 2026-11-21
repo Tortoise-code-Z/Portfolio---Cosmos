@@ -52,6 +52,11 @@ function focusFromKeyboard(fromKeyboard: boolean): void {
   });
 }
 
+/** El CSS del capítulo, tal cual (jsdom no aplica `@media` ni `:hover`). */
+function styles(): string {
+  return readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'Skills.module.css'), 'utf8');
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
   useUiStore.setState(useUiStore.getInitialState(), true);
@@ -74,12 +79,21 @@ describe('Skills', () => {
     expect(new Set(allSkills).size).toBe(total);
   });
 
-  it('region #skills with both lead variants in the HTML (CSS picks one)', () => {
+  it('region #skills with the lead and both instructions in the HTML (CSS picks one, or none without the scene)', () => {
     renderAt('/');
     const region = screen.getByRole('region', { name: 'My galaxy of tools' });
     expect(region).toHaveAttribute('id', 'skills');
-    expect(within(region).getByText(/Hover a group/)).toBeInTheDocument();
-    expect(within(region).getByText(/Tap a group/)).toBeInTheDocument();
+    const lead = within(region).getByText(/^Each star is a technology I use\./);
+    expect(lead.tagName).toBe('P');
+    expect(
+      within(lead).getByText('Hover a group to light up its constellation.'),
+    ).toBeInTheDocument();
+    expect(
+      within(lead).getByText('Tap a group to light up its constellation.'),
+    ).toBeInTheDocument();
+    expect(styles()).toMatch(
+      /:global\(\.no-gl\) \.leadPointer,\n:global\(\.no-gl\) \.leadTouch \{\n {2}display: none;/,
+    );
   });
 
   it('group titles are h3 in reading order', () => {
@@ -90,13 +104,22 @@ describe('Skills', () => {
   });
 
   it('amber means lit: with the scene, only `data-hot` paints it (the keyboard focus shows its ring); without it, hover (CSS)', () => {
-    const css = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'Skills.module.css'),
-      'utf8',
-    );
+    const css = styles();
     expect(css).not.toContain('.group:focus-visible');
-    expect(css).toContain('.group:not([tabindex]):hover,\n.group[data-hot] {');
+    expect(css).toContain('\n.group[data-hot] {\n  border-color: var(--color-star);');
     expect(css).not.toMatch(/\n\.group:hover/);
+    // El `:hover` sin escena, solo donde se puede pasar por encima: en táctil se queda pegado tras el toque.
+    const hover = css.indexOf('.group:not([tabindex]):hover');
+    expect(css.lastIndexOf('@media (hover: hover) {', hover)).toBeGreaterThan(
+      css.lastIndexOf('}\n}', hover),
+    );
+    expect(css.match(/\.group:not\(\[tabindex\]\):hover/g)).toHaveLength(2);
+  });
+
+  it('in Windows high contrast, the lit group is painted with Highlight (the system evens out its colours)', () => {
+    expect(styles()).toContain(
+      '@media (forced-colors: active) {\n  .group[data-hot] {\n    border-color: Highlight;\n  }\n\n  .group[data-hot] .groupTitle {\n    color: Highlight;',
+    );
   });
 
   it('lets the mouse through to the scene labels: the panel is the only child of the chapter (the only one that takes it)', () => {
@@ -164,6 +187,18 @@ describe('Skills', () => {
       expect(lit()).toBe('ai');
       expect(groupItem('ai')).toHaveAttribute('data-hot', '');
       expect(groupItem('tools')).not.toHaveAttribute('data-hot');
+    });
+
+    it('the last gesture wins: the mouse leaving a group lets only that one go, not the one the keyboard lit after', () => {
+      setSceneLevel('high');
+      focusFromKeyboard(true);
+      renderAt('/');
+      fireEvent.pointerEnter(groupItem('ai'), { pointerType: 'mouse' });
+      expect(lit()).toBe('ai');
+      fireEvent.focus(groupItem('tools'));
+      expect(lit()).toBe('tools');
+      fireEvent.pointerLeave(groupItem('ai'), { pointerType: 'mouse' });
+      expect(lit()).toBe('tools');
     });
 
     it('focus lights a group and losing it lets it go', () => {
@@ -274,6 +309,30 @@ describe('Skills', () => {
       expect(groupItem('ai')).not.toHaveAttribute('tabindex');
       fireEvent.click(groupItem('ai'));
       expect(lit()).toBeNull();
+    });
+
+    it('if the scene turns off with the focus on a group, the focus goes to the chapter title (not to body)', () => {
+      setSceneLevel('high');
+      renderAt('/');
+      act(() => {
+        groupItem('tools').focus();
+      });
+      act(() => {
+        turnSceneOff();
+      });
+      expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2 }));
+    });
+
+    it('leaving the journey with the focus on a group does not move it (the new page places it)', () => {
+      setSceneLevel('high');
+      const unmount = renderAt('/');
+      const tools = groupItem('tools');
+      act(() => {
+        tools.focus();
+      });
+      const focus = vi.spyOn(HTMLElement.prototype, 'focus');
+      unmount();
+      expect(focus).not.toHaveBeenCalled();
     });
   });
 });

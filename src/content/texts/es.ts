@@ -47,10 +47,9 @@ export const es: UiTexts = {
   'about.title': 'Una estrella que nace de la curiosidad',
   'skills.eyebrow': 'Habilidades · galaxia · t ≈ 1000 millones de años',
   'skills.title': 'Mi galaxia de herramientas',
-  'skills.lead.pointer':
-    'Cada estrella es una tecnología que uso. Pasa el cursor por un grupo para encender su constelación.',
-  'skills.lead.touch':
-    'Cada estrella es una tecnología que uso. Toca un grupo para encender su constelación.',
+  'skills.lead': 'Cada estrella es una tecnología que uso.',
+  'skills.lead.pointer': 'Pasa el cursor por un grupo para encender su constelación.',
+  'skills.lead.touch': 'Toca un grupo para encender su constelación.',
   'projects.eyebrow': 'Proyectos · tortuga cósmica · t = tiempo mítico',
   'projects.title': 'Lo que llevo a cuestas',
   'projects.lead':

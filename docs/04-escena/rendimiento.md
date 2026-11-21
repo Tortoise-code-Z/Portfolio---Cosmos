@@ -30,7 +30,8 @@
   auditoría de F4.3b (las etiquetas que vuelven de una ficha, la cámara primero por prioridad, nada nuevo por frame),
   252 738 B (+144 B, del margen). **F4.3c** (el puntero de las etiquetas) tenía ≤ 1 KB, también del margen: pesó
   172 B, **252 910 B**. **C.3** (37 estrellas en vez de 31, con sus líneas y sus etiquetas) pesó 127 B, también del
-  margen: **253 037 B**. Quedan 6 963 B: F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, y ~1,46 KB de margen. Los generadores no cuentan ahí: van en el worker
+  margen: **253 037 B**. Las correcciones de las auditorías de C.2 (1 B) y de F4.3c (2 B), del margen:
+  **253 040 B**. Quedan 6 960 B: F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, y ~1,46 KB de margen. Los generadores no cuentan ahí: van en el worker
   (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
 
 ## Niveles

@@ -127,7 +127,20 @@ interface WrittenLabel {
   live: boolean;
 }
 
-/** «Nada escrito» en `element`: así nace un elemento (su CSS lo oculta). */
+/** Lo escrito de una etiqueta al crearse: «nada escrito», en ningún elemento todavía. */
+function createWrittenLabel(): WrittenLabel {
+  return {
+    element: null,
+    x: Number.NaN,
+    y: Number.NaN,
+    opacity: -1,
+    visible: false,
+    hot: false,
+    live: false,
+  };
+}
+
+/** «Nada escrito» en `element`: así nace un elemento (su CSS lo oculta); lo mismo que `createWrittenLabel`. */
 function forgetWritten(written: WrittenLabel, element: HTMLElement | null): void {
   written.element = element;
   written.x = Number.NaN;
@@ -181,19 +194,11 @@ export function createConstellationWork(
   frame: Readonly<SceneFrame>,
   labelElements: StarLabelElements,
 ): ConstellationWork {
-  const labels = SKILLS.map((skill) => {
-    const written: WrittenLabel = {
-      element: null,
-      x: 0,
-      y: 0,
-      opacity: 0,
-      visible: false,
-      hot: false,
-      live: false,
-    };
-    forgetWritten(written, null);
-    return { ...skill, box: createLabelBox(), written };
-  });
+  const labels = SKILLS.map((skill) => ({
+    ...skill,
+    box: createLabelBox(),
+    written: createWrittenLabel(),
+  }));
   return {
     groups: skillGroups.map(() => ({ hot: 0, labelOpacity: 0 })),
     labels,
@@ -293,8 +298,11 @@ function placeLabels(
   const interactive = presence > CONSTELLATION_LOOK.interactiveFrom;
   for (const slot of work.labels) {
     const element = labels.get(slot.id);
-    // Sin elemento (una ficha: la capa se desmonta), nada que escribir.
-    if (element === undefined) continue;
+    // Sin elemento (una ficha: la capa se desmonta), nada que escribir, y no se retiene el que ya no está.
+    if (element === undefined) {
+      slot.written.element = null;
+      continue;
+    }
     // Uno nuevo (nacido al volver, oculto por su CSS): se escribe entero.
     if (slot.written.element !== element) forgetWritten(slot.written, element);
     const opacity = work.groups[slot.group]?.labelOpacity ?? 0;

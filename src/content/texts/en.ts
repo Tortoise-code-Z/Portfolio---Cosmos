@@ -45,10 +45,9 @@ export const en = {
   'about.title': 'A star born from curiosity',
   'skills.eyebrow': 'Skills · galaxy · t ≈ 1 billion years',
   'skills.title': 'My galaxy of tools',
-  'skills.lead.pointer':
-    'Each star is a technology I use. Hover a group to light up its constellation.',
-  'skills.lead.touch':
-    'Each star is a technology I use. Tap a group to light up its constellation.',
+  'skills.lead': 'Each star is a technology I use.',
+  'skills.lead.pointer': 'Hover a group to light up its constellation.',
+  'skills.lead.touch': 'Tap a group to light up its constellation.',
   'projects.eyebrow': 'Projects · cosmic turtle · t = mythic time',
   'projects.title': 'What I carry on my shell',
   'projects.lead':

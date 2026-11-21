@@ -9,7 +9,7 @@ constelaciones; tus tecnologías forman grupos con sentido.
 
 - Eyebrow: «Skills · galaxy · t ≈ 1 billion years».
 - Título: «My galaxy of tools».
-- Frase guía (variante ratón o táctil).
+- Frase guía (variante ratón o táctil; sin WebGL, solo «Each star is a technology I use.», sin la instrucción).
 - **4 grupos** en el panel (web, librerías, herramientas, IA), cada uno con su título y la lista de skills.
   Este listado es la versión accesible y completa; la escena es la versión jugable.
 
