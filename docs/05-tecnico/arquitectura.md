@@ -323,7 +323,8 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   `.tail`), para que las etiquetas de Skills, que asoman en su segunda mitad, lo reciban. Un toque limpio en
   cualquier sitio apaga el grupo encendido: un `click` escuchado en la fase de captura del documento, mientras la
   escena está encendida; si cae en un grupo o una etiqueta, su propio `click` lo vuelve a encender (manda el último
-  gesto). Al desmontarse el viaje o apagarse la escena, se apaga.
+  gesto). Al desmontarse el viaje o apagarse la escena, se apaga (otro efecto de `Skills`, aparte del oyente); si la
+  escena se apaga con el foco del teclado en un grupo, el foco pasa al título del capítulo.
 
 ## Configuración y entorno
 

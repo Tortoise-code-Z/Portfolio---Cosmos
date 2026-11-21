@@ -4,6 +4,7 @@ import { skillGroups } from '../../src/content/skills.ts';
 import type { SkillGroupId } from '../../src/content/types.ts';
 import { STAR_LABEL_KEEP_OUT } from '../../src/scene/config/constellationLayout/constellationLayout.ts';
 import { WIDE_LAYOUT_QUERY } from '../../src/scene/config/sceneConfig.ts';
+import { CONTEXT_RESTORE_TIMEOUT_MS } from '../../src/scene/contextLoss/contextLoss.ts';
 import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
 import {
   browserHasWebGL2,
@@ -221,6 +222,25 @@ test.describe('the constellations of Skills', () => {
     await expectLit(page, null);
   });
 
+  test('if the scene falls with the keyboard on a group, the focus goes to the chapter title, not to the page', async ({
+    page,
+  }) => {
+    await openSkills(page);
+    await page.locator('#skills-title').focus();
+    await page.keyboard.press('Tab');
+    await expect(panelGroup(page, 'web')).toBeFocused();
+    // Un contexto perdido que no vuelve: la escena pasa a sin WebGL y el grupo deja de ser enfocable.
+    await page.locator('canvas').evaluate((canvas) => {
+      const context = (canvas as HTMLCanvasElement).getContext('webgl2');
+      context?.getExtension('WEBGL_lose_context')?.loseContext();
+    });
+    await expect(page.locator('html')).toHaveClass(/\bno-gl\b/, {
+      timeout: CONTEXT_RESTORE_TIMEOUT_MS * 2,
+    });
+    await expect(panelGroup(page, 'web')).not.toHaveAttribute('tabindex');
+    await expect(page.locator('#skills-title')).toBeFocused();
+  });
+
   test('a group clicked with the mouse does not light again by itself when the browser gives the focus back', async ({
     page,
     browserName,
@@ -263,6 +283,34 @@ test.describe('the constellations of Skills', () => {
       await page.mouse.move(4, DESKTOP.height / 2);
       await expectLit(page, null);
     });
+
+    test('leaving the chapter with the wheel, the mouse still over a label, lets its group go', async ({
+      page,
+    }) => {
+      await openSkills(page);
+      await starLabel(page, 'git').hover();
+      await expectLit(page, 'tools');
+      // Sin mover el ratón: el motor tiene que volver a mirar qué hay bajo el puntero tras el scroll (en WebKit no está garantizado).
+      await page.mouse.wheel(0, DESKTOP.height * 2);
+      await expect(page.locator('[data-constellation-labels] [data-live]')).toHaveCount(0);
+      await expectLit(page, null);
+    });
+  });
+
+  test('in Windows high contrast, the lit group stands out in the panel (Highlight)', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== 'chromium', 'Only Chromium emulates forced colors.');
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openSkills(page);
+    await panelGroup(page, 'web').hover();
+    await expectLit(page, 'web');
+    const border = (id: SkillGroupId): Promise<string> =>
+      panelGroup(page, id).evaluate((element) => getComputedStyle(element).borderInlineStartColor);
+    // El borde llega con su transición: se espera a que se distinga del de un grupo apagado.
+    const off = await border('ai');
+    await expect.poll(() => border('web')).not.toBe(off);
   });
 
   test('while the galaxy comes in and goes out, no chapter takes the mouse from a live label', async ({

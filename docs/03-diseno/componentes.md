@@ -150,6 +150,9 @@
 - Con el capítulo a más de 0,6 de peso (`CONSTELLATION_LOOK.interactiveFrom`), las visibles reciben el puntero
   (`data-live`): el ratón encima enciende su grupo (salir lo suelta) y un toque también. El resto de la capa, sin
   puntero.
+- Excepción al área táctil de 44 × 44 px: la caja mide 22 px de alto y no se agranda. Es un atajo decorativo: la
+  alternativa pulsable, con el mismo efecto y su área completa, es el grupo del panel; y un área mayor chocaría con
+  `STAR_LABEL_BOX` y con el no-solapamiento (`labelFit`).
 
 ### Pin de placa (`PlatePin`)
 - Tallo vertical de 46 px (degradado ámbar a transparente) + etiqueta con borde y velo. *Hot*: borde y texto ámbar.
@@ -157,16 +160,20 @@
 ### Grupo de habilidades (`SkillGroup`)
 - Bloque con borde izquierdo de 1 px; título mono en `--color-dim` y skills en texto normal. *Hot*: borde y
   título ámbar. El ámbar dice siempre «esta constelación está encendida»: con la escena, solo el grupo encendido
-  (`data-hot`); el foco del teclado se ve con su anillo, como en todo el sitio. Sin escena, con el puntero encima.
+  (`data-hot`); el foco del teclado se ve con su anillo, como en todo el sitio. Sin escena, con el ratón encima
+  (solo con `hover: hover`: en táctil el `:hover` se queda pegado tras el toque). Con alto contraste, el encendido
+  se pinta con `Highlight` (borde y título): el sistema iguala los demás colores.
 - **Con la escena encendida** (F4.3c) enciende su constelación: es enfocable (`tabindex="0"`, nombrado por su
   título con `aria-labelledby`) y lo encienden el ratón (entrar enciende, salir suelta), el foco del teclado
   (`:focus-visible`: ni el foco del puntero ni el que devuelve el navegador al volver a la pestaña; irse a otra
   ventana tampoco suelta) y un toque; soltar
   apaga solo si sigue siendo el encendido (manda el último gesto). Un toque limpio fuera (un `click`) apaga;
   deslizar o salir del capítulo, no. Una etiqueta de la escena con el ratón encima también lo marca. Al ir a una
-  ficha o al apagarse la escena, se apaga.
+  ficha o al apagarse la escena, se apaga; si la escena se apaga con el foco en un grupo, el foco pasa al título del
+  capítulo (no cae a `body`). Cada grupo elige solo si él está encendido: un gesto no repinta el capítulo entero.
 - **Sin escena** (sin nivel aún o sin WebGL) no enciende nada: no entra en el orden de tabulación y solo se resalta
-  al pasar el puntero.
+  al pasar el ratón. Sin WebGL (`no-gl`), la frase guía se queda en su primera frase: la instrucción de encender no
+  se ve.
 - Como todo capítulo, la sección deja pasar el ratón a las etiquetas de la escena (debajo de `main`): `main` y las
   secciones van con `pointer-events: none` y solo lo recogen sus hijos directos, aquí el panel
   (`docs/05-tecnico/arquitectura.md` → «Puntero del viaje»). El lector de pantalla dice al tabular solo el título
@@ -284,5 +291,6 @@
 
 ## Accesibilidad común
 
-- Área táctil mínima 44 × 44 px en todo lo pulsable (aunque el dibujo sea menor).
+- Área táctil mínima 44 × 44 px en todo lo pulsable (aunque el dibujo sea menor). Única excepción escrita: la
+  etiqueta de estrella (ver «Etiqueta de estrella»), con el panel de Skills como alternativa.
 - Ningún estado se comunica solo con color: el activo del raíl también cambia de tamaño y `aria-current`.

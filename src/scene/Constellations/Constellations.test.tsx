@@ -259,7 +259,27 @@ describe('useConstellations', () => {
       const element = label(labels, id);
       expect(element.style.visibility, id).toBe('visible');
       expect(element.style.opacity, id).toBe(String(CONSTELLATION_LOOK.labelOpacity.rest));
+      // Con la misma pose, la posición no cambia entre los dos frames: solo se escribe si se olvidó lo escrito.
+      expect(element.style.transform, id).toMatch(/^translate\(-?\d+px, -?\d+px\)$/);
       expect(element, id).toHaveAttribute('data-live');
+    }
+  });
+
+  it('labels born again with no frame in between keep the amber of the lit group', () => {
+    const frame = galaxyFrame();
+    const { labels, layer } = setup(frame);
+    act(() => {
+      setActiveSkillGroup('ai');
+    });
+    paint();
+    expect(label(labels, 'claude')).toHaveAttribute('data-hot');
+    layer.rerender(<ConstellationLabels texts={null} elements={labels} />);
+    layer.rerender(<ConstellationLabels texts={TEXTS} elements={labels} />);
+    paint();
+    for (const group of skillGroups) {
+      for (const { id } of group.skills) {
+        expect(label(labels, id).hasAttribute('data-hot'), id).toBe(group.id === 'ai');
+      }
     }
   });
 

@@ -122,8 +122,12 @@ Los datos de la misión están en `experiencia.md`; aquí, los rótulos.
 |---|---|---|
 | `skills.eyebrow` | Skills · galaxy · t ≈ 1 billion years | Habilidades · galaxia · t ≈ 1000 millones de años |
 | `skills.title` | My galaxy of tools | Mi galaxia de herramientas |
-| `skills.lead.pointer` | Each star is a technology I use. Hover a group to light up its constellation. | Cada estrella es una tecnología que uso. Pasa el cursor por un grupo para encender su constelación. |
-| `skills.lead.touch` | Each star is a technology I use. Tap a group to light up its constellation. | Cada estrella es una tecnología que uso. Toca un grupo para encender su constelación. |
+| `skills.lead` | Each star is a technology I use. | Cada estrella es una tecnología que uso. |
+| `skills.lead.pointer` | Hover a group to light up its constellation. | Pasa el cursor por un grupo para encender su constelación. |
+| `skills.lead.touch` | Tap a group to light up its constellation. | Toca un grupo para encender su constelación. |
+
+La instrucción va detrás de `skills.lead`, en la misma frase guía: la de ratón con puntero fino, la táctil en lo
+demás, y ninguna sin escena (`no-gl`): sin constelaciones no hay nada que encender.
 
 ## Capítulo 3 · Proyectos (Tortuga cósmica)
 
