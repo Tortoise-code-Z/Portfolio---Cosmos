@@ -25,14 +25,7 @@
 }
 
 .heading {
-  margin-block-end: var(--space-3);
-  color: var(--_ch-dim);
-  font-family: var(--font-mono);
-  font-size: var(--text-label);
-  font-weight: var(--weight-mono);
-  line-height: var(--leading-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
+  composes: heading from '../Transmission/Transmission.module.css';
 }
 
 /* ── Secuencia de lanzamiento ─────────────────────────────────────────────── */
@@ -152,14 +145,21 @@
   border: var(--border-width) solid var(--_ch-line);
 }
 
+/*
+ * Dos columnas como mucho y una cuando no caben dos de `--telemetry-col-min` (la letra al 150–200 % en móvil): una
+ * cifra no se parte en dos renglones.
+ */
 .figures {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, max(var(--telemetry-col-min), calc((100% - var(--space-5)) / 2))), 1fr)
+  );
   gap: var(--space-4) var(--space-5);
   margin: 0;
 }
 
-/* La cifra encima de su nombre (en el DOM, el nombre primero: el lector lee «Unit tests · Vitest, 1,004»). */
+/* La cifra encima de su nombre (en el DOM, el nombre primero: el lector lee el nombre y después la cifra). */
 .figure {
   display: flex;
   flex-direction: column-reverse;
@@ -179,6 +179,8 @@
 
 .figure dd {
   margin: 0;
+  /* La cifra entera en su renglón: no se parte aunque la transmisión deje partir palabras largas. */
+  overflow-wrap: normal;
   color: var(--_ch-bright);
   font-size: var(--text-h3);
   line-height: var(--leading-h3);

@@ -19,6 +19,14 @@
   }
 }
 
+/* Alto contraste: el cursor es un fondo y el sistema lo pintaría con `Canvas`, del color del fondo. */
+@media (forced-colors: active) {
+  .cursor {
+    background-color: CanvasText;
+    forced-color-adjust: none;
+  }
+}
+
 @keyframes transmission-blink {
   50% {
     visibility: hidden;

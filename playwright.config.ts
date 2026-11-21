@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+import { E2E_TEST_DIR, E2E_TEST_MATCH } from './scripts/siteTelemetry.ts';
+
 const PORT = 4173;
 const isCI = Boolean(process.env.CI);
 // En el CI, un reintento basta para un fallo pasajero; con más, un test colgado alarga el job varias veces.
@@ -9,9 +11,10 @@ const CI_GLOBAL_TIMEOUT_MS = 10 * 60 * 1000;
 
 // Prueba el build de producción: ejecutar `npm run build` antes de `npm run e2e`.
 export default defineConfig({
-  testDir: './tests/e2e',
+  // Salen del contador de las cifras de Mission control (ADR-035): los e2e que corren son los que cuenta la web.
+  testDir: `./${E2E_TEST_DIR}`,
   // Un solo nombre de spec: es el glob con el que ESLint obliga a usar el `test` de `tests/e2e/support/test.ts`.
-  testMatch: '**/*.spec.ts',
+  testMatch: E2E_TEST_MATCH,
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? CI_RETRIES : 0,

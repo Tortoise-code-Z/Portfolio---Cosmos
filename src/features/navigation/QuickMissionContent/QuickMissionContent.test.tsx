@@ -181,7 +181,7 @@ describe('QuickMissionContent', () => {
       'Plan: Pasos, archivos y riesgos. Aún sin código.',
       'Luz verde: El plan se aprueba antes de construir nada.',
       'Construcción: Una rama y un PR por tarea, TypeScript estricto.',
-      'Auditoría: Una revisión con mirada fresca en otra sesión.',
+      'Auditoría: Una revisión con mirada fresca en otra sesión; lo que corrige sale antes de la siguiente tarea.',
       'Lanzamiento: Checks en verde en Chromium, Firefox y WebKit.',
     ]);
   });

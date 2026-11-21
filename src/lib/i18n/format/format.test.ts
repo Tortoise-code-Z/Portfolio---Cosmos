@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { capitalize, formatList, formatMonth, formatNumber } from './format';
 
@@ -52,14 +52,28 @@ describe('capitalize', () => {
 });
 
 describe('formatMonth', () => {
-  it('escribe el mes en corto en cada idioma, sin moverse por la zona horaria', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('escribe el mes en corto en cada idioma', () => {
     expect(formatMonth('en', '2026-11')).toBe('Nov 2026');
     expect(formatMonth('es', '2026-11')).toBe('nov 2026');
     expect(formatMonth('en', '2027-01')).toBe('Jan 2027');
   });
 
-  it('lo que no es un mes se queda tal cual', () => {
+  it('sin moverse por la zona horaria: en Honolulú (UTC−10) el 1 de diciembre a las 0:00 UTC aún es noviembre', async () => {
+    vi.stubEnv('TZ', 'Pacific/Honolulu');
+    // Un módulo nuevo: los formateadores se guardan, y uno creado antes llevaría la zona de entonces.
+    vi.resetModules();
+    const { formatMonth: inHonolulu } = await import('./format');
+    expect(inHonolulu('en', '2026-12')).toBe('Dec 2026');
+  });
+
+  it('lo que no es un mes se queda tal cual (también un mes 00 o 13, que la fecha desbordaría)', () => {
     expect(formatMonth('en', 'pronto')).toBe('pronto');
     expect(formatMonth('es', '2026-1')).toBe('2026-1');
+    expect(formatMonth('en', '2026-13')).toBe('2026-13');
+    expect(formatMonth('en', '2026-00')).toBe('2026-00');
   });
 });

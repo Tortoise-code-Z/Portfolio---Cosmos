@@ -146,10 +146,12 @@ export function starLabelWidth(text: string, fontPx: number = STAR_LABEL_BOX.fon
  * abajo a la izquierda (se ve entre 520 y 899 px; por debajo no hay, pero su zona se reserva siempre, por
  * prudencia: a 360, 390 y 430 px no oculta ninguna etiqueta más). Con `marginPx` alrededor.
  * - De los tokens (lo comprueba su test con `tokens.css`): el panel (`--gutter` de escritorio, `--space-5`, más
- *   `--panel-w`), la barra (`--topbar-h`) y el alto del raíl (un enlace de `--target-min` por capítulo y por
- *   interludio: siete desde C.4, con Mission control).
+ *   `--panel-w`), la barra (`--topbar-h`) y el alto del raíl (`--rail-half-h`: un enlace de `--target-min` por
+ *   capítulo y por interludio, siete desde C.4). El raíl va centrado; si no cabe bajo la barra, baja lo justo
+ *   (`keepOutZones` hace la misma cuenta).
  * - Medido, porque depende del ancho de sus textos: lo que ocupan desde el borde el raíl (en escritorio, con el
- *   español, 154 en Chromium y 154,02 en WebKit; 52 por debajo) y el HUD (62 de alto; de ancho, 247 en Chromium en
+ *   español, 155,1 en Chromium, medido en C.4 con «Control de misión», y 154,02 en WebKit, medido en C.3; 52 por
+ *   debajo) y el HUD (62 de alto; de ancho, 247 en Chromium en
  *   local y 251,3 en el del CI: su «≈» y sus superíndices salen con la mono del sistema). Se reserva con holgura
  *   (158 y 256). El e2e de F4.3c (`constellations.spec.ts`) lo compara con la página real en los tres motores.
  */

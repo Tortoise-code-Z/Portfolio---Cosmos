@@ -206,6 +206,26 @@ export interface DemoCredential {
   readonly user: string;
   readonly password: string;
 }
+
+/** Mission control (C.4): las cifras del repo, contadas al construir (ADR-035; `content/telemetry.ts`). */
+export interface SiteTelemetry {
+  readonly unitTests: number; // tests escritos, no ejecuciones
+  readonly e2eTests: number;
+  readonly browsers: readonly string[]; // la matriz de los e2e del CI, por proyecto de Playwright
+  readonly decisions: number; // los ADR de DECISIONS.md
+  readonly month: string; // el mes del build, AAAA-MM en UTC
+}
+
+/** Un paso de la cuenta atrás de Mission control (`content/workflow.ts`). */
+export interface LaunchStep {
+  readonly id: 'plan' | 'greenLight' | 'build' | 'audit' | 'launch';
+  readonly countdown: number; // T-4 … T-0
+  readonly beforeCode: boolean; // bajo la cota «No code yet»
+  readonly name: UiKey; // sus textos, en texts/ (missionControl.*)
+  readonly detail: UiKey;
+}
+// `LAUNCH_SEQUENCE` (los cinco en orden), `AUDIT_LOOP` (de la auditoría vuelve a construcción) y
+// `browserName(project)` (el nombre de un navegador del CI; uno desconocido, tal cual).
 ```
 
 ## Reglas que comprueban los tests de contenido
@@ -234,7 +254,10 @@ export interface DemoCredential {
    ids únicos y horas enteras positivas; la misión con seis entradas y un manifiesto que las cubre todas, sin
    números que no existan; cada `cv` que no es `null`, un PDF que existe en `public/`; y al menos un elemento en las listas que la interfaz siempre pinta
    (`bio`, `availability.modes`, y por proyecto `about`, `features`, `stack.core` y `tryIt.steps`).
-   `process` y `highlights` sí pueden ir vacíos: la sección no se pinta.
+   `process` y `highlights` sí pueden ir vacíos: la sección no se pinta. La cuenta atrás de Mission control va de
+   T-4 a T-0 sin huecos ni ids repetidos, con los pasos de antes del código seguidos y al principio, y su bucle va
+   hacia atrás (de la auditoría a un paso anterior); `browserName` nombra los tres navegadores del CI y deja uno
+   desconocido tal cual.
 
 ## Relación con la escena
 

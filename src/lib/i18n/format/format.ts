@@ -7,7 +7,7 @@ const listFormats = new Map<string, Intl.ListFormat>();
 const monthFormats = new Map<Locale, Intl.DateTimeFormat>();
 
 /** Un mes escrito `AAAA-MM`. */
-const YEAR_MONTH = /^(\d{4})-(\d{2})$/;
+const YEAR_MONTH = /^(\d{4})-(0[1-9]|1[0-2])$/;
 
 /**
  * Número con el formato del idioma: EN `13,800`; ES `13.800`, pero `1000` sin punto (norma RAE,

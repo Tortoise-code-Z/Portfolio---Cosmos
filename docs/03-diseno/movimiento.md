@@ -21,7 +21,7 @@
 | `--dur-breathe` | 4 s | Latido lento del halo CSS de la singularidad y del punto del chip «Open to work» (se quitan con movimiento reducido) |
 | `--dur-sweep` | 1,1 s | Barrido de luz de una transmisión al encenderse (0 con movimiento reducido) |
 | `--dur-teletype-line` · `--dur-teletype-step` | 420 ms · 140 ms | Teletipo de una transmisión: lo que tarda cada línea en escribirse y el paso entre líneas (0 con movimiento reducido: no se arma) |
-| `--dur-blink` | 1,05 s | Un parpadeo del cursor del final del registro; parpadea `--blink-count` veces (4: menos de 5 s, WCAG 2.2.2) y se queda quieto. Sin parpadeo con movimiento reducido |
+| `--dur-blink` | 1,05 s | Un parpadeo del cursor del teletipo de las transmisiones (`BlinkCursor`); parpadea `--blink-count` veces (4: menos de 5 s, WCAG 2.2.2) y se queda quieto. Sin parpadeo con movimiento reducido |
 | `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Entradas y vuelos (salida exponencial) |
 | `--ease-in-out` | `cubic-bezier(0.65, 0, 0.35, 1)` | Fundidos simétricos |
 | `--dur-fade-base` | = `--dur-base` | Fundidos de opacidad de duración base |

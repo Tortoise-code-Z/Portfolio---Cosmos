@@ -138,8 +138,10 @@
   background-color: var(--_ch-dim);
 }
 
+/* Con la letra al 200 % en móvil, «Skip transmission» y su flecha bajan de línea en vez de salirse (Firefox). */
 .skip {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: var(--space-1);
   align-items: center;
   min-block-size: var(--target-min);
@@ -194,7 +196,18 @@
 /* Un título que se ve de otra forma (`titleDisplay`): el sitio del título, sin su letra; la pinta quien lo pasa. */
 .titleDisplay {
   margin-block-start: calc(-1 * var(--space-4));
-  line-height: 1;
+}
+
+/* El rótulo de cada bloque dentro de una transmisión: cada una lo usa con `composes` (Mission log, Mission control). */
+.heading {
+  margin-block-end: var(--space-3);
+  color: var(--_ch-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-mono);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
 }
 
 .footer {
@@ -235,7 +248,8 @@
 }
 
 .transmission[data-armed][data-on] [data-line] {
-  clip-path: inset(0);
+  /* Escrita, la línea no recorta su brillo (`text-shadow` de las cifras y de «Launch»): el recorte se abre de más. */
+  clip-path: inset(calc(-1 * var(--space-5)));
   transition: clip-path var(--dur-teletype-line) steps(24, end);
   transition-delay: calc(var(--_line, 0) * var(--dur-teletype-step));
 }
@@ -269,5 +283,11 @@
 
   .title {
     text-shadow: none;
+  }
+
+  /* Las barras de señal son un fondo: el sistema las pintaría con `Canvas`, del color del fondo. */
+  .signal > span {
+    background-color: CanvasText;
+    forced-color-adjust: none;
   }
 }

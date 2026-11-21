@@ -248,6 +248,11 @@
   --interlude-tail: 100vh;
   /* Lo que ocupa el raíl a la derecha (con su texto en escritorio): una transmisión a todo el ancho lo deja libre. */
   --rail-room: 160px;
+  /*
+   * Media altura del raíl: una parada de `--target-min` por capítulo (5) y por interludio (2). La comparten su CSS
+   * (lo baja si no cabe bajo la barra) y la reserva de las etiquetas de la escena (`STAR_LABEL_KEEP_OUT`, su test).
+   */
+  --rail-half-h: calc(7 * var(--target-min) / 2);
 
   /* ── Transmisiones (interludios y epílogo, fase C) ────────────── */
   /* Indicador de señal de la franja: hueco entre barras, alto y ancho de cada barra. */
@@ -263,15 +268,17 @@
   --record-col-min: 150px;
   --log-number-size: 2.2em;
   --log-tag-w: 10ch;
-  /* Cursor de bloque del final del registro y cuántas veces parpadea (< 5 s: WCAG 2.2.2). */
+  /* Cursor de bloque del teletipo de las transmisiones (`BlinkCursor`) y cuántas veces parpadea (< 5 s: WCAG 2.2.2). */
   --cursor-w: 0.6em;
   --cursor-h: 1em;
   --blink-count: 4;
   /*
-   * Mission control: el tamaño del «T-0» (tres letras de la mono, 1,8 em: ~1/3 del ancho en móvil, como mucho 13 rem),
-   * el alto de la cota «no code yet» y del bucle del esquema, y la punta de sus flechas.
+   * Mission control: el tamaño de la letra del «T-0» (un tercio del ancho; como mucho 13 rem, y nunca más del 40 % del
+   * ancho, para que las tres letras, 1,8 em, quepan en una línea también con la letra al 200 %), la columna mínima de
+   * la telemetría, el alto de la cota «no code yet» y del bucle del esquema, y la punta de sus flechas.
    */
-  --countdown-size: clamp(5rem, 33vw, 13rem);
+  --countdown-size: min(clamp(5rem, 33vw, 13rem), 40vw);
+  --telemetry-col-min: 7rem;
   --sequence-bracket-h: 10px;
   --sequence-loop-h: 28px;
   --sequence-arrow: 7px;

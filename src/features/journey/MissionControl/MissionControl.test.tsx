@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
 import { siteTelemetry } from '~/content/telemetry';
-import { formatNumber } from '~/lib/i18n/format/format';
+import { formatMonth, formatNumber } from '~/lib/i18n/format/format';
 
 import { MissionControl } from './MissionControl';
 
@@ -36,13 +36,20 @@ describe('MissionControl', () => {
     const list = screen.getByRole('list', { name: 'Schematic · launch sequence' });
     expect(list.tagName).toBe('OL');
     const steps = within(list).getAllByRole('listitem');
+    // Con espacios entre las piezas: se leen separadas al copiar o sin CSS.
     expect(steps.map((step) => step.querySelector('[data-line]')?.textContent)).toEqual([
-      'T-4PlanSteps, files and risks. No code yet.',
-      'T-3Green lightThe plan is approved before anything is built.',
-      'T-2BuildOne branch and one PR per task, strict TypeScript.',
-      'T-1AuditA fresh-eyes review in a separate session.Fixes from the audit go back to build.',
-      'T-0LaunchChecks green in Chromium, Firefox, and WebKit.',
+      'T-4 Plan Steps, files and risks. No code yet.',
+      'T-3 Green light The plan is approved before anything is built.',
+      'T-2 Build One branch and one PR per task, strict TypeScript.',
+      'T-1 Audit A fresh-eyes review in a separate session; its fixes ship before the next task. Fixes from the audit go back to build.',
+      'T-0 Launch Checks green in Chromium, Firefox, and WebKit.',
     ]);
+    // El texto del bucle, en el paso de Audit, llega al lector de pantalla (no queda bajo un `aria-hidden`).
+    expect(
+      within(list)
+        .getByText('Fixes from the audit go back to build.')
+        .closest('[aria-hidden="true"]'),
+    ).toBeNull();
   });
 
   it('the drawing (the «no code yet» bracket, the loop and its mobile note) is hidden from screen readers', () => {
@@ -61,8 +68,12 @@ describe('MissionControl', () => {
 
   it('the telemetry shows the figures counted from the repo at build time, with the month, formatted per language', () => {
     renderMissionControl('/es');
-    const telemetry = screen.getByRole('region', { name: /^Telemetría · este sitio · / });
-    expect(telemetry).toHaveTextContent(/Telemetría · este sitio · [a-z]{3,4} \d{4}/);
+    const month = formatMonth('es', siteTelemetry.month);
+    const telemetry = screen.getByRole('region', { name: `Telemetría · este sitio · ${month}` });
+    // Solo el mes va marcado para la captura (cambia con el tiempo); el rótulo, no.
+    expect(
+      [...telemetry.querySelectorAll('h3 [data-telemetry]')].map((node) => node.textContent),
+    ).toEqual([month]);
     const figures = within(telemetry)
       .getAllByRole('definition')
       .map((figure) => figure.textContent);

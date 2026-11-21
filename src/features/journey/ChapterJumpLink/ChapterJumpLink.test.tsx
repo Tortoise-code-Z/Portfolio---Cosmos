@@ -1,9 +1,15 @@
 import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ChapterJumpLink } from './ChapterJumpLink';
+
+/** La dirección del router: `MemoryRouter` no toca `window.location`, así que se lee de aquí. */
+function Where(): ReactNode {
+  return <output aria-label="where">{useLocation().hash}</output>;
+}
 
 function renderLink(path = '/es'): HTMLElement {
   render(
@@ -11,6 +17,7 @@ function renderLink(path = '/es'): HTMLElement {
       <ChapterJumpLink chapter={4} className="x">
         Contacto ↓
       </ChapterJumpLink>
+      <Where />
     </MemoryRouter>,
   );
   return screen.getByRole('link', { name: 'Contacto ↓' });
@@ -63,7 +70,8 @@ describe('ChapterJumpLink', () => {
 
   it('without the chapter on the page (outside the journey) the router navigates instead', async () => {
     const link = renderLink();
+    expect(screen.getByRole('status', { name: 'where' })).toHaveTextContent('');
     await userEvent.click(link);
-    expect(window.location.hash).not.toBe('#contact');
+    expect(screen.getByRole('status', { name: 'where' })).toHaveTextContent('#contact');
   });
 });

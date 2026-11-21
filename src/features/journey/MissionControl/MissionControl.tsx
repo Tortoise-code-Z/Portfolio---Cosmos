@@ -17,6 +17,7 @@ import styles from './MissionControl.module.css';
 const TITLE_ID = 'mission-control-title';
 const SEQUENCE_ID = 'mission-control-sequence';
 const TELEMETRY_ID = 'mission-control-telemetry';
+const SEPARATOR = ' · ';
 
 /** Variables privadas de estilo (`--_x`): el orden del teletipo y dónde caen la cota y el bucle del esquema. */
 function vars(values: Readonly<Record<string, number>>): CSSProperties {
@@ -91,13 +92,17 @@ export function MissionControl(): ReactNode {
                 data-line=""
                 style={vars({ line: index })}
               >
+                {/* Los espacios separan las piezas al copiar, en modo lectura o sin CSS (P1); en la rejilla no se pintan. */}
                 <span className={styles.stepCountdown}>
                   {t('missionControl.countdown', { n: String(step.countdown) })}
-                </span>
-                <span className={styles.stepName}>{t(step.name)}</span>
+                </span>{' '}
+                <span className={styles.stepName}>{t(step.name)}</span>{' '}
                 <span className={styles.stepDetail}>{t(step.detail, { browsers })}</span>
                 {step.id === AUDIT_LOOP.from ? (
-                  <VisuallyHidden>{t('missionControl.loop')}.</VisuallyHidden>
+                  <>
+                    {' '}
+                    <VisuallyHidden>{t('missionControl.loop')}.</VisuallyHidden>
+                  </>
                 ) : null}
               </div>
               {step.id === AUDIT_LOOP.to ? (
@@ -119,8 +124,11 @@ export function MissionControl(): ReactNode {
       </section>
 
       <section aria-labelledby={TELEMETRY_ID} className={styles.telemetry}>
-        <h3 id={TELEMETRY_ID} className={styles.heading} data-telemetry="">
-          {t('missionControl.telemetry', { month: formatMonth(locale, siteTelemetry.month) })}
+        {/* Solo el mes cambia con el tiempo: va aparte, y la captura tapa eso y no el rótulo (`data-telemetry`). */}
+        <h3 id={TELEMETRY_ID} className={styles.heading}>
+          {t('missionControl.telemetry')}
+          {SEPARATOR}
+          <span data-telemetry="">{formatMonth(locale, siteTelemetry.month)}</span>
         </h3>
         <dl className={styles.figures}>
           {figures.map(([label, value], index) => (

@@ -58,8 +58,8 @@ scroll clásica y sin ella, y con el paralaje en reposo y en sus cuatro esquinas
 página de verdad (`tests/e2e/constellations.spec.ts`): a 1280×720, 1440×900 y 390×844, en EN y ES, las etiquetas
 visibles no se pisan ni pisan la barra, el raíl, el HUD o el panel, ni salen del lienzo, y la barra, el raíl, el HUD y el panel
 reales caben en `STAR_LABEL_KEEP_OUT` (EN y ES, a 1280×720, 768×1024 y 390×844), en los tres motores del CI. Lo
-medido se reserva con holgura: el raíl de escritorio ocupa 154 px desde el borde en Chromium y 154,02 en WebKit (se
-reservan 158), y el HUD 247 de ancho en Chromium en local y 251,3 en el del CI (se reservan 256), porque su «≈» y sus
+medido se reserva con holgura: el raíl de escritorio ocupa 155,1 px desde el borde en Chromium (medido en C.4, con
+«Control de misión») y 154,02 en WebKit (medido en C.3; el e2e lo compara en los tres motores) (se reservan 158), y el HUD 247 de ancho en Chromium en local y 251,3 en el del CI (se reservan 256), porque su «≈» y sus
 superíndices salen con la mono del sistema. El HUD se mide en reposo (m = 2): al salir de la galaxia (m ≥ 2,5)
 enseña ya la línea del capítulo 3, más larga, y puede pasar de los 256 reservados; ahí las etiquetas tienen opacidad
 ≤ 0,08 y no se ven. Aceptado: no se ensancha la zona prohibida por un caso invisible.

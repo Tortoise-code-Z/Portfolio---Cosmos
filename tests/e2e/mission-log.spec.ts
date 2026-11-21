@@ -13,7 +13,10 @@ import { test } from './support/test.ts';
 const transmission = (page: Page) => page.locator('[data-interlude="mission-log"]');
 const rail = (page: Page) => page.getByRole('navigation', { name: /^(?:Chapters|Capítulos)$/ });
 
-/** El `clip-path` calculado de cada línea del teletipo (`none` o `inset(0px)` si se ve entera). */
+/** Una línea del teletipo ya escrita: el recorte se abre más allá de la caja, para no cortar su brillo. */
+const WRITTEN = 'inset(-24px)';
+
+/** El `clip-path` calculado de cada línea del teletipo (`none` sin armar, o `WRITTEN` si ya se ha escrito). */
 const lineClips = (page: Page): Promise<string[]> =>
   transmission(page)
     .locator('[data-line]')
@@ -183,7 +186,7 @@ test.describe('the Mission log', () => {
           .last()
           .evaluate((line) => getComputedStyle(line).clipPath),
       )
-      .toBe('inset(0px)');
+      .toBe(WRITTEN);
   });
 
   test('390 px: no sideways scroll, and «Skip» is a 44 px target', async ({ page }) => {
@@ -230,7 +233,7 @@ test.describe('the Mission log', () => {
           .last()
           .evaluate((line) => getComputedStyle(line).clipPath),
       )
-      .toBe('inset(0px)');
+      .toBe(WRITTEN);
   });
 
   test('without WebGL it reads whole, over the still photo of the nebula', async ({ page }) => {
@@ -242,7 +245,7 @@ test.describe('the Mission log', () => {
     // Sin WebGL el teletipo sigue (es CSS): al acabar, ninguna línea tapada.
     await expect
       .poll(async () =>
-        (await lineClips(page)).every((clip) => clip === 'none' || clip === 'inset(0px)'),
+        (await lineClips(page)).every((clip) => clip === 'none' || clip === WRITTEN),
       )
       .toBe(true);
     await expect(page.locator('[data-scene-stills] img[data-still-chapter="1"]')).toHaveAttribute(

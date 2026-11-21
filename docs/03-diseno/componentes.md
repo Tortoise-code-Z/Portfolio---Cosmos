@@ -98,9 +98,12 @@
 
 ### Raíl (`ChapterRail`)
 - Columna de enlaces alineados a la derecha, uno por capítulo y uno por interludio en su sitio (fase C: el Mission
-  log, entre About y Skills): texto (sección en Geologica 500 a 13 px + escena en mono 10 px, `--text-nano`) y punto de
+  log, entre About y Skills, y Mission control, entre Projects y Contact): texto (sección en Geologica 500 a 13 px + escena en mono 10 px, `--text-nano`) y punto de
   7 px; el de un interludio, un rombo del mismo tamaño. Los enlaces miden lo que el más ancho: los puntos forman una
   columna. Un interludio es el activo mientras se lee (su pantalla y la primera mitad de su cola).
+- Centrado en vertical; si no cabe entero bajo la barra (un móvil apaisado: siete paradas de 44 px piden ~436 px de
+  alto), baja lo justo para que su primera parada empiece debajo (`--rail-half-h`; la escena reserva lo mismo para sus
+  etiquetas, `keepOutZones`).
 - Activo: punto ámbar relleno, escala 1,4 y halo; texto opaco. Inactivos: texto al 70 % (`--opacity-muted`, que
   cumple AA: 8,7:1 la sección y 4,7:1 la escena). Al pasar el puntero o con el foco del teclado, texto opaco.
 - En alto contraste (`forced-colors`) el punto activo se rellena con `Highlight`: no solo es más grande.
@@ -118,10 +121,15 @@
   y nombre del canal, y «Skip transmission ↓», un enlace de verdad al capítulo siguiente (`INTERLUDE[id].next`; salta
   con el foco en su título, como el raíl; ≥ 44 px). El enlace es `ChapterJumpLink`, el mismo de «Touchdown» en
   Mission control.
-- Rótulo «Incoming transmission» con un triángulo delante (SVG propio), título `h2` en mono con brillo (enfocable por código, como los capítulos), el
+- Rótulo de cada transmisión (`incoming`: «Incoming transmission · source located» en el Mission log, «Mission
+  control · how I work» en Mission control) con un triángulo delante (SVG propio), título `h2` en mono con brillo (enfocable por código, como los capítulos), el
   contenido de cada transmisión y un pie con la onda de señal y el reloj parado. Con `titleDisplay`, en el sitio del
   título se ve otra cosa (el «T-0» de Mission control, `aria-hidden`) y el título queda escondido para el lector en el
-  mismo `h2`. Con `className`, una transmisión puede dar otras columnas a su cuerpo (`--_body-columns`).
+  mismo `h2`. Con `className`, una transmisión puede dar otras columnas a su cuerpo (`--_body-columns`). El rótulo
+  de cada bloque de dentro es `.heading` de `Transmission.module.css` (cada una lo usa con `composes`).
+- En alto contraste, las barras de señal y el cursor se pintan con `CanvasText` (son un fondo: el sistema los
+  dejaría del color del fondo). Escrita una línea del teletipo, su recorte se abre `--space-5` más allá de su caja
+  para no cortar el brillo de las cifras y de «Launch».
 - Cursor de bloque del teletipo (`BlinkCursor`, el mismo en todas): parpadea unas pocas veces al escribirse su línea
   y se queda quieto.
 - Entrada: con JavaScript y sin movimiento reducido, la sección se arma al montar (`data-armed`: las líneas del
@@ -211,7 +219,7 @@
   Ocupa también el hueco de la barra de scroll que reserva la página (`100vw`).
 - Título `h2` «Víctor Pérez · Frontend Developer» (escala de `h3` por debajo de sm) y secciones con su `h3` en mono
   ámbar: About (la bio), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Experience (puesto y empresa,
-  lugar y periodo, y las entradas del registro), Skills, Education (título, centro, periodo y horas; las habilidades
+  lugar y periodo, y las entradas del registro), How I work (la frase y los cinco pasos de Mission control), Skills, Education (título, centro, periodo y horas; las habilidades
   de cada curso solo en Contacto), Availability (si `openToWork`: abierto a trabajar, incorporación inmediata si
   `availableNow`, modalidad, reubicación, ubicación y permiso de trabajo) y Contact (email con su `CopyButton`,
   GitHub, LinkedIn, CV).

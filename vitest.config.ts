@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
-import { siteTelemetry } from './scripts/siteTelemetry.ts';
+import { siteTelemetry, UNIT_TEST_GLOBS } from './scripts/siteTelemetry.ts';
 import { PROJECT_IMAGE_WIDTHS, SHARE_IMAGE_WIDTH } from './src/content/imageWidths.ts';
 
 /** Ancho y alto de un PNG, de su cabecera (IHDR). Las capturas son PNG (docs/01-contenido/assets.md). */
@@ -71,8 +71,10 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
-    // `scripts/`: el criterio de los commits de solo docs (ADR-033), que no es del sitio pero sí decide qué se prueba.
-    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
+    // `src/` y `scripts/` (lo que no es del sitio pero decide qué se prueba o se publica: el criterio de los commits de
+    // solo docs, ADR-033, y el contador de las cifras de Mission control, ADR-035). Los globs salen del contador: lo
+    // que corre Vitest es lo que cuenta la web.
+    include: UNIT_TEST_GLOBS,
     restoreMocks: true,
     coverage: {
       provider: 'v8',
