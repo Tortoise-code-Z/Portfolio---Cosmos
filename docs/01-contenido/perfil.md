@@ -37,7 +37,7 @@ primer año de Física, con Python; Python no entra como skill). La versión ES 
    antes de que entre.
 
 De las prácticas, la bio dice solo lo que hizo Víctor: ni qué es ni cómo está construido el producto de la empresa
-(nota de ADR-034; desde C.2 ni siquiera lo que el CV cuenta del producto). La experiencia completa llega con el Mission log (C.2).
+(nota de ADR-034; desde C.2 ni siquiera lo que el CV cuenta del producto). La experiencia completa está en el Mission log (C.2).
 
 ## Ubicación y disponibilidad
 
@@ -48,15 +48,15 @@ De las prácticas, la bio dice solo lo que hizo Víctor: ni qué es ni cómo est
 | openToWork | `true` |
 | modes | `remote`, `hybrid`, `onsite` |
 | openToRelocation | `true` |
-| workPermit | EN: EU citizen – full right to work in Ireland · ES: Ciudadano de la UE, con permiso de trabajo en Irlanda |
+| workPermit | EN: EU citizen – full right to work in Ireland · ES: Ciudadano de la UE, con pleno derecho a trabajar en Irlanda |
 | availableNow | `true` («Available immediately», como el CV) |
 
 Texto visible (lo arma la interfaz a partir de los datos):
 
 - EN: **Open to work** · Available immediately · Remote, hybrid, or on-site · Open to relocation · Killarney,
   Ireland · EU citizen – full right to work in Ireland
-- ES: **Disponible** · Disponible de inmediato · Remoto, híbrido o presencial · Abierto a reubicarme · Killarney,
-  Irlanda · Ciudadano de la UE, con permiso de trabajo en Irlanda
+- ES: **Disponible** · Incorporación inmediata · Remoto, híbrido o presencial · Abierto a reubicarme · Killarney,
+  Irlanda · Ciudadano de la UE, con pleno derecho a trabajar en Irlanda
 
 ## Contacto
 

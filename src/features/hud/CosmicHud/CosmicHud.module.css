@@ -20,6 +20,12 @@
   text-align: end;
   text-transform: uppercase;
   pointer-events: none;
+  transition: opacity var(--dur-fade-base) var(--ease-out);
+}
+
+/* Leyendo un interludio: el pie de la transmisión ya dice el reloj parado. */
+.hud[data-hidden] {
+  opacity: 0;
 }
 
 .clock {

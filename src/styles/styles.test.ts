@@ -15,7 +15,8 @@ import { describe, expect, it } from 'vitest';
  * 3. Fuera de `tokens.css`, ninguna duración literal en transiciones ni animaciones, y todo fundido
  *    de opacidad usa `--dur-fade-*` (docs/03-diseno/movimiento.md).
  * 4. Fuera de `tokens.css` y `fonts.css`, las familias tipográficas solo salen de `--font-*`.
- * 5. Los colores de texto cumplen contraste AA (≥ 4,5 : 1) sobre el fondo `--color-void`.
+ * 5. Los colores de texto cumplen contraste AA (≥ 4,5 : 1) sobre el fondo `--color-void`; los de cada canal de las
+ *    transmisiones, sobre su velo (su `-bg` con alfa ≥ 0,9) encima de una escena blanca, el peor caso.
  * Cada comprobación tiene su test de guarda: demuestra que detecta lo que dice detectar.
  */
 
@@ -27,6 +28,8 @@ const TEXT_TOKENS = ['ink', 'ink-soft', 'dim', 'star', 'aurora'] as const;
 /** Los canales de las transmisiones (fase C): su texto va sobre el fondo de su canal. */
 const CHANNELS = ['amber'] as const;
 const CHANNEL_TEXT = ['', '-dim', '-bright'] as const;
+/** Lo mínimo que tapa el velo de una transmisión (componentes.md → «Transmisión»). */
+const CHANNEL_VEIL_MIN_ALPHA = 0.9;
 const PRIVATE_VAR_PREFIX = '--_';
 
 // ── Lectura de CSS ───────────────────────────────────────────────────────────
@@ -279,6 +282,26 @@ function luminance(hex: string): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
+/** Un color `rgb(r g b / a)` (los velos): su #rrggbb y su alfa. */
+function parseRgbAlpha(value: string): { hex: string; alpha: number } {
+  const match = /^rgb\((\d+) (\d+) (\d+) \/ ([\d.]+)\)$/.exec(value);
+  if (match === null) throw new Error(`Expected rgb(r g b / a), got "${value}"`);
+  const [, r = '0', g = '0', b = '0', alpha = '1'] = match;
+  const hex = [r, g, b].map((part) => Number(part).toString(16).padStart(2, '0')).join('');
+  return { hex: `#${hex}`, alpha: Number(alpha) };
+}
+
+/** El color que queda al pintar un velo encima de blanco, como #rrggbb opaco. */
+function overWhite({ hex, alpha }: { hex: string; alpha: number }): string {
+  const mixed = [1, 3, 5].map((start) => {
+    const channel = Number.parseInt(hex.slice(start, start + 2), 16);
+    return Math.round(alpha * channel + (1 - alpha) * 255)
+      .toString(16)
+      .padStart(2, '0');
+  });
+  return `#${mixed.join('')}`;
+}
+
 function contrastRatio(foreground: string, background: string): number {
   const [light, dark] = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
   return ((light ?? 0) + 0.05) / ((dark ?? 0) + 0.05);
@@ -339,13 +362,21 @@ describe('design tokens', () => {
     expect(ratio).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
   });
 
+  it.each(CHANNELS)(
+    'the %s channel veil is its background colour, opaque enough to read on (alpha ≥ 0.9)',
+    (channel) => {
+      const veil = parseRgbAlpha(tokenValue(`--color-channel-${channel}-veil`));
+      expect(veil.hex).toBe(tokenValue(`--color-channel-${channel}-bg`).toLowerCase());
+      expect(veil.alpha).toBeGreaterThanOrEqual(CHANNEL_VEIL_MIN_ALPHA);
+    },
+  );
+
+  // Lo que se pinta de verdad detrás del texto: el velo encima de la escena. El peor caso, una escena blanca.
   it.each(CHANNELS.flatMap((channel) => CHANNEL_TEXT.map((tone) => [channel, tone] as const)))(
-    'the %s channel%s text meets WCAG AA contrast on its background',
+    'the %s channel%s text meets WCAG AA contrast on its veil over a white scene',
     (channel, tone) => {
-      const ratio = contrastRatio(
-        tokenValue(`--color-channel-${channel}${tone}`),
-        tokenValue(`--color-channel-${channel}-bg`),
-      );
+      const veil = parseRgbAlpha(tokenValue(`--color-channel-${channel}-veil`));
+      const ratio = contrastRatio(tokenValue(`--color-channel-${channel}${tone}`), overWhite(veil));
       expect(ratio).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
     },
   );
@@ -421,6 +452,12 @@ describe('invariant checks catch what they promise (guards)', () => {
         'a { font-family: var(--font-body) } b { font: inherit } c { font: 400 1rem/1.5 var(--font-mono) }',
       ),
     ).toEqual([]);
+  });
+
+  it('reads a veil and mixes it over white', () => {
+    expect(parseRgbAlpha('rgb(7 5 3 / 0.9)')).toEqual({ hex: '#070503', alpha: 0.9 });
+    expect(overWhite({ hex: '#000000', alpha: 0.5 })).toBe('#808080');
+    expect(() => parseRgbAlpha('#070503')).toThrow(/rgb\(r g b \/ a\)/);
   });
 
   it('detects a failing contrast and refuses translucent colors', () => {

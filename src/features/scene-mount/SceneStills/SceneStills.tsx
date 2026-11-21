@@ -133,7 +133,7 @@ function Still({ chapter, visible, onLoad }: StillProps): ReactNode {
         alt=""
         decoding="async"
         fetchPriority="low"
-        data-chapter={chapter}
+        data-still-chapter={chapter}
         data-visible={visible}
         onLoad={onLoad}
       />

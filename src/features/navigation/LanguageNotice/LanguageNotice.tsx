@@ -7,12 +7,12 @@ import { languageSuggestion } from '~/lib/i18n/locale/locale';
 import { translate } from '~/lib/i18n/translate/translate';
 import { useLocale } from '~/lib/i18n/useT/useT';
 import { readStorage, writeStorage } from '~/lib/storage/storage/storage';
-import { sceneStore, selectActiveChapter } from '~/stores/sceneStore/sceneStore';
+import { sceneStore, selectActiveStop } from '~/stores/sceneStore/sceneStore';
 import { setLanguageNoticeOpen } from '~/stores/uiStore/uiStore';
 import { ButtonOutline } from '~/ui/ButtonOutline/ButtonOutline';
 import { Notice } from '~/ui/Notice/Notice';
 
-import { chapterHref } from '../goToChapter/goToChapter';
+import { stopHref } from '../goToChapter/goToChapter';
 import styles from './LanguageNotice.module.css';
 
 /** Se recuerda que ya se contestó (ir al otro idioma o «No, thanks»): no vuelve a salir. */
@@ -48,13 +48,13 @@ function nothingOnServer(): null {
  * Nunca cambia el idioma solo (ADR-006).
  */
 interface LanguageNoticeProps {
-  /** La misma página en el idioma que se ofrece, fuera del viaje. Sin ella, el capítulo activo. */
+  /** La misma página en el idioma que se ofrece, fuera del viaje. Sin ella, la parada activa del viaje (un capítulo o el interludio que se lee). */
   readonly pathFor?: (locale: Locale) => string;
 }
 
 export function LanguageNotice({ pathFor }: LanguageNoticeProps): ReactNode {
   const locale = useLocale();
-  const chapter = useStore(sceneStore, selectActiveChapter);
+  const stop = useStore(sceneStore, selectActiveStop);
   const suggested = useSyncExternalStore<Locale | null>(
     noSubscription,
     () =>
@@ -89,7 +89,7 @@ export function LanguageNotice({ pathFor }: LanguageNoticeProps): ReactNode {
           <p>{translate(target, 'langNotice.text')}</p>
           <div className={styles.actions}>
             <Link
-              to={pathFor === undefined ? chapterHref(target, chapter) : pathFor(target)}
+              to={pathFor === undefined ? stopHref(target, stop) : pathFor(target)}
               hrefLang={target}
               className={styles.accept}
               onClick={answer}

@@ -256,12 +256,14 @@ interface Box {
 
 /** La foto fija del capítulo `chapter` (`SceneStills`). */
 const stillOf = (page: Page, chapter: number) =>
-  page.locator(`[data-scene-stills] img[data-chapter="${String(chapter)}"]`);
+  page.locator(`[data-scene-stills] img[data-still-chapter="${String(chapter)}"]`);
 /** Los capítulos cuya foto se ve ahora. */
 const shownStills = (page: Page) =>
   page
     .locator('[data-scene-stills] img[data-visible="true"]')
-    .evaluateAll((images) => images.map((image) => (image as HTMLImageElement).dataset.chapter));
+    .evaluateAll((images) =>
+      images.map((image) => (image as HTMLImageElement).dataset.stillChapter),
+    );
 
 /** Las peticiones del chunk de los generadores desde ahora. */
 function generatorRequests(page: Page): string[] {
@@ -1034,6 +1036,25 @@ test.describe('without WebGL', () => {
       expect(box.y + box.height / 2).toBeCloseTo(frame.y + frame.height / 2, 0);
     });
   }
+
+  test('the rail lands on a chapter whose still was already shown: it finds the chapter, not the photo', async ({
+    page,
+  }) => {
+    await page.goto('/#skills', { waitUntil: 'networkidle' });
+    await expect(stillOf(page, 2)).toHaveAttribute('data-visible', 'true');
+    await page.evaluate(() => {
+      document.getElementById('projects')?.scrollIntoView();
+    });
+    await expect(stillOf(page, 3)).toHaveAttribute('data-visible', 'true');
+    // La foto de Skills sigue en el DOM (ya se vio) y va antes que `<main>`: el raíl tiene que encontrar el capítulo.
+    await page
+      .getByRole('navigation', { name: 'Chapters' })
+      .getByRole('link', { name: 'Skills · Galaxy' })
+      .click();
+    const title = page.getByRole('heading', { name: 'My galaxy of tools' });
+    await expect(title).toBeFocused();
+    await expect(title).toBeInViewport();
+  });
 
   test('a project page keeps the backdrop alone: no stills', async ({ page }) => {
     const requests = stillRequests(page);

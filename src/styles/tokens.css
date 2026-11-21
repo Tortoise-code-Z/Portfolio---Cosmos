@@ -215,6 +215,25 @@
   /* Lo que ocupa el raíl a la derecha (con su texto en escritorio): una transmisión a todo el ancho lo deja libre. */
   --rail-room: 160px;
 
+  /* ── Transmisiones (interludios y epílogo, fase C) ────────────── */
+  /* Indicador de señal de la franja: hueco entre barras, alto y ancho de cada barra. */
+  --signal-gap: 2px;
+  --signal-h: 10px;
+  --signal-bar-w: 3px;
+  /* El triángulo de «Incoming transmission». */
+  --caret-size: 0.5em;
+  /* La onda del pie: ancho máximo y grosor del trazo (en unidades del SVG). */
+  --wave-max-w: 360px;
+  --wave-stroke: 1.5;
+  /* Mission log: columna mínima de la ficha, círculo del número, columna de la etiqueta (ARREGLADO en 10 letras). */
+  --record-col-min: 150px;
+  --log-number-size: 2.2em;
+  --log-tag-w: 10ch;
+  /* Cursor de bloque del final del registro y cuántas veces parpadea (< 5 s: WCAG 2.2.2). */
+  --cursor-w: 0.6em;
+  --cursor-h: 1em;
+  --blink-count: 4;
+
   /* ── Hero (capítulo 0) ────────────────────────────────────────── */
   --hero-room-bottom: 12vh;
   --singularity-halo-size: 46vmin;
@@ -244,6 +263,8 @@
   --focus-width: 2px;
   --focus-offset: 3px;
   --glow-star: 0 0 12px var(--color-star);
+  /* Brillo del título de una transmisión, en el color de su canal. */
+  --glow-channel-amber: 0 0 18px var(--color-channel-amber-glow);
   --glow-singularity: 0 0 18px 4px var(--color-singularity);
   /* Halo oscuro de las etiquetas de las estrellas: se leen también sobre el núcleo brillante de la galaxia. */
   --halo-star-label: 0 0 2px var(--color-void), 0 0 4px var(--color-void);

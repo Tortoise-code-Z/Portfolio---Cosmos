@@ -19,22 +19,28 @@ Metáfora: en mitad del viaje llega una transmisión, el registro de la primera 
   datos que el CV. Debajo, una línea con lo que hizo («Three months of remote work across the front end, a desktop
   app and backend services»), no con qué es el producto.
 - **Payload manifest:** seis módulos (las herramientas y para qué se usaron), cada uno con los números de las
-  entradas del registro que le tocan, también en el texto («Log entries 01, 02, and 04»).
+  entradas del registro que le tocan, en el texto («Log entries 01, 02, and 04»). Los módulos no llevan número
+  propio: con el mismo formato que las entradas, parecía señalar una de ellas.
 - **Flight log:** las seis viñetas del CV **suavizadas** (sin decir qué es el producto: decisión de Víctor, también
   para el CV y LinkedIn), numeradas en un círculo y con su etiqueta (BUILT, ADDED, FIXED, AUTO, BACKEND), y al final
-  «End of transmission» con cursor.
+  «End of transmission» con cursor: parpadea unas pocas veces (menos de 5 s, WCAG 2.2.2) cuando su línea ya está
+  escrita y se queda quieto.
 - **Reference:** con permiso expreso del CTO, una frase de su carta, en el idioma en que se lee (la traducción
   firmada en EN, la carta original en ES).
 - Pie: la onda de señal y «t ≈ 200 million years · cosmic clock paused».
 - **No se muestra qué es ni cómo está construido el producto del cliente** (tipo de producto, arquitectura,
-  conexiones entre sus partes): es información privada de la empresa. Un test del componente lo vigila.
+  conexiones entre sus partes): es información privada de la empresa. La guarda es la revisión del texto
+  (`docs/01-contenido/experiencia.md` → «Regla de privacidad»); el test del componente comprueba que solo pinta lo
+  que dice `experience`.
 
 ## Escena
 
 - La forma del capítulo anterior (la nebulosa) se queda quieta y atenuada detrás; la pantalla del canal la cubre
-  casi entera. El cambio a la galaxia ocurre al salir del interludio.
-- El reloj del HUD se para mientras dura (`m` se queda en 1). Estrellas y placas no reciben el puntero (la
-  pantalla, hija directa de `<main>`, lo recoge). En la cola, vacía y sin puntero, la nebulosa cambia a galaxia.
+  casi entera.
+- En la pantalla, el reloj se para (`m` se queda en 1): el HUD se esconde y el pie de la transmisión lo dice. Estrellas
+  y placas no reciben el puntero (la pantalla, hija directa de `<main>`, lo recoge). En la cola, que también es parte
+  del interludio, vacía y sin puntero, la nebulosa cambia a galaxia y el reloj vuelve a andar; desde su mitad, el raíl
+  marca Skills y el HUD vuelve.
 
 ## Interacciones
 
@@ -54,7 +60,9 @@ Metáfora: en mitad del viaje llega una transmisión, el registro de la primera 
   pieza ↔ entrada y también van en el texto.
 - El barrido, el brillo y el cursor son decoración (`aria-hidden` donde toque). Con movimiento reducido: sin barrido,
   sin teletipo (texto completo) y sin cursor parpadeante.
-- Contraste del canal medido sobre su fondo (AA) antes de dar el paso por hecho.
+- Contraste del canal medido (AA) sobre lo que se pinta de verdad: su velo encima de una escena blanca
+  (`styles.test.ts`).
+- Cambiar de idioma leyéndolo deja en él (`/es#mission-log`), no en About.
 
 ## Raíl y misión rápida
 

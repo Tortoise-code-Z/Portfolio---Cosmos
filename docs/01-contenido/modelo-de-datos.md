@@ -10,6 +10,8 @@ src/content/
   types.ts            ← los tipos de este documento
   profile.ts          ← perfil.md
   skills.ts           ← habilidades.md
+  experience.ts       ← experiencia.md (el Mission log y la misión rápida)
+  chapters.ts         ← orden y anclas de los capítulos, interludios, paradas del raíl y tramos del viaje
   projects/
     chessmate.ts      ← proyectos/chessmate.md (textos y datos: `ProjectEntry`, sin imágenes)
     astrohub.ts

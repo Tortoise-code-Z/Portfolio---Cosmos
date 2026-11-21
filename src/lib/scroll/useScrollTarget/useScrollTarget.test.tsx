@@ -1,7 +1,7 @@
 import { fireEvent, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { chapterSteps } from '../mapM/mapM';
+import { chapterSteps } from '../mapM/chapterSteps';
 import { useScrollTarget } from './useScrollTarget';
 
 const STEPS = chapterSteps([0, 0.52], 3);

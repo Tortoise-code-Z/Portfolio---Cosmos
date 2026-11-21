@@ -34,14 +34,6 @@ export interface JourneyStep {
   readonly morphStart: number | null;
 }
 
-/** Los tramos de un viaje solo de capítulos: el capítulo `i` es la forma `i` y cambia desde `windows[i]`. */
-export function chapterSteps(windows: readonly number[], count: number): JourneyStep[] {
-  return Array.from({ length: count }, (_, index) => ({
-    base: index,
-    morphStart: windows[index] ?? null,
-  }));
-}
-
 /**
  * Hasta dónde puede quedarse corto un ancla: el navegador redondea el scroll a píxeles enteros y un tramo puede
  * empezar en `2725,4`. Sin margen, `/#mission-log` se leería en About (a diferencia de un capítulo, que en ese píxel ya

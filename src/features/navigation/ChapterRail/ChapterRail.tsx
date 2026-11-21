@@ -4,6 +4,7 @@ import { useStore } from 'zustand';
 
 import {
   CHAPTER_INDICES,
+  CHAPTER_STOPS,
   INTERLUDES,
   type ChapterIndex,
   type InterludeId,
@@ -91,7 +92,7 @@ export function ChapterRail(): ReactNode {
             `chapter-${String(index)}`,
             t(LABEL_KEYS[index]),
             chapterHref(locale, index),
-            active === `chapter-${String(index)}`,
+            active === CHAPTER_STOPS[index],
             onChapterLinkClick(index),
             false,
           ),

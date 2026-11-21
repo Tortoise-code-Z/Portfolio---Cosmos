@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { chapterSteps, mapM, segmentAt, toScrollLayout, type ChapterLayout } from './mapM';
+import { chapterSteps } from './chapterSteps';
+import { mapM, segmentAt, toScrollLayout, type ChapterLayout } from './mapM';
 
 // Alturas del prototipo a 1000 px de ventana: 150 / 210 / 220 / 240 / 130 vh.
 const LAYOUT: ChapterLayout = [
@@ -11,6 +12,12 @@ const LAYOUT: ChapterLayout = [
   { top: 8200, height: 1300 },
 ];
 const WINDOWS = chapterSteps([0, 0.52, 0.52, 0.55], 5);
+
+/**
+ * El último píxel de un tramo que aún es suyo: el tramo siguiente empieza 1 px antes de su `top` (el margen del ancla,
+ * `ANCHOR_SLACK_PX`), así que justo antes de `top − 1`.
+ */
+const lastOfSegmentBefore = (top: number): number => top - 1 - 0.001;
 
 describe('mapM', () => {
   it('is 0 at the very start and before it (overscroll)', () => {
@@ -36,9 +43,10 @@ describe('mapM', () => {
     expect(mapM(1500 + 1500, LAYOUT, WINDOWS)).toBeLessThan(2);
   });
 
-  it('is continuous at every chapter change', () => {
+  it('is continuous at every chapter change: each chapter ends where the next one starts', () => {
     LAYOUT.slice(1).forEach((box, previous) => {
-      expect(mapM(box.top - 0.01, LAYOUT, WINDOWS)).toBeCloseTo(previous + 1, 6);
+      expect(segmentAt(lastOfSegmentBefore(box.top), LAYOUT)).toBe(previous);
+      expect(mapM(lastOfSegmentBefore(box.top), LAYOUT, WINDOWS)).toBeCloseTo(previous + 1, 4);
     });
   });
 
@@ -92,12 +100,16 @@ describe('mapM', () => {
       { base: 1, morphStart: 0 },
       { base: 2, morphStart: null },
     ];
+    // El final de cada tramo, de verdad en él (`lastOfSegmentBefore`): About, la pantalla y la cola.
     expect(mapM(1000, layout, steps)).toBe(1);
-    expect(mapM(2999, layout, steps)).toBe(1);
+    expect(segmentAt(lastOfSegmentBefore(3000), layout)).toBe(1);
+    expect(mapM(lastOfSegmentBefore(3000), layout, steps)).toBe(1);
     expect(mapM(3000, layout, steps)).toBe(1);
-    expect(mapM(4499, layout, steps)).toBe(1);
+    expect(segmentAt(lastOfSegmentBefore(4500), layout)).toBe(2);
+    expect(mapM(lastOfSegmentBefore(4500), layout, steps)).toBe(1);
     expect(mapM(5000, layout, steps)).toBeCloseTo(1.5, 10);
-    expect(mapM(5499.99, layout, steps)).toBeCloseTo(2, 6);
+    expect(segmentAt(lastOfSegmentBefore(5500), layout)).toBe(3);
+    expect(mapM(lastOfSegmentBefore(5500), layout, steps)).toBeCloseTo(2, 4);
     expect(mapM(5500, layout, steps)).toBe(2);
     expect(segmentAt(3200, layout)).toBe(2);
     // Un ancla redondeada al píxel (el tramo empieza en 2999,6 y el scroll se queda en 2999) ya es el interludio.

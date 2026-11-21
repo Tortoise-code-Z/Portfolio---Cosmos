@@ -2,7 +2,7 @@ import { act, render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { sceneStore, setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import { sceneStore, setReadingInterlude, setScrollTarget } from '~/stores/sceneStore/sceneStore';
 
 import { CosmicHud } from './CosmicHud';
 
@@ -43,6 +43,26 @@ describe('CosmicHud', () => {
     });
     expect(hud).toHaveTextContent('t = ∞ · mythic time');
     expect(hud).toHaveTextContent('scale · 1 turtle, mythic size');
+  });
+
+  it('hides while an interlude is read (its footer shows the stopped clock) and comes back after', () => {
+    const hud = renderHud();
+    expect(hud).not.toHaveAttribute('data-hidden');
+    act(() => {
+      setScrollTarget(1);
+      setReadingInterlude('mission-log');
+    });
+    expect(hud).toHaveAttribute('data-hidden');
+    // La segunda mitad de la cola ya es Skills: el raíl lo marca y el HUD vuelve.
+    act(() => {
+      setScrollTarget(1.6);
+    });
+    expect(hud).not.toHaveAttribute('data-hidden');
+    act(() => {
+      setScrollTarget(1.2);
+      setReadingInterlude(null);
+    });
+    expect(hud).not.toHaveAttribute('data-hidden');
   });
 
   it('shows the current m at once if the journey was already under way (reload mid-page)', () => {

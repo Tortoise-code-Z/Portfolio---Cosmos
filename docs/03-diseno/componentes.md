@@ -111,23 +111,28 @@
 ### Transmisión (`Transmission`, fase C)
 - Sección a todo el ancho, hija directa de `<main>` (recoge el puntero; las estrellas de debajo, no), de al menos una
   ventana de alto (`--interlude-min-h`), con el velo de su canal (`--color-channel-*-veil`: la forma de antes se ve
-  atenuada), la cuadrícula doble de plano y líneas de barrido. Deja libre a la derecha lo que ocupa el raíl
-  (`--rail-room`).
-- Franja del canal arriba: indicador de señal y nombre del canal, y «Skip transmission ↓», un enlace de verdad al
-  capítulo siguiente (salta con el foco en su título, como el raíl; ≥ 44 px).
-- Rótulo «▸ Incoming transmission», título `h2` en mono con brillo (enfocable por código, como los capítulos), el
+  atenuada), la cuadrícula doble de plano y líneas de barrido debajo del texto. Deja libre a la derecha lo que ocupa
+  el raíl (`--rail-room`). Una palabra larga parte (`overflow-wrap: anywhere`) en vez de cortarse con la letra al
+  200 %.
+- Franja del canal arriba, con aire arriba y abajo (`--space-2`: el anillo de foco no se corta): indicador de señal
+  y nombre del canal, y «Skip transmission ↓», un enlace de verdad al capítulo siguiente (`INTERLUDE[id].next`; salta
+  con el foco en su título, como el raíl; ≥ 44 px).
+- Rótulo «Incoming transmission» con un triángulo delante (SVG propio), título `h2` en mono con brillo (enfocable por código, como los capítulos), el
   contenido de cada transmisión y un pie con la onda de señal y el reloj parado.
 - Entrada: con JavaScript y sin movimiento reducido, la sección se arma al montar (`data-armed`: las líneas del
-  teletipo, `[data-line]`, esperan tapadas) y se enciende una vez al entrar en la pantalla (`data-on`): barrido de
-  luz y líneas una tras otra (`--dur-teletype-*`). Sin JavaScript o con movimiento reducido no se arma: todo quieto
-  y visible. El texto está entero en el DOM siempre.
+  teletipo, `[data-line]`, esperan tapadas) y se enciende una vez cuando su borde de arriba pasa el 80 % de la
+  ventana (`data-on`; `TRANSMISSION_ENTRY`, un margen y no una proporción: una sección muy alta también llega):
+  barrido de luz y líneas una tras otra (`--dur-teletype-*`). Sin JavaScript o con movimiento reducido no se arma:
+  todo quieto y visible. El texto está entero en el DOM siempre, y al imprimir no sale tapado.
 - Le sigue su cola (`--interlude-tail`): un tramo vacío, `aria-hidden` y sin puntero, en el que la escena cambia a la
   forma del capítulo siguiente.
-- Alto contraste: fuera la cuadrícula, el velo, el barrido y el brillo; el texto, en los colores del sistema.
+- Alto contraste: fuera la cuadrícula, el barrido y el brillo, y el velo se cambia por el fondo liso del sistema
+  (`Canvas`): el texto, en los colores del sistema y sin la escena detrás.
 
 ### HUD (`CosmicHud`)
 - Dos líneas en mono: reloj (13 px, valores en ámbar) y escala (11 px, `--color-dim`). `aria-hidden`, sin
-  puntero. El valor en ámbar es el número que se inserta (`200`, `⁻⁴³`); «t = 0 s» y «t = ∞» van sin ámbar.
+  puntero. Mientras se lee un interludio (el raíl en su rombo) se esconde con un fundido: el pie de la transmisión ya
+  dice el reloj parado, y en escritorio se montaría sobre el registro. El valor en ámbar es el número que se inserta (`200`, `⁻⁴³`); «t = 0 s» y «t = ∞» van sin ámbar.
 - Abajo a la derecha en escritorio, abajo a la izquierda por debajo de 900 px y oculto por debajo de 520 px.
 - Lee `m` por suscripción y escribe en el DOM solo cuando cambia su texto, sin re-renderizar.
 
@@ -193,9 +198,11 @@
   El nombre del diálogo es el título; el rótulo va en `aria-describedby` (el lector dice los dos al abrir).
   Ocupa también el hueco de la barra de scroll que reserva la página (`100vw`).
 - Título `h2` «Víctor Pérez · Frontend Developer» (escala de `h3` por debajo de sm) y secciones con su `h3` en mono
-  ámbar: About (la bio), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Skills, Education
-  (título, centro, periodo y horas; las habilidades de cada curso solo en Contacto), Availability (si
-  `openToWork`) y Contact (email con su `CopyButton`, GitHub, LinkedIn, CV).
+  ámbar: About (la bio), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Experience (puesto y empresa,
+  lugar y periodo, y las entradas del registro), Skills, Education (título, centro, periodo y horas; las habilidades
+  de cada curso solo en Contacto), Availability (si `openToWork`: abierto a trabajar, incorporación inmediata si
+  `availableNow`, modalidad, reubicación, ubicación y permiso de trabajo) y Contact (email con su `CopyButton`,
+  GitHub, LinkedIn, CV).
 - Marcado propio y compacto: lee `src/content/` como los capítulos, pero no reutiliza sus componentes (ADR-022).
 
 ### Imagen (`Picture`)

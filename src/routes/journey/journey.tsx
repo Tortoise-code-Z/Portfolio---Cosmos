@@ -63,11 +63,12 @@ export default function Journey(): ReactNode {
 }
 
 /**
- * El viaje: los cinco capítulos en orden (docs/02-experiencia/README.md), sin montar la escena (la monta
- * `Layout`, `root.tsx`), con la interfaz fija en el orden del Tab (Skip → barra → contenido → raíl → sugerencia
- * de idioma, si sale; el HUD es decorativo) y el modo misión rápida (un diálogo modal: fuera del orden hasta que
- * se abre). Su scroll fija `mTarget` en `sceneStore` (y `m = mTarget`): el raíl, el HUD, el idioma y las fotos
- * fijas leen `m`; la escena, `mTarget`. El destello del Big Bang va fuera de `<main>`, entre el lienzo y el
+ * El viaje: los cinco capítulos y el interludio entre About y Skills, en el orden de `JOURNEY_SEGMENTS`
+ * (docs/02-experiencia/README.md), sin montar la escena (la monta `Layout`, `root.tsx`), con la interfaz fija en el
+ * orden del Tab (Skip → barra → contenido → raíl → sugerencia de idioma, si sale; el HUD es decorativo) y el modo
+ * misión rápida (un diálogo modal: fuera del orden hasta que se abre). Su scroll fija `mTarget` en `sceneStore` (y
+ * `m = mTarget`) y el interludio que se lee: el raíl, el HUD y el idioma leen la parada activa (`selectActiveStop`),
+ * las fotos fijas leen `m`, y la escena, `mTarget`. El destello del Big Bang va fuera de `<main>`, entre el lienzo y el
  * contenido. Las fotos fijas de la escena (solo en el modo sin WebGL, ADR-029) son solo del viaje: las fichas y la
  * 404 se quedan con el degradado del espacio.
  */

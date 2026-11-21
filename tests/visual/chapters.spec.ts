@@ -60,7 +60,7 @@ test.describe('without WebGL', () => {
 
   test('chapter 2 (skills) shows its still over the backdrop', async ({ page }) => {
     await page.goto('/#skills');
-    await expect(page.locator('[data-scene-stills] img[data-chapter="2"]')).toHaveAttribute(
+    await expect(page.locator('[data-scene-stills] img[data-still-chapter="2"]')).toHaveAttribute(
       'data-visible',
       'true',
     );

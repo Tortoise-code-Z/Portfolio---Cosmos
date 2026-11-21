@@ -30,7 +30,7 @@ export const profile: Profile = {
     openToRelocation: true,
     workPermit: {
       en: 'EU citizen – full right to work in Ireland',
-      es: 'Ciudadano de la UE, con permiso de trabajo en Irlanda',
+      es: 'Ciudadano de la UE, con pleno derecho a trabajar en Irlanda',
     },
     availableNow: true,
   },

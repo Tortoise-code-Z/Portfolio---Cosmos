@@ -330,6 +330,8 @@
   diferidas**, no solo la escena: un `import()` nuevo de otra librería necesita su propio grupo, o esa
   librería acabaría junto a Three.js y quien la cargara descargaría la escena (también sin WebGL2). Lo vigila
   `budgets.spec.ts`: solo `SceneRoot` puede importar el chunk `scene`.
+- Nota (2026-11-21): desde C.2 el código propio por página puede llegar a **38 KB** (el Mission log); lo decide y
+  lo explica la nota de C.2 de ADR-034.
 - Detalle: `docs/05-tecnico/calidad.md` → «Presupuestos».
 
 ## ADR-021 · Interfaz fija sin escena: `m` sin suavizar y lectura bajo una barra de altura fija
@@ -797,7 +799,8 @@
 - Nota (2026-11-20, C.2): el interludio, construido. `m` se mide por **tramos** (`JOURNEY_SEGMENTS`: cada capítulo,
   y de cada interludio su pantalla y su cola); un tramo enseña una forma y cambia a la siguiente o se queda quieto.
   About se queda quieta entera (150 vh; 170 en móvil) y la nebulosa cambia a galaxia en la cola del Mission log
-  (100 vh vacíos y sin puntero), así que el reloj del HUD se para solo y la escena no cambia ni un byte; el velo del
+  (100 vh vacíos y sin puntero), así que el reloj del HUD se para solo y la escena no cambia de código, salvo la reserva del raíl para las
+  etiquetas (`STAR_LABEL_KEEP_OUT`); el velo del
   canal atenúa la forma de detrás. El raíl gana un rombo por interludio (y la reserva de las etiquetas, 132 px de
   media altura). La web no dice qué es el producto de la empresa de las prácticas, aunque el CV lo cuente: las
   viñetas van suavizadas (y se ha pedido lo mismo para el CV y LinkedIn). La frase de la carta del CTO, con su

@@ -91,7 +91,7 @@ export const experience: Experience = {
       tag: { en: 'AUTO', es: 'AUTO' },
       text: {
         en: 'Used n8n to translate the interface into English and keep its content available in every supported language.',
-        es: 'Usé n8n para traducir la interfaz al inglés y tener su contenido disponible en todos los idiomas.',
+        es: 'Usé n8n para traducir la interfaz al inglés y mantener su contenido disponible en todos los idiomas que admite.',
       },
     },
     {

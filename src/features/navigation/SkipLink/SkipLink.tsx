@@ -1,9 +1,10 @@
 import type { MouseEvent, ReactNode } from 'react';
 
+import { isPlainClick } from '~/lib/events/isPlainClick/isPlainClick';
 import { useT } from '~/lib/i18n/useT/useT';
 
 import { HERO_TITLE_ID } from '../../journey/chapterDom/chapterDom';
-import { isPlainClick, onChapterLinkClick } from '../goToChapter/goToChapter';
+import { onChapterLinkClick } from '../goToChapter/goToChapter';
 import styles from './SkipLink.module.css';
 
 const toStart = onChapterLinkClick(0);
