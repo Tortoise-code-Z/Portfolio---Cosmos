@@ -15,6 +15,13 @@ import {
  * Detalle en docs/02-experiencia/ (README y capitulos/) y docs/03-diseno/componentes.md.
  */
 
+/**
+ * Cuánto se espera a que una carga mantenida detone. La carga avanza como mucho 0,1 s por frame
+ * (`HOLD_MAX_STEP_SECONDS`), así que pide 15 frames: WebKit sin GPU en el CI puede ir a unos 3 fps con la página
+ * entera (C.2: se quedó en 0,93, 14 frames en 5 s). La duración exacta la vigila `charge.test.ts`.
+ */
+const DETONATE_TIMEOUT_MS = 15_000;
+
 const CHAPTERS = {
   en: [
     ['about', 'A star born from curiosity'],
@@ -115,7 +122,7 @@ test.describe('the journey (home)', () => {
     // Se mantiene hasta ver el resultado: la duración exacta la vigila charge.test.ts y un CI lento
     // no suelta antes de tiempo.
     await page.keyboard.down('Space');
-    await expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 });
+    await expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: DETONATE_TIMEOUT_MS });
     await page.keyboard.up('Space');
     const about = await landingY(page, 'about');
     // `scrollY` puede ser fraccionario y `offsetTop` es entero: 1 px de tolerancia, sin redondear.
@@ -244,7 +251,11 @@ test.describe('the journey (home)', () => {
 
   test('1280×720: every focusable element, with its focus ring, comes into view with Tab', async ({
     page,
+    browserName,
   }) => {
+    // Un Tab por elemento y, en WebKit, hasta 10 pares de frames por cada uno: con WebKit sin GPU a pocos fps
+    // (DETONATE_TIMEOUT_MS) y los enlaces del Mission log, 30 s no llegan.
+    test.slow(browserName === 'webkit', 'WebKit without a GPU paints few frames per second in CI');
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/', { waitUntil: 'networkidle' });
     // Con la escena decidida: con ella, los grupos de Skills entran en el Tab (F4.3c); sin ella, no.
@@ -489,7 +500,9 @@ test.describe('the Big Bang', () => {
     await page.keyboard.down('Space');
     try {
       await during?.();
-      await expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 });
+      await expect(button).toHaveAttribute('aria-disabled', 'true', {
+        timeout: DETONATE_TIMEOUT_MS,
+      });
     } finally {
       await page.keyboard.up('Space');
     }
@@ -650,7 +663,7 @@ test.describe('on a touch screen', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     const button = page.getByRole('button', { name: 'Hold to detonate' });
     await holdFinger(page, 'button[aria-describedby]', () =>
-      expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 }),
+      expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: DETONATE_TIMEOUT_MS }),
     );
   });
 
