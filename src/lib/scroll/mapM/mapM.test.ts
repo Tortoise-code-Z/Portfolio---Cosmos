@@ -113,6 +113,10 @@ describe('mapM', () => {
     ];
     expect(mapM(0, flat, WINDOWS)).toBe(1);
     expect(mapM(-1, flat, WINDOWS)).toBe(1);
+    // Con el margen del ancla (1 px), y = 0 y y = −1 ya caen en el tramo siguiente: y = −2 es el que cae en el de altura
+    // 0, y cuenta como recorrido.
+    expect(segmentAt(-2, flat)).toBe(0);
+    expect(mapM(-2, flat, WINDOWS)).toBe(1);
   });
 
   it('a single chapter is always 0, and no chapters is 0', () => {
