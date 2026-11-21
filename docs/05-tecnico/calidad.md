@@ -209,7 +209,8 @@ escena)
 
 1. `npm run check` en verde y build correcto (un commit de solo docs, ADR-033: solo `npm run check`); `npm run visual` (Docker) si cambia algo visible y, si es a
    propósito, `npm run visual:update` y sus PNG; `npm run stills` (Docker) si cambian formas, shaders, cámara,
-   niveles o proyectos (las placas), mirar las fotos y commitearlas (ADR-029). Si el cambio toca la config de Vite o
+   niveles o proyectos (las placas), mirar las fotos y commitearlas (ADR-029); también si cambia cualquier archivo
+   de `STILLS_SOURCES`, aunque sea un comentario (la huella lee el texto; con `budgets.spec.ts` antes del commit). Si el cambio toca la config de Vite o
    los imports especiales
    (`?project`, `?share`…), abrir también las páginas afectadas con `npm run dev`, sin errores en consola: los e2e
    prueban el build y Vitest sustituye esos imports (en F2.8, la ficha caía solo en desarrollo).

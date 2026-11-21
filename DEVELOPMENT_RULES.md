@@ -171,7 +171,10 @@ Método general en las skills `taller` y `mesa`; aquí, solo lo propio del proye
   (el CI lo repite en los tres navegadores); `npm run visual` (Docker) si cambia algo visible y, si es a propósito,
   `npm run visual:update` y sus PNG (`Visual regression` es un check obligatorio de `main`); `npm run stills`
   (Docker) si cambian formas, shaders, cámara, niveles o proyectos (las placas), mirar las fotos y commitearlas
-  (`npm run check` no lo ve: lo avisa el e2e de su huella, `budgets.spec.ts`). El hook de pre-commit
+  (`npm run check` no lo ve: lo avisa el e2e de su huella, `budgets.spec.ts`). La huella lee el texto de
+  `STILLS_SOURCES` (`tests/stills/fingerprint.ts`): cualquier cambio ahí, aunque sea un comentario, pide
+  `npm run stills` (si las fotos salen iguales, solo cambia `stills.json`), y antes del commit se pasa
+  `budgets.spec.ts` (S37). El hook de pre-commit
   genera antes los tipos de las rutas (`react-router typegen`): sin ellos, ESLint rechaza las rutas nuevas. Si el cambio toca la config de Vite o
   imports especiales (`?project`, `?share`…), abrir también las páginas afectadas con `npm run dev`, sin errores
   en consola: los e2e prueban el build y Vitest sustituye esos imports (F2.8).

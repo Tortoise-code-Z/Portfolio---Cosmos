@@ -3,43 +3,41 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **Fase C · C.1, C.2 y C.3 hechos; AUD-C2 corregida** (`main` en `209573f`) · siguiente:
-**AUD-C3** y el **lote de menores 7–18 de AUD-F4-3C**, cada uno en su PR; luego **C.4 · Mission control** (objetivo:
-27 nov).
+**Dónde estamos:** **Fase C · C.1, C.2 y C.3 hechos; AUD-C2, AUD-C3 y los menores de AUD-F4-3C corregidos**
+(`main` en `73817a0`; ninguna auditoría pendiente) · siguiente: **C.4 · Mission control** (objetivo: 27 nov).
 
-_Última actualización: 2026-11-21 (**CIERRE DE SESIÓN · 36**) · la galaxia de skills tiene 37 estrellas y los nombres
-del CV (C.3); AUD-C2 corregida entera; desde ahora cada auditoría se corrige entera antes del paso siguiente._
+_Última actualización: 2026-11-21 (**CIERRE DE SESIÓN · 37**) · cerradas enteras las dos auditorías que quedaban
+(AUD-C3 y el lote de menores de AUD-F4-3C), cada una en su PR; el camino queda libre para C.4._
 
-**Hecho esta sesión** (vivas S36 en `_claude/cadena/hecho/2026-11-21/decisiones-vivas-S36.md`):
-1. **C.3 · galaxia de skills** (PR #98, `7d7ecd1`): sale Bootstrap; entran GLSL (web), Next.js, Electron y NestJS
-   (libraries), npm, pnpm y n8n (tools): 37 estrellas (8 + 12 + 11 + 6). «TanStack Query» y «Tailwind CSS» como el
-   CV, también en la ficha de Chessmate (los `id` no cambian). AJAX no es estrella (va en la formación). Posiciones de
-   una búsqueda en pantalla fuera del repo (`_claude/c3/`) con holgura sobre las reglas del test, cada grupo en su
-   franja y orden; ninguna línea entra en el texto de sus extremos; a 390×844 se ven 13 etiquetas. Menores 19–24 de
-   AUD-F4-3C. La escena, +127 B.
-2. **AUD-C2 corregida entera** (PR #99, `209573f`): 13 recomendados, 10 menores, P1-A (no se reescribe el historial),
-   P2-A (las viñetas se quedan), P3-A (fondo `Canvas` en alto contraste) y P4-A (fuera el número de los módulos).
-   Tres fallos confirmados con un e2e que falla en la base: sin WebGL el raíl encontraba la foto fija
-   (`data-still-chapter`); cambiar de idioma leyendo el Mission log llevaba a About (`selectActiveStop` +
-   `stopHref`); con la letra al 200 % se cortaba el título. Además: el HUD se esconde leyendo un interludio; el cursor
-   parpadea 4 veces; `TRANSMISSION_ENTRY` por margen de la ventana; tamaños a tokens; el test AA mide sobre el velo;
-   `isPlainClick` en `lib/events` y las paradas del raíl en `content/chapters`; docs al día.
-3. **Plan y método** (vivas #7–#10): las fechas del roadmap se quedan (C.3 25 nov, C.4 27, C.5 29, C.6 1 dic; C.7
-   sin fecha); antes de recortar o mover algo para llegar, se le pregunta a Víctor. **Cada auditoría se corrige
-   entera** (recomendados y menores) en su PR, antes del paso siguiente (`DEVELOPMENT_RULES.md` §13).
-4. **AUD-C3** entregada por la Mesa: sin bloqueantes ni recomendados, 10 menores y ninguna pregunta. Sin decidir.
+**Hecho esta sesión** (vivas S37 en `_claude/cadena/hecho/2026-11-21/decisiones-vivas-S37.md`):
+1. **AUD-C3 corregida entera** (PR #100, `2dee340`): 10 menores con C3-2-A, C3-6-A y C3-8-A. A 390×844 se ven 13
+   etiquetas en inglés y **12 en español** (confirmado con test: «Programación en pareja con IA» choca con NestJS);
+   los tests de móvil comparan la lista por nombre (`PHONE_LABELS`, también en ES); `labelFit.test` lee el panel y
+   la barra de `STAR_LABEL_KEEP_OUT`; el e2e mira el HUD en los dos sentidos (oculto ⇔ ancho < 520); docs y
+   comentarios sin cifras a mano. Con la huella de las fotos fijas rehecha (ver lecciones).
+2. **Menores 7–18 y resto del 23 de AUD-F4-3C corregidos** (PR #101, `73817a0`), con 9-A, 10-A y 13-A: `:hover`
+   sin escena solo con `hover: hover`; alto contraste con `Highlight` (e2e en Chromium); excepción de los 44 px
+   escrita para las etiquetas de estrella; sin WebGL la frase guía se queda en «Each star is a technology I use.»
+   (`skills.lead` + instrucciones ocultas con `no-gl`; cambia a propósito la captura `desktop/no-webgl-chapter-2-skills`);
+   si la escena cae con el foco en un grupo, el foco pasa al título del capítulo (confirmado con e2e: caía a
+   `body`); cada grupo se suscribe a su booleano (un gesto pasa de 2 repintados del capítulo a 0); el apagado sin
+   viaje o sin escena, en su propio efecto; e2e de la rueda sin mover el ratón (14: pasa en los tres motores del
+   CI, así que en WebKit no se reproduce); `createWrittenLabel()` y sin retener etiquetas desmontadas; tests de
+   renacer en su sitio y con su ámbar y del `pointerLeave` del panel. La escena, +2 B (253 040 B).
 
 **Incidencias y lecciones:**
-- **`npm run visual:update` sin argumentos borra todas las capturas antes de rehacerlas:** si una falla por tiempo,
-  se queda borrada (S36). Con cualquier argumento no borra: usar `npm run visual:update -- --workers=1` y comparar con
-  `md5sum` contra las de `main` para saber cuáles cambian de verdad.
-- **Comprobar las auditorías antes de corregir:** los tres fallos «sospechados» de AUD-C2 se confirmaron escribiendo
-  primero su e2e y corriéndolo sobre la base; el del texto tapado (umbral 0,2) no se reproduce en Chromium y se
-  arregló igual.
-- **Copiar archivos al equipo de Víctor:** `tar` no puede sobrescribir (borra antes de escribir, y borrar no está
-  permitido): escribir con `cat origen > destino`, con los md5 de la base comprobados antes y los nuevos después.
-- **Privacidad:** una lista de palabras «prohibidas» escrita en un repo público es la propia filtración; la guarda
-  es la revisión del texto. Al archivar el cierre S35 en el historial se cambió la frase que las repetía.
+- **La huella de las fotos fijas lee el texto, comentarios incluidos** (S37): el CI de AUD-C3 falló en
+  `budgets.spec` por un comentario de `src/scene/math/projection`. Cualquier cambio en `STILLS_SOURCES`, aunque sea
+  un comentario, pide `npm run stills` (si las imágenes salen iguales, solo cambia `stills.json`). Antes de cada
+  commit que toque esas carpetas, pasar `budgets.spec.ts`, no solo el spec del cambio. Escrito en
+  `DEVELOPMENT_RULES.md` §13 y `calidad.md` («hecho»).
+- **Chromium suelta el foco al quitar el `tabindex`** en el mismo instante, durante el commit de React (con sus
+  eventos parados): para reaccionar, un `focusout` nativo; un efecto de React llega tarde.
+- **Contenedor (S37):** Node 24 con el paquete npm `node-linux-x64@24.22.0`; Chromium de `/opt/pw-browsers`
+  (versión 1243) enlazado como la que pide Playwright en `~/pwb` (`PLAYWRIGHT_BROWSERS_PATH`); `.env` desde
+  `.env.example` y un `git init` local para `code-references.test`. El CDN de Playwright y nodejs.org no se alcanzan.
+- **Un test tiene que fallar sin su arreglo:** el de «un gesto repinta solo dos grupos» con `MutationObserver`
+  pasaba también en la base (React solo cambia en el DOM lo que cambia) y se quitó; el repintado se midió aparte.
 
 **Deuda anotada:**
 - **CI · WebKit a ~3 fps (S35):** la traza del CI de C.2 lo midió: WebKit sin GPU pinta unos 3 frames por segundo con
@@ -127,8 +125,8 @@ del CV (C.3); AUD-C2 corregida entera; desde ahora cada auditoría se corrige en
   desde `SceneRoot`). Lo recuerdan §13, «hecho» y el roadmap.
 - **WebKit y el `<picture>`:** que WebKit pidiera el `src` del `<img>` antes de entrar en el `<picture>` es deducido
   (no hay WebKit en el contenedor); el arreglo lo vigila el e2e de escritorio sin WebGL en el CI.
-- **Peso de la escena:** 253 038 B de 260 000 (ADR-032 y sus notas; C.3 pesó 127 B y AUD-C2, 1 B). Topes que
-  quedan: F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, ~1,46 KB de margen; cada paso apunta lo que pesó en `rendimiento.md`. Por
+- **Peso de la escena:** 253 040 B de 260 000 (ADR-032 y sus notas; C.3 pesó 127 B, AUD-C2 1 B y los menores de
+  AUD-F4-3C 2 B). Topes que quedan: F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, ~1,46 KB de margen; cada paso apunta lo que pesó en `rendimiento.md`. Por
   paquete se mide con `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con
   `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
@@ -228,31 +226,30 @@ del CV (C.3); AUD-C2 corregida entera; desde ahora cada auditoría se corrige en
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **AUD-C3** (`_claude/cadena/aud-c3/auditoria.md`; base `c053dc8` · hasta `7d7ecd1`): Víctor pega el mensaje de
-   la Mesa; se corrige entera (viva S36 #8) en `fix/aud-c3`.
-3. **Lote de menores 7–18 de AUD-F4-3C** y el resto del 23 (`_claude/cadena/hecho/2026-11-21/aud-f4-3c/auditoria.md`),
-   en su PR. El orden entre 2 y 3 lo decide Víctor (los dos tocan Skills y las constelaciones: uno detrás del otro).
-4. **C.4 · Mission control** (objetivo: 27 nov): esquema → VB. Después C.5 (29 nov) y C.6 (1 dic); C.7 si queda
-   tiempo, si no en el pulido; luego F4.4.
-5. Propuesta sin VB: un PR pequeño para el arranque en frío de `npm run visual` (deuda).
-6. Víctor: suavizar el CV y LinkedIn con el chat de mentor (y avisar para volver a copiar el PDF); redirigir el
+2. **C.4 · Mission control** (objetivo: 27 nov): esquema → VB. Docs: `docs/02-experiencia/capitulos/` (interludio
+   Mission control) y la deuda «lo provisional de Mission control y Crew file» y «colores de canal» (el azul pasa a
+   token con su AA en C.4). Después C.5 (29 nov) y C.6 (1 dic); C.7 si queda tiempo, si no en el pulido; luego F4.4.
+3. Al cerrar C.4, su auditoría a la Mesa (se corrige entera antes de C.5).
+4. Propuesta sin VB: un PR pequeño para el arranque en frío de `npm run visual` (deuda).
+5. Víctor: suavizar el CV y LinkedIn con el chat de mentor (y avisar para volver a copiar el PDF); redirigir el
    portfolio antiguo de Vercel a tortoisecode.dev (un `vercel.json` con un 308 en ese proyecto); mirar las líneas de
    las constelaciones en su pantalla (deuda «líneas … en retina»).
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»).
 **Limpieza manual del usuario:**
-- Todo `_claude/tmp/` (copias del repo y diffs de las sesiones 34 a 36, entre ellas `c3/` y `aud-c2/`) y
-  `_claude/lstree.txt`: borrarlos.
-- Ramas locales ya fusionadas (todas menos `main`, entre ellas `feat/c3-skills-galaxy` y `fix/aud-c2`):
+- Todo `_claude/tmp/` (copias del repo, diffs y archivos de las sesiones 34 a 37, entre ellas `s37/`, `c3/` y
+  `aud-c2/`) y `_claude/lstree.txt`: borrarlos.
+- Ramas locales ya fusionadas (todas menos `main`, entre ellas `fix/aud-c3` y `fix/aud-f4-3c-minors`):
   `git branch` para verlas y `git branch -D <rama>`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js` ni
   `hecho/2026-10-28/encuadre/`, que se reutilizan). Mover a mano `_claude/cadena/aud-f4-1/` a
-  `_claude/cadena/hecho/2026-11-18/` y `_claude/cadena/aud-c2/` a `_claude/cadena/hecho/2026-11-21/` (desde aquí da
-  «Permission denied»). No borrar `_claude/diseno/`, `_claude/retrato/`, `_claude/naves/` ni `_claude/c3/` (el script
-  de la búsqueda de posiciones: sirve para recolocar las estrellas otra vez).
-- En la raíz del repo, si siguen, los zips de los informes del CI (`playwright-report-*.zip`): borrarlos.
+  `_claude/cadena/hecho/2026-11-18/` y `_claude/cadena/aud-c2/` a `_claude/cadena/hecho/2026-11-21/` (desde aquí
+  da «Permission denied»; `aud-c3/` sí se movió). No borrar `_claude/diseno/`,
+  `_claude/retrato/`, `_claude/naves/` ni `_claude/c3/` (el script de la búsqueda de posiciones: sirve para
+  recolocar las estrellas otra vez).
+- En la raíz del repo, `playwright-report-chromium.zip` y la carpeta `test-results/`: borrarlos.
 - Perfiles temporales de las pruebas sin WebGL: `$env:TEMP\cosmos-sin-webgl` y `$env:TEMP\cosmos-swiftshader`.
 - Si alguna vez falla `npm ci` dentro de Docker: `docker volume rm cosmos-portfolio-visual-node-modules`.
 
