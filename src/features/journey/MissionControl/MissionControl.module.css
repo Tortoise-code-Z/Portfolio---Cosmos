@@ -1,0 +1,378 @@
+/*
+ * Mission control (docs/02-experiencia/capitulos/interludio-2-mission-control.md → «Layout»). Móvil: «T-0», la frase,
+ * el esquema en vertical y la telemetría en 2 × 2. Escritorio: arriba, «T-0» y la frase a la izquierda y la telemetría
+ * a la derecha; abajo, el esquema en horizontal. Los colores salen del canal (`--_ch*`, Transmission.module.css).
+ */
+
+/* El «T-0» enorme: el brillante del canal en líneas de barrido y con su halo. Decorativo (`titleDisplay`). */
+.countdown {
+  display: block;
+  color: transparent;
+  font-family: var(--font-mono);
+  font-size: var(--countdown-size);
+  font-weight: var(--weight-mono-strong);
+  line-height: var(--leading-hero);
+  background: var(--gradient-channel-blue-countdown);
+  background-clip: text;
+  filter: var(--glow-channel-blue-countdown);
+}
+
+.lead {
+  max-inline-size: var(--measure);
+  color: var(--_ch-bright);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+.heading {
+  margin-block-end: var(--space-3);
+  color: var(--_ch-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-mono);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* ── Secuencia de lanzamiento ─────────────────────────────────────────────── */
+
+.sequence {
+  display: grid;
+}
+
+/* La cota «no code yet» y el bucle de la auditoría: solo en escritorio, en las columnas de los pasos que abarcan. */
+.bracket,
+.loop {
+  display: none;
+}
+
+.steps {
+  display: grid;
+  gap: var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+
+/* Cada paso: la caja y, hasta el siguiente, un conector (línea y punta) en el hueco. */
+.step {
+  position: relative;
+}
+
+.step:not(:last-child)::before {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-start: 50%;
+  inline-size: var(--border-width);
+  block-size: var(--space-5);
+  background-color: var(--_ch-line);
+  content: '';
+}
+
+.step:not(:last-child)::after {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-5) - var(--sequence-arrow));
+  inset-inline-start: calc(50% - var(--sequence-arrow) / 2);
+  inline-size: var(--sequence-arrow);
+  block-size: var(--sequence-arrow);
+  background-color: var(--_ch);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  content: '';
+}
+
+/* Móvil: el número a la izquierda y, a su lado, el nombre encima del detalle. */
+.box {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--_ch-line);
+}
+
+.stepCountdown {
+  grid-row: span 2;
+  color: var(--_ch-dim);
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-micro);
+}
+
+.stepName {
+  color: var(--_ch-bright);
+  font-size: var(--text-lead);
+  line-height: var(--leading-small);
+  text-transform: uppercase;
+}
+
+.stepDetail {
+  color: var(--_ch);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+/* T-0: el lanzamiento, más encendido. */
+.launch {
+  border-color: var(--_ch-bright);
+}
+
+.launch .stepCountdown,
+.launch .stepName,
+.launch .stepDetail {
+  color: var(--_ch-bright);
+}
+
+.launch .stepName {
+  text-shadow: var(--_ch-text-glow);
+}
+
+/*
+ * En móvil, el bucle es una nota que sustituye al conector entre construcción y auditoría (su flecha va en el texto):
+ * «↓ · ↑ Fixes from the audit go back to build».
+ */
+.loopsBack:not(:last-child)::before,
+.loopsBack:not(:last-child)::after {
+  display: none;
+}
+
+.loopNote {
+  display: block;
+  margin-block-start: var(--space-3);
+  color: var(--_ch-dim);
+  font-size: var(--text-nano);
+  line-height: var(--leading-nano);
+  letter-spacing: var(--tracking-micro);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* ── Telemetría ───────────────────────────────────────────────────────────── */
+
+.telemetry {
+  padding: var(--space-4) var(--space-5);
+  border: var(--border-width) solid var(--_ch-line);
+}
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-5);
+  margin: 0;
+}
+
+/* La cifra encima de su nombre (en el DOM, el nombre primero: el lector lee «Unit tests · Vitest, 1,004»). */
+.figure {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  padding-block-start: var(--space-3);
+  border-block-start: var(--border-width) solid var(--_ch-line);
+}
+
+.figure dt {
+  color: var(--_ch-dim);
+  font-size: var(--text-nano);
+  line-height: var(--leading-nano);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.figure dd {
+  margin: 0;
+  color: var(--_ch-bright);
+  font-size: var(--text-h3);
+  line-height: var(--leading-h3);
+  text-shadow: var(--_ch-text-glow);
+}
+
+.copilot {
+  margin-block-start: var(--space-4);
+  color: var(--_ch-bright);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+/* ── Touchdown ────────────────────────────────────────────────────────────── */
+
+.touchdownLink {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  min-block-size: var(--target-min);
+  color: var(--_ch);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.touchdownCountdown {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  margin-inline-end: var(--space-1);
+}
+
+.touchdownLink:hover {
+  color: var(--_ch-bright);
+}
+
+/* ── Escritorio ───────────────────────────────────────────────────────────── */
+
+@media (width >= 900px) {
+  /*
+   * Dos columnas en el cuerpo de la transmisión: la telemetría arriba a la derecha (filas 1–3, junto al aviso, el
+   * «T-0» y la frase, que caen solos en la izquierda) y el esquema y «Touchdown» a todo el ancho.
+   */
+  .missionControl {
+    --_body-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+
+  .telemetry {
+    grid-row: 1 / span 3;
+    grid-column: 2;
+    align-self: start;
+  }
+
+  .sequence,
+  .touchdown {
+    grid-column: 1 / -1;
+  }
+
+  .steps,
+  .bracket,
+  .loop {
+    grid-template-columns: repeat(var(--_steps), minmax(0, 1fr));
+    column-gap: var(--space-6);
+  }
+
+  .bracket,
+  .loop {
+    display: grid;
+  }
+
+  .bracket {
+    margin-block-end: var(--space-3);
+  }
+
+  /* La cota: una línea con sus dos topes sobre los pasos de antes del código, y su texto debajo. */
+  .bracket > *,
+  .loop > * {
+    grid-row: 1;
+    grid-column: 1 / span var(--_span);
+  }
+
+  .loop > * {
+    grid-column: var(--_from) / span var(--_span);
+  }
+
+  .bracketMark {
+    block-size: var(--sequence-bracket-h);
+    border: var(--border-width) solid var(--_ch-line);
+    border-block-end: none;
+  }
+
+  .bracketLabel,
+  .loopLabel {
+    align-self: end;
+    justify-self: center;
+    color: var(--_ch-dim);
+    font-size: var(--text-nano);
+    line-height: var(--leading-nano);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .bracketLabel {
+    grid-row: 2;
+    margin-block-start: var(--space-1);
+  }
+
+  /* El bucle: de la mitad de la auditoría vuelve, discontinuo, a la mitad de construcción, con la punta hacia arriba. */
+  .loopMark {
+    position: relative;
+    block-size: var(--sequence-loop-h);
+    margin-inline: calc((100% - (var(--_span) - 1) * var(--space-6)) / (2 * var(--_span)));
+    border: var(--border-width) dashed var(--_ch);
+    border-block-start: none;
+  }
+
+  .loopMark::before {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: calc(-1 * var(--sequence-arrow) / 2);
+    inline-size: var(--sequence-arrow);
+    block-size: var(--sequence-arrow);
+    background-color: var(--_ch);
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    content: '';
+  }
+
+  .loopLabel {
+    grid-row: 2;
+    margin-block-start: var(--space-1);
+  }
+
+  .loopNote {
+    display: none;
+  }
+
+  .loopsBack:not(:last-child)::before,
+  .loopsBack:not(:last-child)::after {
+    display: block;
+  }
+
+  /* Los pasos en fila: el conector es horizontal, en el hueco entre cajas, y cada caja apila número, nombre y detalle. */
+  .step:not(:last-child)::before {
+    inset-block-start: 50%;
+    inset-inline-start: 100%;
+    inline-size: var(--space-6);
+    block-size: var(--border-width);
+  }
+
+  .step:not(:last-child)::after {
+    inset-block-start: calc(50% - var(--sequence-arrow) / 2);
+    inset-inline-start: calc(100% + var(--space-6) - var(--sequence-arrow));
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+
+  /* Todas las cajas de la fila, del mismo alto. */
+  .box {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    block-size: 100%;
+  }
+
+  .stepCountdown {
+    grid-row: auto;
+  }
+}
+
+/* Alto contraste: el «T-0» con el color del sistema, sin barrido ni halo; las cajas y el dibujo, con su línea. */
+@media (forced-colors: active) {
+  .countdown {
+    color: CanvasText;
+    background: none;
+    filter: none;
+  }
+
+  .box,
+  .telemetry,
+  .bracketMark,
+  .loopMark {
+    border-color: CanvasText;
+  }
+
+  .step:not(:last-child)::before,
+  .step:not(:last-child)::after,
+  .loopMark::before {
+    background-color: CanvasText;
+    forced-color-adjust: none;
+  }
+
+  .launch .stepName,
+  .figure dd {
+    text-shadow: none;
+  }
+}

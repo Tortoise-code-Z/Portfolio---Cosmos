@@ -31,6 +31,7 @@ const LABEL_KEYS = {
 
 const INTERLUDE_LABEL_KEYS = {
   'mission-log': 'interlude.1',
+  'mission-control': 'interlude.2',
 } as const satisfies Readonly<Record<InterludeId, UiKey>>;
 
 /** Separa «Projects · Cosmic turtle» en sección y escena (docs/01-contenido/textos-sitio.md → «Raíl»). */

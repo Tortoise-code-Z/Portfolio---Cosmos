@@ -116,9 +116,14 @@
   200 %.
 - Franja del canal arriba, con aire arriba y abajo (`--space-2`: el anillo de foco no se corta): indicador de señal
   y nombre del canal, y «Skip transmission ↓», un enlace de verdad al capítulo siguiente (`INTERLUDE[id].next`; salta
-  con el foco en su título, como el raíl; ≥ 44 px).
+  con el foco en su título, como el raíl; ≥ 44 px). El enlace es `ChapterJumpLink`, el mismo de «Touchdown» en
+  Mission control.
 - Rótulo «Incoming transmission» con un triángulo delante (SVG propio), título `h2` en mono con brillo (enfocable por código, como los capítulos), el
-  contenido de cada transmisión y un pie con la onda de señal y el reloj parado.
+  contenido de cada transmisión y un pie con la onda de señal y el reloj parado. Con `titleDisplay`, en el sitio del
+  título se ve otra cosa (el «T-0» de Mission control, `aria-hidden`) y el título queda escondido para el lector en el
+  mismo `h2`. Con `className`, una transmisión puede dar otras columnas a su cuerpo (`--_body-columns`).
+- Cursor de bloque del teletipo (`BlinkCursor`, el mismo en todas): parpadea unas pocas veces al escribirse su línea
+  y se queda quieto.
 - Entrada: con JavaScript y sin movimiento reducido, la sección se arma al montar (`data-armed`: las líneas del
   teletipo, `[data-line]`, esperan tapadas) y se enciende una vez cuando su borde de arriba pasa el 80 % de la
   ventana (`data-on`; `TRANSMISSION_ENTRY`, un margen y no una proporción: una sección muy alta también llega):

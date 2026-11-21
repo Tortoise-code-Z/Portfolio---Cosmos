@@ -34,6 +34,7 @@ import {
   type ResponsiveImage,
 } from './types';
 import { uiTexts } from './texts';
+import { AUDIT_LOOP, browserName, LAUNCH_SEQUENCE } from './workflow';
 import {
   findEmailProblems,
   findEmptyListProblems,
@@ -158,8 +159,7 @@ describe('contenido', () => {
 
   it('un interludio y el capítulo de antes se quedan quietos (su pantalla y él), y «Skip» lleva al capítulo siguiente', () => {
     for (const interlude of INTERLUDES) {
-      // Con un solo interludio, el tipo ya sabe que es el suyo: se compara como texto, para cuando haya más.
-      const id: string = interlude.id;
+      const { id } = interlude;
       const screen = JOURNEY_SEGMENTS.find(
         (segment) => segment.kind === 'interlude' && segment.interlude === id,
       );
@@ -348,5 +348,25 @@ describe('contenido', () => {
   it('textos de interfaz: mismas claves y mismos huecos {x} en EN y ES (regla 7)', () => {
     expect(Object.keys(uiTexts.en).length).toBeGreaterThan(0);
     expect(findUiProblems(uiTexts)).toEqual([]);
+  });
+
+  it('la secuencia de Mission control: T-4 a T-0 sin huecos, primero lo de antes del código y el bucle hacia atrás', () => {
+    expect(LAUNCH_SEQUENCE.map((step) => step.countdown)).toEqual([4, 3, 2, 1, 0]);
+    expect(new Set(LAUNCH_SEQUENCE.map((step) => step.id)).size).toBe(LAUNCH_SEQUENCE.length);
+    // Los pasos de antes del código van seguidos y al principio: la cota del esquema los abarca de una vez.
+    const beforeCode = LAUNCH_SEQUENCE.map((step) => step.beforeCode);
+    expect(beforeCode).toEqual([...beforeCode].sort((a, b) => Number(b) - Number(a)));
+    const index = (id: string): number => LAUNCH_SEQUENCE.findIndex((step) => step.id === id);
+    expect(index(AUDIT_LOOP.to)).toBeGreaterThanOrEqual(0);
+    expect(index(AUDIT_LOOP.from)).toBeGreaterThan(index(AUDIT_LOOP.to));
+  });
+
+  it('el nombre de los navegadores del CI: los conocidos con su marca, uno nuevo tal cual', () => {
+    expect(['chromium', 'firefox', 'webkit'].map(browserName)).toEqual([
+      'Chromium',
+      'Firefox',
+      'WebKit',
+    ]);
+    expect(browserName('edge')).toBe('edge');
   });
 });

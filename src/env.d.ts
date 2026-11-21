@@ -13,3 +13,9 @@ declare module '*?share' {
   const image: import('~/content/types').ImageFile;
   export default image;
 }
+
+// Las cifras del repo para Mission control, contadas al construir (vite.config.ts → `siteTelemetry`).
+declare module 'virtual:site-telemetry' {
+  const telemetry: import('~/content/types').SiteTelemetry;
+  export default telemetry;
+}

@@ -17,7 +17,8 @@ Versiones exactas y conflictos → `docs/05-tecnico/stack.md`.
   (fotos fijas del modo sin WebGL, en Docker: `npm run stills`) · `tests/setup.ts` (Vitest) · tests unitarios junto
   al archivo (`*.test.ts(x)`).
 - `scripts/` (lo que va en Docker: `visual.ts` y `stills.ts` lanzan la imagen con `playwrightImage.ts`; dentro corren
-  sus `*-in-docker.sh`; y el criterio de los commits de solo docs, `docsOnly.ts` y la orden `docs-only.ts`, ADR-033).
+  sus `*-in-docker.sh`; el criterio de los commits de solo docs, `docsOnly.ts` y la orden `docs-only.ts`, ADR-033; y
+  `siteTelemetry.ts`, que cuenta al construir las cifras de Mission control, ADR-035).
 - Archivos con el mismo nombre (`x.ts` + `x.test.ts`…) van juntos en su carpeta `x/` en `src/` y `tests/` (ADR-018).
 - `public/` estáticos · `build/client/` salida que se despliega · `.github/workflows/ci.yml`.
 - Capas y lo que puede importar cada una → `docs/05-tecnico/arquitectura.md` (las vigila ESLint).

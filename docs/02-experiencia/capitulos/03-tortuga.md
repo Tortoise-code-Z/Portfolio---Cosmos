@@ -22,6 +22,8 @@ escena. Metáfora: según el mito, una tortuga carga con el mundo; la tuya carga
   `featured` ocupa la placa central; los demás, las contiguas.
 - Sobre cada placa, un **pin** (línea vertical + etiqueta con el nombre del proyecto) que sigue al movimiento.
 - La tortuga se balancea y gira levemente; nunca sale del encuadre.
+- Desde C.4, la forma se queda quieta en todo el capítulo: el cambio a la Tierra va en la cola de Mission control
+  (`interludio-2-mission-control.md`), que llega justo después.
 
 ## Interacciones
 

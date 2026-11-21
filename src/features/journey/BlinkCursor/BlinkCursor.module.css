@@ -1,0 +1,26 @@
+/*
+ * Cursor de bloque: con la transmisión encendida (`[data-on]`), parpadea unas pocas veces (menos de 5 s, WCAG 2.2.2)
+ * cuando su línea ya está escrita (`--_line`, la del teletipo) y se queda quieto y visible. Decoración: quieto siempre
+ * sin JavaScript o con movimiento reducido. El color, el del canal (`--_ch`, Transmission.module.css).
+ */
+.cursor {
+  display: inline-block;
+  inline-size: var(--cursor-w);
+  block-size: var(--cursor-h);
+  margin-inline-start: var(--space-1);
+  background-color: var(--_ch);
+  vertical-align: text-bottom;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-on] .cursor {
+    animation: transmission-blink var(--dur-blink) steps(1, end) var(--blink-count) both;
+    animation-delay: calc(var(--_line, 0) * var(--dur-teletype-step) + var(--dur-teletype-line));
+  }
+}
+
+@keyframes transmission-blink {
+  50% {
+    visibility: hidden;
+  }
+}

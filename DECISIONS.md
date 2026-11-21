@@ -332,6 +332,9 @@
   `budgets.spec.ts`: solo `SceneRoot` puede importar el chunk `scene`.
 - Nota (2026-11-21): desde C.2 el código propio por página puede llegar a **38 KB** (el Mission log); lo decide y
   lo explica la nota de C.2 de ADR-034.
+- Nota (2026-11-21, C.4): Mission control lleva la home a 38,4 KB (sobre todo sus textos, que van en los dos
+  idiomas): el tope pasa a **40 KB**, con margen para el Crew file (C.6). Lo que cuesta cada sección se apunta en
+  `calidad.md` → «Presupuestos».
 - Detalle: `docs/05-tecnico/calidad.md` → «Presupuestos».
 
 ## ADR-021 · Interfaz fija sin escena: `m` sin suavizar y lectura bajo una barra de altura fija
@@ -808,3 +811,28 @@
 - Detalle: `docs/06-roadmap/roadmap.md` → «C · Contenido y secciones nuevas»; cada sección, en su doc de
   `docs/02-experiencia/capitulos/` (`interludio-1-mission-log.md`, `interludio-2-mission-control.md`,
   `05-crew-file.md`) y el sistema visual en `docs/03-diseno/design-system.md` → «Transmisiones».
+
+## ADR-035 · Las cifras de Mission control se cuentan del repo al construir el sitio
+- Estado: Aceptada
+- Fecha: 2026-11-21
+- Contexto: Mission control (fase C, ADR-034) enseña la telemetría del propio repo: tests unitarios, tests e2e,
+  navegadores del CI y decisiones registradas. La spec pedía que salieran del repo al construir, o redondeadas,
+  nunca a mano: una cifra escrita a mano se queda vieja con el primer test nuevo, y en una entrevista se comprueba
+  abriendo el repo.
+- Decisión: las cuenta `scripts/siteTelemetry.ts` al construir el sitio, leyendo el código, y un plugin de Vite las
+  sirve como el módulo `virtual:site-telemetry` (lo lee `src/content/telemetry.ts`; el pre-renderizado las deja en el
+  HTML). Se cuentan los tests **escritos**, no las ejecuciones: cada llamada a `it` o `test` (también `.only`,
+  `.concurrent`, `.fails` e `it.each(…)(…)`), leída con el compilador de TypeScript, en lo que corre Vitest y en
+  `tests/e2e/`; los navegadores son la matriz de los e2e de `ci.yml`; las decisiones, los ADR numerados de este
+  archivo; y el mes, el del build. Si no encuentra algo, el build falla. Vitest usa el mismo plugin; el e2e compara
+  la página con lo que cuenta el repo; las capturas tapan las cifras (`data-telemetry`).
+- Alternativas descartadas: las ejecuciones reales (`vitest list`, `playwright test --list`) en un JSON guardado en
+  el repo con un test que avise si se queda viejo (más «reales», pero cada PR con un test nuevo tendría que
+  regenerarlo, y en el build serían lentas y frágiles); las mismas cuentas redondeadas hacia abajo («1,000+»: más
+  estables, pero dicen menos); una expresión regular en vez del compilador (cuenta comentarios y textos, y confunde
+  `test.describe` o `test.skip` con un test).
+- Consecuencias: las cifras siempre coinciden con el repo del despliegue y no se mantienen. El build lee unos 200
+  archivos de test con el compilador de TypeScript (menos de un segundo). Las cifras son menores que las ejecuciones
+  (un test por idioma cuenta uno), y la etiqueta dice «tests», no «runs». `typescript` (ya en el proyecto) se usa
+  también al construir.
+- Detalle: `docs/02-experiencia/capitulos/interludio-2-mission-control.md` → «Telemetría».

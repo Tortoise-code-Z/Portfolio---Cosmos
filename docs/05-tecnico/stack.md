@@ -54,7 +54,7 @@ comentarios), Tailwind (decidido CSS Modules).
 | Paquete | Versión | Motivo |
 |---|---|---|
 | `vite` | 8.3.4 | Bundler (Rolldown) y servidor de desarrollo |
-| `typescript` | **6.0.3** | Tipado estricto. **No 7.x**: `typescript-eslint` aún no lo soporta (pide `< 6.1`) |
+| `typescript` | **6.0.3** | Tipado estricto; también cuenta los tests al construir (ADR-035). **No 7.x**: `typescript-eslint` aún no lo soporta (pide `< 6.1`) |
 | `vite-imagetools` | 12.0.1 | AVIF/WebP y `srcset` en build (usa `sharp`, con binarios para win32-x64); presets `?project` y `?share` en `vite.config.ts` (ADR-023) |
 | `sharp` | 0.35.5 | Codifica las fotos fijas del modo sin WebGL (`npm run stills`, ADR-029). La misma versión que trae `vite-imagetools`: declarada aparte porque la importa `tests/stills/stills.spec.ts`. Al subir `vite-imagetools`, subirla a la versión que traiga |
 | `@types/react` · `@types/react-dom` | 19.3.0 | Tipos |

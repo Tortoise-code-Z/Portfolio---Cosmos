@@ -4,7 +4,7 @@
 
 - **Inglés sin prefijo** (`/`), **español con `/es`**. Cada página declara su alternativa con `hreflang`.
 - Los capítulos del viaje son anclas con el mismo id en los dos idiomas: `#about`, `#skills`, `#projects`,
-  `#contact` (el inicio no lleva ancla). Los interludios (fase C), también: `#mission-log`.
+  `#contact` (el inicio no lleva ancla). Los interludios (fase C), también: `#mission-log`, `#mission-control`.
 - Al pasar de un capítulo a otro la URL **no** se reescribe en cada scroll (ensucia el historial); solo cambia
   cuando el usuario usa el raíl o un enlace, con `replaceState` (sin entrada nueva en el historial; el inicio queda
   sin ancla).
@@ -55,9 +55,9 @@ shell», arriba, y los enlaces del pie (GitHub, LinkedIn y el email).
 
 ## Raíl de capítulos (fijo, a la derecha)
 
-- 6 paradas: un punto por capítulo (5) y un rombo por interludio (1, el Mission log, entre About y Skills); en
-  escritorio cada una lleva **el nombre real de la sección** y, debajo, el de la escena («Projects · Cosmic
-  turtle»). En móvil, solo puntos y rombo con `aria-label`.
+- 7 paradas: un punto por capítulo (5) y un rombo por interludio (2: el Mission log, entre About y Skills, y Mission
+  control, entre Projects y Contact); en escritorio cada una lleva **el nombre real de la sección** y, debajo, el de
+  la escena («Projects · Cosmic turtle»). En móvil, solo puntos y rombos con `aria-label`.
 - El activo se marca en ámbar y con `aria-current="step"`.
 - Clic o Enter: viaja a ese capítulo (scroll suave; instantáneo con movimiento reducido), lleva el foco a su
   título (como la detonación) y deja su ancla en la URL.
@@ -79,7 +79,8 @@ shell», arriba, y los enlaces del pie (GitHub, LinkedIn y el email).
 
 - Botón siempre visible en la barra. Abre un `<dialog>` modal a pantalla completa con **todo el contenido** en
   una página limpia: sobre mí, proyectos (con enlace a su página, demo y código), experiencia (las prácticas:
-  puesto, empresa, lugar, periodo y lo que hizo), habilidades, formación, disponibilidad (abierto a trabajar, incorporación
+  puesto, empresa, lugar, periodo y lo que hizo), cómo trabajo (la frase y los cinco pasos de Mission control),
+  habilidades, formación, disponibilidad (abierto a trabajar, incorporación
   inmediata, modalidad, reubicación, ubicación y permiso de trabajo) y contacto (con su botón de copiar el email). El contenido solo se monta al abrir: el HTML
   pre-renderizado no repite el texto del viaje.
 - Foco al botón «Close quick mission» al abrir; `Esc` y ese botón cierran y devuelven el foco al botón de apertura

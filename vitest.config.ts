@@ -6,6 +6,7 @@ import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
+import { siteTelemetry } from './scripts/siteTelemetry.ts';
 import { PROJECT_IMAGE_WIDTHS, SHARE_IMAGE_WIDTH } from './src/content/imageWidths.ts';
 
 /** Ancho y alto de un PNG, de su cabecera (IHDR). Las capturas son PNG (docs/01-contenido/assets.md). */
@@ -58,7 +59,12 @@ function projectImagesStub(): Plugin {
 const STRICT = { lines: 90, functions: 90, branches: 90, statements: 90, perFile: true };
 
 export default defineConfig({
-  plugins: [projectImagesStub(), react()],
+  // Las cifras de Mission control se cuentan de verdad, como en el build (ADR-035): es rápido y los tests ven lo mismo.
+  plugins: [
+    projectImagesStub(),
+    siteTelemetry(fileURLToPath(new URL('.', import.meta.url))),
+    react(),
+  ],
   resolve: {
     alias: { '~': fileURLToPath(new URL('./src', import.meta.url)) },
   },
@@ -71,8 +77,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       // Y el criterio de los commits de solo docs (ADR-033): de él depende que no entre código en `main` sin checks.
-      // `docs-only.ts` no: corre en un proceso hijo, que v8 no ve.
-      include: ['src/**/*.{ts,tsx}', 'scripts/docsOnly.ts'],
+      // `docs-only.ts` no: corre en un proceso hijo, que v8 no ve. Y el contador de las cifras de Mission control.
+      include: ['src/**/*.{ts,tsx}', 'scripts/docsOnly.ts', 'scripts/siteTelemetry.ts'],
       // Fuera de la cobertura: root.tsx (el documento HTML solo lo pintan los e2e; su lógica, `meta`,
       // `ErrorBoundary` y `HydrateFallback`, la prueba root.test.tsx), routes.ts (configuración) y la entrada
       // del worker de las formas (solo conecta el mensaje con `handleShapesRequest`, que sí se prueba).
@@ -95,6 +101,7 @@ export default defineConfig({
           STRICT,
         'src/scene/shaders/**': STRICT,
         'scripts/docsOnly.ts': STRICT,
+        'scripts/siteTelemetry.ts': STRICT,
       },
     },
   },

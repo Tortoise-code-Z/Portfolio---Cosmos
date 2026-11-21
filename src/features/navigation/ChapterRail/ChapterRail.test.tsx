@@ -16,6 +16,7 @@ const EN = [
   'Mission log · transmission',
   'Skills · Galaxy',
   'Projects · Cosmic turtle',
+  'Mission control · transmission',
   'Contact · Earth',
 ];
 
@@ -64,7 +65,15 @@ describe('ChapterRail', () => {
       within(rail)
         .getAllByRole('link')
         .map((link) => link.getAttribute('href')),
-    ).toEqual(['/', '/#about', '/#mission-log', '/#skills', '/#projects', '/#contact']);
+    ).toEqual([
+      '/',
+      '/#about',
+      '/#mission-log',
+      '/#skills',
+      '/#projects',
+      '/#mission-control',
+      '/#contact',
+    ]);
   });
 
   it('shows the section and the scene of each chapter', () => {

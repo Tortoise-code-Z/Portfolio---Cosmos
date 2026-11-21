@@ -12,6 +12,8 @@ src/content/
   skills.ts           ← habilidades.md
   experience.ts       ← experiencia.md (el Mission log y la misión rápida)
   chapters.ts         ← orden y anclas de los capítulos, interludios, paradas del raíl y tramos del viaje
+  workflow.ts         ← la secuencia de lanzamiento de Mission control (y la misión rápida) y el nombre de cada navegador
+  telemetry.ts        ← `siteTelemetry`: las cifras del repo, contadas al construir (`virtual:site-telemetry`, ADR-035)
   projects/
     chessmate.ts      ← proyectos/chessmate.md (textos y datos: `ProjectEntry`, sin imágenes)
     astrohub.ts

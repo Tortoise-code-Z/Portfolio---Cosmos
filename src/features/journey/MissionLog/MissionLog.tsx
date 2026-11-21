@@ -6,6 +6,7 @@ import { formatList } from '~/lib/i18n/format/format';
 import { localize } from '~/lib/i18n/localize/localize';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
 
+import { BlinkCursor } from '../BlinkCursor/BlinkCursor';
 import { Transmission } from '../Transmission/Transmission';
 import styles from './MissionLog.module.css';
 
@@ -109,7 +110,7 @@ export function MissionLog(): ReactNode {
             style={lineStyle(firstLogLine + experience.log.length)}
           >
             {t('interlude.end')}
-            <span className={styles.cursor} aria-hidden="true" />
+            <BlinkCursor />
           </p>
         </section>
       </div>

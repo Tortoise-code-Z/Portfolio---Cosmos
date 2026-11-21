@@ -7,6 +7,7 @@ import { reactRouter } from '@react-router/dev/vite';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { imagetools, type OutputFormat } from 'vite-imagetools';
 
+import { siteTelemetry } from './scripts/siteTelemetry.ts';
 import { PROJECT_IMAGE_WIDTHS, SHARE_IMAGE_WIDTH } from './src/content/imageWidths.ts';
 import { parseSiteUrl } from './src/lib/env/siteUrl/siteUrl.ts';
 import { stripGlslComments } from './src/scene/shaders/stripGlslComments/stripGlslComments.ts';
@@ -144,7 +145,14 @@ export default defineConfig(({ mode }) => {
   parseSiteUrl(env.VITE_SITE_URL);
 
   return {
-    plugins: [glslWithoutComments(), projectImages(), reactRouter(), previewDirectoryIndex()],
+    plugins: [
+      glslWithoutComments(),
+      projectImages(),
+      // Las cifras del repo de Mission control (ADR-035), contadas en la raíz del repo.
+      siteTelemetry(fileURLToPath(new URL('.', import.meta.url))),
+      reactRouter(),
+      previewDirectoryIndex(),
+    ],
     // Un solo CSS para todo el sitio (ADR-019): el <head> de la 404 servida coincide con el que pinta el
     // cliente aunque case otra ruta (`/ES`, slug desconocido), y la hidratación no falla.
     build: {

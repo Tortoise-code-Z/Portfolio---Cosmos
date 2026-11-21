@@ -16,6 +16,18 @@
   --_ch-sweep: var(--gradient-channel-amber-sweep);
 }
 
+.blue {
+  --_ch: var(--color-channel-blue);
+  --_ch-dim: var(--color-channel-blue-dim);
+  --_ch-bright: var(--color-channel-blue-bright);
+  --_ch-veil: var(--color-channel-blue-veil);
+  --_ch-line: var(--color-channel-blue-line);
+  --_ch-glow: var(--color-channel-blue-glow);
+  --_ch-text-glow: var(--glow-channel-blue);
+  --_ch-grid-bg: var(--gradient-channel-blue-grid);
+  --_ch-sweep: var(--gradient-channel-blue-sweep);
+}
+
 .transmission {
   position: relative;
   display: flex;
@@ -144,7 +156,8 @@
   z-index: 1;
   display: grid;
   flex: 1;
-  grid-template-columns: minmax(0, 1fr);
+  /* Una columna; una transmisión puede pedir otras con `--_body-columns` (en la clase que le pasa a la sección). */
+  grid-template-columns: var(--_body-columns, minmax(0, 1fr));
   gap: var(--space-6);
   align-content: start;
   padding: var(--space-7) calc(var(--gutter) + var(--rail-room)) var(--space-6) var(--gutter);
@@ -176,6 +189,12 @@
   letter-spacing: var(--tracking-micro);
   text-transform: uppercase;
   text-shadow: var(--_ch-text-glow);
+}
+
+/* Un título que se ve de otra forma (`titleDisplay`): el sitio del título, sin su letra; la pinta quien lo pasa. */
+.titleDisplay {
+  margin-block-start: calc(-1 * var(--space-4));
+  line-height: 1;
 }
 
 .footer {

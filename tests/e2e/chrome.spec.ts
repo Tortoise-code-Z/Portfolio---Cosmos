@@ -181,7 +181,7 @@ test.describe('chapter rail', () => {
         }),
       );
     // Un punto por capítulo y un rombo por interludio (fase C).
-    expect(dotCenters).toHaveLength(6);
+    expect(dotCenters).toHaveLength(7);
     expect(Math.max(...dotCenters) - Math.min(...dotCenters)).toBeLessThanOrEqual(1);
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(rail(page).getByText('Cosmic turtle')).toBeHidden();

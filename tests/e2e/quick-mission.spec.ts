@@ -51,7 +51,7 @@ test.describe('quick mission', () => {
     expect(box).toMatchObject({ x: 0, y: 0, width: viewport?.width, height: viewport?.height });
   });
 
-  test('everything is on one page: about, projects, experience, skills, education, availability and contact', async ({
+  test('everything is on one page: about, projects, experience, how I work, skills, education, availability and contact', async ({
     page,
   }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
@@ -60,6 +60,7 @@ test.describe('quick mission', () => {
       'About',
       'Projects',
       'Experience',
+      'How I work',
       'Skills',
       'Education',
       'Availability',
