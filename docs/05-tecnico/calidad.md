@@ -57,17 +57,20 @@ y la lógica de la escena que se prueba sin WebGL (`frameLoop`, `sceneClock`, `s
 `voidColour`, `pause`, `pointer`, `contextLoss`, `fpsMeter`, `useHotDegradation`, `Constellations`,
 `ConstellationLabels` y `shaders/`), medido archivo a
 archivo (`perFile`: uno flojo no se esconde detrás de los demás; fuera, la entrada del worker, `shapes.worker.ts`:
-solo conecta el mensaje con `handleShapesRequest`), y `scripts/docsOnly.ts`, el criterio de los commits de solo docs
-(ADR-033; el resto de `scripts/` no se mide);
+solo conecta el mensaje con `handleShapesRequest`), `scripts/docsOnly.ts`, el criterio de los commits de solo docs
+(ADR-033), y `scripts/siteTelemetry.ts`, el contador de las cifras de Mission control (ADR-035; el resto de
+`scripts/` no se mide);
 70 % global de líneas. **Un módulo nuevo de `scene/` con lógica que se prueba sin WebGL se añade a esta lista y al
 glob del 90 % de `vitest.config.ts`** (la lista es a mano, como `IMPURE_SCENE_MODULES`).
 
 ## Regresión visual
 
-Una captura por capítulo (inicio, About, Skills, Projects y Contact) y por interludio (Mission log) en 1440×900
-(`desktop`) y 390×844 (`mobile`, táctil), a densidad 1, y una del modo sin WebGL (Skills, con su foto fija sobre el
-degradado y el aviso; ADR-029): 14 referencias en `tests/visual/__screenshots__/<proyecto>/` (`tests/visual/chapters.spec.ts`,
-`playwright.visual.config.ts`). Solo Chromium.
+Una captura por capítulo (inicio, About, Skills, Projects y Contact) y por interludio (Mission log y Mission control)
+en 1440×900 (`desktop`) y 390×844 (`mobile`, táctil), a densidad 1, y una del modo sin WebGL (Skills, con su foto fija
+sobre el degradado y el aviso; ADR-029): 16 referencias en `tests/visual/__screenshots__/<proyecto>/`
+(`tests/visual/chapters.spec.ts`, `playwright.visual.config.ts`). Solo Chromium. En la de Mission control van tapadas
+las cifras de la telemetría y su mes (`data-telemetry`): cambian con cada test o ADR nuevo y cada mes (las comprueba
+su e2e).
 
 - **Siempre en la imagen de Playwright** (ADR-010): `npm run visual` lanza Docker con
   `mcr.microsoft.com/playwright:v<versión de @playwright/test>-noble` y dentro instala, construye y captura
@@ -106,7 +109,7 @@ degradado y el aviso; ADR-029): 14 referencias en `tests/visual/__screenshots__/
 
 | Métrica | Límite |
 |---|---|
-| JS inicial (sin escena), gzip | **Framework ≤ 112 KB** (las dependencias del JS inicial, chunk `entry.client` o `framework`; 107,3 KB en F2.4; las de la escena van en su chunk diferido) + **código propio ≤ 38 KB por página** (home 17,4 · proyecto 12,6 · 404 7,0 KB en F2.4; la home, 35,5 KB en C.2 con el Mission log: el tope pasa de 35 a 38 KB por las secciones de la fase C). Alarma propia, no requisito externo (mandan los Core Web Vitals y Lighthouse del brief). E2E `budgets.spec.ts` sobre el build, en **todos** los HTML del build (ADR-020) |
+| JS inicial (sin escena), gzip | **Framework ≤ 112 KB** (las dependencias del JS inicial, chunk `entry.client` o `framework`; 107,3 KB en F2.4; las de la escena van en su chunk diferido) + **código propio ≤ 40 KB por página** (home 17,4 · proyecto 12,6 · 404 7,0 KB en F2.4; la home, 35,5 KB en C.2 con el Mission log: el tope pasa de 35 a 38 KB por las secciones de la fase C; 38,4 KB en C.4 con Mission control, sobre todo sus textos en los dos idiomas: pasa a 40 KB, con margen para el Crew file de C.6). Alarma propia, no requisito externo (mandan los Core Web Vitals y Lighthouse del brief). E2E `budgets.spec.ts` sobre el build, en **todos** los HTML del build (ADR-020) |
 | CSS (hoja única), gzip | ≤ 50 KB (ADR-019: por encima, revisar si conviene volver a partirla; 4,3 KB en F2.4). E2E `budgets.spec.ts` sobre la hoja que piden las páginas |
 | Chunk de la escena, gzip | ≤ 260 KB desde F4.3 (ADR-032; antes, 250 KB) (Three.js, React Three Fiber y `SceneRoot`; 241,6 KB en F3.1 con el lienzo vacío y en F3.2 con las formas pedidas, casi todo Three.js entero; 248,2 KB en F3.3 con las partículas, sus shaders y las estrellas; 247,0 KB con los shaders sin comentarios, antes de F3.4; 248,0 KB en F3.4 con la cámara; 248,1 KB con el color de fondo sin linealizar y el reajuste de las partículas y del shader; 248,4 KB en F3.5 con el suavizado de `m` y la pausa; 249,0 KB en F3.6 con la degradación en caliente; 249 066 B en F4.2; 252 535 B en F4.3b con las constelaciones y sus etiquetas, 252 594 B con el retoque de las figuras tras su auditoría y 252 738 B con las correcciones de la segunda; 252 910 B en F4.3c con el puntero de las etiquetas; 253 037 B en C.3 con 37 estrellas y 253 040 B con las correcciones de las auditorías de C.2 y de F4.3c; por paquete, con `source-map-explorer --gzip` tras F4.3b, en KiB: three 167,9, React Three Fiber 53,6 y lo suyo 3,5, el código propio 13,7 y ~8 de saltos de línea y código sin origen; ADR-032 fija un tope por paso: F4.3a + F4.3b ≤ 3,6 KB, F4.3c ≤ 1 KB, F4.4 ≤ 2,5 KB, F4.5 ≤ 3 KB). E2E `budgets.spec.ts`: lo sigue desde el import dinámico, exige que ningún HTML lo pida y que los shaders lleguen sin el texto de sus comentarios |
 | Lo que la escena carga aparte, gzip | **Worker de las formas ≤ 10 KB** (4,4 KB en F3.2) y **generadores del reintento ≤ 10 KB** (el mismo código en su chunk; 3,8 KB). E2E `budgets.spec.ts`: clasifica cada `import()` y `new URL(…)` que sale de la escena; uno sin clasificar (o con una ruta que no se puede leer) hace fallar el test |

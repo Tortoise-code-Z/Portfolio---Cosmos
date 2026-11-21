@@ -11,6 +11,7 @@ import { BigBangFlash } from '~/features/journey/BigBangFlash/BigBangFlash';
 import { JOURNEY_SEGMENT_SELECTOR } from '~/features/journey/chapterDom/chapterDom';
 import { Contact } from '~/features/journey/Contact/Contact';
 import { Hero } from '~/features/journey/Hero/Hero';
+import { MissionControl } from '~/features/journey/MissionControl/MissionControl';
 import { MissionLog } from '~/features/journey/MissionLog/MissionLog';
 import { Projects } from '~/features/journey/Projects/Projects';
 import { Skills } from '~/features/journey/Skills/Skills';
@@ -63,8 +64,8 @@ export default function Journey(): ReactNode {
 }
 
 /**
- * El viaje: los cinco capítulos y el interludio entre About y Skills, en el orden de `JOURNEY_SEGMENTS`
- * (docs/02-experiencia/README.md), sin montar la escena (la monta `Layout`, `root.tsx`), con la interfaz fija en el
+ * El viaje: los cinco capítulos y los dos interludios (Mission log tras About, Mission control tras Projects), en el
+ * orden de `JOURNEY_SEGMENTS` (docs/02-experiencia/README.md), sin montar la escena (la monta `Layout`, `root.tsx`), con la interfaz fija en el
  * orden del Tab (Skip → barra → contenido → raíl → sugerencia de idioma, si sale; el HUD es decorativo) y el modo
  * misión rápida (un diálogo modal: fuera del orden hasta que se abre). Su scroll fija `mTarget` en `sceneStore` (y
  * `m = mTarget`) y el interludio que se lee: el raíl, el HUD y el idioma leen la parada activa (`selectActiveStop`),
@@ -88,6 +89,7 @@ function JourneyPage(): ReactNode {
         <MissionLog />
         <Skills />
         <Projects />
+        <MissionControl />
         <Contact />
       </main>
       <ChapterRail />

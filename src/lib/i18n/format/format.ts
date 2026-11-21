@@ -4,6 +4,10 @@ import type { Locale } from '~/content/types';
 // por idioma y opciones: crearlos es lo caro y el HUD formatea a menudo.
 const numberFormats = new Map<string, Intl.NumberFormat>();
 const listFormats = new Map<string, Intl.ListFormat>();
+const monthFormats = new Map<Locale, Intl.DateTimeFormat>();
+
+/** Un mes escrito `AAAA-MM`. */
+const YEAR_MONTH = /^(\d{4})-(\d{2})$/;
 
 /**
  * Número con el formato del idioma: EN `13,800`; ES `13.800`, pero `1000` sin punto (norma RAE,
@@ -39,4 +43,19 @@ export function formatList(locale: Locale, items: readonly string[], kind: ListK
 /** Primera letra en mayúscula según el idioma; el resto, tal cual. */
 export function capitalize(locale: Locale, text: string): string {
   return text.charAt(0).toLocaleUpperCase(locale) + text.slice(1);
+}
+
+/**
+ * Un mes `AAAA-MM` en corto con el idioma: EN `Nov 2026`; ES `nov 2026`. En UTC, como se escribe (la telemetría de
+ * Mission control). Lo que no es un mes se queda tal cual.
+ */
+export function formatMonth(locale: Locale, yearMonth: string): string {
+  const match = YEAR_MONTH.exec(yearMonth);
+  if (match === null) return yearMonth;
+  let format = monthFormats.get(locale);
+  if (format === undefined) {
+    format = new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric', timeZone: 'UTC' });
+    monthFormats.set(locale, format);
+  }
+  return format.format(new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1)));
 }

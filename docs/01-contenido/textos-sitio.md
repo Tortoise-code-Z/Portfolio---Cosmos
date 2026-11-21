@@ -48,6 +48,7 @@
 | `chapter.3` | Projects · Cosmic turtle | Proyectos · Tortuga cósmica |
 | `chapter.4` | Contact · Earth | Contacto · Tierra |
 | `interlude.1` | Mission log · transmission | Bitácora · transmisión |
+| `interlude.2` | Mission control · transmission | Control de misión · transmisión |
 | `rail.label` | Chapters | Capítulos |
 
 Cada `chapter.N` es el nombre accesible del botón del raíl. Su texto visible se parte por « · »: la sección encima
@@ -145,6 +146,38 @@ demás, y ninguna sin escena (`no-gl`): sin constelaciones no hay nada que encen
 | `projects.demo` | Live demo | Demo |
 | `projects.code` | Code | Código |
 
+## Interludio 2 · Mission control (transmisión, canal azul)
+
+La secuencia (orden, `T-n`, qué va antes del código y el bucle) está en `src/content/workflow.ts`; las cifras, en la
+telemetría contada al construir (ADR-035). `{n}` es la cuenta atrás; `{month}`, el mes del build con `Intl`
+(`Nov 2026` / `nov 2026`); `{browsers}`, los navegadores del CI con la conjunción del idioma.
+
+| Clave | EN | ES |
+|---|---|---|
+| `missionControl.channel` | Channel 02 · blue | Canal 02 · azul |
+| `missionControl.incoming` | Mission control · how I work | Control de misión · cómo trabajo |
+| `missionControl.title` | How I work | Cómo trabajo |
+| `missionControl.countdown` | T-{n} | T-{n} |
+| `missionControl.lead` | Every change on this site went through the same countdown. AI speeds it up; I read and understand every change before it goes in. | Cada cambio de este sitio pasó por la misma cuenta atrás. La IA la acelera; yo leo y entiendo cada cambio antes de que entre. |
+| `missionControl.sequence` | Schematic · launch sequence | Esquema · secuencia de lanzamiento |
+| `missionControl.noCode` | No code yet | Aún sin código |
+| `missionControl.loop` | Fixes from the audit go back to build | Lo que corrige la auditoría vuelve a construcción |
+| `missionControl.plan` / `.detail` | Plan / Steps, files and risks. No code yet. | Plan / Pasos, archivos y riesgos. Aún sin código. |
+| `missionControl.greenLight` / `.detail` | Green light / The plan is approved before anything is built. | Luz verde / El plan se aprueba antes de construir nada. |
+| `missionControl.build` / `.detail` | Build / One branch and one PR per task, strict TypeScript. | Construcción / Una rama y un PR por tarea, TypeScript estricto. |
+| `missionControl.audit` / `.detail` | Audit / A fresh-eyes review in a separate session. | Auditoría / Una revisión con mirada fresca en otra sesión. |
+| `missionControl.launch` / `.detail` | Launch / Checks green in {browsers}. | Lanzamiento / Checks en verde en {browsers}. |
+| `missionControl.telemetry` | Telemetry · this site · {month} | Telemetría · este sitio · {month} |
+| `missionControl.unitTests` | Unit tests · Vitest | Tests unitarios · Vitest |
+| `missionControl.e2eTests` | E2E tests · Playwright | Tests e2e · Playwright |
+| `missionControl.browsers` | Browsers in CI | Navegadores en el CI |
+| `missionControl.decisions` | Decisions logged | Decisiones registradas |
+| `missionControl.copilot` | Co-pilot: Claude Code with skills I wrote | Copiloto: Claude Code con skills que escribí yo |
+| `missionControl.touchdown` | Touchdown · Contact | Aterrizaje · Contacto |
+| `missionControl.clock` | t = mythic time | t = tiempo mítico |
+
+El enlace a Contacto se ve «T-0 → Touchdown · Contact ↓»: «T-0», la flecha (el icono) y «↓» son dibujo.
+
 ## Capítulo 4 · Contacto (Tierra)
 
 | Clave | EN | ES |
@@ -177,6 +210,7 @@ demás, y ninguna sin escena (`no-gl`): sin constelaciones no hay nada que encen
 | `quick.contact` | Contact | Contacto |
 | `quick.availability` | Availability | Disponibilidad |
 | `quick.experience` | Experience | Experiencia |
+| `quick.workflow` | How I work | Cómo trabajo |
 
 ## Página de proyecto
 

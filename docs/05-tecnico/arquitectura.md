@@ -19,7 +19,7 @@ cosmos-portfolio/
 │  ├─ entry.client.tsx          ← (si hace falta personalizar la hidratación)
 │  ├─ routes.ts                 ← configuración de rutas EN/ES
 │  ├─ routes/                   ← una carpeta por ruta, con su test (ADR-018)
-│  │  ├─ journey/journey.tsx    ← el viaje (home): monta los 5 capítulos y el interludio, en el orden de
+│  │  ├─ journey/journey.tsx    ← el viaje (home): monta los 5 capítulos y los 2 interludios, en el orden de
 │  │  │                           `JOURNEY_SEGMENTS`
 │  │  ├─ project/project.tsx    ← /projects/:slug
 │  │  └─ not-found/not-found.tsx
@@ -27,13 +27,17 @@ cosmos-portfolio/
 │  │                              capítulos, `INTERLUDE` con su ancla, su capítulo de antes y el siguiente,
 │  │                              las paradas del raíl `CHAPTER_STOPS` y los tramos del viaje
 │  │                              `JOURNEY_SEGMENTS`, con la forma y la ventana de morph de cada uno),
-│  │                              `experience.ts` (la experiencia del Mission log) y `site.ts` (repo del sitio)
+│  │                              `experience.ts` (la experiencia del Mission log), `workflow.ts` (la secuencia
+│  │                              de Mission control), `telemetry.ts` (las cifras del repo, contadas al
+│  │                              construir: `virtual:site-telemetry`, ADR-035) y `site.ts` (repo del sitio)
 │  │                              incluidos; en `projects/`, los textos (`entries.ts`) aparte de las imágenes
 │  │                              (`media.ts`)
 │  ├─ features/                 ← piezas de interfaz con lógica propia
 │  │  ├─ journey/               ← Hero, ChapterSection, ChapterPanel, Eyebrow, About, Skills, Projects,
-│  │  │                           ProjectRow, Contact, Transmission (la pantalla de un interludio, fase C) y
-│  │  │                           MissionLog (el primero), `chapterDom` (el contrato con el DOM que lee la
+│  │  │                           ProjectRow, Contact, Transmission (la pantalla de un interludio, fase C),
+│  │  │                           MissionLog y MissionControl (los dos interludios), ChapterJumpLink (enlace
+│  │  │                           que salta a un capítulo), BlinkCursor (el cursor del teletipo),
+│  │  │                           `chapterDom` (el contrato con el DOM que lee la
 │  │  │                           navegación y el mapeo de scroll), `useBigBang` y `BigBangFlash` (los efectos del Big Bang en el
 │  │  │                           DOM, ADR-030) y `shared.module.css` (piezas de texto comunes)
 │  │  ├─ navigation/            ← TopBar, ChapterRail, LanguageSwitch, SkipLink, goToChapter (salto con
@@ -118,7 +122,9 @@ cosmos-portfolio/
 ├─ scripts/                     ← lo que va en Docker (calidad.md): en el equipo, visual.ts y stills.ts lanzan la
 │                                 imagen (playwrightImage.ts); dentro corren prepare-in-docker.sh,
 │                                 visual-in-docker.sh y stills-in-docker.sh. Y el criterio de los commits de solo
-│                                 docs (ADR-033): docsOnly.ts, con su test, y la orden docs-only.ts
+│                                 docs (ADR-033): docsOnly.ts, con su test, y la orden docs-only.ts. Y el
+│                                 contador de las cifras de Mission control (ADR-035): siteTelemetry.ts, con su
+│                                 test, un plugin de Vite (y de Vitest) que sirve `virtual:site-telemetry`
 ├─ docs/                        ← esta documentación
 ├─ .github/workflows/ci.yml
 └─ (configs) react-router.config.ts · vite.config.ts · vitest.config.ts · playwright.config.ts · playwright.visual.config.ts · playwright.stills.config.ts ·

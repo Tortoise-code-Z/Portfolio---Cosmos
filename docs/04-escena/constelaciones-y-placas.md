@@ -14,7 +14,8 @@ estrella, su fila, con la etiqueta a la derecha. Las posiciones salen de colocar
 (`m` = 2, escritorio) a 1280×720 y llevarlas a la escena (decidido en F4.3a; la cámara de la versión final no es la
 del prototipo, así que sus regiones no servían). En C.3 (37 estrellas, el raíl con 6 enlaces) se rehicieron todas con
 una búsqueda que mide las mismas reglas del test con algo de holgura, cada grupo en su franja y en su orden de
-lectura; el final de tools se va a la izquierda, bajo las etiquetas de ai, para no pisar el HUD:
+lectura; el final de tools se va a la izquierda, bajo las etiquetas de ai, para no pisar el HUD (en C.4 el raíl pasa
+a 7 enlaces, con Mission control, y su reserva a 154 px de media altura: todas siguen cabiendo sin moverlas):
 
 ```
    pantalla, 1280×720                         escena (X, Z)

@@ -27,7 +27,7 @@ export function chapterHash(index: ChapterIndex): string {
  * Los interludios (fase C, ADR-034): secciones entre capítulos que «cambian de canal». No son capítulos: no tienen
  * forma propia (la escena se queda en la del capítulo anterior) ni índice en `m`.
  */
-export type InterludeId = 'mission-log';
+export type InterludeId = 'mission-log' | 'mission-control';
 
 /** Un interludio: su ancla (la misma en los dos idiomas), el capítulo tras el que va y el que le sigue. */
 export interface Interlude {
@@ -41,10 +41,14 @@ export interface Interlude {
 /** Los interludios por id. */
 export const INTERLUDE: Readonly<Record<InterludeId, Interlude>> = {
   'mission-log': { id: 'mission-log', anchor: 'mission-log', after: 1, next: 2 },
+  'mission-control': { id: 'mission-control', anchor: 'mission-control', after: 3, next: 4 },
 };
 
 /** Los interludios en orden de lectura. */
-export const INTERLUDES: readonly Interlude[] = [INTERLUDE['mission-log']];
+export const INTERLUDES: readonly Interlude[] = [
+  INTERLUDE['mission-log'],
+  INTERLUDE['mission-control'],
+];
 
 /** Una parada del raíl que es un capítulo. */
 export type ChapterStop = `chapter-${ChapterIndex}`;
@@ -78,10 +82,10 @@ export type JourneySegment =
 
 /**
  * Los tramos del viaje en orden, con lo que hace la escena en cada uno (scroll-y-escena.md → «Tramos del viaje»):
- * su forma (`base`) y desde qué fracción cambia a la siguiente (`morphStart`; `null`, quieta). About se queda quieta
- * entera y el Mission log también: la nebulosa cambia a galaxia en la cola del interludio, al salir de él. El inicio
- * cambia desde el principio (el Big Bang); Skills y Projects, en su segunda mitad (la columna «Ventana de morph»). El
- * último no cambia.
+ * su forma (`base`) y desde qué fracción cambia a la siguiente (`morphStart`; `null`, quieta). Antes de cada interludio,
+ * el capítulo y la pantalla del interludio se quedan quietos y la forma cambia en su cola, al salir: About y el Mission
+ * log con la nebulosa (a galaxia), Projects y Mission control con la tortuga (a la Tierra). El inicio cambia desde el
+ * principio (el Big Bang) y Skills en su segunda mitad (la columna «Ventana de morph»). El último no cambia.
  */
 export const JOURNEY_SEGMENTS: readonly (JourneySegment & {
   readonly base: ChapterIndex;
@@ -92,6 +96,8 @@ export const JOURNEY_SEGMENTS: readonly (JourneySegment & {
   { kind: 'interlude', interlude: 'mission-log', base: 1, morphStart: null },
   { kind: 'interlude-tail', interlude: 'mission-log', base: 1, morphStart: 0 },
   { kind: 'chapter', chapter: 2, base: 2, morphStart: 0.52 },
-  { kind: 'chapter', chapter: 3, base: 3, morphStart: 0.55 },
+  { kind: 'chapter', chapter: 3, base: 3, morphStart: null },
+  { kind: 'interlude', interlude: 'mission-control', base: 3, morphStart: null },
+  { kind: 'interlude-tail', interlude: 'mission-control', base: 3, morphStart: 0 },
   { kind: 'chapter', chapter: 4, base: 4, morphStart: null },
 ];

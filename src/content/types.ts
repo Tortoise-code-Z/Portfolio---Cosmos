@@ -96,6 +96,23 @@ export interface Experience {
   readonly reference: MissionReference | null;
 }
 
+/**
+ * La telemetría del propio repo que enseña Mission control (docs/02-experiencia/capitulos/interludio-2-mission-control.md
+ * → «Telemetría»): se cuenta al construir el sitio leyendo el código (`scripts/siteTelemetry.ts`), nunca a mano.
+ */
+export interface SiteTelemetry {
+  /** Tests unitarios escritos (Vitest): cada `it` o `test` una vez, también un `it.each`. */
+  readonly unitTests: number;
+  /** Tests e2e escritos (Playwright), contados igual. */
+  readonly e2eTests: number;
+  /** Los navegadores de los e2e del CI, por su nombre de proyecto de Playwright (`chromium`…). */
+  readonly browsers: readonly string[];
+  /** Las decisiones registradas: los ADR de `DECISIONS.md`. */
+  readonly decisions: number;
+  /** El mes en que se contó (el del build), `AAAA-MM` en UTC. */
+  readonly month: string;
+}
+
 export interface Education {
   readonly id: string;
   readonly title: Localized;

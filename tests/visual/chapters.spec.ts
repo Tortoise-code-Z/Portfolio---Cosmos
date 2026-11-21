@@ -35,7 +35,9 @@ for (const index of CHAPTER_INDICES) {
 
 /**
  * Los interludios (fase C): la pantalla de la transmisión, entrando por su ancla, con movimiento reducido (sin barrido,
- * teletipo ni cursor que parpadee: la foto es estable). Detrás, la forma del capítulo de antes, atenuada.
+ * teletipo ni cursor que parpadee: la foto es estable). Detrás, la forma del capítulo de antes, atenuada. Las cifras de
+ * la telemetría de Mission control y su mes (`data-telemetry`) cambian con cada test o ADR nuevo y cada mes: van
+ * tapadas (las comprueba su e2e, `mission-control.spec.ts`).
  */
 for (const interlude of INTERLUDES) {
   test(`interlude ${interlude.id} looks as it should`, async ({ page }) => {
@@ -45,7 +47,9 @@ for (const interlude of INTERLUDES) {
     await page.evaluate(async () => {
       await document.fonts.ready;
     });
-    await expect(page).toHaveScreenshot(`interlude-${interlude.id}.png`);
+    await expect(page).toHaveScreenshot(`interlude-${interlude.id}.png`, {
+      mask: [page.locator('[data-telemetry]')],
+    });
   });
 }
 

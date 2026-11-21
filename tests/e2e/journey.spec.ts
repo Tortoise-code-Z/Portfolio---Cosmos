@@ -44,6 +44,7 @@ const HEADINGS = {
     'Mission 01',
     'My galaxy of tools',
     'What I carry on my shell',
+    'How I work',
     'Touchdown',
   ],
   es: [
@@ -51,9 +52,22 @@ const HEADINGS = {
     'Misión 01',
     'Mi galaxia de herramientas',
     'Lo que llevo a cuestas',
+    'Cómo trabajo',
     'Aterrizaje',
   ],
 } as const;
+
+/**
+ * Los títulos `h2` de la página, por su nombre accesible: el de Mission control enseña un «T-0» decorativo
+ * (`aria-hidden`) y su nombre es el título escondido («How I work»), que su texto no dice solo.
+ */
+async function expectChapterTitles(page: Page, titles: readonly string[]): Promise<void> {
+  const headings = page.getByRole('heading', { level: 2 });
+  await expect(headings).toHaveCount(titles.length);
+  for (const [index, title] of titles.entries()) {
+    await expect(headings.nth(index)).toHaveAccessibleName(title);
+  }
+}
 
 /** Tamaños de referencia de docs/02-experiencia (encuadre y solapes). */
 const REFERENCE_VIEWPORTS = [
@@ -83,17 +97,21 @@ test.describe('the journey (home)', () => {
     ['/', 'en'],
     ['/es', 'es'],
   ] as const) {
-    test(`${path}: one h1, the four chapters and the Mission log in order, and no console errors`, async ({
+    test(`${path}: one h1, the four chapters and the two interludes in order, and no console errors`, async ({
       page,
     }) => {
       const errors = collectErrors(page);
       await page.goto(path, { waitUntil: 'networkidle' });
       await expect(page.locator('html')).toHaveAttribute('lang', locale);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText('Víctor Pérez');
-      await expect(page.getByRole('heading', { level: 2 })).toHaveText(HEADINGS[locale]);
+      await expectChapterTitles(page, HEADINGS[locale]);
       await expect(page.getByRole('region', { name: HEADINGS[locale][1] })).toHaveAttribute(
         'id',
         'mission-log',
+      );
+      await expect(page.getByRole('region', { name: HEADINGS[locale][4] })).toHaveAttribute(
+        'id',
+        'mission-control',
       );
       for (const [id, title] of CHAPTERS[locale]) {
         await expect(page.getByRole('region', { name: title })).toHaveAttribute('id', id);
@@ -696,7 +714,7 @@ test.describe('without JavaScript', () => {
     await page.goto('/es');
     await expect(page.locator('html')).toHaveAttribute('lang', 'es');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Víctor Pérez');
-    await expect(page.getByRole('heading', { level: 2 })).toHaveText(HEADINGS.es);
+    await expectChapterTitles(page, HEADINGS.es);
     await expect(page.getByRole('link', { name: 'Ver proyecto Chessmate' })).toHaveAttribute(
       'href',
       '/es/projects/chessmate',

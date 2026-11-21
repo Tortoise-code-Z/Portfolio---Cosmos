@@ -26,7 +26,7 @@ const FONTS_FILE = fileURLToPath(new URL('./fonts.css', import.meta.url));
 const WCAG_AA_TEXT = 4.5;
 const TEXT_TOKENS = ['ink', 'ink-soft', 'dim', 'star', 'aurora'] as const;
 /** Los canales de las transmisiones (fase C): su texto va sobre el fondo de su canal. */
-const CHANNELS = ['amber'] as const;
+const CHANNELS = ['amber', 'blue'] as const;
 const CHANNEL_TEXT = ['', '-dim', '-bright'] as const;
 /** Lo mínimo que tapa el velo de una transmisión (componentes.md → «Transmisión»). */
 const CHANNEL_VEIL_MIN_ALPHA = 0.9;

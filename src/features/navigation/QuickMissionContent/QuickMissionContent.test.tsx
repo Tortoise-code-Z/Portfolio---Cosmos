@@ -67,13 +67,26 @@ function section(name: string): HTMLElement {
 
 describe('QuickMissionContent', () => {
   it.each([
-    ['/', ['About', 'Projects', 'Experience', 'Skills', 'Education', 'Availability', 'Contact']],
+    [
+      '/',
+      [
+        'About',
+        'Projects',
+        'Experience',
+        'How I work',
+        'Skills',
+        'Education',
+        'Availability',
+        'Contact',
+      ],
+    ],
     [
       '/es',
       [
         'Sobre mí',
         'Proyectos',
         'Experiencia',
+        'Cómo trabajo',
         'Habilidades',
         'Formación',
         'Disponibilidad',
@@ -157,6 +170,20 @@ describe('QuickMissionContent', () => {
       'En remoto · Tenerife, España · jul 2026 – oct 2026',
     );
     expect(within(experienceSection).getAllByRole('listitem')).toHaveLength(6);
+  });
+
+  it('how I work: the Mission control sentence and the five steps of the countdown in order, launch with the CI browsers', () => {
+    renderContent('/es');
+    const workflow = section('Cómo trabajo');
+    expect(workflow).toHaveTextContent('Cada cambio de este sitio pasó por la misma cuenta atrás.');
+    const steps = within(workflow).getAllByRole('listitem');
+    expect(steps.map((step) => step.textContent)).toEqual([
+      'Plan: Pasos, archivos y riesgos. Aún sin código.',
+      'Luz verde: El plan se aprueba antes de construir nada.',
+      'Construcción: Una rama y un PR por tarea, TypeScript estricto.',
+      'Auditoría: Una revisión con mirada fresca en otra sesión.',
+      'Lanzamiento: Checks en verde en Chromium, Firefox y WebKit.',
+    ]);
   });
 
   it('availability comes from the profile, and the section goes away when not open to work', () => {

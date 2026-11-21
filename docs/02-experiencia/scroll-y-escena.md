@@ -23,7 +23,8 @@ cabe, la sección crece y nunca lo recorta (P1); `useChapterLayout` mide la altu
 | 1 · Nebulosa | 150 vh | 170 vh | — (quieta: cambia en la cola del Mission log) |
 | ✦ Mission log | ≥ 100 svh (según contenido) + cola de 100 vh | igual | en la cola, del 0 % al 100 % |
 | 2 · Galaxia | 220 vh | 240 vh | del 52 % al 100 % |
-| 3 · Tortuga | 240 vh | 260 vh | del 55 % al 100 % |
+| 3 · Tortuga | 240 vh | 260 vh | — (quieta: cambia en la cola de Mission control) |
+| ✦ Mission control | ≥ 100 svh (según contenido) + cola de 100 vh | igual | en la cola, del 0 % al 100 % |
 | 4 · Tierra | ≥ 130 vh (según contenido) | ≥ 130 vh | — (última) |
 
 ### Tramos del viaje
@@ -32,7 +33,9 @@ Desde la fase C (ADR-034), `m` no se mide por capítulos sino por **tramos** (`J
 `src/content/chapters.ts`): cada capítulo es uno y cada interludio aporta dos, su pantalla y su cola. Cada tramo dice
 qué forma enseña (`base`) y desde qué fracción cambia a la siguiente (`morphStart`; `null`: quieta todo el tramo).
 About y la pantalla del Mission log se quedan en la nebulosa (`m` = 1: el reloj del HUD se para solo); en la cola,
-vacía y sin puntero, la nebulosa cambia a galaxia, y Skills llega con la galaxia ya formada.
+vacía y sin puntero, la nebulosa cambia a galaxia, y Skills llega con la galaxia ya formada. Lo mismo con Projects y
+Mission control (desde C.4): la tortuga se queda quieta (`m` = 3) y cambia a la Tierra en la cola, y Contact llega
+con la Tierra formada.
 
 **Cálculo de `m`** (función pura, testeable):
 

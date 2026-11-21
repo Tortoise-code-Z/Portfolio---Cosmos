@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { capitalize, formatList, formatNumber } from './format';
+import { capitalize, formatList, formatMonth, formatNumber } from './format';
 
 describe('formatNumber', () => {
   it.each([
@@ -48,5 +48,18 @@ describe('capitalize', () => {
     expect(capitalize('es', 'ñandú')).toBe('Ñandú');
     expect(capitalize('es', '')).toBe('');
     expect(capitalize('en', 'react Query')).toBe('React Query');
+  });
+});
+
+describe('formatMonth', () => {
+  it('escribe el mes en corto en cada idioma, sin moverse por la zona horaria', () => {
+    expect(formatMonth('en', '2026-11')).toBe('Nov 2026');
+    expect(formatMonth('es', '2026-11')).toBe('nov 2026');
+    expect(formatMonth('en', '2027-01')).toBe('Jan 2027');
+  });
+
+  it('lo que no es un mes se queda tal cual', () => {
+    expect(formatMonth('en', 'pronto')).toBe('pronto');
+    expect(formatMonth('es', '2026-1')).toBe('2026-1');
   });
 });

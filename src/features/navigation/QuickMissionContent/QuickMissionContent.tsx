@@ -4,9 +4,11 @@ import { experience } from '~/content/experience';
 import { profile } from '~/content/profile';
 import { projectEntries } from '~/content/projects/entries';
 import { skillGroups } from '~/content/skills';
+import { siteTelemetry } from '~/content/telemetry';
 import type { ProjectEntry } from '~/content/types';
+import { browserName, LAUNCH_SEQUENCE } from '~/content/workflow';
 import { workModesText } from '~/lib/i18n/availability/availability';
-import { formatNumber } from '~/lib/i18n/format/format';
+import { formatList, formatNumber } from '~/lib/i18n/format/format';
 import { localize } from '~/lib/i18n/localize/localize';
 import { projectPath } from '~/lib/i18n/paths/paths';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
@@ -22,7 +24,7 @@ const SEPARATOR = ' · ';
 /**
  * Todo el contenido del viaje en una página limpia, para el modo misión rápida
  * (docs/02-experiencia/navegacion.md → «Modo misión rápida»): sobre mí, proyectos (con su página, demo
- * y código), habilidades, formación, disponibilidad y contacto. Lee los mismos datos que los capítulos
+ * y código), experiencia, cómo trabajo, habilidades, formación, disponibilidad y contacto. Lee los mismos datos que los capítulos
  * (`src/content/`), con un marcado propio y compacto: entre features no se comparten componentes
  * (ADR-022). Las secciones son una rejilla de columnas de 280 px como mínimo.
  */
@@ -32,6 +34,7 @@ export function QuickMissionContent(): ReactNode {
   const { availability, contact, location } = profile;
   const cv = profile.cv[locale];
   const ordered = [...projectEntries].sort((a, b) => a.order - b.order);
+  const browsers = formatList(locale, siteTelemetry.browsers.map(browserName), 'conjunction');
 
   return (
     <div className={styles.grid}>
@@ -66,6 +69,19 @@ export function QuickMissionContent(): ReactNode {
             <li key={localize('en', entry.text)}>{localize(locale, entry.text)}</li>
           ))}
         </ul>
+      </section>
+
+      <section className={styles.section}>
+        <h3 className={styles.heading}>{t('quick.workflow')}</h3>
+        <p>{t('missionControl.lead')}</p>
+        <ol className={styles.bullets}>
+          {LAUNCH_SEQUENCE.map((step) => (
+            <li key={step.id}>
+              <span className={styles.term}>{`${t(step.name)}: `}</span>
+              {t(step.detail, { browsers })}
+            </li>
+          ))}
+        </ol>
       </section>
 
       <section className={styles.section}>

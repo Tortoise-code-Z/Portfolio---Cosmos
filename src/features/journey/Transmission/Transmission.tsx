@@ -1,19 +1,16 @@
-import { useEffect, useRef, type MouseEvent, type ReactNode, type RefObject } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 
-import { chapterHash, INTERLUDE, type InterludeId } from '~/content/chapters';
+import { INTERLUDE, type InterludeId } from '~/content/chapters';
 import { cx } from '~/lib/css/cx/cx';
 import { prefersReducedMotion } from '~/lib/device/reducedMotion/reducedMotion';
-import { isPlainClick } from '~/lib/events/isPlainClick/isPlainClick';
-import { homePath } from '~/lib/i18n/paths/paths';
-import { useLocale, useT } from '~/lib/i18n/useT/useT';
-import { jumpToChapter } from '~/lib/scroll/jumpToChapter/jumpToChapter';
+import { useT } from '~/lib/i18n/useT/useT';
+import { VisuallyHidden } from '~/ui/VisuallyHidden/VisuallyHidden';
 
-import { findChapter } from '../chapterDom/chapterDom';
+import { ChapterJumpLink } from '../ChapterJumpLink/ChapterJumpLink';
 import styles from './Transmission.module.css';
 
 /** Canal de color de una transmisión (docs/03-diseno/design-system.md → «Transmisiones»). */
-export type TransmissionChannel = 'amber';
+export type TransmissionChannel = 'amber' | 'blue';
 
 interface TransmissionProps {
   readonly id: InterludeId;
@@ -25,9 +22,20 @@ interface TransmissionProps {
   /** «Incoming transmission · source located». */
   readonly incoming: string;
   readonly titleId: string;
+  /** El título: el nombre de la sección para el lector de pantalla y el destino del foco al llegar. */
   readonly title: string;
+  /**
+   * Lo que se ve en el sitio del título, si no es el título («T-0» en Mission control): decorativo, con el título
+   * escondido para el lector de pantalla. Lleva su propio estilo (lo pinta quien lo pasa).
+   */
+  readonly titleDisplay?: ReactNode;
   /** El reloj cósmico, parado: «t ≈ 200 million years». */
   readonly clock: string;
+  /**
+   * Clase propia de la sección, para su composición: puede dar al cuerpo otras columnas con `--_body-columns` (Mission
+   * control pone la telemetría a la derecha en escritorio).
+   */
+  readonly className?: string | undefined;
   readonly children: ReactNode;
 }
 
@@ -86,23 +94,14 @@ export function Transmission({
   incoming,
   titleId,
   title,
+  titleDisplay,
   clock,
+  className,
   children,
 }: TransmissionProps): ReactNode {
   const t = useT();
-  const locale = useLocale();
   const ref = useTransmissionEntry();
   const { next } = INTERLUDE[id];
-  const skipHash = chapterHash(next);
-
-  /** «Skip transmission»: salta al capítulo siguiente con el foco en su título; con otro clic, el enlace navega. */
-  const onSkip = (event: MouseEvent): void => {
-    if (!isPlainClick(event)) return;
-    const chapter = findChapter(next);
-    if (chapter === null) return;
-    event.preventDefault();
-    jumpToChapter(chapter, { hash: skipHash });
-  };
 
   return (
     <>
@@ -110,7 +109,7 @@ export function Transmission({
         ref={ref}
         id={anchor}
         aria-labelledby={titleId}
-        className={cx(styles.transmission, styles[channel])}
+        className={cx(styles.transmission, styles[channel], className)}
         data-interlude={id}
       >
         <div className={styles.strip}>
@@ -123,10 +122,11 @@ export function Transmission({
             </span>
             {channelLabel}
           </span>
-          <Link to={`${homePath(locale)}${skipHash}`} className={styles.skip} onClick={onSkip}>
+          {/* «Skip transmission»: al capítulo siguiente, con el foco en su título. */}
+          <ChapterJumpLink chapter={next} className={styles.skip}>
             {t('interlude.skip')}
             <span aria-hidden="true">↓</span>
-          </Link>
+          </ChapterJumpLink>
         </div>
         <div className={styles.body}>
           <p className={styles.incoming}>
@@ -136,9 +136,16 @@ export function Transmission({
             </svg>
             {incoming}
           </p>
-          <h2 id={titleId} className={styles.title} tabIndex={-1}>
-            {title}
-          </h2>
+          {titleDisplay === undefined ? (
+            <h2 id={titleId} className={styles.title} tabIndex={-1}>
+              {title}
+            </h2>
+          ) : (
+            <h2 id={titleId} className={styles.titleDisplay} tabIndex={-1}>
+              <VisuallyHidden>{title}</VisuallyHidden>
+              <span aria-hidden="true">{titleDisplay}</span>
+            </h2>
+          )}
           {children}
         </div>
         <footer className={styles.footer}>

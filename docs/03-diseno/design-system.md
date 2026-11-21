@@ -218,11 +218,14 @@ color, uno por **canal**:
 | Canal | Sección | Color | Atenuado | Brillante | Fondo |
 |---|---|---|---|---|---|
 | 01 · ámbar | Mission log | `#ffb547` | `#b98636` | `#ffd79a` | `#070503` |
-| 02 · azul | Mission control | `#7cc4ff` | `#4f86bd` | `#d6ecff` | `#02060d` |
+| 02 · azul | Mission control | `#7cc4ff` | `#5a8fc6` | `#d6ecff` | `#02060d` |
 | 03 · verde | Crew file | `#6dff9f` | `#3f9a62` | `#d5ffe4` | `#010603` |
 
 (Desde C.2, el ámbar es token: `--color-channel-amber`, `-dim`, `-bright` y `-bg`, más el velo, la rejilla, la
-línea y el brillo (`--glow-channel-amber`); el azul y el verde pasan a tokens en su paso. `styles.test.ts` mide lo
+línea y el brillo (`--glow-channel-amber`); desde C.4, el azul igual (`--color-channel-blue…`, `--glow-channel-blue`),
+más el «T-0» de Mission control en líneas de barrido (`--gradient-channel-blue-countdown`) con su halo; el verde pasa
+a token en su paso, medido igual antes de dar sus valores por buenos. El atenuado azul aprobado (`#4f86bd`) daba
+4,3 : 1 sobre el velo encima de una escena blanca: pasó a `#5a8fc6` (4,9 : 1), el mismo tono algo más claro. `styles.test.ts` mide lo
 que se pinta de verdad detrás del texto: comprueba que el velo es el `-bg` del canal con alfa ≥ 0,9 y mide el
 contraste AA del color, el atenuado y el brillante sobre ese velo encima de una escena blanca, el peor caso. Las
 líneas de barrido van debajo del texto; la cuadrícula (líneas de 1 px al 6 %) puede cruzarlo y se acepta. En alto
@@ -272,7 +275,7 @@ su propio contenido con `z-index: -1` (el brillo «hot» de la fila de proyecto)
   sistema. Lo hace `ui/ArrowText`; el carácter queda oculto a la vista para el lector de pantalla.
 - Excepción aceptada: el «≈» de los eyebrows de About y Skills y del pie de las transmisiones («t ≈ 200 million
   years», U+2248) tampoco está en el subconjunto y sale con la mono del sistema. (El triángulo de «Incoming
-  transmission» es un SVG propio: «▸» tampoco está.) Es un solo glifo, en texto pequeño y atenuado; no compensa un icono ni ampliar el subconjunto
+  transmission» es un SVG propio: «▸» tampoco está; la flecha de «T-0 → Touchdown», el icono de flecha.) Es un solo glifo, en texto pequeño y atenuado; no compensa un icono ni ampliar el subconjunto
   (bytes del presupuesto de fuentes), y «~» cambiaría el sentido. Se mira en los tres motores en F6.
 - Misma excepción para el HUD: los superíndices `⁰ ⁴–⁹ ⁻` (U+2070–207B) del reloj y la escala («10⁻⁴³») y el «∞» de
   la tortuga (U+221E) tampoco están en el subconjunto de Plex Mono (`¹ ² ³` sí): en un mismo exponente se mezclan

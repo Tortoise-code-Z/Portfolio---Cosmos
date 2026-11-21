@@ -19,7 +19,8 @@
 
 ```
 /                     Viaje completo (EN) · capítulos con anclas #about #skills #projects #contact
-                      y el interludio #mission-log (entre About y Skills)
+                      y los interludios #mission-log (entre About y Skills) y #mission-control
+                      (entre Projects y Contact)
 /projects/:slug       Página de proyecto (EN)
 /es                   Viaje completo (ES)
 /es/projects/:slug    Página de proyecto (ES)

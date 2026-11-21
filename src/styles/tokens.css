@@ -77,6 +77,14 @@
   --color-channel-amber-grid: rgb(255 181 71 / 0.06);
   --color-channel-amber-line: rgb(255 181 71 / 0.3);
   --color-channel-amber-glow: rgb(255 181 71 / 0.45);
+  --color-channel-blue: #7cc4ff;
+  --color-channel-blue-dim: #5a8fc6;
+  --color-channel-blue-bright: #d6ecff;
+  --color-channel-blue-bg: #02060d;
+  --color-channel-blue-veil: rgb(2 6 13 / 0.9);
+  --color-channel-blue-grid: rgb(124 196 255 / 0.06);
+  --color-channel-blue-line: rgb(124 196 255 / 0.3);
+  --color-channel-blue-glow: rgb(124 196 255 / 0.45);
   --color-channel-scanline: rgb(0 0 0 / 0.22);
   /* Cuadrícula doble de plano (120 px y 24 px) del canal ámbar, y la banda de luz del barrido de entrada. */
   --gradient-channel-amber-grid:
@@ -105,6 +113,32 @@
     transparent,
     var(--color-channel-amber-glow),
     transparent
+  );
+  /* Lo mismo en el canal azul (Mission control). */
+  --gradient-channel-blue-grid:
+    repeating-linear-gradient(
+      to right,
+      var(--color-channel-blue-grid) 0 1px,
+      transparent 1px 120px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--color-channel-blue-grid) 0 1px,
+      transparent 1px 120px
+    ),
+    repeating-linear-gradient(to right, var(--color-channel-blue-grid) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(to bottom, var(--color-channel-blue-grid) 0 1px, transparent 1px 24px);
+  --gradient-channel-blue-sweep: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-channel-blue-glow),
+    transparent
+  );
+  /* El «T-0» enorme de Mission control: el brillante del canal en líneas de barrido, como en un monitor. */
+  --gradient-channel-blue-countdown: repeating-linear-gradient(
+    to bottom,
+    var(--color-channel-blue-bright) 0 3px,
+    transparent 3px 5px
   );
   /* Líneas de barrido de todas las transmisiones (un terminal de fósforo). */
   --gradient-scanlines: repeating-linear-gradient(
@@ -233,6 +267,14 @@
   --cursor-w: 0.6em;
   --cursor-h: 1em;
   --blink-count: 4;
+  /*
+   * Mission control: el tamaño del «T-0» (tres letras de la mono, 1,8 em: ~1/3 del ancho en móvil, como mucho 13 rem),
+   * el alto de la cota «no code yet» y del bucle del esquema, y la punta de sus flechas.
+   */
+  --countdown-size: clamp(5rem, 33vw, 13rem);
+  --sequence-bracket-h: 10px;
+  --sequence-loop-h: 28px;
+  --sequence-arrow: 7px;
 
   /* ── Hero (capítulo 0) ────────────────────────────────────────── */
   --hero-room-bottom: 12vh;
@@ -265,6 +307,9 @@
   --glow-star: 0 0 12px var(--color-star);
   /* Brillo del título de una transmisión, en el color de su canal. */
   --glow-channel-amber: 0 0 18px var(--color-channel-amber-glow);
+  --glow-channel-blue: 0 0 18px var(--color-channel-blue-glow);
+  /* El «T-0» de Mission control: un halo más ancho, para un título tan grande. */
+  --glow-channel-blue-countdown: drop-shadow(0 0 14px var(--color-channel-blue-glow));
   --glow-singularity: 0 0 18px 4px var(--color-singularity);
   /* Halo oscuro de las etiquetas de las estrellas: se leen también sobre el núcleo brillante de la galaxia. */
   --halo-star-label: 0 0 2px var(--color-void), 0 0 4px var(--color-void);
