@@ -151,9 +151,12 @@ por paso, en este orden:
    Developer Intern, Studios Demanzon, jul – oct 2026) como registro de misión, con el permiso de trabajo y la
    disponibilidad en Contacto. «Strengths» sale de About.
    *(Hecho: PR #97. `m` por tramos (`JOURNEY_SEGMENTS`); la cola del interludio cambia la nebulosa a galaxia; las
-   viñetas van suavizadas, sin decir qué es el producto de la empresa; la frase del CTO, con su permiso.)*
+   viñetas van suavizadas, sin decir qué es el producto de la empresa; la frase del CTO, con su permiso. Su auditoría,
+   corregida entera: PR #99.)*
 3. **Galaxia de skills** (objetivo: 25 nov, con la auditoría de F4.3c ya corregida): sale Bootstrap; entran Next.js,
    NestJS, Electron, n8n, npm, pnpm y GLSL. Posiciones, líneas, test de no solapamiento, fotos fijas y peso.
+   *(Hecho: PR #98. 37 estrellas; «TanStack Query» y «Tailwind CSS» como el CV, también en la ficha de Chessmate;
+   +127 B de escena. Falta corregir su auditoría y el lote de menores de la de F4.3c.)*
 4. **Mission control** (objetivo: 27 nov): segundo interludio, tras la tortuga: cómo trabajo, en una cuenta atrás
    (plan, Visto Bueno, construcción, auditoría, CI en verde) que desemboca en la Tierra («Touchdown»).
 5. **Cosmos completo** (objetivo: 29 nov): ficha con proceso y puntos técnicos reales; README del repo en inglés y
