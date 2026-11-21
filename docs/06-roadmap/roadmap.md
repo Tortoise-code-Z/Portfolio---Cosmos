@@ -182,6 +182,8 @@ reducido. Después siguen F4.4 y F4.5; F5 pasa seguramente a después del 1 dic.
   de que no tapa el texto, como el del hero),
   anterior/siguiente, vuelta con la posición restaurada, carga directa sin Big Bang. La placa que se ilumina al
   volver es la de `uiStore.visitedProject` (el mismo dato que ya deja el foco en su fila desde F2.7).
+- Al atenuar la escena en la ficha, quitar el arreglo de mientras tanto (`pagina-proyecto.md` → «Hasta F5»): el velo
+  de `ProjectPage.module.css` y la pausa por `uiStore.projectPageOpen` (`scene/pause`), con su e2e de `scene.spec.ts`.
 
 **Hecho cuando:** se cumplen los criterios de `pagina-proyecto.md` en escritorio y móvil. Etiqueta `v0.4.0`.
 

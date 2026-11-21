@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest';
 import { projects } from '~/content/projects';
 import type { Project } from '~/content/types';
 
+import { useUiStore } from '~/stores/uiStore/uiStore';
+
 import { ProjectPage } from './ProjectPage';
 
 function bySlug(slug: string): Project {
@@ -158,5 +160,13 @@ describe('ProjectPage', () => {
     levels.forEach((level, index) => {
       if (index > 0) expect(level - (levels[index - 1] ?? level)).toBeLessThanOrEqual(1);
     });
+  });
+
+  it('hasta F5, dice que se está viendo mientras está montada: la escena se para (y el velo la tapa)', async () => {
+    renderAt('/projects/chessmate', bySlug('chessmate'));
+    await screen.findByRole('heading', { level: 1 });
+    expect(useUiStore.getState().projectPageOpen).toBe(true);
+    cleanup();
+    expect(useUiStore.getState().projectPageOpen).toBe(false);
   });
 });

@@ -38,6 +38,12 @@ export interface UiState {
    * selector.
    */
   readonly activeSkillGroup: SkillGroupId | null;
+  /**
+   * Se está viendo la página de un proyecto (la ficha). Hasta F5, la escena deja de pintar mientras tanto: la ficha la
+   * tapa con su velo (docs/02-experiencia/pagina-proyecto.md → «Hasta F5»). Lo escribe la propia página al montarse
+   * y al irse.
+   */
+  readonly projectPageOpen: boolean;
 }
 
 export const useUiStore = create<UiState>()(() => ({
@@ -46,6 +52,7 @@ export const useUiStore = create<UiState>()(() => ({
   sceneLevel: null,
   languageNoticeOpen: false,
   activeSkillGroup: null,
+  projectPageOpen: false,
 }));
 
 function setQuickMissionOpen(quickMissionOpen: boolean): void {
@@ -63,6 +70,12 @@ export function closeQuickMission(): void {
 
 export function selectQuickMissionOpen({ quickMissionOpen }: UiState): boolean {
   return quickMissionOpen;
+}
+
+/** La página de un proyecto dice que se está viendo (al montarse) y que ya no (al irse). */
+export function setProjectPageOpen(projectPageOpen: boolean): void {
+  if (useUiStore.getState().projectPageOpen === projectPageOpen) return;
+  useUiStore.setState({ projectPageOpen });
 }
 
 /** La página de un proyecto lo apunta al mostrarse. */

@@ -118,7 +118,9 @@ una degradación en caliente, que las trajo antes de bajar el nivel).
 
 ## Ahorro de trabajo
 
-- **Pausa** del render con la pestaña oculta (`visibilitychange`) o el modo misión rápida abierto (que la tapa):
+- **Pausa** del render con la pestaña oculta (`visibilitychange`), el modo misión rápida abierto (que la tapa) o,
+  hasta F5, en la página de un proyecto (`uiStore.projectPageOpen`: su velo la tapa; `pagina-proyecto.md` → «Hasta
+  F5»):
   `scene/pause` (`watchScenePause`) avisa y el bucle deja de pedir frames (`FrameLoop.setPaused`); al volver, el
   reloj limita el salto a 0,1 s. `SceneRoot` lo marca con `data-paused` (e2e). Con la misión rápida, la escena se
   congela al abrirse, bajo el fundido de entrada del diálogo (400 ms; 150 ms con movimiento reducido) hacia un velo

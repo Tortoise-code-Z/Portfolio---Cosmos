@@ -8,6 +8,21 @@
     var(--space-9);
 }
 
+/*
+ * Hasta F5 (pagina-proyecto.md → «Hasta F5»), con escena: el velo de la interfaz (`--color-veil`, el de los paneles
+ * de los capítulos) entre el lienzo, que sigue montado entre rutas, y el texto: a toda la ventana y detrás del
+ * contenido (el `main` es su propio apilado, global.css). La escena, además, se para. F5 lo quita y la atenúa desde
+ * el shader. Sin escena no hace falta: el fondo ya es el degradado del espacio.
+ */
+:global(.scene-on) .page::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background-color: var(--color-veil);
+  content: '';
+  pointer-events: none;
+}
+
 .column {
   display: flex;
   flex-direction: column;
