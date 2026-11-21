@@ -194,8 +194,10 @@
 
 /* ── Touchdown ────────────────────────────────────────────────────────────── */
 
+/* Con la letra al 200 % en móvil, sus piezas («T-0 →», el texto y «↓») bajan de línea en vez de salirse (Firefox). */
 .touchdownLink {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: var(--space-1);
   align-items: center;
   min-block-size: var(--target-min);
