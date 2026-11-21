@@ -32,7 +32,10 @@ interface Viewport {
 
 const DESKTOP: Viewport = { width: 1280, height: 720 };
 
-/** Desde aquí se ve el HUD (`CosmicHud.module.css`: sin HUD por debajo de `sm`, 520 px). */
+/**
+ * Desde aquí se ve el HUD (`CosmicHud.module.css`: sin HUD por debajo de `sm`, 520 px). Se comprueba en los dos
+ * sentidos (`expectInterface`): si el corte del CSS cambia entre los anchos probados, el test falla.
+ */
 const HUD_FROM_PX = 520;
 
 /** El grupo del panel (su `<li>`). */
@@ -160,14 +163,15 @@ async function isWide(page: Page): Promise<boolean> {
 
 /**
  * La interfaz que se debe ver a este ancho, sin `null`: la barra, el raíl y el panel siempre, y el HUD desde
- * `HUD_FROM_PX`. Si un texto o el orden de la página cambian y una pieza deja de encontrarse, el test falla en vez de
+ * `HUD_FROM_PX` y solo desde ahí (su localizador ya se encuentra a 768, 1280 y 1440 px: por debajo, `null` es que está
+ * oculto). Si un texto o el orden de la página cambian y una pieza deja de encontrarse, el test falla en vez de
  * saltarse su comprobación.
  */
 function expectInterface(ui: InterfaceRects, width: number): void {
   expect(ui.bar, 'bar').not.toBeNull();
   expect(ui.rail, 'rail').not.toBeNull();
   expect(ui.panel, 'Skills panel').not.toBeNull();
-  if (width >= HUD_FROM_PX) expect(ui.hud, 'HUD').not.toBeNull();
+  expect(ui.hud === null, 'HUD hidden').toBe(width < HUD_FROM_PX);
 }
 
 /** El lienzo de la escena (sin la barra de scroll), al que se refieren las zonas de `STAR_LABEL_KEEP_OUT`. */

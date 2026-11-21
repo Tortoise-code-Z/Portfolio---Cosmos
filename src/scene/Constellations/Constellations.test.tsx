@@ -44,14 +44,43 @@ afterEach(() => {
   useUiStore.setState(useUiStore.getInitialState(), true);
 });
 
-const TEXTS: Readonly<Record<string, string>> = Object.fromEntries(
-  skillGroups.flatMap((group) =>
-    group.skills.map((skill) => [
-      skill.id,
-      typeof skill.label === 'string' ? skill.label : skill.label.en,
-    ]),
-  ),
-);
+/** Los textos de las etiquetas en un idioma, por id y en el orden del panel. */
+function textsIn(locale: 'en' | 'es'): Readonly<Record<string, string>> {
+  return Object.fromEntries(
+    skillGroups.flatMap((group) =>
+      group.skills.map((skill) => [
+        skill.id,
+        typeof skill.label === 'string' ? skill.label : skill.label[locale],
+      ]),
+    ),
+  );
+}
+
+const TEXTS = textsIn('en');
+const TEXTS_ES = textsIn('es');
+
+/**
+ * Las etiquetas que caben a 390×844 en reposo, en el orden del panel: con el campo de visión de móvil, su letra
+ * (10 px) y lo que tapa la interfaz por debajo de 900 px. Escritas a mano a propósito: si cambian la colocación, la
+ * letra o la interfaz, el test obliga a mirar qué se ve en el móvil. En español, `ai-pair` («Programación en pareja
+ * con IA») choca con `nestjs`, que va antes en el panel, y se oculta.
+ */
+const PHONE_LABELS = [
+  'html',
+  'javascript',
+  'glsl',
+  'mysql',
+  'zod',
+  'tailwind',
+  'nestjs',
+  'vite',
+  'playwright',
+  'n8n',
+  'vms',
+  'ai-pair',
+  'claude',
+];
+const PHONE_LABELS_ES = PHONE_LABELS.filter((id) => id !== 'ai-pair');
 
 /** El frame de la galaxia en móvil (390×844), con su campo de visión y su pose. */
 function phoneFrame(): SceneFrame {
@@ -292,22 +321,7 @@ describe('useConstellations', () => {
     const frame = phoneFrame();
     const { labels } = setup(frame);
     paint(390, 844);
-    // Con el campo de visión de móvil, su letra (10 px) y lo que tapa la interfaz por debajo de 900 px.
-    expect(shownLabels(labels)).toEqual([
-      'html',
-      'javascript',
-      'glsl',
-      'mysql',
-      'zod',
-      'tailwind',
-      'nestjs',
-      'vite',
-      'playwright',
-      'n8n',
-      'vms',
-      'ai-pair',
-      'claude',
-    ]);
+    expect(shownLabels(labels)).toEqual(PHONE_LABELS);
     // Las que no caben, ocultas, tampoco reciben el ratón.
     for (const id of Object.keys(TEXTS)) {
       expect(label(labels, id).hasAttribute('data-live'), id).toBe(
@@ -330,7 +344,13 @@ describe('useConstellations', () => {
     frame.fov = phone.fov;
     cameraPose(2, false, createParallax(), frame.camera);
     paint(390, 844);
-    expect(shownLabels(labels)).toHaveLength(13);
+    expect(shownLabels(labels)).toEqual(PHONE_LABELS);
+  });
+
+  it('on a phone in Spanish, a longer label that collides with an earlier one hides', () => {
+    const { labels } = setup(phoneFrame(), TEXTS_ES);
+    paint(390, 844);
+    expect(shownLabels(labels)).toEqual(PHONE_LABELS_ES);
   });
 
   it('without texts (outside the journey) there are no labels to place, but the stars still shine', () => {
