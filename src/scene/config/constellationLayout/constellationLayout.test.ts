@@ -117,7 +117,7 @@ function segmentCrosses(a: ScreenPoint, b: ScreenPoint, [left, top, right, botto
   return true;
 }
 
-/** Las 30 líneas, con su grupo. */
+/** Todas las líneas, con su grupo. */
 const LINES = skillGroups.flatMap((group) =>
   CONSTELLATION_LINKS[group.id].map(([a, b]) => ({ group: group.id, a, b })),
 );

@@ -13,23 +13,30 @@ Son **4 constelaciones**: la escena reserva sitio para las cuatro.
 
 ## `web` · Desarrollo web
 
-`html` HTML · `css` CSS · `javascript` JavaScript · `typescript` TypeScript · `php` PHP · `mysql` MySQL ·
-`apache` Apache
+`html` HTML · `css` CSS · `javascript` JavaScript · `typescript` TypeScript · `glsl` GLSL · `php` PHP ·
+`mysql` MySQL · `apache` Apache
+
+GLSL, por los shaders propios de Cosmos (C.3). AJAX no es estrella: va en las skills de la formación (C.3).
 
 ## `libraries` · Librerías y frameworks
 
 | id | Etiqueta | Dónde se demuestra |
 |---|---|---|
 | `react-ts` | React + TypeScript | Chessmate, Cosmos |
-| `react-query` | React Query | Chessmate |
+| `nextjs` | Next.js | Prácticas (Studios Demanzon) |
+| `react-query` | TanStack Query | Chessmate |
 | `zustand` | Zustand | Chessmate, Cosmos |
 | `react-router` | React Router | Chessmate, Cosmos |
 | `react-hook-form` | React Hook Form | Chessmate |
 | `zod` | Zod | Chessmate |
 | `css-modules` | CSS Modules | Chessmate, Cosmos |
 | `r3f` | Three.js / React Three Fiber | Cosmos |
-| `tailwind` | Tailwind | — |
-| `bootstrap` | Bootstrap | — |
+| `tailwind` | Tailwind CSS | — |
+| `electron` | Electron | Prácticas (Studios Demanzon) |
+| `nestjs` | NestJS | Prácticas (Studios Demanzon) |
+
+Las etiquetas usan los nombres del CV («TanStack Query», «Tailwind CSS»); los `id` no cambian. Bootstrap salió en
+C.3 (no está confirmado en el CV).
 
 ## `tools` · Herramientas y flujo de trabajo
 
@@ -37,10 +44,13 @@ Son **4 constelaciones**: la escena reserva sitio para las cuatro.
 |---|---|
 | `git` | Git |
 | `github` | GitHub |
+| `npm` | npm |
+| `pnpm` | pnpm |
 | `vite` | Vite |
 | `vitest` | Vitest |
 | `playwright` | Playwright |
 | `docker` | Docker |
+| `n8n` | n8n |
 | `figma` | Figma |
 | `vms` | EN: Virtual machines · ES: Máquinas virtuales |
 

@@ -705,6 +705,9 @@
   en KB de 1 000 B (`budgets.spec.ts`). «10 KB antes de las constelaciones» salía de otro método (gzip por paquete) y
   no se compara con los 13,7 KiB. Los 3,6 KB de F4.3 fueron F4.3a + F4.3b; las correcciones de su auditoría
   gastaron 144 B y **F4.3c tiene ≤ 1 KB**, los dos del margen (quedan ~0,75 KB tras F4.4 y F4.5).
+- Nota (2026-11-21, fase C): F4.3c pesó 172 B, no 1 KB (252 910 B), y C.3 (la galaxia de skills con 37 estrellas)
+  127 B (253 037 B). Quedan 6 963 B: con F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, ~1,46 KB de margen. Esta cuenta sustituye a la
+  de la nota anterior; lo que pesa cada paso sigue en `rendimiento.md`.
 - Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).
 
 ## ADR-033 · Los commits de solo documentación van directos a `main`

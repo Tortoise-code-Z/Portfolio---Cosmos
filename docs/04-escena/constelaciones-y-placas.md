@@ -8,21 +8,24 @@ ella, para que las etiquetas se lean quietas.
 
 ### Regiones (plano X–Z, cámara de la galaxia con encuadre de escritorio)
 
-Hay **4 grupos y 31 estrellas** (ver `docs/01-contenido/habilidades.md`). Cada grupo ocupa una zona del hueco
-libre de la pantalla, entre el panel y el raíl, debajo de la barra y por encima del HUD; cada estrella, su fila, con
-la etiqueta a la derecha. Las posiciones salen de colocar las etiquetas en pantalla con la cámara de la galaxia
+Hay **4 grupos y 37 estrellas** (ver `docs/01-contenido/habilidades.md`; 31 hasta C.3). Cada grupo ocupa una
+zona del hueco libre de la pantalla, entre el panel y el raíl, debajo de la barra y por encima del HUD; cada
+estrella, su fila, con la etiqueta a la derecha. Las posiciones salen de colocar las etiquetas en pantalla con la cámara de la galaxia
 (`m` = 2, escritorio) a 1280×720 y llevarlas a la escena (decidido en F4.3a; la cámara de la versión final no es la
-del prototipo, así que sus regiones no servían):
+del prototipo, así que sus regiones no servían). En C.3 (37 estrellas, el raíl con 6 enlaces) se rehicieron todas con
+una búsqueda que mide las mismas reglas del test con algo de holgura, cada grupo en su franja y en su orden de
+lectura; el final de tools se va a la izquierda, bajo las etiquetas de ai, para no pisar el HUD:
 
 ```
    pantalla, 1280×720                         escena (X, Z)
-   ┌ panel ┬──────────────┬──────────────────┐
-   │       │ web (7)      │ libraries (10)   │   web       x −3,8…−2,0 · z −16,7…−3,5
-   │       │              │                  │   libraries x  1,9…7,9  · z −15,8…0,1
-   │       ├──────────────┼──────────────┐   │ ← raíl
-   │       │ ai (6)       │ tools (8)    │   │   ai        x −5,4…−3,9 · z  2,5…7,2
-   │       │              │              │HUD│   tools     x  0,8…4,0  · z  1,9…8,2
-   └───────┴──────────────┴──────────────┴───┘
+   ┌ panel ┬───────────┬────────────────────┐
+   │       │ web (8)   │ libraries (12)     │   web       x −4,5…−1,7 · z −15,8…−0,9
+   │       │           │                    │   libraries x  1,1…7,0  · z −16,8…2,9
+   │       ├───────────┤      ┌─────────────┤ ← raíl
+   │       │ ai (6)    │      │ tools (11)  │   ai        x −5,3…−3,7 · z  2,5…7,3
+   │       │      ┌────┴──────┘             │   tools     x −1,0…5,2  · z  0,4…9,4
+   │       │      │ tools (el final) │ HUD  │
+   └───────┴──────┴──────────────────┴──────┘
 ```
 
 Las de arriba quedan lejos de la cámara (z negativo) y las de abajo, cerca: en pantalla miden lo mismo porque el
@@ -37,7 +40,7 @@ tamaño de las estrellas no depende de la distancia (F4.3b).
 3. Las líneas forman una figura reconocible por grupo (web, una rama; libraries, un triángulo con su cadena; tools,
    una cadena cerrada al final; ai, una cometa con su cola), sin cruzarse con otro grupo; en pantalla, ninguna
    línea pasa a menos de 12 px de una estrella que no es suya ni tacha el texto de la etiqueta de otra estrella (las
-   de sus dos extremos pueden rozarla: hoy entran menos de 1 px en tres líneas) (en reposo, en los mismos tamaños,
+   de sus dos extremos pueden rozarla; desde C.3 ninguna entra en el texto de sus extremos) (en reposo, en los mismos tamaños,
    con el paralaje en sus esquinas).
 4. Las coordenadas viven en `scene/config/constellationLayout`, indexadas por `Skill.id`, con las líneas de cada
    figura por pares de ids. Un test falla si una skill del contenido no tiene posición o si sobra una posición sin
@@ -59,9 +62,10 @@ superíndices salen con la mono del sistema. El HUD se mide en reposo (m = 2): a
 enseña ya la línea del capítulo 3, más larga, y puede pasar de los 256 reservados; ahí las etiquetas tienen opacidad
 ≤ 0,08 y no se ven. Aceptado: no se ensancha la zona prohibida por un caso invisible.
 
-Las más altas de `web` y `libraries` (de `typescript` y `react-hook-form` hacia arriba) quedan más allá del disco de
-la galaxia (radio ~8,35; `html` a 16,8 del centro): flotan sobre el cielo oscuro, por encima de la galaxia en
-pantalla, no justo encima de su plano; las demás de esos dos grupos caen dentro del disco. Es lo que da el
+Las más altas de `web` y `libraries` (de `javascript` y `zustand` hacia arriba) quedan más allá del disco de la
+galaxia (radio ~8,35; `react-ts` a 17,8 del centro): flotan sobre el cielo oscuro, por encima de la galaxia en
+pantalla, no justo encima de su plano; las demás de esos dos grupos caen dentro del disco. Abajo, `vms` queda justo
+fuera del borde cercano (9,5). Es lo que da el
 hueco libre medido (más cerca pisarían el panel o la barra); en la foto fija de la galaxia se ve bien.
 
 ### Estados
@@ -98,7 +102,7 @@ panel).
   (`--z-labels`: entre el destello y `main`) montada en `body` con un portal: dentro del envoltorio del lienzo
   quedarían por debajo del destello. Decorativas (`aria-hidden`): el teclado y el lector usan el panel. Desde F4.3c,
   con el capítulo a más de `interactiveFrom` (0,6), las visibles reciben el puntero (`data-live`, solo al cambiar;
-  se olvida con lo demás si la capa se desmonta): el ratón encima enciende su grupo y un toque también. Para que
+  como lo demás, se escribe otra vez si la capa nace de nuevo: ver abajo): el ratón encima enciende su grupo y un toque también. Para que
   les llegue, `main` y los capítulos dejan pasar el ratón y solo lo recogen sus hijos directos, como el panel
   (`docs/05-tecnico/arquitectura.md` → «Puntero del viaje»): también mientras la galaxia entra o sale, con About o
   Projects aún en pantalla.
@@ -113,9 +117,8 @@ panel).
   y la nueva, oculta por su CSS, se escribe entera, también si la escena no pintó ningún frame mientras no estaba
   (con la misión rápida abierta a la ida y a la vuelta, la escena está en pausa).
 - Sin selección (`user-select: none`: Ctrl+A no las copia).
-- Mono de 11 px; por debajo de 900 px, 10 px (`--text-star-label-narrow`, en px a propósito). A 1280×720 y 1440×900 se ven las 31; en anchos
-  medios y en móvil, las que caben (a 390×844, unas 12 desde que el raíl tiene el rombo del Mission log): la lista
-  del panel sigue completa.
+- Mono de 11 px; por debajo de 900 px, 10 px (`--text-star-label-narrow`, en px a propósito). A 1280×720 y 1440×900 se ven las 37; en anchos
+  medios y en móvil, las que caben (a 390×844, 13 desde C.3): la lista del panel sigue completa.
 
 ## Placas de proyecto (capítulo 3)
 

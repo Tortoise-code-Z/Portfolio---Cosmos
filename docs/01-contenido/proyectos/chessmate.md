@@ -55,7 +55,7 @@
 ## Stack
 
 - core: React, TypeScript
-- libraries: React Query, Zustand, React Router, React Hook Form, Zod (+ resolvers), Embla Carousel, React Player
+- libraries: TanStack Query, Zustand, React Router, React Hook Form, Zod (+ resolvers), Embla Carousel, React Player
 - design: CSS Modules, Figma, responsive design (EN: Responsive design · ES: Diseño responsive)
 - tooling: Vite, Git, npm
 
@@ -66,7 +66,7 @@
    client side with no backend. The goal was to rebuild an earlier version of the project with everything I had
    learned about design and code since.
 2. I planned the architecture in Figma, defining reusable components for each section (Home, Courses,
-   Dashboard, Classroom…). In code, I used Zustand for global state and React Query to handle data simulated
+   Dashboard, Classroom…). In code, I used Zustand for global state and TanStack Query to handle data simulated
    in localStorage, mimicking calls to a real API. That made purchases, progress and authentication work without
    a server, with dynamic feedback for errors and invalid routes.
 3. Private routes use React Router, and forms are validated with React Hook Form and Zod. On the visual side,
@@ -78,7 +78,7 @@
    completamente del lado del cliente y sin backend. El objetivo era rehacer una versión anterior del proyecto con
    todo lo que había aprendido desde entonces de diseño y código.
 2. Planifiqué la arquitectura en Figma, con componentes reutilizables para cada sección (Home, Courses,
-   Dashboard, Classroom…). En el código usé Zustand para el estado global y React Query para manejar los datos
+   Dashboard, Classroom…). En el código usé Zustand para el estado global y TanStack Query para manejar los datos
    simulados en localStorage, imitando llamadas a una API real. Así funcionan compras, progreso y autenticación
    sin servidor, con feedback dinámico ante errores y rutas inválidas.
 3. Las rutas privadas usan React Router y los formularios se validan con React Hook Form y Zod. En lo visual,
@@ -92,7 +92,7 @@
 | Validation and visual feedback for error cases | Validación y feedback visual ante posibles errores |
 | Protected routes | Protección de rutas |
 | Real-time sync between components | Sincronización en tiempo real entre componentes |
-| Performance tuned with React Query caching | Optimización de rendimiento con React Query |
+| Performance tuned with TanStack Query caching | Optimización de rendimiento con TanStack Query |
 
 ## Notes
 

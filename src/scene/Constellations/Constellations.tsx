@@ -123,7 +123,7 @@ interface WrittenLabel {
   opacity: number;
   visible: boolean;
   hot: boolean;
-  /** Responde al ratón (`data-live`): visible y con el capítulo a más de `interactiveFrom` (F4.3c). */
+  /** Responde al puntero, ratón o toque (`data-live`): visible y con el capítulo a más de `interactiveFrom`. */
   live: boolean;
 }
 
@@ -363,7 +363,7 @@ export function runConstellationsFrame(
  * `uiStore.activeSkillGroup`; al instante con movimiento reducido) y, de ahí, el tamaño y la opacidad de estrellas y
  * líneas. Coloca las etiquetas: las proyecta con la pose de la cámara de este frame (la deja `CameraRig`, que va
  * antes), oculta las que no caben (`fitLabels`, contra lo que tapa la interfaz) y escribe solo lo que cambia; con el
- * capítulo a más de `interactiveFrom`, las visibles responden al ratón (`data-live`). Sin
+ * capítulo a más de `interactiveFrom`, las visibles responden al puntero, ratón o toque (`data-live`). Sin
  * estado de React ni objetos nuevos por frame (ADR-004): el paso de cada frame se rellena en `work.step`. Libera la
  * GPU al desmontar. Va aparte del componente para probarlo sin WebGL.
  */

@@ -59,7 +59,7 @@ export function projectToScreen(
   const uy = rz * fx - rx * fz;
   const uz = rx * fy;
 
-  // Por índice, sin desestructurar: corre 31 veces por frame (las etiquetas).
+  // Por índice, sin desestructurar: corre una vez por etiqueta en cada frame (37 desde C.3).
   const dx = point[0] - eye.x;
   const dy = point[1] - eye.y;
   const dz = point[2] - eye.z;

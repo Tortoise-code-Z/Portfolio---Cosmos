@@ -40,7 +40,7 @@ export const chessmate: ProjectEntry = {
   stack: {
     core: ['React', 'TypeScript'],
     libraries: [
-      'React Query',
+      'TanStack Query',
       'Zustand',
       'React Router',
       'React Hook Form',
@@ -54,12 +54,12 @@ export const chessmate: ProjectEntry = {
   process: {
     en: [
       'Chessmate was designed and built from scratch to simulate a real online learning platform, entirely on the client side with no backend. The goal was to rebuild an earlier version of the project with everything I had learned about design and code since.',
-      'I planned the architecture in Figma, defining reusable components for each section (Home, Courses, Dashboard, Classroom…). In code, I used Zustand for global state and React Query to handle data simulated in localStorage, mimicking calls to a real API. That made purchases, progress and authentication work without a server, with dynamic feedback for errors and invalid routes.',
+      'I planned the architecture in Figma, defining reusable components for each section (Home, Courses, Dashboard, Classroom…). In code, I used Zustand for global state and TanStack Query to handle data simulated in localStorage, mimicking calls to a real API. That made purchases, progress and authentication work without a server, with dynamic feedback for errors and invalid routes.',
       'Private routes use React Router, and forms are validated with React Hook Form and Zod. On the visual side, CSS Modules, Embla Carousel and React Player kept the design smooth and performant, with Vite handling the build.',
     ],
     es: [
       'Chessmate se diseñó y desarrolló desde cero para simular una plataforma real de aprendizaje online, completamente del lado del cliente y sin backend. El objetivo era rehacer una versión anterior del proyecto con todo lo que había aprendido desde entonces de diseño y código.',
-      'Planifiqué la arquitectura en Figma, con componentes reutilizables para cada sección (Home, Courses, Dashboard, Classroom…). En el código usé Zustand para el estado global y React Query para manejar los datos simulados en localStorage, imitando llamadas a una API real. Así funcionan compras, progreso y autenticación sin servidor, con feedback dinámico ante errores y rutas inválidas.',
+      'Planifiqué la arquitectura en Figma, con componentes reutilizables para cada sección (Home, Courses, Dashboard, Classroom…). En el código usé Zustand para el estado global y TanStack Query para manejar los datos simulados en localStorage, imitando llamadas a una API real. Así funcionan compras, progreso y autenticación sin servidor, con feedback dinámico ante errores y rutas inválidas.',
       'Las rutas privadas usan React Router y los formularios se validan con React Hook Form y Zod. En lo visual, CSS Modules, Embla Carousel y React Player mantuvieron un diseño fluido y con buen rendimiento, con Vite para el build.',
     ],
   },
@@ -74,8 +74,8 @@ export const chessmate: ProjectEntry = {
       es: 'Sincronización en tiempo real entre componentes',
     },
     {
-      en: 'Performance tuned with React Query caching',
-      es: 'Optimización de rendimiento con React Query',
+      en: 'Performance tuned with TanStack Query caching',
+      es: 'Optimización de rendimiento con TanStack Query',
     },
   ],
   notes: [

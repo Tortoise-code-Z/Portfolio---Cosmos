@@ -29,7 +29,9 @@ describe('keepOutZones', () => {
     expect(inside(zones, 800, 64 + m - 1)).toBe('top bar');
     expect(inside(zones, 1265 - wide.rail.fromRight - m + 1, 360)).toBe('rail'); // a media altura
     expect(inside(zones, 1265 - wide.rail.fromRight - m + 1, 150)).toBeUndefined(); // por encima del raíl
-    expect(inside(zones, 1265 - wide.hud.fromRight - m + 1, 720 - 62 - m + 1)).toBe('HUD');
+    expect(
+      inside(zones, 1265 - wide.hud.fromRight - m + 1, 720 - wide.hud.fromBottom - m + 1),
+    ).toBe('HUD');
     expect(inside(zones, 1265 - m + 1, 150)).toBe('right edge');
     expect(inside(zones, 800, 720 - m + 1)).toBe('bottom edge');
   });
@@ -44,7 +46,7 @@ describe('keepOutZones', () => {
     expect(inside(zones, railLeft + 1, 360 - railHalf - m + 1)).toBe('rail');
     expect(inside(zones, railLeft + 1, 360 - railHalf - m - 1)).toBeUndefined();
     const hudLeft = 1265 - wide.hud.fromRight - m;
-    const hudTop = 720 - 62 - m;
+    const hudTop = 720 - wide.hud.fromBottom - m;
     expect(inside(zones, hudLeft + 1, hudTop + 1)).toBe('HUD');
     expect(inside(zones, hudLeft - 1, hudTop + 1)).toBeUndefined();
     expect(inside(zones, hudLeft + 1, hudTop - 1)).toBeUndefined();
@@ -54,13 +56,13 @@ describe('keepOutZones', () => {
     const zones = keepOutZones(600, 900, false);
     const m = STAR_LABEL_KEEP_OUT.marginPx;
     expect(inside(zones, 300, 400)).toBeUndefined();
-    expect(inside(zones, 100, 900 - 62)).toBe('HUD');
-    expect(inside(zones, 400, 900 - 62)).toBeUndefined();
-    expect(inside(zones, narrow.hud.fromLeft + m - 1, 900 - 62)).toBe('HUD');
-    expect(inside(zones, narrow.hud.fromLeft + m + 1, 900 - 62)).toBeUndefined();
-    expect(inside(zones, 600 - 52, 450)).toBe('rail');
-    expect(inside(zones, 600 - 52 - m + 1, 450)).toBe('rail');
-    expect(inside(zones, 600 - 52 - m - 1, 450)).toBeUndefined();
+    expect(inside(zones, 100, 900 - narrow.hud.fromBottom)).toBe('HUD');
+    expect(inside(zones, 400, 900 - narrow.hud.fromBottom)).toBeUndefined();
+    expect(inside(zones, narrow.hud.fromLeft + m - 1, 900 - narrow.hud.fromBottom)).toBe('HUD');
+    expect(inside(zones, narrow.hud.fromLeft + m + 1, 900 - narrow.hud.fromBottom)).toBeUndefined();
+    expect(inside(zones, 600 - narrow.rail.fromRight, 450)).toBe('rail');
+    expect(inside(zones, 600 - narrow.rail.fromRight - m + 1, 450)).toBe('rail');
+    expect(inside(zones, 600 - narrow.rail.fromRight - m - 1, 450)).toBeUndefined();
   });
 });
 
