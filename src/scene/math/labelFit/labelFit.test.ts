@@ -17,22 +17,23 @@ function box(left: number, top: number, width = 100, wanted = true): LabelBox {
 const inside = (zones: readonly KeepOutZone[], x: number, y: number): string | undefined =>
   zones.find(({ rect: [l, t, r, b] }) => x > l && x < r && y > t && y < b)?.name;
 
-/** Lo medido de la interfaz (raíl y HUD): se lee de la configuración, no se repite aquí. */
+/** Lo que tapa la interfaz (panel, barra, raíl y HUD): se lee de la configuración, no se repite aquí. */
 const { wide, narrow } = STAR_LABEL_KEEP_OUT;
 
 describe('keepOutZones', () => {
   it('on desktop: the panel, the bar, the rail (centred), the HUD and the edges, with a margin', () => {
     const zones = keepOutZones(1265, 720, true);
     const m = STAR_LABEL_KEEP_OUT.marginPx;
-    expect(inside(zones, 564 + m - 1, 400)).toBe('panel');
-    expect(inside(zones, 564 + m + 1, 400)).toBeUndefined();
-    expect(inside(zones, 800, 64 + m - 1)).toBe('top bar');
+    const aboveRail = 360 - wide.rail.halfHeight - m - 10; // el raíl va centrado en los 720 de alto
+    expect(inside(zones, wide.panelRight + m - 1, 400)).toBe('panel');
+    expect(inside(zones, wide.panelRight + m + 1, 400)).toBeUndefined();
+    expect(inside(zones, 800, wide.barBottom + m - 1)).toBe('top bar');
     expect(inside(zones, 1265 - wide.rail.fromRight - m + 1, 360)).toBe('rail'); // a media altura
-    expect(inside(zones, 1265 - wide.rail.fromRight - m + 1, 150)).toBeUndefined(); // por encima del raíl
+    expect(inside(zones, 1265 - wide.rail.fromRight - m + 1, aboveRail)).toBeUndefined();
     expect(
       inside(zones, 1265 - wide.hud.fromRight - m + 1, 720 - wide.hud.fromBottom - m + 1),
     ).toBe('HUD');
-    expect(inside(zones, 1265 - m + 1, 150)).toBe('right edge');
+    expect(inside(zones, 1265 - m + 1, aboveRail)).toBe('right edge');
     expect(inside(zones, 800, 720 - m + 1)).toBe('bottom edge');
   });
 
@@ -57,7 +58,9 @@ describe('keepOutZones', () => {
     const m = STAR_LABEL_KEEP_OUT.marginPx;
     expect(inside(zones, 300, 400)).toBeUndefined();
     expect(inside(zones, 100, 900 - narrow.hud.fromBottom)).toBe('HUD');
-    expect(inside(zones, 400, 900 - narrow.hud.fromBottom)).toBeUndefined();
+    expect(
+      inside(zones, narrow.hud.fromLeft + m + 10, 900 - narrow.hud.fromBottom),
+    ).toBeUndefined();
     expect(inside(zones, narrow.hud.fromLeft + m - 1, 900 - narrow.hud.fromBottom)).toBe('HUD');
     expect(inside(zones, narrow.hud.fromLeft + m + 1, 900 - narrow.hud.fromBottom)).toBeUndefined();
     expect(inside(zones, 600 - narrow.rail.fromRight, 450)).toBe('rail');

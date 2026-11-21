@@ -34,7 +34,8 @@ export interface UiState {
   /**
    * El grupo de skills encendido (docs/02-experiencia/capitulos/02-galaxia.md → «Interacciones»), o ninguno. Lo
    * escriben el panel de Skills (ratón, foco, toque) y las etiquetas de la escena (ratón y toque; F4.3c); la escena
-   * lo lee en cada frame con `getState()`, sin re-render, y enciende su constelación.
+   * lo lee en cada frame con `getState()`, sin re-render, y enciende su constelación; el panel lo marca con su
+   * selector.
    */
   readonly activeSkillGroup: SkillGroupId | null;
 }

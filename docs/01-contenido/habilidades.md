@@ -16,7 +16,7 @@ Son **4 constelaciones**: la escena reserva sitio para las cuatro.
 `html` HTML · `css` CSS · `javascript` JavaScript · `typescript` TypeScript · `glsl` GLSL · `php` PHP ·
 `mysql` MySQL · `apache` Apache
 
-GLSL, por los shaders propios de Cosmos (C.3). AJAX no es estrella: va en las skills de la formación (C.3).
+GLSL, por los shaders propios de Cosmos (C.3). AJAX no es estrella (C.3): ya va en las skills de la formación.
 
 ## `libraries` · Librerías y frameworks
 
@@ -73,4 +73,5 @@ ChatGPT), después de las prácticas. Son 6 estrellas en esta constelación (F4.
 ## Regla
 
 No se añaden habilidades que no se usen de verdad. Las de Cosmos: `r3f`, respaldada por su
-ficha desde F3.7; `vitest` y `playwright`, por el repo público.
+ficha desde F3.7; `vitest` y `playwright`, por el repo público. Las que entraron en C.3: `glsl`, por la ficha de
+Cosmos; `n8n`, por las prácticas; `npm`, por Chessmate y Cosmos; `pnpm`, por el CV.

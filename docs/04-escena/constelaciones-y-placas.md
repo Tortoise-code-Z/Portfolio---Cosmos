@@ -40,8 +40,9 @@ tamaño de las estrellas no depende de la distancia (F4.3b).
 3. Las líneas forman una figura reconocible por grupo (web, una rama; libraries, un triángulo con su cadena; tools,
    una cadena cerrada al final; ai, una cometa con su cola), sin cruzarse con otro grupo; en pantalla, ninguna
    línea pasa a menos de 12 px de una estrella que no es suya ni tacha el texto de la etiqueta de otra estrella (las
-   de sus dos extremos pueden rozarla; desde C.3 ninguna entra en el texto de sus extremos) (en reposo, en los mismos tamaños,
-   con el paralaje en sus esquinas).
+   de sus dos extremos pueden rozarla) (en reposo, en los mismos tamaños, con el paralaje en sus esquinas). Fuera de
+   la regla, una observación que ningún test vigila: con las posiciones de C.3 ninguna línea entra en el texto de sus
+   extremos (la más justa, a menos de 1 px).
 4. Las coordenadas viven en `scene/config/constellationLayout`, indexadas por `Skill.id`, con las líneas de cada
    figura por pares de ids. Un test falla si una skill del contenido no tiene posición o si sobra una posición sin
    skill.
@@ -64,9 +65,9 @@ enseña ya la línea del capítulo 3, más larga, y puede pasar de los 256 reser
 
 Las más altas de `web` y `libraries` (de `javascript` y `zustand` hacia arriba) quedan más allá del disco de la
 galaxia (radio ~8,35; `react-ts` a 17,8 del centro): flotan sobre el cielo oscuro, por encima de la galaxia en
-pantalla, no justo encima de su plano; las demás de esos dos grupos caen dentro del disco. Abajo, `vms` queda justo
-fuera del borde cercano (9,5). Es lo que da el
-hueco libre medido (más cerca pisarían el panel o la barra); en la foto fija de la galaxia se ve bien.
+pantalla, no justo encima de su plano; las demás de esos dos grupos caen dentro del disco. Abajo, `vms` (9,5),
+`figma` y `chatgpt` (8,7) quedan justo fuera del borde cercano. Es lo que da el hueco libre medido (más cerca
+pisarían el panel o la barra); en la foto fija de la galaxia se ve bien.
 
 ### Estados
 
@@ -118,7 +119,8 @@ panel).
   (con la misión rápida abierta a la ida y a la vuelta, la escena está en pausa).
 - Sin selección (`user-select: none`: Ctrl+A no las copia).
 - Mono de 11 px; por debajo de 900 px, 10 px (`--text-star-label-narrow`, en px a propósito). A 1280×720 y 1440×900 se ven las 37; en anchos
-  medios y en móvil, las que caben (a 390×844, 13 desde C.3): la lista del panel sigue completa.
+  medios y en móvil, las que caben (a 390×844, desde C.3, 13 en inglés y 12 en español: «Programación en pareja con
+  IA» choca con NestJS): la lista del panel sigue completa.
 
 ## Placas de proyecto (capítulo 3)
 
