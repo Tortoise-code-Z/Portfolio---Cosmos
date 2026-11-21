@@ -101,7 +101,7 @@ export const en = {
   'missionControl.countdown': 'T-{n}',
   'missionControl.lead':
     'Every change on this site went through the same countdown. AI speeds it up; I read and understand every change before it goes in.',
-  'missionControl.telemetry': 'Telemetry · this site · {month}',
+  'missionControl.telemetry': 'Telemetry · this site',
   'missionControl.unitTests': 'Unit tests · Vitest',
   'missionControl.e2eTests': 'E2E tests · Playwright',
   'missionControl.browsers': 'Browsers in CI',
@@ -117,7 +117,8 @@ export const en = {
   'missionControl.build': 'Build',
   'missionControl.build.detail': 'One branch and one PR per task, strict TypeScript.',
   'missionControl.audit': 'Audit',
-  'missionControl.audit.detail': 'A fresh-eyes review in a separate session.',
+  'missionControl.audit.detail':
+    'A fresh-eyes review in a separate session; its fixes ship before the next task.',
   'missionControl.launch': 'Launch',
   'missionControl.launch.detail': 'Checks green in {browsers}.',
   'missionControl.touchdown': 'Touchdown · Contact',

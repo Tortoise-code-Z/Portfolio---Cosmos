@@ -149,8 +149,9 @@ demás, y ninguna sin escena (`no-gl`): sin constelaciones no hay nada que encen
 ## Interludio 2 · Mission control (transmisión, canal azul)
 
 La secuencia (orden, `T-n`, qué va antes del código y el bucle) está en `src/content/workflow.ts`; las cifras, en la
-telemetría contada al construir (ADR-035). `{n}` es la cuenta atrás; `{month}`, el mes del build con `Intl`
-(`Nov 2026` / `nov 2026`); `{browsers}`, los navegadores del CI con la conjunción del idioma.
+telemetría contada al construir (ADR-035). `{n}` es la cuenta atrás; `{browsers}`, los navegadores del CI con la
+conjunción del idioma. Tras `missionControl.telemetry` va « · » y el mes del build con `Intl` (`Nov 2026` /
+`nov 2026`), aparte: es lo único que la captura tapa del rótulo.
 
 | Clave | EN | ES |
 |---|---|---|
@@ -165,9 +166,9 @@ telemetría contada al construir (ADR-035). `{n}` es la cuenta atrás; `{month}`
 | `missionControl.plan` / `.detail` | Plan / Steps, files and risks. No code yet. | Plan / Pasos, archivos y riesgos. Aún sin código. |
 | `missionControl.greenLight` / `.detail` | Green light / The plan is approved before anything is built. | Luz verde / El plan se aprueba antes de construir nada. |
 | `missionControl.build` / `.detail` | Build / One branch and one PR per task, strict TypeScript. | Construcción / Una rama y un PR por tarea, TypeScript estricto. |
-| `missionControl.audit` / `.detail` | Audit / A fresh-eyes review in a separate session. | Auditoría / Una revisión con mirada fresca en otra sesión. |
+| `missionControl.audit` / `.detail` | Audit / A fresh-eyes review in a separate session; its fixes ship before the next task. | Auditoría / Una revisión con mirada fresca en otra sesión; lo que corrige sale antes de la siguiente tarea. |
 | `missionControl.launch` / `.detail` | Launch / Checks green in {browsers}. | Lanzamiento / Checks en verde en {browsers}. |
-| `missionControl.telemetry` | Telemetry · this site · {month} | Telemetría · este sitio · {month} |
+| `missionControl.telemetry` | Telemetry · this site | Telemetría · este sitio |
 | `missionControl.unitTests` | Unit tests · Vitest | Tests unitarios · Vitest |
 | `missionControl.e2eTests` | E2E tests · Playwright | Tests e2e · Playwright |
 | `missionControl.browsers` | Browsers in CI | Navegadores en el CI |

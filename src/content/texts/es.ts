@@ -103,7 +103,7 @@ export const es: UiTexts = {
   'missionControl.countdown': 'T-{n}',
   'missionControl.lead':
     'Cada cambio de este sitio pasó por la misma cuenta atrás. La IA la acelera; yo leo y entiendo cada cambio antes de que entre.',
-  'missionControl.telemetry': 'Telemetría · este sitio · {month}',
+  'missionControl.telemetry': 'Telemetría · este sitio',
   'missionControl.unitTests': 'Tests unitarios · Vitest',
   'missionControl.e2eTests': 'Tests e2e · Playwright',
   'missionControl.browsers': 'Navegadores en el CI',
@@ -119,7 +119,8 @@ export const es: UiTexts = {
   'missionControl.build': 'Construcción',
   'missionControl.build.detail': 'Una rama y un PR por tarea, TypeScript estricto.',
   'missionControl.audit': 'Auditoría',
-  'missionControl.audit.detail': 'Una revisión con mirada fresca en otra sesión.',
+  'missionControl.audit.detail':
+    'Una revisión con mirada fresca en otra sesión; lo que corrige sale antes de la siguiente tarea.',
   'missionControl.launch': 'Lanzamiento',
   'missionControl.launch.detail': 'Checks en verde en {browsers}.',
   'missionControl.touchdown': 'Aterrizaje · Contacto',

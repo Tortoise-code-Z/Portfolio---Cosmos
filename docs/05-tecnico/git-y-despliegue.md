@@ -108,7 +108,9 @@ install (npm ci)
   (ADR-033): el `ignoreCommand` de `vercel.json` compara el último despliegue correcto de esa rama
   (`VERCEL_GIT_PREVIOUS_SHA`) con `HEAD` y, si solo cambian docs, no despliega (tampoco la preview de un PR). Si no
   puede comparar (primer despliegue de una rama, un despliegue anterior más allá de los 10 commits del clon de
-  Vercel), despliega. El registro del despliegue dice el motivo (`[docs-only] …`).
+  Vercel), despliega. El registro del despliegue dice el motivo (`[docs-only] …`). `DECISIONS.md` sí entra en el
+  build (cuenta sus ADR para Mission control, ADR-035), pero sigue siendo doc: un ADR que llega en un commit de solo
+  docs se ve en el sitio con el siguiente despliegue de código.
 - Salida estática del pre-renderizado (`build/client`). `VITE_SITE_URL` configurada en Vercel por entorno.
 - Cabeceras: caché larga e inmutable para `/assets/*`; `Content-Security-Policy` sin `unsafe-eval`;
   `Referrer-Policy`, `X-Content-Type-Options`, `Permissions-Policy` restrictiva.

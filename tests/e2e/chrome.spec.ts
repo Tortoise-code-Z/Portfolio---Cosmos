@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 
+import { CHAPTER_INDICES, INTERLUDES } from '../../src/content/chapters.ts';
 import { hud } from './support/helpers.ts';
 import { test } from './support/test.ts';
 
@@ -181,7 +182,7 @@ test.describe('chapter rail', () => {
         }),
       );
     // Un punto por capítulo y un rombo por interludio (fase C).
-    expect(dotCenters).toHaveLength(7);
+    expect(dotCenters).toHaveLength(CHAPTER_INDICES.length + INTERLUDES.length);
     expect(Math.max(...dotCenters) - Math.min(...dotCenters)).toBeLessThanOrEqual(1);
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(rail(page).getByText('Cosmic turtle')).toBeHidden();
@@ -220,6 +221,26 @@ test.describe('chapter rail', () => {
     expect(ring).toBeGreaterThan(0);
     expect((box?.x ?? 9999) + (box?.width ?? 0) + ring).toBeLessThanOrEqual(390);
   });
+
+  for (const viewport of [
+    { width: 844, height: 390 },
+    { width: 667, height: 375 },
+  ]) {
+    test(`${String(viewport.width)} × ${String(viewport.height)} (a phone on its side): the whole rail sits below the top bar`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await page.goto('/', { waitUntil: 'networkidle' });
+      const [bar, first, last] = await Promise.all([
+        page.getByRole('banner').boundingBox(),
+        rail(page).getByRole('link').first().boundingBox(),
+        rail(page).getByRole('link').last().boundingBox(),
+      ]);
+      expect(first?.y ?? 0).toBeGreaterThanOrEqual((bar?.y ?? 0) + (bar?.height ?? 0));
+      // Y la última sigue dentro de la ventana, a 44 px.
+      expect((last?.y ?? 0) + (last?.height ?? 0)).toBeLessThanOrEqual(viewport.height);
+    });
+  }
 
   for (const viewport of [
     { width: 360, height: 640 },

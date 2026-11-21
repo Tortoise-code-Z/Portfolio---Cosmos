@@ -67,6 +67,17 @@ describe('keepOutZones', () => {
     expect(inside(zones, 600 - narrow.rail.fromRight - m + 1, 450)).toBe('rail');
     expect(inside(zones, 600 - narrow.rail.fromRight - m - 1, 450)).toBeUndefined();
   });
+
+  it('a window too short for the rail under the bar (a phone on its side): the rail zone moves down with it', () => {
+    const zones = keepOutZones(844, 390, false);
+    const m = STAR_LABEL_KEEP_OUT.marginPx;
+    const x = 844 - narrow.rail.fromRight - m + 1;
+    const top = narrow.barBottom; // la primera parada empieza justo bajo la barra
+    const bottom = top + 2 * narrow.rail.halfHeight;
+    expect(inside(zones, x, bottom + m - 1)).toBe('rail');
+    expect(inside(zones, x, bottom + m + 1)).toBeUndefined();
+    expect(inside(zones, x, top + m + 1)).toBe('rail'); // por encima, la zona de la barra
+  });
 });
 
 describe('fitLabels', () => {

@@ -158,7 +158,7 @@ El diagrama es orientativo; manda la tabla.
 
 | Capa | Puede importar | No puede importar |
 |---|---|---|
-| `content` | nada salvo sus tipos y, en `projects/media.ts`, las capturas de `src/assets/` (ADR-023) | React, Three, cualquier otra capa |
+| `content` | nada salvo sus tipos y, en `projects/media.ts`, las capturas de `src/assets/` (ADR-023); en `telemetry.ts`, el módulo `virtual:site-telemetry` (ADR-035), que nadie más importa | React, Three, cualquier otra capa |
 | `lib` | `content/types` (tipos y constantes de idioma) y `content/texts` (para `useT`) (ADR-017) | Los datos de `content` (perfil, proyectos, skills: le llegan por parámetro), `stores`, `ui`, `features`, `scene`, `routes`, Three |
 | `stores` | `lib`, `content` | `ui`, `features`, `scene`, `routes`, Three |
 | `ui` | `lib` | `stores`, `features`, `scene`, `routes`, `content` (recibe datos por props), Three |

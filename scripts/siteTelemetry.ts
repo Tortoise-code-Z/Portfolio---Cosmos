@@ -5,15 +5,19 @@
  *
  * - **Tests escritos**, no ejecuciones: cada llamada a `it` o `test` (también `.only`, `.concurrent`, `.fails` y un
  *   `it.each(…)(…)`) cuenta una vez, leída con el compilador de TypeScript (un comentario o un texto no cuentan).
- *   `test.describe`, `test.skip`, `test.use`… no son tests y no cuentan. Unitarios: lo que corre Vitest
- *   (`vitest.config.ts` → `include`); e2e: los specs de Playwright de `tests/e2e/`.
- * - **Navegadores**: la matriz de los e2e del CI (`.github/workflows/ci.yml`).
- * - **Decisiones**: los ADR de `DECISIONS.md` (`## ADR-NNN`).
+ *   `test.describe`, `test.skip`, `test.use`… no son tests y no cuentan; una forma que no está en ninguna de las dos
+ *   listas (`it.for`, `it.skipIf`, `it.only.each`, ``it.each`tabla` ``…) hace fallar el build: alguien decide si
+ *   cuenta. Unitarios: lo que corre Vitest (`UNIT_TEST_GLOBS`, su `include`); e2e: los specs de Playwright
+ *   (`E2E_TEST_DIR` y `E2E_TEST_MATCH`, su `testDir` y su `testMatch`). Las dos configs los leen de aquí.
+ * - **Navegadores**: la matriz del job `e2e` del CI (`.github/workflows/ci.yml`), cada uno un proyecto de
+ *   `playwright.config.ts`.
+ * - **Decisiones**: los ADR de `DECISIONS.md` (`## ADR-NNN`), sin números repetidos.
  *
- * Si no encuentra lo que cuenta (sin tests, sin matriz, sin ADR), falla el build: una cifra falsa no llega al sitio.
+ * Si no encuentra lo que cuenta (sin tests, sin matriz, sin ADR) o algo no cuadra, falla el build: una cifra falsa no
+ * llega al sitio.
  */
-import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
+import { globSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import ts from 'typescript';
 import type { Plugin } from 'vite';
@@ -23,23 +27,51 @@ import type { SiteTelemetry } from '../src/content/types.ts';
 /** El módulo que importa el contenido (`src/content/telemetry.ts`). */
 export const SITE_TELEMETRY_MODULE = 'virtual:site-telemetry';
 
-/** Dónde están los tests: los de Vitest (su `include`) y los specs e2e de Playwright (su `testDir`). */
-const UNIT_TESTS = /^(?:src\/.+\.test\.tsx?|scripts\/.+\.test\.ts)$/;
-const E2E_TESTS = /^tests\/e2e\/.+\.spec\.ts$/;
-/** Carpetas que no se recorren. */
-const SKIPPED_DIRS = new Set(['node_modules', '.git', 'build', 'coverage', '.react-router']);
+/** Los tests que corre Vitest: su `include` (vitest.config.ts) sale de aquí. */
+export const UNIT_TEST_GLOBS = ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'];
+/** Los specs e2e de Playwright: su `testDir` y su `testMatch` (playwright.config.ts) salen de aquí. */
+export const E2E_TEST_DIR = 'tests/e2e';
+export const E2E_TEST_MATCH = '**/*.spec.ts';
 
 const TEST_FUNCTIONS = new Set(['it', 'test']);
-/** Modificadores que siguen siendo un test (`it.only(…)`); los demás (`describe`, `skip`, `use`, `step`…) no. */
-const TEST_MODIFIERS = new Set(['only', 'concurrent', 'fails']);
+/** Modificadores que siguen siendo un test (`it.only(…)`). */
+const COUNTED_MODIFIERS = new Set(['only', 'concurrent', 'fails']);
+/** Modificadores que no son un test: grupos, saltos, ganchos y ayudas de Vitest y Playwright. */
+const IGNORED_MODIFIERS = new Set([
+  'describe',
+  'skip',
+  'todo',
+  'fixme',
+  'use',
+  'step',
+  'info',
+  'slow',
+  'setTimeout',
+  'extend',
+  'beforeEach',
+  'afterEach',
+  'beforeAll',
+  'afterAll',
+]);
 
-/** La matriz de los e2e: `project: [chromium, firefox, webkit]`. */
+/** El job de los e2e en ci.yml, hasta el siguiente job (o el final). */
+const CI_E2E_JOB = /^ {2}e2e:\n([\s\S]*?)(?=^ {2}[\w-]+:\s*$|(?![\s\S]))/m;
+/** Su matriz: `project: [chromium, firefox, webkit]`. */
 const CI_BROWSERS = /^\s*project:\s*\[([^\]]*)\]/m;
-const ADR_HEADING = /^## ADR-\d+\b/gm;
+/** Un nombre de proyecto de Playwright: minúsculas, cifras y guiones (sin comillas). */
+const PROJECT_NAME = /^[a-z][a-z0-9-]*$/;
+/** Los proyectos de `playwright.config.ts`: `{ name: 'chromium', … }`. */
+const PLAYWRIGHT_PROJECT = /\{\s*name:\s*'([^']+)'/g;
+const ADR_HEADING = /^## ADR-(\d+)\b/gm;
 const MONTH_DIGITS = 2;
 
 function isTestFunction(node: ts.Expression): boolean {
   return ts.isIdentifier(node) && TEST_FUNCTIONS.has(node.text);
+}
+
+/** Si `node` es lo que se llama en `parent` (`parent(…)`). */
+function isCalleeOf(node: ts.Node, parent: ts.Node | undefined): parent is ts.CallExpression {
+  return parent !== undefined && ts.isCallExpression(parent) && parent.expression === node;
 }
 
 /** Si una llamada declara un test: `it(…)`, `test.only(…)` o la segunda llamada de `it.each(…)(…)`. */
@@ -47,7 +79,7 @@ function declaresTest(call: ts.CallExpression): boolean {
   const callee = call.expression;
   if (isTestFunction(callee)) return true;
   if (ts.isPropertyAccessExpression(callee)) {
-    return isTestFunction(callee.expression) && TEST_MODIFIERS.has(callee.name.text);
+    return isTestFunction(callee.expression) && COUNTED_MODIFIERS.has(callee.name.text);
   }
   if (ts.isCallExpression(callee) && ts.isPropertyAccessExpression(callee.expression)) {
     const each = callee.expression;
@@ -56,12 +88,31 @@ function declaresTest(call: ts.CallExpression): boolean {
   return false;
 }
 
+/**
+ * Falla con una forma de `it.<x>`/`test.<x>` que no se sabe contar: un modificador desconocido, uno de los que cuentan
+ * seguido de otro (`it.only.each`) o un `each` que no sea `it.each(…)(…)` (``it.each`tabla` ``).
+ */
+function checkTestForm(access: ts.PropertyAccessExpression, fileName: string): void {
+  if (!isTestFunction(access.expression)) return;
+  const modifier = access.name.text;
+  if (IGNORED_MODIFIERS.has(modifier)) return;
+  const call = access.parent;
+  const known = COUNTED_MODIFIERS.has(modifier)
+    ? isCalleeOf(access, call)
+    : modifier === 'each' && isCalleeOf(access, call) && isCalleeOf(call, call.parent);
+  if (!known) {
+    const form = `${access.expression.getText()}.${modifier}`;
+    throw new Error(`siteTelemetry: forma de test desconocida («${form}») en ${fileName}.`);
+  }
+}
+
 /** Los tests escritos en un archivo (su ruta solo dice si lleva JSX). */
 export function countTests(source: string, fileName: string): number {
   const kind = fileName.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
-  const file = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, false, kind);
+  const file = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, kind);
   let count = 0;
   const visit = (node: ts.Node): void => {
+    if (ts.isPropertyAccessExpression(node)) checkTestForm(node, fileName);
     if (ts.isCallExpression(node) && declaresTest(node)) count += 1;
     ts.forEachChild(node, visit);
   };
@@ -69,22 +120,38 @@ export function countTests(source: string, fileName: string): number {
   return count;
 }
 
-/** Los navegadores de la matriz de los e2e del CI. */
-export function ciBrowsers(workflow: string): string[] {
-  const list = CI_BROWSERS.exec(workflow)?.[1] ?? '';
+/** Los proyectos de `playwright.config.ts`. */
+export function playwrightProjects(config: string): string[] {
+  return [...config.matchAll(PLAYWRIGHT_PROJECT)].map((match) => match[1] ?? '');
+}
+
+/** Los navegadores de la matriz del job `e2e` del CI: cada uno, un proyecto de Playwright. */
+export function ciBrowsers(workflow: string, projects: readonly string[]): string[] {
+  const job = CI_E2E_JOB.exec(workflow)?.[1] ?? '';
+  const list = CI_BROWSERS.exec(job)?.[1] ?? '';
   const browsers = list
     .split(',')
     .map((name) => name.trim())
     .filter((name) => name !== '');
   if (browsers.length === 0) throw new Error('siteTelemetry: ci.yml sin matriz de navegadores.');
+  for (const name of browsers) {
+    if (!PROJECT_NAME.test(name) || !projects.includes(name)) {
+      throw new Error(`siteTelemetry: «${name}» no es un proyecto de playwright.config.ts.`);
+    }
+  }
   return browsers;
 }
 
-/** Los ADR registrados. */
+/** Los ADR registrados: cada número una vez. */
 export function countDecisions(decisions: string): number {
-  const count = decisions.match(ADR_HEADING)?.length ?? 0;
-  if (count === 0) throw new Error('siteTelemetry: DECISIONS.md sin ADR.');
-  return count;
+  const numbers = [...decisions.matchAll(ADR_HEADING)].map((match) => match[1] ?? '');
+  if (numbers.length === 0) throw new Error('siteTelemetry: DECISIONS.md sin ADR.');
+  const unique = new Set(numbers);
+  if (unique.size !== numbers.length) {
+    const repeated = numbers.filter((number, index) => numbers.indexOf(number) !== index);
+    throw new Error(`siteTelemetry: ADR-${repeated[0] ?? ''} repetido en DECISIONS.md.`);
+  }
+  return unique.size;
 }
 
 /** El mes de una fecha, `AAAA-MM` en UTC. */
@@ -93,43 +160,36 @@ export function monthOf(date: Date): string {
   return `${String(date.getUTCFullYear())}-${month}`;
 }
 
-/** Las rutas de los archivos del repo, relativas y con `/`. */
-function listFiles(root: string): string[] {
-  const walk = (dir: string): string[] =>
-    readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-      if (entry.isDirectory())
-        return SKIPPED_DIRS.has(entry.name) ? [] : walk(join(dir, entry.name));
-      return entry.isFile() ? [relative(root, join(dir, entry.name)).split(sep).join('/')] : [];
-    });
-  return walk(root);
-}
-
-function sumTests(root: string, files: readonly string[], pattern: RegExp): number {
-  const total = files
-    .filter((file) => pattern.test(file))
+/** Los tests escritos en los archivos de `root` que casan con `globs`. */
+function sumTests(root: string, globs: readonly string[]): number {
+  const total = globSync([...globs], { cwd: root })
+    .map((file) => file.replaceAll('\\', '/'))
     .reduce((sum, file) => sum + countTests(readFileSync(join(root, file), 'utf8'), file), 0);
-  if (total === 0) throw new Error(`siteTelemetry: ningún test en ${pattern.source}.`);
+  if (total === 0) throw new Error(`siteTelemetry: ningún test en ${globs.join(', ')}.`);
   return total;
 }
 
 /** Las cifras del repo en `root`, contadas en `date`. */
 export function collectTelemetry(root: string, date: Date): SiteTelemetry {
-  const files = listFiles(root);
+  const projects = playwrightProjects(readFileSync(join(root, 'playwright.config.ts'), 'utf8'));
   return {
-    unitTests: sumTests(root, files, UNIT_TESTS),
-    e2eTests: sumTests(root, files, E2E_TESTS),
-    browsers: ciBrowsers(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8')),
+    unitTests: sumTests(root, UNIT_TEST_GLOBS),
+    e2eTests: sumTests(root, [`${E2E_TEST_DIR}/${E2E_TEST_MATCH}`]),
+    browsers: ciBrowsers(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8'), projects),
     decisions: countDecisions(readFileSync(join(root, 'DECISIONS.md'), 'utf8')),
     month: monthOf(date),
   };
 }
 
 /**
- * El plugin: sirve `virtual:site-telemetry` con las cifras de `root` (la raíz del repo), contadas al pedirlo (una vez
- * por build; en desarrollo y en Vitest, al arrancar).
+ * El plugin: sirve `virtual:site-telemetry` con las cifras de `root` (la raíz del repo). Cuenta una sola vez, la
+ * primera que se pide, y da lo mismo a cada entorno del build (el cliente y el pre-renderizado): si contaran cada uno,
+ * podrían diferir (un cambio de mes a mitad del build) y la hidratación fallaría en ese texto. En desarrollo, las
+ * cifras son las del arranque.
  */
 export function siteTelemetry(root: string): Plugin {
   const resolved = `\0${SITE_TELEMETRY_MODULE}`;
+  let counted: SiteTelemetry | null = null;
   return {
     name: 'cosmos:site-telemetry',
     resolveId(id) {
@@ -137,7 +197,8 @@ export function siteTelemetry(root: string): Plugin {
     },
     load(id) {
       if (id !== resolved) return null;
-      return `export default ${JSON.stringify(collectTelemetry(root, new Date()))};`;
+      counted ??= collectTelemetry(root, new Date());
+      return `export default ${JSON.stringify(counted)};`;
     },
   };
 }

@@ -20,7 +20,8 @@ lanzamiento; su «T-0» desemboca en la Tierra («Touchdown», el título de Con
   change before it goes in.»
 - **Schematic · launch sequence**, una lista ordenada: T-4 **Plan** (pasos, archivos y riesgos; aún sin código) →
   T-3 **Green light** (el plan se aprueba antes de construir) → T-2 **Build** (una rama y un PR por tarea, TypeScript
-  estricto) → T-1 **Audit** (revisión con mirada fresca en otra sesión) → T-0 **Launch** (checks en verde en los
+  estricto) → T-1 **Audit** (revisión con mirada fresca en otra sesión; lo que corrige sale antes de la tarea siguiente: así se
+  trabaja de verdad, se fusiona, se audita y se corrige antes de seguir) → T-0 **Launch** (checks en verde en los
   navegadores del CI, nombrados desde la telemetría). Dibujo: una cota «No code yet» sobre los pasos de antes del
   código (`beforeCode`) y un bucle discontinuo «Fixes from the audit go back to build» de Audit a Build
   (`AUDIT_LOOP`); su texto va en la lista (el del bucle, escondido en el paso de Audit).
@@ -39,15 +40,21 @@ pre-renderizado las deja escritas en el HTML.
 
 - **Tests unitarios y e2e:** los tests **escritos**, no las ejecuciones (un `it.each` o un test dentro de un bucle de
   idiomas cuenta uno). Se leen con el compilador de TypeScript: cada llamada a `it` o `test` (también `.only`,
-  `.concurrent`, `.fails` e `it.each(…)(…)`); `test.describe`, `test.skip`, `test.use`… no cuentan. Unitarios: lo que
-  corre Vitest (`src/**/*.test.{ts,tsx}` y `scripts/**/*.test.ts`); e2e: `tests/e2e/**/*.spec.ts`.
-- **Navegadores:** la matriz de los e2e de `.github/workflows/ci.yml`.
-- **Decisiones:** los `## ADR-NNN` numerados de `DECISIONS.md` (la plantilla no cuenta).
-- **Mes:** el del build, en UTC.
+  `.concurrent`, `.fails` e `it.each(…)(…)`); `test.describe`, `test.skip`, `test.use`… no cuentan, y una forma que
+  no está en ninguna de las dos listas (`it.for`, `it.skipIf`, `it.only.each`…) hace fallar el build. Unitarios: lo
+  que corre Vitest; e2e: los specs de Playwright. Los globs salen del contador y los leen las dos configs
+  (`UNIT_TEST_GLOBS`, `E2E_TEST_DIR`, `E2E_TEST_MATCH`).
+- **Navegadores:** la matriz del job `e2e` de `.github/workflows/ci.yml`; cada uno, un proyecto de
+  `playwright.config.ts`.
+- **Decisiones:** los `## ADR-NNN` numerados de `DECISIONS.md` (la plantilla no cuenta; un número repetido falla).
+  Un ADR que llega en un commit de solo docs se ve en el sitio en el siguiente despliegue con código (ADR-033).
+- **Mes:** el del build, en UTC, junto al rótulo y aparte de él.
 
-Si no encuentra algo (sin tests, sin matriz, sin ADR), el build falla: una cifra falsa no llega al sitio. Vitest
-cuenta igual al arrancar. El e2e (`mission-control.spec.ts`) compara la página con lo que cuenta el repo; las
-capturas tapan las cifras y el mes (`data-telemetry`), que cambian con cada test.
+Si no encuentra algo o algo no cuadra, el build falla: una cifra falsa no llega al sitio. Cuenta una vez por build
+(el cliente y el pre-renderizado reciben lo mismo); Vitest cuenta igual al arrancar. Solo `content/telemetry.ts`
+importa el módulo virtual (ESLint). El e2e (`mission-control.spec.ts`) compara la página con lo que cuenta el repo,
+también el mes; las capturas tapan las cifras y el mes (`data-telemetry`), que cambian con cada test, y no el
+rótulo.
 
 ## Escena
 

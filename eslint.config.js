@@ -62,16 +62,37 @@ const NO_GLOBAL_MATH_RANDOM = {
   message: 'La escena usa el azar con semilla (scene/shapes/prng, ADR-011), no Math.random.',
 };
 
+const CONTENT_FORBIDDEN = [
+  ...REACT,
+  ...THREE,
+  ...['lib', 'stores', 'ui', 'features', 'scene', 'routes'].flatMap(layer),
+];
+const CONTENT_MESSAGE =
+  'content no importa nada: solo datos y sus tipos (y, en projects/media.ts, las capturas de src/assets/, ADR-023; en telemetry.ts, el módulo virtual:site-telemetry, ADR-035).';
+
+/**
+ * Las cifras del repo de Mission control (ADR-035) entran por una sola puerta: `content/telemetry.ts` importa el
+ * módulo virtual y los demás leen `siteTelemetry` de allí. Va en cada capa (una regla posterior de
+ * `no-restricted-imports` sustituiría a la de la capa, no se sumaría).
+ */
+const TELEMETRY_DOOR = {
+  group: ['virtual:site-telemetry'],
+  message:
+    'Las cifras del repo se leen de content/telemetry (siteTelemetry): es la única que importa virtual:site-telemetry (ADR-035).',
+};
+
 const LAYER_RULES = [
   {
     files: ['src/content/**'],
-    forbidden: [
-      ...REACT,
-      ...THREE,
-      ...['lib', 'stores', 'ui', 'features', 'scene', 'routes'].flatMap(layer),
-    ],
-    message:
-      'content no importa nada: solo datos y sus tipos (y, en projects/media.ts, las capturas de src/assets/, ADR-023).',
+    ignores: ['src/content/telemetry.ts'],
+    forbidden: CONTENT_FORBIDDEN,
+    message: CONTENT_MESSAGE,
+  },
+  {
+    files: ['src/content/telemetry.ts'],
+    forbidden: CONTENT_FORBIDDEN,
+    message: CONTENT_MESSAGE,
+    telemetryDoor: true,
   },
   {
     files: ['src/lib/**'],
@@ -189,16 +210,24 @@ export default defineConfig(
 
   // `caseSensitive`: por defecto los grupos no distinguen mayúsculas, y `**/Particles/**` cerraría también
   // `shaders/particles/`, que el código puro sí puede importar.
-  ...LAYER_RULES.map(({ files, ignores, forbidden, message, extra = [] }) => ({
-    files,
-    ...(ignores === undefined ? {} : { ignores }),
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        { patterns: [{ group: forbidden, message, caseSensitive: true }, ...extra] },
-      ],
-    },
-  })),
+  ...LAYER_RULES.map(
+    ({ files, ignores, forbidden, message, extra = [], telemetryDoor = false }) => ({
+      files,
+      ...(ignores === undefined ? {} : { ignores }),
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              { group: forbidden, message, caseSensitive: true },
+              ...extra,
+              ...(telemetryDoor ? [] : [TELEMETRY_DOOR]),
+            ],
+          },
+        ],
+      },
+    }),
+  ),
 
   // `no-restricted-imports` no mira los `import()`: un import dinámico de la escena o de Three se
   // saltaría las capas. Solo `SceneMount` carga la escena así (arquitectura.md → «Carga de la escena»).

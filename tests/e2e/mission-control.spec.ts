@@ -1,6 +1,9 @@
+import { fileURLToPath } from 'node:url';
+
 import { expect, type Page } from '@playwright/test';
 
-import { collectTelemetry } from '../../scripts/siteTelemetry.ts';
+import { collectTelemetry, monthOf } from '../../scripts/siteTelemetry.ts';
+import { formatMonth } from '../../src/lib/i18n/format/format.ts';
 import { collectErrors, hud, settleScene, withoutWebGL } from './support/helpers.ts';
 import { test } from './support/test.ts';
 
@@ -14,14 +17,22 @@ import { test } from './support/test.ts';
 const transmission = (page: Page) => page.locator('[data-interlude="mission-control"]');
 const rail = (page: Page) => page.getByRole('navigation', { name: /^(?:Chapters|Capítulos)$/ });
 
-/** El `clip-path` calculado de cada línea del teletipo (`none` o `inset(0px)` si se ve entera). */
+/** La raíz del repo: la misma que lee el build (vite.config.ts), no la carpeta desde la que se lanza el e2e. */
+const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
+
+/** Una línea del teletipo ya escrita: el recorte se abre más allá de la caja, para no cortar su brillo. */
+const WRITTEN = 'inset(-24px)';
+
+/** El `clip-path` calculado de cada línea del teletipo (`none` sin armar, o `WRITTEN` si ya se ha escrito). */
 const lineClips = (page: Page): Promise<string[]> =>
   transmission(page)
     .locator('[data-line]')
     .evaluateAll((lines) => lines.map((line) => getComputedStyle(line).clipPath));
 
 test.describe('Mission control', () => {
-  test('/#mission-control lands on it: its title under the bar, the rail on its diamond and the turtle still', async ({
+  // Que la tortuga se quede quieta en su pantalla lo fija `content.test.ts` (JOURNEY_SEGMENTS) y `journey.test.tsx`
+  // (la `m` = 3 tramo a tramo); aquí se mira lo que se ve: el raíl y el reloj del HUD.
+  test('/#mission-control lands on it: its title under the bar, the rail on its diamond and the clock stopped in mythic time', async ({
     page,
   }) => {
     const errors = collectErrors(page);
@@ -50,13 +61,25 @@ test.describe('Mission control', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the telemetry is the repo of this deploy: the tests, browsers and decisions counted from the code', async ({
+  test('the telemetry is the repo of this deploy: the tests, browsers, decisions and month counted from the code', async ({
     page,
   }) => {
-    const counted = collectTelemetry(process.cwd(), new Date());
+    const now = new Date();
+    const counted = collectTelemetry(REPO_ROOT, now);
+    // El mes del build: este, o el anterior si el build cayó al otro lado de un cambio de mes.
+    const lastMonth = monthOf(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)));
     await page.goto('/#mission-control', { waitUntil: 'networkidle' });
+    const heading = transmission(page).getByRole('heading', { level: 3, name: /^Telemetry/ });
+    await expect(heading).toHaveText(
+      new RegExp(
+        `^Telemetry · this site · (?:${formatMonth('en', counted.month)}|${formatMonth('en', lastMonth)})$`,
+      ),
+    );
     const figures = transmission(page).getByRole('region', { name: /^Telemetry · this site · / });
-    await expect(figures.getByRole('definition')).toHaveText([
+    await expect(
+      figures.getByRole('definition'),
+      '¿npm run build tras cambiar tests, ci.yml o DECISIONS.md? El e2e cuenta el repo de ahora.',
+    ).toHaveText([
       counted.unitTests.toLocaleString('en'),
       counted.e2eTests.toLocaleString('en'),
       String(counted.browsers.length),
@@ -128,14 +151,12 @@ test.describe('Mission control', () => {
     );
   });
 
-  test('after its tail the Earth is formed: Contact arrives at its rest and the rail moves on', async ({
-    page,
-  }) => {
+  test('Contact arrives after the tail: the rail and the clock move on', async ({ page }) => {
     await page.goto('/#contact', { waitUntil: 'networkidle' });
     await expect(rail(page).locator('[aria-current="step"]')).toHaveAccessibleName(
       'Contact · Earth',
     );
-    await expect(hud(page)).not.toContainText('mythic time');
+    await expect(hud(page)).toContainText('13.8 billion years');
   });
 
   for (const name of ['Skip transmission', 'Touchdown · Contact']) {
@@ -159,9 +180,7 @@ test.describe('Mission control', () => {
     await expect(page).toHaveURL(/#mission-control$/);
   });
 
-  test('390 px: no sideways scroll, nothing cut, and «Touchdown» is a 44 px target', async ({
-    page,
-  }) => {
+  test('390 px: no sideways scroll and a 44 px «Touchdown»', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/#mission-control', { waitUntil: 'networkidle' });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
@@ -173,23 +192,43 @@ test.describe('Mission control', () => {
     expect(box?.height).toBeGreaterThanOrEqual(44);
   });
 
-  test('390 px with text at 200 %: the steps and the telemetry wrap instead of being cut', async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/#mission-control', { waitUntil: 'networkidle' });
-    await page.evaluate(() => {
-      document.documentElement.style.fontSize = '200%';
-    });
-    const cut = await transmission(page)
-      .locator('li, dd, dt, p')
-      .evaluateAll((elements) =>
-        elements
-          .filter((element) => element.scrollWidth > element.clientWidth)
-          .map((element) => element.textContent.slice(0, 40)),
-      );
-    expect(cut).toEqual([]);
-  });
+  for (const width of [360, 390]) {
+    for (const path of ['/', '/es']) {
+      test(`${path} at ${String(width)} px with text at 200 %: nothing is cut, and the «T-0» and each figure stay on one line`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width, height: 800 });
+        await page.goto(`${path}#mission-control`, { waitUntil: 'networkidle' });
+        await page.evaluate(() => {
+          document.documentElement.style.fontSize = '200%';
+        });
+        const cut = await transmission(page)
+          .locator('h2, h3, li, dd, dt, p, a')
+          .evaluateAll((elements) =>
+            elements
+              .filter((element) => element.scrollWidth > element.clientWidth)
+              .map((element) => element.textContent.slice(0, 40)),
+          );
+        expect(cut).toEqual([]);
+        // Partida, una cifra o el «T-0» ocupa más de un renglón: su alto pasa de su interlineado.
+        const broken = await transmission(page)
+          .locator('dd, h2 [aria-hidden] > *')
+          .evaluateAll((elements) =>
+            elements
+              .filter((element) => {
+                const style = getComputedStyle(element);
+                const lineHeight =
+                  style.lineHeight === 'normal'
+                    ? Number.parseFloat(style.fontSize) * 1.2
+                    : Number.parseFloat(style.lineHeight);
+                return element.getBoundingClientRect().height > lineHeight * 1.5;
+              })
+              .map((element) => element.textContent),
+          );
+        expect(broken).toEqual([]);
+      });
+    }
+  }
 
   test('with reduced motion nothing is held back: every line is there, no sweep and no teletype', async ({
     page,
@@ -214,8 +253,13 @@ test.describe('Mission control', () => {
     await transmission(page).scrollIntoViewIfNeeded();
     await expect(transmission(page)).toHaveAttribute('data-on', '');
     await expect
-      .poll(async () => (await lineClips(page)).every((clip) => clip === 'inset(0px)'))
+      .poll(async () => (await lineClips(page)).every((clip) => clip === WRITTEN))
       .toBe(true);
+    // Encendida, si se pide movimiento reducido el cursor deja de parpadear (su guarda de CSS).
+    const cursor = transmission(page).locator('[class*="cursor"]');
+    await expect(cursor).not.toHaveCSS('animation-name', 'none');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(cursor).toHaveCSS('animation-name', 'none');
   });
 
   test('without WebGL it reads whole, over the still photo of the turtle', async ({ page }) => {
@@ -225,7 +269,7 @@ test.describe('Mission control', () => {
     await expect(region.getByText('Co-pilot: Claude Code with skills I wrote')).toBeVisible();
     await expect
       .poll(async () =>
-        (await lineClips(page)).every((clip) => clip === 'none' || clip === 'inset(0px)'),
+        (await lineClips(page)).every((clip) => clip === 'none' || clip === WRITTEN),
       )
       .toBe(true);
     await expect(page.locator('[data-scene-stills] img[data-still-chapter="3"]')).toHaveAttribute(

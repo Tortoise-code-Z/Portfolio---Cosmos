@@ -25,8 +25,10 @@ const TOKENS_FILE = fileURLToPath(new URL('./tokens.css', import.meta.url));
 const FONTS_FILE = fileURLToPath(new URL('./fonts.css', import.meta.url));
 const WCAG_AA_TEXT = 4.5;
 const TEXT_TOKENS = ['ink', 'ink-soft', 'dim', 'star', 'aurora'] as const;
-/** Los canales de las transmisiones (fase C): su texto va sobre el fondo de su canal. */
-const CHANNELS = ['amber', 'blue'] as const;
+/** Los canales de las transmisiones (fase C), por su velo: los que define `tokens.css` (abajo, `CHANNELS`). */
+const CHANNEL_VEIL = /--color-channel-([a-z]+)-veil:/g;
+/** Los colores de decoración de un canal, que repiten el suyo con otra alfa (rejilla, líneas y brillo). */
+const CHANNEL_DERIVED = ['-grid', '-line', '-glow'] as const;
 const CHANNEL_TEXT = ['', '-dim', '-bright'] as const;
 /** Lo mínimo que tapa el velo de una transmisión (componentes.md → «Transmisión»). */
 const CHANNEL_VEIL_MIN_ALPHA = 0.9;
@@ -310,6 +312,8 @@ function contrastRatio(foreground: string, background: string): number {
 // ── Datos del repo ───────────────────────────────────────────────────────────
 
 const tokens = rootTokens(readCss(TOKENS_FILE));
+/** Los canales de las transmisiones: uno nuevo (el verde, C.6) entra solo en las comprobaciones. */
+const CHANNELS = [...readCss(TOKENS_FILE).matchAll(CHANNEL_VEIL)].map((match) => match[1] ?? '');
 const definedTokens = new Set(tokens.keys());
 const cssFiles = listCssFiles(SRC_DIR);
 const asCases = (paths: readonly string[]): (readonly [string, string])[] =>
@@ -380,6 +384,19 @@ describe('design tokens', () => {
       const veil = parseRgbAlpha(tokenValue(`--color-channel-${channel}-veil`));
       expect(veil.hex).toBe(tokenValue(`--color-channel-${channel}-bg`).toLowerCase());
       expect(veil.alpha).toBeGreaterThanOrEqual(CHANNEL_VEIL_MIN_ALPHA);
+    },
+  );
+
+  it('finds the transmission channels in tokens.css', () => {
+    expect(CHANNELS).toEqual(expect.arrayContaining(['amber', 'blue']));
+  });
+
+  // Si se retoca el color de un canal, su rejilla, sus líneas y su brillo no se quedan con el viejo.
+  it.each(CHANNELS.flatMap((channel) => CHANNEL_DERIVED.map((part) => [channel, part] as const)))(
+    'the %s channel%s colour is the channel colour with its own alpha',
+    (channel, part) => {
+      const derived = parseRgbAlpha(tokenValue(`--color-channel-${channel}${part}`));
+      expect(derived.hex).toBe(tokenValue(`--color-channel-${channel}`).toLowerCase());
     },
   );
 

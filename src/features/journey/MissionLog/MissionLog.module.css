@@ -50,14 +50,7 @@
 }
 
 .heading {
-  margin-block-end: var(--space-3);
-  color: var(--_ch-dim);
-  font-family: var(--font-mono);
-  font-size: var(--text-label);
-  font-weight: var(--weight-mono);
-  line-height: var(--leading-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
+  composes: heading from '../Transmission/Transmission.module.css';
 }
 
 .modules {

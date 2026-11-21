@@ -125,6 +125,24 @@ describe('ChapterRail', () => {
     expect(current()).toEqual(['About · Nebula']);
   });
 
+  it.each([
+    ['mission-log', 1, 'Mission log · transmission'],
+    ['mission-control', 3, 'Mission control · transmission'],
+  ] as const)(
+    '%s: its stop is a diamond and is the current one while it is read',
+    (id, m, name) => {
+      const rail = renderRail();
+      act(() => {
+        setScrollTarget(m);
+        setReadingInterlude(id);
+      });
+      const link = within(rail).getByRole('link', { name });
+      expect(link).toHaveAttribute('aria-current', 'step');
+      expect(link.lastElementChild?.className ?? '').toMatch(/diamond/);
+      expect(link.lastElementChild?.className ?? '').not.toMatch(/dot/);
+    },
+  );
+
   it('a click on the interlude travels to its screen, focuses its title and leaves its anchor', async () => {
     const rail = renderRail();
     const screenElement = document.createElement('section');

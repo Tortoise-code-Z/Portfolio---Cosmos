@@ -81,7 +81,7 @@ describe('Journey', () => {
     );
   });
 
-  it('el scroll fija el m de sceneStore tramo a tramo: About y el Mission log quietos, la cola cambia', async () => {
+  it('el scroll fija el m de sceneStore tramo a tramo: About y Projects quietos, y las pantallas de los dos interludios; las colas cambian', async () => {
     // jsdom no maqueta: cada tramo (capítulo, pantalla o cola de un interludio) mide 1000 px, en su orden.
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
       this: HTMLElement,
@@ -98,7 +98,8 @@ describe('Journey', () => {
       return { mTarget, interlude };
     };
 
-    // Tramos: 0 inicio · 1 About · 2 Mission log · 3 su cola · 4 Skills · 5 Projects · 6 Contact.
+    // Tramos: 0 inicio · 1 About · 2 Mission log · 3 su cola · 4 Skills · 5 Projects · 6 Mission control · 7 su
+    // cola · 8 Contact.
     expect(at(1500)).toEqual({ mTarget: 1, interlude: null });
     expect(at(1990)).toEqual({ mTarget: 1, interlude: null });
     expect(at(2500)).toEqual({ mTarget: 1, interlude: 'mission-log' });
@@ -107,6 +108,13 @@ describe('Journey', () => {
     expect(at(3500).interlude).toBe('mission-log');
     expect(at(4000)).toEqual({ mTarget: 2, interlude: null });
     expect(at(5000)).toEqual({ mTarget: 3, interlude: null });
+    // Projects se queda en la tortuga hasta el final, y la pantalla de Mission control también.
+    expect(at(5990)).toEqual({ mTarget: 3, interlude: null });
+    expect(at(6500)).toEqual({ mTarget: 3, interlude: 'mission-control' });
+    // En su cola, la tortuga cambia a la Tierra; Contact llega con ella formada.
+    expect(at(7500).mTarget).toBeCloseTo(3.5);
+    expect(at(7500).interlude).toBe('mission-control');
+    expect(at(8000)).toEqual({ mTarget: 4, interlude: null });
   });
 
   it('la sugerencia de idioma va la última en el orden del Tab, después del modo misión rápida', async () => {

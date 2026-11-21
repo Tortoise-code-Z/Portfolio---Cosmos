@@ -755,6 +755,9 @@
   - El pre-push solo protege donde hay hooks instalados: lo saltan `--no-verify`, `HUSKY=0`, un clon sin `npm ci`
     y el editor web de GitHub. Por eso la norma lo prohíbe; si pasara, el CI del push correría entero (a toro
     pasado) y Vercel desplegaría.
+- Nota (2026-11-21, C.4): la premisa «ningún `.md` entra en el build» ya no vale para `DECISIONS.md`: el contador
+  de Mission control lee sus ADR (ADR-035). Sigue contando como doc: un commit que solo lo toca no se despliega, y la
+  cifra se pone al día en el siguiente despliegue con código.
 - Detalle: `docs/05-tecnico/git-y-despliegue.md` («Ramas y commits», «Hooks locales», «CI» y «Despliegue
   (Vercel)»), `DEVELOPMENT_RULES.md` §10 y §13.
 
@@ -831,8 +834,17 @@
   regenerarlo, y en el build serían lentas y frágiles); las mismas cuentas redondeadas hacia abajo («1,000+»: más
   estables, pero dicen menos); una expresión regular en vez del compilador (cuenta comentarios y textos, y confunde
   `test.describe` o `test.skip` con un test).
-- Consecuencias: las cifras siempre coinciden con el repo del despliegue y no se mantienen. El build lee unos 200
-  archivos de test con el compilador de TypeScript (menos de un segundo). Las cifras son menores que las ejecuciones
-  (un test por idioma cuenta uno), y la etiqueta dice «tests», no «runs». `typescript` (ya en el proyecto) se usa
-  también al construir.
+- Consecuencias: las cifras siempre coinciden con el repo del despliegue y no se mantienen. El build lee con el
+  compilador de TypeScript los archivos de test (medio segundo en el contenedor, al cerrar C.4). Las cifras son
+  menores que las ejecuciones (un test por idioma cuenta uno), y la etiqueta dice «tests», no «runs». `typescript`
+  (ya en el proyecto) se usa también al construir.
+- Nota (2026-11-21, tras auditarlo): precisiones del mismo día.
+  - `DECISIONS.md` entra ahora en el build, pero un commit que solo lo toca sigue siendo de solo docs (ADR-033): no
+    se despliega. Un ADR que llega así se ve en el sitio en el siguiente despliegue con código (días); se acepta.
+  - Los globs de los tests salen del contador y los leen las dos configs (`include` de Vitest; `testDir` y
+    `testMatch` de Playwright): lo que corre es lo que se cuenta. Una forma de declarar un test que no sabe contar
+    (`it.for`, `it.skipIf`, `it.only.each`, ``it.each`tabla` ``…), un navegador que no es un proyecto de Playwright o
+    un ADR con el número repetido hacen fallar el build. El plugin cuenta una sola vez por build: el cliente y el
+    pre-renderizado reciben las mismas cifras.
+  - Solo `content/telemetry.ts` importa el módulo virtual (ESLint): los demás leen `siteTelemetry`.
 - Detalle: `docs/02-experiencia/capitulos/interludio-2-mission-control.md` → «Telemetría».

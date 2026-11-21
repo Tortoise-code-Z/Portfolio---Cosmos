@@ -39,6 +39,8 @@ export function createLabelBox(): LabelBox {
 export function keepOutZones(width: number, height: number, wide: boolean): KeepOutZone[] {
   const { marginPx: m } = STAR_LABEL_KEEP_OUT;
   const { barBottom, rail } = wide ? STAR_LABEL_KEEP_OUT.wide : STAR_LABEL_KEEP_OUT.narrow;
+  // El raíl va centrado, salvo que no quepa bajo la barra: entonces baja lo justo (ChapterRail.module.css).
+  const railCentre = Math.max(height / 2, barBottom + rail.halfHeight);
   const shared: KeepOutZone[] = [
     { name: 'left edge', rect: [-Infinity, -Infinity, m, Infinity] },
     { name: 'right edge', rect: [width - m, -Infinity, Infinity, Infinity] },
@@ -48,9 +50,9 @@ export function keepOutZones(width: number, height: number, wide: boolean): Keep
       name: 'rail',
       rect: [
         width - rail.fromRight - m,
-        height / 2 - rail.halfHeight - m,
+        railCentre - rail.halfHeight - m,
         Infinity,
-        height / 2 + rail.halfHeight + m,
+        railCentre + rail.halfHeight + m,
       ],
     },
   ];

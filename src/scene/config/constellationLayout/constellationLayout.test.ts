@@ -228,6 +228,10 @@ describe('constellationLayout', () => {
     const railHalf = ((CHAPTER_INDICES.length + INTERLUDES.length) * px('--target-min')) / 2;
     expect(STAR_LABEL_KEEP_OUT.wide.rail.halfHeight).toBe(railHalf);
     expect(STAR_LABEL_KEEP_OUT.narrow.rail.halfHeight).toBe(railHalf);
+    // La misma media altura que usa el CSS del raíl para bajarlo si no cabe bajo la barra.
+    expect(root).toContain(
+      `--rail-half-h: calc(${String(CHAPTER_INDICES.length + INTERLUDES.length)} * var(--target-min) / 2);`,
+    );
   });
 
   // Regla 2, en reposo (m = 2): proyectadas con la cámara de la galaxia, delante de ella, ninguna etiqueta pisa otra,

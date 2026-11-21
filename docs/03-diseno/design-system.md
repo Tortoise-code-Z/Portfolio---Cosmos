@@ -163,6 +163,7 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--interlude-min-h` | 100svh | Alto mínimo de la pantalla de un interludio |
 | `--interlude-tail` | 100vh | La cola de un interludio: recorrido vacío en el que la escena cambia a la forma siguiente |
 | `--rail-room` | 160 px (< md: 44 px) | Lo que ocupa el raíl a la derecha: una transmisión a todo el ancho lo deja libre |
+| `--rail-half-h` | 7 × `--target-min` / 2 | Media altura del raíl (una parada por capítulo y por interludio): lo baja si no cabe bajo la barra, y la escena reserva lo mismo para sus etiquetas |
 | `--chapter-end-room` | 12vh | Aire bajo el último capítulo |
 | `--hero-room-bottom` | 12vh (< sm: 10vh) | Aire bajo el contenido del hero |
 | `--hero-indent` · `--hero-lead-measure` | 0.6em · 40ch | Sangría de la segunda línea del nombre · ancho de la frase del hero |
@@ -174,7 +175,10 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--wave-max-w` · `--wave-stroke` | 360 px · 1,5 | Onda del pie de una transmisión (ancho máximo y trazo, en unidades del SVG) |
 | `--record-col-min` | 150 px | Columna mínima de la ficha del Mission log |
 | `--log-number-size` · `--log-tag-w` | 2.2em · 10ch | Círculo del número de una entrada del registro · columna de su etiqueta (escritorio) |
-| `--cursor-w` · `--cursor-h` · `--blink-count` | 0.6em · 1em · 4 | Cursor de bloque del final del registro y cuántas veces parpadea (menos de 5 s, WCAG 2.2.2) |
+| `--cursor-w` · `--cursor-h` · `--blink-count` | 0.6em · 1em · 4 | Cursor de bloque del teletipo de las transmisiones (`BlinkCursor`) y cuántas veces parpadea (menos de 5 s, WCAG 2.2.2) |
+| `--countdown-size` | `min(clamp(5rem, 33vw, 13rem), 40vw)` | Letra del «T-0» de Mission control: un tercio del ancho, nunca más del 40 % (las tres letras caben en una línea también con la letra al 200 %) |
+| `--telemetry-col-min` | 7rem | Columna mínima de la telemetría de Mission control: dos columnas como mucho, una si no caben (una cifra no se parte) |
+| `--sequence-bracket-h` · `--sequence-loop-h` · `--sequence-arrow` | 10 px · 28 px · 7 px | Esquema de Mission control: alto de la cota «No code yet», del bucle de la auditoría y punta de las flechas |
 | `--chip-dot-size` · `--opacity-breathe-low` | 6 px · 0,35 | Punto del chip «Open to work» y la opacidad más baja de su respiración |
 | `--quick-col-min` | 280 px | Ancho mínimo de cada columna del modo misión rápida (`auto-fit`) |
 | `--project-col-min` | 220 px | Ancho mínimo de cada columna de las rejillas de la página de proyecto (funcionalidades, stack, galería, anterior/siguiente) |
@@ -199,7 +203,8 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
   diálogo no hace saltar la página a lo ancho.
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
   (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`), y el título de cada transmisión, el de su canal
-  (`--glow-channel-amber` = `0 0 18px --color-channel-amber-glow`).
+  (`--glow-channel-amber` = `0 0 18px --color-channel-amber-glow`; `--glow-channel-blue`, igual en azul), y el «T-0» de
+  Mission control, un halo más ancho (`--glow-channel-blue-countdown`, un `drop-shadow` de 14 px).
   Las etiquetas de las estrellas llevan un halo oscuro (`--halo-star-label`, dos sombras de `--color-void`) para
   leerse sobre el núcleo de la galaxia: es contraste, no brillo.
 - Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins, botones de
