@@ -620,6 +620,33 @@ test.describe('the scene with WebGL', () => {
     expect(errors).toEqual([]);
   });
 
+  test('until F5, a project page covers the scene with the veil and pauses it; back on the journey it goes on', async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    await page.goto('/#projects', { waitUntil: 'networkidle' });
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
+      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+    });
+    const scene = page.locator(SCENE_READY);
+    await expect(scene).not.toHaveAttribute('data-paused');
+    await page.getByRole('link', { name: 'View project Chessmate' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Chessmate' })).toBeVisible();
+    await expect(scene).toHaveAttribute('data-paused', 'true');
+    // El velo: a toda la ventana, detrás del texto, del color del espacio casi opaco (`--color-veil`).
+    const veil = await page.locator('main').evaluate((main) => {
+      const style = getComputedStyle(main, '::before');
+      return { position: style.position, background: style.backgroundColor };
+    });
+    expect(veil).toEqual({ position: 'fixed', background: 'rgba(4, 5, 11, 0.82)' });
+    await page.getByRole('link', { name: 'Back to the shell' }).click();
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'What I carry on my shell' }),
+    ).toBeVisible();
+    await expect(scene).not.toHaveAttribute('data-paused');
+    expect(errors).toEqual([]);
+  });
+
   for (const viewport of [
     { width: 1280, height: 720 },
     { width: 390, height: 844 },

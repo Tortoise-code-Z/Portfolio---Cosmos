@@ -11,6 +11,7 @@ import {
   selectSceneOn,
   setActiveSkillGroup,
   setLanguageNoticeOpen,
+  setProjectPageOpen,
   lowerSceneLevel,
   setSceneLevel,
   setVisitedProject,
@@ -126,6 +127,19 @@ describe('uiStore', () => {
     expect(selectLanguageNoticeOpen(useUiStore.getState())).toBe(false);
     setLanguageNoticeOpen(true);
     expect(selectLanguageNoticeOpen(useUiStore.getState())).toBe(true);
+  });
+
+  it('knows whether a project page is showing (none at first), and does not notify when it did not change', () => {
+    expect(useUiStore.getState().projectPageOpen).toBe(false);
+    const listener = vi.fn();
+    const unsubscribe = useUiStore.subscribe(listener);
+    setProjectPageOpen(true);
+    setProjectPageOpen(true);
+    expect(useUiStore.getState().projectPageOpen).toBe(true);
+    setProjectPageOpen(false);
+    expect(useUiStore.getState().projectPageOpen).toBe(false);
+    expect(listener).toHaveBeenCalledTimes(2);
+    unsubscribe();
   });
 
   it('keeps the lit skill group (none at first), and does not notify when it did not change', () => {

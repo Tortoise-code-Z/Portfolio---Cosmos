@@ -58,6 +58,9 @@ justo por encima de AA, no bajarla). Una partícula suelta justo detrás de una 
 el panel a 900 px y por debajo de 2 : 1 en el raíl): son puntos que pasan, no zonas de lectura. Las etiquetas de
 las estrellas (decorativas: la lista accesible es la del panel) van en reposo a `--color-dim` al 80 % (5,9 : 1
 sobre el vacío) y con un halo oscuro (`--halo-star-label`) que las separa de los brazos y del núcleo de la galaxia.
+Hasta F5, la página de un proyecto usa el mismo velo (`--color-veil`) a toda la ventana detrás de su texto, y
+`styles.test.ts` comprueba que cada color de texto cumple AA sobre él encima de una escena blanca, el peor caso
+(`pagina-proyecto.md` → «Hasta F5»).
 
 Reglas:
 - El ámbar es **el único** acento de estado (activo, foco, hover). El turquesa nunca indica estado.

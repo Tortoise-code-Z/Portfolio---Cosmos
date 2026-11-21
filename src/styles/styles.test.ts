@@ -362,6 +362,18 @@ describe('design tokens', () => {
     expect(ratio).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
   });
 
+  // El velo de la interfaz (los paneles de los capítulos y, hasta F5, la página de un proyecto) encima de una escena
+  // blanca, el peor caso: su texto se lee igual.
+  it.each(TEXT_TOKENS)(
+    '--color-%s meets WCAG AA contrast on --color-veil over a white scene',
+    (name) => {
+      const veil = parseRgbAlpha(tokenValue('--color-veil'));
+      expect(veil.hex).toBe(tokenValue('--color-void').toLowerCase());
+      const ratio = contrastRatio(tokenValue(`--color-${name}`), overWhite(veil));
+      expect(ratio).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+    },
+  );
+
   it.each(CHANNELS)(
     'the %s channel veil is its background colour, opaque enough to read on (alpha ≥ 0.9)',
     (channel) => {

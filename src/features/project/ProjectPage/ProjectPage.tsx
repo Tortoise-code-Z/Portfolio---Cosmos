@@ -5,7 +5,7 @@ import { profile } from '~/content/profile';
 import { projects } from '~/content/projects';
 import type { Project } from '~/content/types';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
-import { setVisitedProject } from '~/stores/uiStore/uiStore';
+import { setProjectPageOpen, setVisitedProject } from '~/stores/uiStore/uiStore';
 import { ArrowText } from '~/ui/ArrowText/ArrowText';
 import { Picture } from '~/ui/Picture/Picture';
 
@@ -31,7 +31,8 @@ interface ProjectPageProps {
  * Página de proyecto (docs/02-experiencia/pagina-proyecto.md): un documento normal, sin capítulos, en
  * una columna de lectura. Las secciones van en el orden de la spec y la que no tiene datos no se pinta
  * (Cosmos no tiene proceso, «Try it», portada ni galería: sus imágenes llegan en F6). Es el `<main>` de
- * la ruta. Apunta el proyecto como visto: al volver al viaje, el foco queda en su fila.
+ * la ruta. Apunta el proyecto como visto: al volver al viaje, el foco queda en su fila. Hasta F5, con escena, la
+ * tapa con un velo casi opaco y la para mientras se ve (`projectPageOpen`).
  */
 export function ProjectPage({ project }: ProjectPageProps): ReactNode {
   const t = useT();
@@ -44,6 +45,14 @@ export function ProjectPage({ project }: ProjectPageProps): ReactNode {
   useEffect(() => {
     setVisitedProject(project.slug);
   }, [project.slug]);
+
+  // Hasta F5, mientras se ve la ficha la escena se para: su velo la tapa (pagina-proyecto.md → «Hasta F5»).
+  useEffect(() => {
+    setProjectPageOpen(true);
+    return () => {
+      setProjectPageOpen(false);
+    };
+  }, []);
 
   // Llegar con un enlace («View project», anterior/siguiente) lleva el foco al nombre del proyecto,
   // como cualquier salto del sitio: el lector anuncia la página nueva y el Tab sigue desde arriba. Al

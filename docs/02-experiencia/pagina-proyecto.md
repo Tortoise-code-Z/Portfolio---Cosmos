@@ -19,6 +19,19 @@ sin romper la sensación de estar dentro del mismo universo.
 - **Volver** («Back to the shell» o Atrás): la cámara se aleja y el viaje reaparece en el capítulo de la tortuga.
 - Con movimiento reducido: fundido simple, sin vuelo de cámara.
 
+### Hasta F5
+
+El lienzo ya es persistente entre rutas, pero la transición y la escena atenuada son de F5 (después del 1 dic). Para
+que la ficha se lea mientras tanto, con escena:
+
+- La página pone detrás de su texto, a toda la ventana, el velo de la interfaz (`--color-veil`, el del color del
+  espacio al 82 % de los paneles de los capítulos): la escena se intuye muy apagada. Su texto cumple AA sobre ese velo
+  encima de una escena blanca, el peor caso (`styles.test.ts`).
+- La escena se pausa mientras se ve la ficha (`uiStore.projectPageOpen`, `scene/pause`): no gasta mientras se lee.
+- Sin escena no cambia nada: el fondo ya es el degradado del espacio.
+
+F5 quita los dos (roadmap → F5) y atenúa la escena desde el shader, con la cámara sobre la placa.
+
 ## Estructura de la página (documento normal, sin capítulos de scroll)
 
 1. **Cabecera:** «Back to the shell», nombre del proyecto (display grande, `h1`), tagline, metadatos en mono

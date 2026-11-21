@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { closeQuickMission, openQuickMission, useUiStore } from '~/stores/uiStore/uiStore';
+import {
+  closeQuickMission,
+  openQuickMission,
+  setProjectPageOpen,
+  useUiStore,
+} from '~/stores/uiStore/uiStore';
 
 import { watchScenePause } from './pause';
 
@@ -48,6 +53,16 @@ describe('watchScenePause', () => {
     openQuickMission();
     expect(onChange).toHaveBeenLastCalledWith(true);
     closeQuickMission();
+    expect(onChange).toHaveBeenLastCalledWith(false);
+    stop();
+  });
+
+  it('pauses while a project page is shown (until F5: its veil covers the scene)', () => {
+    const onChange = vi.fn<(paused: boolean) => void>();
+    const stop = watchScenePause(onChange, fakeDocument().doc);
+    setProjectPageOpen(true);
+    expect(onChange).toHaveBeenLastCalledWith(true);
+    setProjectPageOpen(false);
     expect(onChange).toHaveBeenLastCalledWith(false);
     stop();
   });
