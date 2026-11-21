@@ -10,7 +10,7 @@ tu profesión.
 - Eyebrow: «About · nebula · t ≈ 200 million years».
 - Título: «A star born from curiosity».
 - Bio en 3 párrafos (perfil).
-- Fortalezas como etiquetas: Hard-working · Communication · Perseverance.
+- Las fortalezas salieron en la fase C (ADR-034): la experiencia llega justo después, en el Mission log.
 
 ## Escena en reposo (`m = 1`)
 

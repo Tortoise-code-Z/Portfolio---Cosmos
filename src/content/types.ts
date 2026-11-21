@@ -56,6 +56,45 @@ export interface CoverAsset extends ImageAsset {
 
 export type WorkMode = 'remote' | 'hybrid' | 'onsite';
 
+/** Un módulo del manifiesto de una misión: una herramienta, para qué se usó y qué entradas del registro le tocan. */
+export interface MissionModule {
+  readonly id: string;
+  readonly name: Label;
+  readonly purpose: Localized;
+  /** Números (desde 1) de las entradas del registro. */
+  readonly entries: readonly number[];
+}
+
+/** Una entrada del registro: una viñeta del CV con su etiqueta de terminal. */
+export interface MissionLogEntry {
+  readonly tag: Localized;
+  readonly text: Localized;
+}
+
+/** Una frase de la carta de recomendación, citada con permiso de quien la firma. */
+export interface MissionReference {
+  readonly quote: Localized;
+  readonly author: string;
+  readonly title: Localized;
+}
+
+/**
+ * Una experiencia profesional como misión (docs/02-experiencia/capitulos/interludio-1-mission-log.md): solo lo que
+ * dice el CV; nada de cómo está construido el producto de la empresa (nota de ADR-034).
+ */
+export interface Experience {
+  readonly id: string;
+  readonly company: string;
+  readonly role: Localized;
+  readonly location: Localized;
+  readonly period: Localized;
+  readonly status: Localized;
+  readonly summary: Localized;
+  readonly modules: readonly MissionModule[];
+  readonly log: readonly MissionLogEntry[];
+  readonly reference: MissionReference | null;
+}
+
 export interface Education {
   readonly id: string;
   readonly title: Localized;
@@ -77,12 +116,15 @@ export interface Profile {
   /** Línea corta para SEO y tarjetas. */
   readonly headline: Localized;
   readonly bio: Localized<readonly string[]>;
-  readonly strengths: readonly Localized[];
   readonly location: { readonly city: string; readonly country: Localized };
   readonly availability: {
     readonly openToWork: boolean;
     readonly modes: readonly WorkMode[];
     readonly openToRelocation: boolean;
+    /** Permiso de trabajo, como lo dice el CV («EU citizen – full right to work in Ireland»). */
+    readonly workPermit: Localized;
+    /** Puede empezar ya («Available immediately» en el CV). */
+    readonly availableNow: boolean;
   };
   readonly contact: {
     readonly email: string;

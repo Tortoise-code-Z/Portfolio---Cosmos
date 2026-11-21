@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { experience } from '~/content/experience';
 import { profile } from '~/content/profile';
 import { projectEntries } from '~/content/projects/entries';
 import { skillGroups } from '~/content/skills';
@@ -36,10 +37,6 @@ export function QuickMissionContent(): ReactNode {
     <div className={styles.grid}>
       <section className={styles.section}>
         <h3 className={styles.heading}>{t('quick.about')}</h3>
-        {/*
-         * Solo la bio: las fortalezas no van aquí desde C.1 (con la bio alineada con el CV, los proyectos se
-         * salían de la primera pantalla a 390 px; ADR-034 las saca también de About en C.2).
-         */}
         {profile.bio[locale].map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>
         ))}
@@ -50,6 +47,23 @@ export function QuickMissionContent(): ReactNode {
         <ul role="list" className={styles.list}>
           {ordered.map((project) => (
             <QuickProject key={project.slug} project={project} />
+          ))}
+        </ul>
+      </section>
+
+      <section className={styles.section}>
+        <h3 className={styles.heading}>{t('quick.experience')}</h3>
+        <p
+          className={styles.term}
+        >{`${localize(locale, experience.role)} · ${experience.company}`}</p>
+        <p className={styles.meta}>
+          {[localize(locale, experience.location), localize(locale, experience.period)].join(
+            SEPARATOR,
+          )}
+        </p>
+        <ul className={styles.bullets}>
+          {experience.log.map((entry) => (
+            <li key={localize('en', entry.text)}>{localize(locale, entry.text)}</li>
           ))}
         </ul>
       </section>
@@ -90,9 +104,11 @@ export function QuickMissionContent(): ReactNode {
           <h3 className={styles.heading}>{t('quick.availability')}</h3>
           <ul role="list" className={styles.list}>
             <li className={styles.open}>{t('nav.availability')}</li>
+            {availability.availableNow ? <li>{t('contact.availability.now')}</li> : null}
             <li>{workModesText(locale, availability.modes)}</li>
             {availability.openToRelocation ? <li>{t('contact.availability.relocation')}</li> : null}
             <li>{`${location.city}, ${localize(locale, location.country)}`}</li>
+            <li>{localize(locale, availability.workPermit)}</li>
           </ul>
         </section>
       ) : null}

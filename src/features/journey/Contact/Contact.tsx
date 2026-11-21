@@ -43,9 +43,11 @@ export function Contact(): ReactNode {
         {availability.openToWork ? (
           <ul role="list" className={cx(shared.dotted, styles.availability)} data-availability="">
             <li className={styles.open}>{t('nav.availability')}</li>
+            {availability.availableNow ? <li>{t('contact.availability.now')}</li> : null}
             <li>{workModesText(locale, availability.modes)}</li>
             {availability.openToRelocation ? <li>{t('contact.availability.relocation')}</li> : null}
             <li>{`${location.city}, ${localize(locale, location.country)}`}</li>
+            <li>{localize(locale, availability.workPermit)}</li>
           </ul>
         ) : null}
 

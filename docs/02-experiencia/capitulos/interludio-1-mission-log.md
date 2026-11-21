@@ -2,7 +2,8 @@
 
 > Fase C, paso 2 (ADR-034). Va entre el capítulo 1 (Nebulosa) y el 2 (Galaxia). Diseño aprobado el 2026-11-19:
 > «transmisiones» a pantalla completa, cada una en su canal de color (`docs/03-diseno/design-system.md` →
-> «Transmisiones»). Los textos son provisionales hasta su PR.
+> «Transmisiones»). Hecho en C.2: componentes `Transmission` y `MissionLog`; datos en
+> `docs/01-contenido/experiencia.md`; rótulos en `textos-sitio.md`.
 
 ## Propósito
 
@@ -13,24 +14,27 @@ Metáfora: en mitad del viaje llega una transmisión, el registro de la primera 
 
 - Canal: «channel 01 · amber», indicador de señal y «Skip transmission ↓».
 - Cabecera: «▸ Incoming transmission · source located» y el título «MISSION 01».
-- Ficha de misión: Source **Studios Demanzon** · Role **Software Developer Intern** · Position **Remote · Tenerife,
-  Spain** · Window **Jul 2026 – Oct 2026** · Status **Mission complete**. Los mismos datos que el CV.
+- Ficha de misión (una lista de definiciones): Source **Studios Demanzon** · Role **Software Developer Intern** ·
+  Position **Remote · Tenerife, Spain** · Window **Jul 2026 – Oct 2026** · Status **Mission complete**. Los mismos
+  datos que el CV. Debajo, una línea con lo que hizo («Three months of remote work across the front end, a desktop
+  app and backend services»), no con qué es el producto.
 - **Payload manifest:** seis módulos (las herramientas y para qué se usaron), cada uno con los números de las
-  entradas del registro que le tocan: Next.js · React · TS (interfaces de las dos apps) · Electron (app de
-  escritorio) · Estado y renderizado (bugs encontrados y arreglados) · NestJS (servicios) · Docker (imágenes y
-  volúmenes) · n8n (flujos de traducción).
-- **Flight log:** las seis viñetas aprobadas del CV, numeradas y con su etiqueta (BUILT, ADDED, FIXED, AUTO,
-  BACKEND), y al final «END OF TRANSMISSION» con cursor.
+  entradas del registro que le tocan, también en el texto («Log entries 01, 02, and 04»).
+- **Flight log:** las seis viñetas del CV **suavizadas** (sin decir qué es el producto: decisión de Víctor, también
+  para el CV y LinkedIn), numeradas en un círculo y con su etiqueta (BUILT, ADDED, FIXED, AUTO, BACKEND), y al final
+  «End of transmission» con cursor.
+- **Reference:** con permiso expreso del CTO, una frase de su carta, en el idioma en que se lee (la traducción
+  firmada en EN, la carta original en ES).
 - Pie: la onda de señal y «t ≈ 200 million years · cosmic clock paused».
-- **No se muestra cómo está construido el producto del cliente** (arquitectura, conexiones entre sus partes): es
-  información privada de la empresa. Solo lo que ya dice el CV.
-- Si el CTO da permiso expreso, una frase corta de su carta; si no, «Reference available on request».
+- **No se muestra qué es ni cómo está construido el producto del cliente** (tipo de producto, arquitectura,
+  conexiones entre sus partes): es información privada de la empresa. Un test del componente lo vigila.
 
 ## Escena
 
 - La forma del capítulo anterior (la nebulosa) se queda quieta y atenuada detrás; la pantalla del canal la cubre
   casi entera. El cambio a la galaxia ocurre al salir del interludio.
-- El reloj del HUD se para mientras dura. Estrellas y placas no reciben el puntero.
+- El reloj del HUD se para mientras dura (`m` se queda en 1). Estrellas y placas no reciben el puntero (la
+  pantalla, hija directa de `<main>`, lo recoge). En la cola, vacía y sin puntero, la nebulosa cambia a galaxia.
 
 ## Interacciones
 
@@ -52,11 +56,13 @@ Metáfora: en mitad del viaje llega una transmisión, el registro de la primera 
   sin teletipo (texto completo) y sin cursor parpadeante.
 - Contraste del canal medido sobre su fondo (AA) antes de dar el paso por hecho.
 
-## Pendiente (antes o durante su PR)
+## Raíl y misión rápida
 
-- Redacción final EN y traducción fiel ES; las viñetas acortadas del registro, revisadas contra el CV.
-- Permiso del CTO para la frase de su carta.
-- Plan B: si el interludio no está el 24 nov, la experiencia entra provisional en About y en la misión rápida.
+- Rombo propio en el raíl entre About y Skills («Mission log · transmission»), activo mientras se lee la pantalla y
+  la primera mitad de la cola; ancla `#mission-log`.
+- En la misión rápida, la sección «Experience» va tras Projects (los proyectos siguen en la primera pantalla a
+  390 px): puesto, empresa, lugar, fechas y las seis entradas.
+- En Contacto (y en la misión rápida), la disponibilidad suma «Available immediately» y el permiso de trabajo.
 
 ## Aceptación
 

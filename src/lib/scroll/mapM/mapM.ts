@@ -25,23 +25,54 @@ export function toScrollLayout(layout: ChapterLayout, offset: number): ChapterLa
 }
 
 /**
- * Traduce una posición de scroll `y` (px) al valor continuo `m` de 0 al último capítulo
- * (docs/02-experiencia/scroll-y-escena.md → «Cálculo de m»). En el capítulo `i` que contiene `y`,
- * `m = i + smoothstep(ventana_i, 1, f)`, con `f` la fracción recorrida: la forma se queda quieta hasta
- * su ventana y llega a la siguiente justo al empezar el capítulo siguiente. Sin capítulos, 0.
- *
- * `morphStart[i]` es la ventana del capítulo `i` (`CHAPTER_MORPH_START`); si falta, el cambio ocupa todo
- * el capítulo. Una altura de 0 cuenta como recorrida.
+ * Lo que hace la escena en un tramo del viaje (un capítulo o una parte de un interludio): su forma (`base`, la `m` en
+ * reposo) y desde qué fracción del tramo cambia hacia la siguiente (`morphStart`), o `null` si se queda quieta todo el
+ * tramo (docs/02-experiencia/scroll-y-escena.md → «Tramos del viaje»).
  */
-export function mapM(y: number, layout: ChapterLayout, morphStart: readonly number[]): number {
+export interface JourneyStep {
+  readonly base: number;
+  readonly morphStart: number | null;
+}
+
+/** Los tramos de un viaje solo de capítulos: el capítulo `i` es la forma `i` y cambia desde `windows[i]`. */
+export function chapterSteps(windows: readonly number[], count: number): JourneyStep[] {
+  return Array.from({ length: count }, (_, index) => ({
+    base: index,
+    morphStart: windows[index] ?? null,
+  }));
+}
+
+/**
+ * Hasta dónde puede quedarse corto un ancla: el navegador redondea el scroll a píxeles enteros y un tramo puede
+ * empezar en `2725,4`. Sin margen, `/#mission-log` se leería en About (a diferencia de un capítulo, que en ese píxel ya
+ * tiene la `m` del siguiente, un interludio se nota: el raíl).
+ */
+const ANCHOR_SLACK_PX = 1;
+
+/** El tramo que contiene la posición de scroll `y` (el primero antes de empezar; 0 sin tramos). */
+export function segmentAt(y: number, layout: ChapterLayout): number {
   let index = 0;
   for (const next of layout.slice(1)) {
-    if (y < next.top) break;
+    if (y < next.top - ANCHOR_SLACK_PX) break;
     index += 1;
   }
+  return index;
+}
+
+/**
+ * Traduce una posición de scroll `y` (px) al valor continuo `m` (docs/02-experiencia/scroll-y-escena.md → «Cálculo
+ * de m»). En el tramo `i` que contiene `y`, `m = base_i + smoothstep(morphStart_i, 1, f)`, con `f` la fracción
+ * recorrida: la forma se queda quieta hasta su ventana y llega a la siguiente justo al empezar el tramo siguiente. Un
+ * tramo sin ventana (`null`, o el último) se queda en su `base` (un interludio que para la escena). Un tramo sin
+ * paso en `steps` es su propio índice y cambia en todo su recorrido. Sin tramos, 0. Una altura de 0 cuenta como
+ * recorrida.
+ */
+export function mapM(y: number, layout: ChapterLayout, steps: readonly JourneyStep[]): number {
+  const index = segmentAt(y, layout);
   const box = layout[index];
   if (box === undefined) return 0;
-  if (index === layout.length - 1) return index;
+  const step = steps[index] ?? { base: index, morphStart: 0 };
+  if (index === layout.length - 1 || step.morphStart === null) return step.base;
   const fraction = box.height > 0 ? (y - box.top) / box.height : 1;
-  return index + smoothstep(morphStart[index] ?? 0, 1, fraction);
+  return step.base + smoothstep(step.morphStart, 1, fraction);
 }

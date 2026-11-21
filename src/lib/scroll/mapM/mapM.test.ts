@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { mapM, toScrollLayout, type ChapterLayout } from './mapM';
+import { chapterSteps, mapM, segmentAt, toScrollLayout, type ChapterLayout } from './mapM';
 
 // Alturas del prototipo a 1000 px de ventana: 150 / 210 / 220 / 240 / 130 vh.
 const LAYOUT: ChapterLayout = [
@@ -10,7 +10,7 @@ const LAYOUT: ChapterLayout = [
   { top: 5800, height: 2400 },
   { top: 8200, height: 1300 },
 ];
-const WINDOWS = [0, 0.52, 0.52, 0.55];
+const WINDOWS = chapterSteps([0, 0.52, 0.52, 0.55], 5);
 
 describe('mapM', () => {
   it('is 0 at the very start and before it (overscroll)', () => {
@@ -72,8 +72,38 @@ describe('mapM', () => {
     expect(mapM(1500 + 2000, grown, WINDOWS)).toBeGreaterThan(1);
   });
 
-  it('a missing window means the morph takes the whole chapter', () => {
-    expect(mapM(1500 + 1050, LAYOUT, [0])).toBeCloseTo(1.5, 10);
+  it('a missing step means the segment is its own shape and morphs all the way', () => {
+    expect(mapM(1500 + 1050, LAYOUT, chapterSteps([0], 1))).toBeCloseTo(1.5, 10);
+  });
+
+  it('an interlude holds the shape of the chapter before it, and its tail morphs to the next one', () => {
+    // Inicio · About (quieta) · interludio (quieto) · su cola (cambia) · Skills.
+    const layout: ChapterLayout = [
+      { top: 0, height: 1000 },
+      { top: 1000, height: 2000 },
+      { top: 3000, height: 1500 },
+      { top: 4500, height: 1000 },
+      { top: 5500, height: 2000 },
+    ];
+    const steps = [
+      { base: 0, morphStart: 0 },
+      { base: 1, morphStart: null },
+      { base: 1, morphStart: null },
+      { base: 1, morphStart: 0 },
+      { base: 2, morphStart: null },
+    ];
+    expect(mapM(1000, layout, steps)).toBe(1);
+    expect(mapM(2999, layout, steps)).toBe(1);
+    expect(mapM(3000, layout, steps)).toBe(1);
+    expect(mapM(4499, layout, steps)).toBe(1);
+    expect(mapM(5000, layout, steps)).toBeCloseTo(1.5, 10);
+    expect(mapM(5499.99, layout, steps)).toBeCloseTo(2, 6);
+    expect(mapM(5500, layout, steps)).toBe(2);
+    expect(segmentAt(3200, layout)).toBe(2);
+    // Un ancla redondeada al píxel (el tramo empieza en 2999,6 y el scroll se queda en 2999) ya es el interludio.
+    expect(segmentAt(2999, [...layout.slice(0, 2), { top: 2999.6, height: 1500 }])).toBe(2);
+    expect(segmentAt(2998, [...layout.slice(0, 2), { top: 2999.6, height: 1500 }])).toBe(1);
+    expect(segmentAt(4600, layout)).toBe(3);
   });
 
   it('a chapter of height 0 counts as fully travelled', () => {
@@ -83,11 +113,16 @@ describe('mapM', () => {
     ];
     expect(mapM(0, flat, WINDOWS)).toBe(1);
     expect(mapM(-1, flat, WINDOWS)).toBe(1);
+    // Con el margen del ancla (1 px), y = 0 y y = −1 ya caen en el tramo siguiente: y = −2 es el que cae en el de altura
+    // 0, y cuenta como recorrido.
+    expect(segmentAt(-2, flat)).toBe(0);
+    expect(mapM(-2, flat, WINDOWS)).toBe(1);
   });
 
   it('a single chapter is always 0, and no chapters is 0', () => {
     expect(mapM(500, [{ top: 0, height: 1000 }], WINDOWS)).toBe(0);
     expect(mapM(500, [], WINDOWS)).toBe(0);
+    expect(segmentAt(500, [])).toBe(0);
   });
 });
 

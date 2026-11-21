@@ -1,4 +1,4 @@
-import type { ChapterIndex } from '~/content/chapters';
+import type { ChapterIndex, InterludeId } from '~/content/chapters';
 
 /**
  * El contrato del viaje con el DOM: cómo se encuentran sus capítulos y su nombre. Lo pintan los
@@ -7,11 +7,22 @@ import type { ChapterIndex } from '~/content/chapters';
  * (docs/05-tecnico/arquitectura.md → «Capas»).
  */
 
-/** Cómo se encuentran los capítulos en el DOM (lo usan el mapeo de scroll y sus tests). */
+/** Cómo se encuentran los capítulos en el DOM. */
 export const CHAPTER_SELECTOR = '[data-chapter]';
+
+/**
+ * Cómo se encuentran los tramos del viaje en el DOM, en el orden de `JOURNEY_SEGMENTS`: los capítulos y, de cada
+ * interludio, su pantalla y su cola (lo usa el mapeo de scroll).
+ */
+export const JOURNEY_SEGMENT_SELECTOR = '[data-chapter], [data-interlude], [data-interlude-tail]';
 
 /** Id del nombre (el `h1`): destino de «Skip to content» sin JavaScript. */
 export const HERO_TITLE_ID = 'hero-title';
+
+/** La pantalla del interludio `id` en el DOM, o `null` si no está. */
+export function findInterlude(id: InterludeId): HTMLElement | null {
+  return document.querySelector<HTMLElement>(`[data-interlude="${id}"]`);
+}
 
 /** El capítulo `index` en el DOM (también el inicio, que no tiene ancla), o `null` si no está. */
 export function findChapter(index: ChapterIndex): HTMLElement | null {

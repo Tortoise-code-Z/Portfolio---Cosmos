@@ -56,6 +56,13 @@
   color: var(--color-aurora);
 }
 
+/* La experiencia: las viñetas del registro, con su viñeta (una lista de lectura). */
+.bullets {
+  display: grid;
+  gap: var(--space-2);
+  padding-inline-start: var(--space-5);
+}
+
 .project {
   display: flex;
   flex-direction: column;

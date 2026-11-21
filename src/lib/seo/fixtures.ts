@@ -12,9 +12,14 @@ export const fakeProfile: Profile = {
   role: { en: 'Frontend Developer', es: 'Desarrolladora Frontend' },
   headline: { en: 'Builds interfaces.', es: 'Construye interfaces.' },
   bio: { en: ['Bio.'], es: ['Bio.'] },
-  strengths: [{ en: 'Focus', es: 'Foco' }],
   location: { city: 'Cork', country: { en: 'Ireland', es: 'Irlanda' } },
-  availability: { openToWork: true, modes: ['remote'], openToRelocation: false },
+  availability: {
+    openToWork: true,
+    modes: ['remote'],
+    openToRelocation: false,
+    workPermit: { en: 'EU citizen', es: 'Ciudadana de la UE' },
+    availableNow: true,
+  },
   contact: {
     email: 'ada@example.com',
     github: 'https://github.com/ada',

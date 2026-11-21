@@ -92,12 +92,13 @@ export interface Profile {
   readonly role: Localized;
   readonly headline: Localized;              // línea corta para SEO y tarjetas
   readonly bio: Localized<readonly string[]>;
-  readonly strengths: readonly Localized[];
   readonly location: { readonly city: string; readonly country: Localized };
   readonly availability: {
     readonly openToWork: boolean;
     readonly modes: readonly WorkMode[];
     readonly openToRelocation: boolean;
+    readonly workPermit: Localized;          // como el CV: «EU citizen – full right to work in Ireland»
+    readonly availableNow: boolean;          // «Available immediately»
   };
   readonly contact: {
     readonly email: string;
@@ -106,6 +107,20 @@ export interface Profile {
   };
   readonly cv: Localized<string | null>;     // ruta al PDF por idioma ('/Victor_Perez_CV.pdf'); null = no se muestra
   readonly education: readonly Education[];
+}
+
+// La experiencia como misión (src/content/experience.ts; docs/01-contenido/experiencia.md).
+export interface Experience {
+  readonly id: string;
+  readonly company: string;
+  readonly role: Localized;
+  readonly location: Localized;
+  readonly period: Localized;
+  readonly status: Localized;
+  readonly summary: Localized;                       // lo que hizo, nunca qué es el producto
+  readonly modules: readonly MissionModule[];        // { id, name: Label, purpose: Localized, entries: number[] }
+  readonly log: readonly MissionLogEntry[];          // { tag: Localized, text: Localized }: las viñetas del CV
+  readonly reference: MissionReference | null;       // { quote: Localized, author, title: Localized }
 }
 
 export interface Education {
@@ -212,8 +227,9 @@ export interface DemoCredential {
 7. Los textos `en` y `es` tienen exactamente las mismas claves (el compilador y un test) y, en cada clave, los
    mismos huecos `{x}` (en cualquier orden).
 8. Además: `LOCALES` = `en`, `es`, con EN primero; las 4 constelaciones en su orden y ninguna vacía; formación con
-   ids únicos y horas enteras positivas; cada `cv` que no es `null`, un PDF que existe en `public/`; y al menos un elemento en las listas que la interfaz siempre pinta
-   (`bio`, `strengths`, `availability.modes`, y por proyecto `about`, `features`, `stack.core` y `tryIt.steps`).
+   ids únicos y horas enteras positivas; la misión con seis entradas y un manifiesto que las cubre todas, sin
+   números que no existan; cada `cv` que no es `null`, un PDF que existe en `public/`; y al menos un elemento en las listas que la interfaz siempre pinta
+   (`bio`, `availability.modes`, y por proyecto `about`, `features`, `stack.core` y `tryIt.steps`).
    `process` y `highlights` sí pueden ir vacíos: la sección no se pinta.
 
 ## Relación con la escena

@@ -6,13 +6,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CHAPTER_INDICES } from '~/content/chapters';
 import { uiTexts } from '~/content/texts';
-import { sceneStore, setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import { sceneStore, setReadingInterlude, setScrollTarget } from '~/stores/sceneStore/sceneStore';
 
 import { ChapterRail, splitChapterLabel } from './ChapterRail';
 
 const EN = [
   'Home · Singularity',
   'About · Nebula',
+  'Mission log · transmission',
   'Skills · Galaxy',
   'Projects · Cosmic turtle',
   'Contact · Earth',
@@ -44,7 +45,7 @@ afterEach(() => {
 });
 
 describe('ChapterRail', () => {
-  it('is a navigation landmark with an ordered list of five links, one per chapter', () => {
+  it('is a navigation landmark with an ordered list: a link per chapter and per interlude, in reading order', () => {
     const rail = renderRail();
     expect(rail).toHaveAccessibleName('Chapters');
     const list = within(rail).getByRole('list');
@@ -57,13 +58,13 @@ describe('ChapterRail', () => {
     ).toEqual(EN);
   });
 
-  it('each link points to its chapter, so it works without JavaScript and in a new tab', () => {
+  it('each link points to its chapter or interlude, so it works without JavaScript and in a new tab', () => {
     const rail = renderRail();
     expect(
       within(rail)
         .getAllByRole('link')
         .map((link) => link.getAttribute('href')),
-    ).toEqual(['/', '/#about', '/#skills', '/#projects', '/#contact']);
+    ).toEqual(['/', '/#about', '/#mission-log', '/#skills', '/#projects', '/#contact']);
   });
 
   it('shows the section and the scene of each chapter', () => {
@@ -84,6 +85,45 @@ describe('ChapterRail', () => {
       setScrollTarget(2.6);
     });
     expect(current()).toEqual(['Projects · Cosmic turtle']);
+  });
+
+  it('marks the interlude while it is read (a diamond, not a dot), and the next chapter once its tail is half way', () => {
+    const rail = renderRail();
+    const current = (): string[] =>
+      within(rail)
+        .getAllByRole('link')
+        .filter((link) => link.getAttribute('aria-current') === 'step')
+        .map((link) => link.getAttribute('aria-label') ?? '');
+    act(() => {
+      setScrollTarget(1);
+      setReadingInterlude('mission-log');
+    });
+    expect(current()).toEqual(['Mission log · transmission']);
+    act(() => {
+      setScrollTarget(1.6);
+    });
+    expect(current()).toEqual(['Skills · Galaxy']);
+    act(() => {
+      setScrollTarget(1);
+      setReadingInterlude(null);
+    });
+    expect(current()).toEqual(['About · Nebula']);
+  });
+
+  it('a click on the interlude travels to its screen, focuses its title and leaves its anchor', async () => {
+    const rail = renderRail();
+    const screenElement = document.createElement('section');
+    screenElement.dataset.interlude = 'mission-log';
+    screenElement.setAttribute('aria-labelledby', 'mission-log-title');
+    screenElement.innerHTML = '<h2 id="mission-log-title" tabindex="-1">Mission 01</h2>';
+    const scrollIntoView = vi.fn();
+    screenElement.scrollIntoView = scrollIntoView;
+    document.body.append(screenElement);
+
+    await userEvent.click(within(rail).getByRole('link', { name: 'Mission log · transmission' }));
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Mission 01' }));
+    expect(window.location.hash).toBe('#mission-log');
   });
 
   it('re-renders only when the active chapter changes, not on every scroll', () => {

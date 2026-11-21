@@ -791,6 +791,14 @@
   construido el producto de la empresa de las prácticas (es información suya): enseña las herramientas usadas y para
   qué, con el registro de lo hecho. El retrato del epílogo: holograma de líneas de escáner en el verde del canal,
   con el giro limitado. Spec en `docs/03-diseno/design-system.md` → «Transmisiones» y en los docs de cada sección.
+- Nota (2026-11-20, C.2): el interludio, construido. `m` se mide por **tramos** (`JOURNEY_SEGMENTS`: cada capítulo,
+  y de cada interludio su pantalla y su cola); un tramo enseña una forma y cambia a la siguiente o se queda quieto.
+  About se queda quieta entera (150 vh; 170 en móvil) y la nebulosa cambia a galaxia en la cola del Mission log
+  (100 vh vacíos y sin puntero), así que el reloj del HUD se para solo y la escena no cambia ni un byte; el velo del
+  canal atenúa la forma de detrás. El raíl gana un rombo por interludio (y la reserva de las etiquetas, 132 px de
+  media altura). La web no dice qué es el producto de la empresa de las prácticas, aunque el CV lo cuente: las
+  viñetas van suavizadas (y se ha pedido lo mismo para el CV y LinkedIn). La frase de la carta del CTO, con su
+  permiso. El JS propio de cada página pasa de 35 a 38 KB (`calidad.md`).
 - Detalle: `docs/06-roadmap/roadmap.md` → «C · Contenido y secciones nuevas»; cada sección, en su doc de
   `docs/02-experiencia/capitulos/` (`interludio-1-mission-log.md`, `interludio-2-mission-control.md`,
   `05-crew-file.md`) y el sistema visual en `docs/03-diseno/design-system.md` → «Transmisiones».

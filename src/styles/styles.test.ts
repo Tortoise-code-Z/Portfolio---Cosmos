@@ -24,6 +24,9 @@ const TOKENS_FILE = fileURLToPath(new URL('./tokens.css', import.meta.url));
 const FONTS_FILE = fileURLToPath(new URL('./fonts.css', import.meta.url));
 const WCAG_AA_TEXT = 4.5;
 const TEXT_TOKENS = ['ink', 'ink-soft', 'dim', 'star', 'aurora'] as const;
+/** Los canales de las transmisiones (fase C): su texto va sobre el fondo de su canal. */
+const CHANNELS = ['amber'] as const;
+const CHANNEL_TEXT = ['', '-dim', '-bright'] as const;
 const PRIVATE_VAR_PREFIX = '--_';
 
 // ── Lectura de CSS ───────────────────────────────────────────────────────────
@@ -335,6 +338,17 @@ describe('design tokens', () => {
     const ratio = contrastRatio(tokenValue(`--color-${name}`), tokenValue('--color-void'));
     expect(ratio).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
   });
+
+  it.each(CHANNELS.flatMap((channel) => CHANNEL_TEXT.map((tone) => [channel, tone] as const)))(
+    'the %s channel%s text meets WCAG AA contrast on its background',
+    (channel, tone) => {
+      const ratio = contrastRatio(
+        tokenValue(`--color-channel-${channel}${tone}`),
+        tokenValue(`--color-channel-${channel}-bg`),
+      );
+      expect(ratio).toBeGreaterThanOrEqual(WCAG_AA_TEXT);
+    },
+  );
 });
 
 describe('invariant checks catch what they promise (guards)', () => {

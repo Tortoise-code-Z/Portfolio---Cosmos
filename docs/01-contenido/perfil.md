@@ -21,7 +21,7 @@ primer año de Física, con Python; Python no entra como skill). La versión ES 
    came back to it on my own in 2022, and curiosity turned into a career: in 2024 I finished a 975-hour
    full-stack web programming course with a Distinction.
 2. In 2026 I completed a three-month remote internship at Studios Demanzon, building React and Next.js
-   interfaces for a B2B game launcher and working with NestJS, Docker and Electron.
+   interfaces and working with NestJS, Docker and Electron.
 3. I work on both sides, but the front end is where I feel most at home: turning designs into precise interfaces
    with React and TypeScript. I use AI (Claude) every day to move faster, and I read and understand every change
    before it goes in.
@@ -30,22 +30,14 @@ primer año de Física, con Python; Python no entra como skill). La versión ES 
 1. Escribí mi primer código en 2019, en una asignatura de computación científica con Python durante mi primer año
    de Física. Lo retomé por mi cuenta en 2022 y la curiosidad se convirtió en profesión: en 2024 terminé un curso
    de programación web full-stack de 975 horas con Sobresaliente.
-2. En 2026 hice tres meses de prácticas en remoto en Studios Demanzon: interfaces con React y Next.js para un
-   lanzador de juegos B2B, y trabajo con NestJS, Docker y Electron.
+2. En 2026 hice tres meses de prácticas en remoto en Studios Demanzon: interfaces con React y Next.js, y trabajo
+   con NestJS, Docker y Electron.
 3. Trabajo en los dos lados, pero donde más cómodo me siento es en el frontend: convertir diseños en interfaces
    precisas con React y TypeScript. Uso IA (Claude) a diario para ir más rápido, y leo y entiendo cada cambio
    antes de que entre.
 
-De las prácticas, la bio dice solo lo que dice el CV: nada de cómo está construido el producto de la empresa
-(nota de ADR-034). La experiencia completa llega con el Mission log (C.2).
-
-## Fortalezas
-
-| EN | ES |
-|---|---|
-| Hard-working | Trabajador |
-| Communication | Comunicación |
-| Perseverance | Perseverancia |
+De las prácticas, la bio dice solo lo que hizo Víctor: ni qué es ni cómo está construido el producto de la empresa
+(nota de ADR-034; desde C.2 ni siquiera lo que el CV cuenta del producto). La experiencia completa llega con el Mission log (C.2).
 
 ## Ubicación y disponibilidad
 
@@ -56,11 +48,15 @@ De las prácticas, la bio dice solo lo que dice el CV: nada de cómo está const
 | openToWork | `true` |
 | modes | `remote`, `hybrid`, `onsite` |
 | openToRelocation | `true` |
+| workPermit | EN: EU citizen – full right to work in Ireland · ES: Ciudadano de la UE, con permiso de trabajo en Irlanda |
+| availableNow | `true` («Available immediately», como el CV) |
 
 Texto visible (lo arma la interfaz a partir de los datos):
 
-- EN: **Open to work** · Remote, hybrid, or on-site · Open to relocation · Killarney, Ireland
-- ES: **Disponible** · Remoto, híbrido o presencial · Abierto a reubicarme · Killarney, Irlanda
+- EN: **Open to work** · Available immediately · Remote, hybrid, or on-site · Open to relocation · Killarney,
+  Ireland · EU citizen – full right to work in Ireland
+- ES: **Disponible** · Disponible de inmediato · Remoto, híbrido o presencial · Abierto a reubicarme · Killarney,
+  Irlanda · Ciudadano de la UE, con permiso de trabajo en Irlanda
 
 ## Contacto
 

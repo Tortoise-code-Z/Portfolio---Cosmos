@@ -15,6 +15,13 @@ import {
  * Detalle en docs/02-experiencia/ (README y capitulos/) y docs/03-diseno/componentes.md.
  */
 
+/**
+ * Cuánto se espera a que una carga mantenida detone. La carga avanza como mucho 0,1 s por frame
+ * (`HOLD_MAX_STEP_SECONDS`), así que pide 15 frames: WebKit sin GPU en el CI puede ir a unos 3 fps con la página
+ * entera (C.2: se quedó en 0,93, 14 frames en 5 s). La duración exacta la vigila `charge.test.ts`.
+ */
+const DETONATE_TIMEOUT_MS = 15_000;
+
 const CHAPTERS = {
   en: [
     ['about', 'A star born from curiosity'],
@@ -27,6 +34,24 @@ const CHAPTERS = {
     ['skills', 'Mi galaxia de herramientas'],
     ['projects', 'Lo que llevo a cuestas'],
     ['contact', 'Aterrizaje'],
+  ],
+} as const;
+
+/** Los títulos `h2` del viaje en orden: los capítulos y, tras About, el Mission log (fase C). */
+const HEADINGS = {
+  en: [
+    'A star born from curiosity',
+    'Mission 01',
+    'My galaxy of tools',
+    'What I carry on my shell',
+    'Touchdown',
+  ],
+  es: [
+    'Una estrella que nace de la curiosidad',
+    'Misión 01',
+    'Mi galaxia de herramientas',
+    'Lo que llevo a cuestas',
+    'Aterrizaje',
   ],
 } as const;
 
@@ -58,13 +83,17 @@ test.describe('the journey (home)', () => {
     ['/', 'en'],
     ['/es', 'es'],
   ] as const) {
-    test(`${path}: one h1, the four chapters in order and no console errors`, async ({ page }) => {
+    test(`${path}: one h1, the four chapters and the Mission log in order, and no console errors`, async ({
+      page,
+    }) => {
       const errors = collectErrors(page);
       await page.goto(path, { waitUntil: 'networkidle' });
       await expect(page.locator('html')).toHaveAttribute('lang', locale);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText('Víctor Pérez');
-      await expect(page.getByRole('heading', { level: 2 })).toHaveText(
-        CHAPTERS[locale].map(([, title]) => title),
+      await expect(page.getByRole('heading', { level: 2 })).toHaveText(HEADINGS[locale]);
+      await expect(page.getByRole('region', { name: HEADINGS[locale][1] })).toHaveAttribute(
+        'id',
+        'mission-log',
       );
       for (const [id, title] of CHAPTERS[locale]) {
         await expect(page.getByRole('region', { name: title })).toHaveAttribute('id', id);
@@ -93,7 +122,7 @@ test.describe('the journey (home)', () => {
     // Se mantiene hasta ver el resultado: la duración exacta la vigila charge.test.ts y un CI lento
     // no suelta antes de tiempo.
     await page.keyboard.down('Space');
-    await expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 });
+    await expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: DETONATE_TIMEOUT_MS });
     await page.keyboard.up('Space');
     const about = await landingY(page, 'about');
     // `scrollY` puede ser fraccionario y `offsetTop` es entero: 1 px de tolerancia, sin redondear.
@@ -222,7 +251,11 @@ test.describe('the journey (home)', () => {
 
   test('1280×720: every focusable element, with its focus ring, comes into view with Tab', async ({
     page,
+    browserName,
   }) => {
+    // Un Tab por elemento y, en WebKit, hasta 10 pares de frames por cada uno: con WebKit sin GPU a pocos fps
+    // (DETONATE_TIMEOUT_MS) y los enlaces del Mission log, 30 s no llegan.
+    test.slow(browserName === 'webkit', 'WebKit without a GPU paints few frames per second in CI');
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/', { waitUntil: 'networkidle' });
     // Con la escena decidida: con ella, los grupos de Skills entran en el Tab (F4.3c); sin ella, no.
@@ -305,7 +338,7 @@ test.describe('the journey (home)', () => {
     page,
   }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
-    const lists = await page.locator('main ul').count();
+    const lists = await page.locator('main :is(ul, ol)').count();
     expect(lists).toBeGreaterThan(0);
     await expect(page.locator('main').getByRole('list')).toHaveCount(lists);
   });
@@ -467,7 +500,9 @@ test.describe('the Big Bang', () => {
     await page.keyboard.down('Space');
     try {
       await during?.();
-      await expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 });
+      await expect(button).toHaveAttribute('aria-disabled', 'true', {
+        timeout: DETONATE_TIMEOUT_MS,
+      });
     } finally {
       await page.keyboard.up('Space');
     }
@@ -628,7 +663,7 @@ test.describe('on a touch screen', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     const button = page.getByRole('button', { name: 'Hold to detonate' });
     await holdFinger(page, 'button[aria-describedby]', () =>
-      expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: 5_000 }),
+      expect(button).toHaveAttribute('aria-disabled', 'true', { timeout: DETONATE_TIMEOUT_MS }),
     );
   });
 
@@ -661,9 +696,7 @@ test.describe('without JavaScript', () => {
     await page.goto('/es');
     await expect(page.locator('html')).toHaveAttribute('lang', 'es');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Víctor Pérez');
-    await expect(page.getByRole('heading', { level: 2 })).toHaveText(
-      CHAPTERS.es.map(([, title]) => title),
-    );
+    await expect(page.getByRole('heading', { level: 2 })).toHaveText(HEADINGS.es);
     await expect(page.getByRole('link', { name: 'Ver proyecto Chessmate' })).toHaveAttribute(
       'href',
       '/es/projects/chessmate',

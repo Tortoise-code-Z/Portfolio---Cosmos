@@ -208,9 +208,10 @@ color, uno por **canal**:
 | 02 · azul | Mission control | `#7cc4ff` | `#4f86bd` | `#d6ecff` | `#02060d` |
 | 03 · verde | Crew file | `#6dff9f` | `#3f9a62` | `#d5ffe4` | `#010603` |
 
-(Valores de la propuesta: pasan a tokens `--color-channel-*` en el paso C.2, con su contraste AA medido sobre su
-fondo. Lectura del color: ámbar = estrellas y nebulosa; azul = espacio profundo y el océano de la tortuga; verde =
-la Tierra, la vida y el fósforo de los terminales.)
+(Desde C.2, el ámbar es token: `--color-channel-amber`, `-dim`, `-bright` y `-bg`, más el velo, la rejilla, la
+línea y el brillo; el azul y el verde pasan a tokens en su paso. `styles.test.ts` mide el contraste AA del color, el
+atenuado y el brillante sobre el fondo de su canal. Lectura del color: ámbar = estrellas y nebulosa; azul = espacio
+profundo y el océano de la tortuga; verde = la Tierra, la vida y el fósforo de los terminales.)
 
 Lenguaje común de las tres:
 

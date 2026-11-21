@@ -303,7 +303,7 @@ describe('useConstellations', () => {
       'git',
       'vite',
       'docker',
-      'vms',
+      // `vms` cae bajo el raíl desde que tiene un enlace más (el Mission log, fase C).
       'ai-pair',
       'ai-review',
       'chatgpt',
@@ -330,7 +330,7 @@ describe('useConstellations', () => {
     frame.fov = phone.fov;
     cameraPose(2, false, createParallax(), frame.camera);
     paint(390, 844);
-    expect(shownLabels(labels)).toHaveLength(13);
+    expect(shownLabels(labels)).toHaveLength(12);
   });
 
   it('without texts (outside the journey) there are no labels to place, but the stars still shine', () => {

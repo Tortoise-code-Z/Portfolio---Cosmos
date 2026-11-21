@@ -9,7 +9,8 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { CHAPTER_ANCHORS, CHAPTER_INDICES, CHAPTER_MORPH_START } from './chapters';
+import { CHAPTER_ANCHORS, CHAPTER_INDICES, INTERLUDES, JOURNEY_SEGMENTS } from './chapters';
+import { experience } from './experience';
 import { SHARE_IMAGE_WIDTH } from './imageWidths';
 import { profile } from './profile';
 import { projects } from './projects';
@@ -106,12 +107,64 @@ describe('contenido', () => {
     expect(new Set(anchors).size).toBe(anchors.length);
   });
 
-  it('una ventana de morph por capítulo salvo el último, dentro de [0, 1)', () => {
-    expect(CHAPTER_MORPH_START).toHaveLength(CHAPTER_INDICES.length - 1);
-    for (const start of CHAPTER_MORPH_START) {
-      expect(start).toBeGreaterThanOrEqual(0);
-      expect(start).toBeLessThan(1);
+  it('los tramos del viaje: los capítulos en orden, cada interludio con su pantalla y su cola tras su capítulo', () => {
+    const chapters = JOURNEY_SEGMENTS.flatMap((segment) =>
+      segment.kind === 'chapter' ? [segment.chapter] : [],
+    );
+    expect(chapters).toEqual(CHAPTER_INDICES);
+    const screens = new Map(
+      JOURNEY_SEGMENTS.flatMap((segment, index) =>
+        segment.kind === 'interlude' ? [[segment.interlude, index] as const] : [],
+      ),
+    );
+    expect([...screens.keys()]).toEqual(INTERLUDES.map((item) => item.id));
+    for (const interlude of INTERLUDES) {
+      const screen = screens.get(interlude.id) ?? -1;
+      expect(JOURNEY_SEGMENTS[screen - 1]).toMatchObject({
+        kind: 'chapter',
+        chapter: interlude.after,
+      });
+      expect(JOURNEY_SEGMENTS[screen + 1]).toMatchObject({
+        kind: 'interlude-tail',
+        interlude: interlude.id,
+      });
     }
+  });
+
+  it('la escena: cada tramo empieza en su forma y, si cambia, llega a la del siguiente; el último no cambia', () => {
+    JOURNEY_SEGMENTS.forEach((segment, index) => {
+      const next = JOURNEY_SEGMENTS[index + 1];
+      if (segment.kind === 'chapter') expect(segment.base).toBe(segment.chapter);
+      if (next === undefined) {
+        expect(segment.morphStart).toBeNull();
+      } else if (segment.morphStart === null) {
+        expect(next.base).toBe(segment.base);
+      } else {
+        expect(segment.morphStart).toBeGreaterThanOrEqual(0);
+        expect(segment.morphStart).toBeLessThan(1);
+        expect(next.base).toBe(segment.base + 1);
+      }
+    });
+  });
+
+  it('interludios con ancla propia, distinta de la de los capítulos', () => {
+    const anchors = [...Object.values(CHAPTER_ANCHORS), ...INTERLUDES.map((item) => item.anchor)];
+    expect(new Set(anchors).size).toBe(anchors.length);
+  });
+
+  it('la misión: el registro son las seis viñetas del CV y cada módulo apunta a entradas que existen', () => {
+    expect(experience.log).toHaveLength(6);
+    const numbers = experience.log.map((_, index) => index + 1);
+    const referenced = new Set(experience.modules.flatMap((module) => module.entries));
+    for (const entry of referenced) expect(numbers).toContain(entry);
+    // Cada entrada sale en algún módulo: el manifiesto cubre todo el registro.
+    expect([...referenced].sort((a, b) => a - b)).toEqual(numbers);
+    expect(
+      findIdProblems(
+        experience.modules.map((module) => module.id),
+        'módulo',
+      ),
+    ).toEqual([]);
   });
 
   it('EN es el idioma principal y hay exactamente EN y ES', () => {
@@ -120,7 +173,7 @@ describe('contenido', () => {
   });
 
   it('todo texto está escrito y todo Localized tiene EN y ES (regla 1)', () => {
-    expect(findTextProblems({ profile, skillGroups, projects })).toEqual([]);
+    expect(findTextProblems({ profile, skillGroups, projects, experience })).toEqual([]);
   });
 
   it('slugs únicos y con formato (regla 2)', () => {
@@ -195,7 +248,6 @@ describe('contenido', () => {
     const lists: Record<string, readonly unknown[]> = {
       'profile.bio.en': profile.bio.en,
       'profile.bio.es': profile.bio.es,
-      'profile.strengths': profile.strengths,
       'profile.availability.modes': profile.availability.modes,
     };
     for (const project of projects) {

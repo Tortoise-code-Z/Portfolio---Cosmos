@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { createRoutesStub } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { JOURNEY_SEGMENT_SELECTOR } from '~/features/journey/chapterDom/chapterDom';
 import { sceneStore } from '~/stores/sceneStore/sceneStore';
 
 import Journey from './journey';
@@ -59,30 +60,34 @@ describe('Journey', () => {
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('Lost in space');
   });
 
-  it('el scroll fija el m de sceneStore, capítulo a capítulo y con la ventana de cada uno', async () => {
-    // jsdom no maqueta: cada capítulo mide 1000 px y empieza donde acaba el anterior.
+  it('el scroll fija el m de sceneStore tramo a tramo: About y el Mission log quietos, la cola cambia', async () => {
+    // jsdom no maqueta: cada tramo (capítulo, pantalla o cola de un interludio) mide 1000 px, en su orden.
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
       this: HTMLElement,
     ) {
-      const index = Number(this.dataset.chapter ?? 0);
-      return { top: index * 1000 - window.scrollY, height: 1000 } as DOMRect;
+      const order = [...document.querySelectorAll(JOURNEY_SEGMENT_SELECTOR)].indexOf(this);
+      return { top: Math.max(order, 0) * 1000 - window.scrollY, height: 1000 } as DOMRect;
     });
     render(<Stub initialEntries={['/']} />);
     await screen.findByRole('heading', { level: 1 });
+    const at = (y: number): { mTarget: number; interlude: string | null } => {
+      Object.defineProperty(window, 'scrollY', { configurable: true, value: y });
+      fireEvent.scroll(window);
+      const { mTarget, interlude } = sceneStore.getState();
+      return { mTarget, interlude };
+    };
 
-    Object.defineProperty(window, 'scrollY', { configurable: true, value: 3000 });
-    fireEvent.scroll(window);
-    expect(sceneStore.getState().mTarget).toBe(3);
-
-    // Mitad de About: antes de su ventana (CHAPTER_MORPH_START[1] = 0,52), la forma no se mueve…
-    Object.defineProperty(window, 'scrollY', { configurable: true, value: 1500 });
-    fireEvent.scroll(window);
-    expect(sceneStore.getState().mTarget).toBe(1);
-    // …y a medio camino entre 0,52 y 1 va por la mitad (smoothstep(0,52; 1; 0,76) = 0,5).
-    Object.defineProperty(window, 'scrollY', { configurable: true, value: 1760 });
-    fireEvent.scroll(window);
-    expect(sceneStore.getState().mTarget).toBeCloseTo(1.5);
+    // Tramos: 0 inicio · 1 About · 2 Mission log · 3 su cola · 4 Skills · 5 Projects · 6 Contact.
+    expect(at(1500)).toEqual({ mTarget: 1, interlude: null });
+    expect(at(1990)).toEqual({ mTarget: 1, interlude: null });
+    expect(at(2500)).toEqual({ mTarget: 1, interlude: 'mission-log' });
+    // En la cola la nebulosa cambia a galaxia (ventana 0: smoothstep(0; 1; 0,5) = 0,5).
+    expect(at(3500).mTarget).toBeCloseTo(1.5);
+    expect(at(3500).interlude).toBe('mission-log');
+    expect(at(4000)).toEqual({ mTarget: 2, interlude: null });
+    expect(at(5000)).toEqual({ mTarget: 3, interlude: null });
   });
+
   it('la sugerencia de idioma va la última en el orden del Tab, después del modo misión rápida', async () => {
     vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['es-ES']);
     render(<Stub initialEntries={['/']} />);

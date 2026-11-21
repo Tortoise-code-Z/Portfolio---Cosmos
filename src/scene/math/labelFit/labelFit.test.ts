@@ -40,8 +40,9 @@ describe('keepOutZones', () => {
     const railLeft = 1265 - wide.rail.fromRight - m;
     expect(inside(zones, railLeft + 1, 360)).toBe('rail');
     expect(inside(zones, railLeft - 1, 360)).toBeUndefined();
-    expect(inside(zones, railLeft + 1, 360 - 110 - m + 1)).toBe('rail');
-    expect(inside(zones, railLeft + 1, 360 - 110 - m - 1)).toBeUndefined();
+    const railHalf = wide.rail.halfHeight;
+    expect(inside(zones, railLeft + 1, 360 - railHalf - m + 1)).toBe('rail');
+    expect(inside(zones, railLeft + 1, 360 - railHalf - m - 1)).toBeUndefined();
     const hudLeft = 1265 - wide.hud.fromRight - m;
     const hudTop = 720 - 62 - m;
     expect(inside(zones, hudLeft + 1, hudTop + 1)).toBe('HUD');

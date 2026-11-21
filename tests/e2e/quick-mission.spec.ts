@@ -51,7 +51,7 @@ test.describe('quick mission', () => {
     expect(box).toMatchObject({ x: 0, y: 0, width: viewport?.width, height: viewport?.height });
   });
 
-  test('everything is on one page: about, projects, skills, education, availability and contact', async ({
+  test('everything is on one page: about, projects, experience, skills, education, availability and contact', async ({
     page,
   }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
@@ -59,6 +59,7 @@ test.describe('quick mission', () => {
     await expect(quickDialog(page).getByRole('heading', { level: 3 })).toHaveText([
       'About',
       'Projects',
+      'Experience',
       'Skills',
       'Education',
       'Availability',

@@ -34,10 +34,11 @@ const EXPECTED_FONT_FILES = 4;
  *   `framework-*`: se aceptan los dos nombres. Medido en F2.4: 107,3 KB. Salta si una subida de versión
  *   lo engorda.
  * - Código propio de cada página: todo lo demás que pide su HTML. Medido en F2.4: home 17,4 KB, proyecto
- *   12,6 KB, 404 7,0 KB; el margen cubre lo que falta de F2 (navegación, misión rápida, galería).
+ *   12,6 KB, 404 7,0 KB; el margen cubre lo que falta de F2 (navegación, misión rápida, galería). En C.2
+ *   (Mission log), la home pasó de 35 KB: 35,5 KB; se sube a 38 KB por las secciones de la fase C (calidad.md).
  */
 const FRAMEWORK_JS_BUDGET_BYTES = 112_000;
-const PAGE_OWN_JS_BUDGET_BYTES = 35_000;
+const PAGE_OWN_JS_BUDGET_BYTES = 38_000;
 const FRAMEWORK_CHUNK = /\/assets\/(?:entry\.client|framework)-[^/]+\.js$/;
 /**
  * Cada variante de imagen que ofrecen las páginas (AVIF, WebP y el JPEG para compartir), sin comprimir más:

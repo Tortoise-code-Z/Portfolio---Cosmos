@@ -1,15 +1,24 @@
 import { useCallback, useEffect, useRef, type RefObject } from 'react';
 
-import { mapM, toScrollLayout, type ChapterLayout } from '../mapM/mapM';
+import {
+  mapM,
+  segmentAt,
+  toScrollLayout,
+  type ChapterLayout,
+  type JourneyStep,
+} from '../mapM/mapM';
 import { useChapterLayout } from '../useChapterLayout/useChapterLayout';
 
 interface ScrollTargetOptions {
-  /** Qué elementos de `root` son los capítulos, en orden. */
+  /** Qué elementos de `root` son los tramos del viaje (capítulos y partes de los interludios), en orden. */
   readonly selector: string;
-  /** Ventana de morph de cada capítulo (`CHAPTER_MORPH_START`). */
-  readonly morphStart: readonly number[];
-  /** Recibe el `m` objetivo: al montar, al cambiar las medidas y con cada scroll. */
-  readonly onTarget: (m: number) => void;
+  /** Lo que hace la escena en cada tramo (`JOURNEY_STEPS`). */
+  readonly steps: readonly JourneyStep[];
+  /**
+   * Recibe el `m` objetivo y el tramo en el que se lee (su índice): al montar, al cambiar las medidas y con cada
+   * scroll.
+   */
+  readonly onTarget: (m: number, segment: number) => void;
 }
 
 /**
@@ -23,18 +32,19 @@ function readingOffset(): number {
 
 /**
  * Puente scroll → `m` (docs/05-tecnico/arquitectura.md → «Puente scroll → escena»): un único escuchador
- * de scroll pasivo calcula `m = mapM(scrollY, capítulos bajo la barra)` y se lo da a `onTarget`. No pasa por
+ * de scroll pasivo calcula `m = mapM(scrollY, tramos bajo la barra)` y se lo da a `onTarget` con el tramo. No pasa por
  * estado de React (ADR-004): quien lo recibe decide qué hacer (hoy, `sceneStore`).
  */
 export function useScrollTarget(
   root: RefObject<HTMLElement | null>,
-  { selector, morphStart, onTarget }: ScrollTargetOptions,
+  { selector, steps, onTarget }: ScrollTargetOptions,
 ): void {
   const layout = useRef<ChapterLayout>([]);
 
   const update = useCallback((): void => {
-    onTarget(mapM(window.scrollY, layout.current, morphStart));
-  }, [morphStart, onTarget]);
+    const y = window.scrollY;
+    onTarget(mapM(y, layout.current, steps), segmentAt(y, layout.current));
+  }, [steps, onTarget]);
 
   const onLayout = useCallback(
     (measured: ChapterLayout): void => {

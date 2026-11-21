@@ -58,14 +58,25 @@ function section(name: string): HTMLElement {
 
 describe('QuickMissionContent', () => {
   it.each([
-    ['/', ['About', 'Projects', 'Skills', 'Education', 'Availability', 'Contact']],
-    ['/es', ['Sobre mí', 'Proyectos', 'Habilidades', 'Formación', 'Disponibilidad', 'Contacto']],
+    ['/', ['About', 'Projects', 'Experience', 'Skills', 'Education', 'Availability', 'Contact']],
+    [
+      '/es',
+      [
+        'Sobre mí',
+        'Proyectos',
+        'Experiencia',
+        'Habilidades',
+        'Formación',
+        'Disponibilidad',
+        'Contacto',
+      ],
+    ],
   ])('%s: every part of the journey, in reading order', (path, titles) => {
     renderContent(path);
     expect(sectionTitles()).toEqual(titles);
   });
 
-  it('about: the whole bio, without the strengths (they leave the site in C.2)', () => {
+  it('about: the whole bio (the strengths left the site in phase C)', () => {
     renderContent();
     const about = section('About');
     for (const paragraph of profile.bio.en) expect(about).toHaveTextContent(paragraph);
@@ -127,10 +138,22 @@ describe('QuickMissionContent', () => {
     expect(items[1]).toHaveTextContent(/Hola Mundo · 2025 · 13 h$/);
   });
 
+  it('experience: role, company, place, dates and the six entries of the mission log (after the projects)', () => {
+    renderContent('/es');
+    const experienceSection = section('Experiencia');
+    expect(experienceSection).toHaveTextContent(
+      'Desarrollador de software en prácticas · Studios Demanzon',
+    );
+    expect(experienceSection).toHaveTextContent(
+      'En remoto · Tenerife, España · jul 2026 – oct 2026',
+    );
+    expect(within(experienceSection).getAllByRole('listitem')).toHaveLength(6);
+  });
+
   it('availability comes from the profile, and the section goes away when not open to work', () => {
     renderContent();
     expect(section('Availability')).toHaveTextContent(
-      'Open to workRemote, hybrid, or on-siteOpen to relocationKillarney, Ireland',
+      'Open to workAvailable immediatelyRemote, hybrid, or on-siteOpen to relocationKillarney, IrelandEU citizen – full right to work in Ireland',
     );
     document.body.replaceChildren();
     state.openToWork = false;

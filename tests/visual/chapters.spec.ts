@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { CHAPTER_ANCHORS, CHAPTER_INDICES } from '../../src/content/chapters.ts';
+import { CHAPTER_ANCHORS, CHAPTER_INDICES, INTERLUDES } from '../../src/content/chapters.ts';
 import { forceLowScene, PARTICLES_PAINTED, withoutWebGL } from '../e2e/support/helpers.ts';
 
 /**
@@ -30,6 +30,22 @@ for (const index of CHAPTER_INDICES) {
       await document.fonts.ready;
     });
     await expect(page).toHaveScreenshot(`${name}.png`);
+  });
+}
+
+/**
+ * Los interludios (fase C): la pantalla de la transmisión, entrando por su ancla, con movimiento reducido (sin barrido,
+ * teletipo ni cursor que parpadee: la foto es estable). Detrás, la forma del capítulo de antes, atenuada.
+ */
+for (const interlude of INTERLUDES) {
+  test(`interlude ${interlude.id} looks as it should`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(`/#${interlude.anchor}`);
+    await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-level', 'low');
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+    });
+    await expect(page).toHaveScreenshot(`interlude-${interlude.id}.png`);
   });
 }
 
