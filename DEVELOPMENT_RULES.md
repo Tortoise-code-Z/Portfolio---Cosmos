@@ -165,7 +165,9 @@ Método general en las skills `taller` y `mesa`; aquí, solo lo propio del proye
   git con `.git/info/exclude` en el equipo de Víctor (no se añade a `.gitignore`).
 - **Zona horaria:** `Europe/Dublin`.
 - **Git:** lo ejecuta Víctor. Claude solo lee, con `--no-optional-locks` y sin `git status`.
-- **Comprobaciones antes de cada commit:** `npm run check` y build (con solo docs, ADR-033: solo `npm run check`); `npm run e2e:chromium` si toca interfaz o estilos
+- **Comprobaciones antes de cada commit:** `npm run check` y build (con solo docs, ADR-033: solo `npm run check`);
+  `npm run test:coverage` si cambia código o tests (el CI exige los umbrales de `vitest.config.ts` y `check` no los
+  mide; S35); `npm run e2e:chromium` si toca interfaz o estilos
   (el CI lo repite en los tres navegadores); `npm run visual` (Docker) si cambia algo visible y, si es a propósito,
   `npm run visual:update` y sus PNG (`Visual regression` es un check obligatorio de `main`); `npm run stills`
   (Docker) si cambian formas, shaders, cámara, niveles o proyectos (las placas), mirar las fotos y commitearlas

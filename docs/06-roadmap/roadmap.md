@@ -145,11 +145,14 @@ por paso, en este orden:
    Python, vuelta en 2022, el curso y las prácticas); el nombre del curso en AstroHub; la frase del flujo con IA en
    Cosmos; el CV en PDF en `public/` y su enlace en los dos idiomas (el PDF es el inglés). Cada vez que cambie el
    CV, se vuelve a copiar.
+   *(Hecho: PR #95.)*
 2. **Interludios y Mission log** (objetivo: 23 nov): el tipo de sección «interludio» (`mapM` con tramos que mantienen
    `m`, raíl, anclas, HUD con el reloj parado, misión rápida) y el primero, tras About: la experiencia (Software
    Developer Intern, Studios Demanzon, jul – oct 2026) como registro de misión, con el permiso de trabajo y la
    disponibilidad en Contacto. «Strengths» sale de About. Si el 24 nov no está, la experiencia entra provisional en
    About y en la misión rápida.
+   *(Hecho: PR #97. `m` por tramos (`JOURNEY_SEGMENTS`); la cola del interludio cambia la nebulosa a galaxia; las
+   viñetas van suavizadas, sin decir qué es el producto de la empresa; la frase del CTO, con su permiso.)*
 3. **Galaxia de skills** (objetivo: 25 nov, con la auditoría de F4.3c ya corregida): sale Bootstrap; entran Next.js,
    NestJS, Electron, n8n, npm, pnpm y GLSL. Posiciones, líneas, test de no solapamiento, fotos fijas y peso.
 4. **Mission control** (objetivo: 27 nov): segundo interludio, tras la tortuga: cómo trabajo, en una cuenta atrás
@@ -159,6 +162,11 @@ por paso, en este orden:
 6. **Epílogo · Crew file** (objetivo: 1 dic): capítulo 5 bajo la Tierra; el retrato de Víctor en partículas (forma 6,
    cargada como dato), la ficha con la formación (se muda de Contacto) y «Download CV». Antes de tocar el repo, una
    prueba del retrato fuera de él; si no convence, el epílogo se queda con la ficha.
+7. **Naves** (idea de Víctor aprobada, sin calendario: después de C.6 o en el pulido). La escena trae cada
+   transmisión: la nebulosa se convierte en un satélite que se acerca hasta que su pantalla llena la vista; la
+   transmisión se lee a pantalla completa, como hoy, y al salir el satélite se aleja llevándose la pantalla con el
+   texto. En Mission control, una nave nodriza; el retrato llega directo desde la Tierra. Prueba fuera del repo hecha
+   (versión 8); falta ADR-035 y un PR: `docs/02-experiencia/transiciones-naves.md`.
 
 **Hecho cuando:** el sitio no contradice el CV, los dos interludios y el epílogo cumplen sus criterios (un doc por
 sección en `docs/02-experiencia/capitulos/`, escrito en su paso) en escritorio y móvil, sin WebGL y con movimiento

@@ -10,8 +10,9 @@
 |---|---|
 | `scroll-y-escena.md` | Cómo el scroll mueve el tiempo: capítulos, valor de morph `m`, suavizado, alturas |
 | `navegacion.md` | Rutas, URLs, idiomas, barra superior, raíl, HUD, modo misión rápida, foco y teclado |
-| `capitulos/00-singularidad.md` … `04-tierra.md` | Un archivo por capítulo: contenido, escena, interacción, móvil y aceptación |
+| `capitulos/00-singularidad.md` … `05-crew-file.md` | Un archivo por capítulo y por interludio (`interludio-*.md`): contenido, escena, interacción, móvil y aceptación |
 | `pagina-proyecto.md` | La página propia de cada proyecto y la transición desde la tortuga |
+| `transiciones-naves.md` | Idea aprobada sin calendario (C.7): naves que traen las transmisiones; estudio y plan |
 | `estados-y-accesibilidad.md` | Carga, sin WebGL, movimiento reducido, táctil, niveles de rendimiento, 404 |
 
 ## Mapa del sitio

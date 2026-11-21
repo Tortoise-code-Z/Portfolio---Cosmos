@@ -3,65 +3,70 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **Fase C planificada y diseñada** (`main` en `22f8ec7`; ADR-034) · siguiente: **C.1 · alinear el
-contenido con el CV** (objetivo: 20 nov) y **AUD-F4-3C a la Mesa**.
+**Dónde estamos:** **Fase C · C.1 y C.2 hechos** (`main` en `585d523`) · siguiente: **C.3 · galaxia de skills**
+(objetivo: 25 nov) y **AUD-C2 a la Mesa**.
 
-_Última actualización: 2026-11-19 (**CIERRE DE SESIÓN · 34**) · parón en F4 para la búsqueda de empleo: el CV que
-Víctor envía desde el 25 nov enlaza al portfolio y este lo contradecía (948 h, email antiguo, sin experiencia). Plan
-de la fase C con su ADR, prueba del retrato en partículas y diseño de las secciones nuevas («transmisiones»)
-aprobados. Solo docs en el repo; nada de código._
+_Última actualización: 2026-11-21 (**CIERRE DE SESIÓN · 35**, empezada el 2026-11-20) · el sitio ya no contradice al
+CV (C.1) y tiene su primer interludio, el Mission log con las prácticas (C.2); AUD-F4-3C corregida; idea nueva de
+Víctor, las naves que traen las transmisiones (C.7), con su prueba fuera del repo._
 
-**Hecho esta sesión** (vivas S34 en `_claude/cadena/hecho/2026-11-19/decisiones-vivas-S34.md`):
-1. **Análisis de `trabajo-ofertas`** (proyecto de claude.ai, fuente de verdad sobre Víctor: `HANDOFF_PORTFOLIO.md`,
-   `perfil/PERFIL.md`, `cv/CV_base_EN.md`) frente a `src/content/`. Decisiones de Víctor (vivas #3–#6): titular
-   «Frontend Developer» (se queda); skills: sale Bootstrap, entran Next.js, NestJS, Electron, n8n, npm, pnpm y GLSL,
-   se quedan Vitest, Playwright y Virtual machines; el CV en inglés para EN y ES; bio con su origen (Física 2019,
-   Python; vuelta en 2022); AstroHub usa `password_hash()`.
-2. **Fase C en el roadmap y ADR-034** (commit `22f8ec7`): C.1 alinear con el CV → C.2 interludios + Mission log →
-   C.3 galaxia de skills → C.4 Mission control → C.5 Cosmos completo → C.6 epílogo con el retrato; F4.4, F4.5 y F5
-   después.
-3. **Prueba del retrato** (artefacto privado; scripts y datos en `_claude/retrato/`): Depth Anything V2 (ONNX) sobre
-   una foto → color + profundidad + contornos (~150 KB). Elegido: holograma «Escáner» con fallos de señal, ~135 k
-   partículas, robot ↔ realista 74 %, relieve 44 %.
-4. **Diseño de las secciones nuevas** (lienzo privado; copia y capturas PNG en `_claude/diseno/`): tras tres direcciones y una
-   mezcla, aprobadas las «transmisiones» a pantalla completa por canal de color: Mission log ámbar, Mission control
-   azul, Crew file verde; escritorio y móvil, encajadas entre capturas reales de los capítulos. Spec:
-   `docs/02-experiencia/capitulos/interludio-1-mission-log.md`, `interludio-2-mission-control.md`, `05-crew-file.md`;
-   `docs/03-diseno/design-system.md` → «Transmisiones»; nota en ADR-034; Mapa de `CLAUDE.md`.
-5. **`trabajo-ofertas`** (permisos del handoff): `STATE.md` («Para revisar por el chat de mentor» y «Chat del
-   portfolio: estado») y una entrada en `BITACORA.md`.
+**Hecho esta sesión** (vivas S35 en `_claude/cadena/hecho/2026-11-21/decisiones-vivas-S35.md`):
+1. **C.1 · alinear con el CV** (PR #95, `a750862`): email `victorperez@tortoisecode.dev`; formación como el CV
+   (Advanced Course in Web Programming (Full-Stack), Master.D, ene 2023 – oct 2024, 975 h, Distinction); bio nueva;
+   AstroHub con el nombre del curso; Cosmos con la frase del flujo con IA; `public/Victor_Perez_CV.pdf` enlazado en
+   la barra (cede por debajo de ~340 px al 200 %), Contacto y la misión rápida; «Strengths» fuera de la misión rápida.
+2. **AUD-F4-3C corregida** (PR #96, `8ca6633`): 1–6 con P1-B, P2-A y P3-A. Modelo de puntero del viaje (`main` y
+   los capítulos sin puntero, sus hijos sí; `arquitectura.md` → «Puntero del viaje»); el foco de Skills solo con
+   `:focus-visible`. Los menores 7–24 quedan para C.3 (los archivos que reescribe) o un lote aparte.
+3. **C.2 · interludios y Mission log** (PR #97, `585d523`): `m` por tramos (`JOURNEY_SEGMENTS`: capítulo, pantalla
+   y cola del interludio; `segmentAt` con 1 px de margen); About quieta entera y la nebulosa cambia a galaxia en la
+   cola; `Transmission` + `MissionLog` en ámbar (tokens con AA); rombo en el raíl (`#mission-log`); experiencia en la
+   misión rápida; disponibilidad y permiso de trabajo en Contacto; «Strengths» fuera de About. Las viñetas y la bio
+   no dicen qué es el producto de la empresa (decisión de Víctor); la frase del CTO, con su permiso. JS propio por
+   página 35 → 38 KB (nota de ADR-034).
+4. **Naves (C.7, sin calendario):** idea de Víctor estudiada y probada fuera del repo (artefacto privado, versiones
+   1–8). Aprobada la 7; la 8 (propuesta de Víctor) lee a pantalla completa, sin marco, y la nave se aleja llevándose
+   la pantalla. Estudio en `docs/02-experiencia/transiciones-naves.md`; roadmap → C · 7.
+5. **`trabajo-ofertas`:** bloque D de `CHECKLIST.md` marcado, `STATE.md` («Chat del portfolio: estado» y la petición
+   de suavizar el CV y LinkedIn) y una entrada en `BITACORA.md`.
 
 **Incidencias y lecciones:**
-- **Push del cierre parado por el pre-push (bien parado):** un commit intermedio añadió por error
-  `playwright-report-webkit.zip` (un `git add` sin la lista exacta) y el siguiente lo borró; el hook mira commit a
-  commit (`--each`), así que lo frenó aunque el resultado final fuera solo docs. Se rehízo con `git reset --soft` al
-  último commit publicado y un único commit. Lección: siempre `git add` con la lista exacta de archivos.
-- **Información de terceros:** un esquema del producto de la empresa de las prácticas (deducido del CV) llegó al
-  boceto; Víctor lo paró: es privado del cliente. Lección: en lo público, solo lo que ya dice el CV; nada de cómo
-  está hecho el producto de otro.
-- **Retrato desde una foto:** el filtro bilateral con umbral fino hace terrazas en la profundidad (mejor un
-  gaussiano dentro de la máscara); hay que desproyectar cada punto con la cámara para que de frente no se abran
-  grietas; con mezcla normal, los puntos tienen que escribir profundidad (o lo de atrás tapa lo de delante); en
-  mezcla aditiva, alfa ~0,3. El modelo base de Depth Anything da bastante más detalle que el pequeño.
-- **Bocetos con capturas reales:** las de `tests/visual/__screenshots__/desktop/` sirven tal cual para encajar
-  diseños nuevos en el viaje.
-- **Contenedor:** el build del repo corre con Node 24 instalado desde npm (`node-linux-x64@24.22.0`); GitHub
-  Releases es accesible (modelos ONNX), Hugging Face y jsdelivr no.
+- **El CI de C.2 falló tres veces y ninguna era la web:** (1) Firefox guarda el scroll con decimales y lo restaura
+  redondeado (test con 1 px de margen); (2) la cobertura de ramas de `mapM` bajó al 88,9 % porque, con el margen
+  de 1 px, el test del tramo de altura 0 ya no entraba en su rama (se prueba en y = −2); (3) WebKit a ~3 fps (deuda).
+  **Lección (ya en las reglas):** en el contenedor pasé `npm run check`, que no mide la cobertura: antes de dar un
+  paso por bueno, también `npm run test:coverage`.
+- **Leer la traza antes de adivinar:** el informe de Playwright del CI trae la traza con las instantáneas del DOM; la
+  variable `--_charge` del botón (0,933) dijo cuántos frames hubo.
+- **Contenedor:** Playwright no puede descargar Firefox ni WebKit (solo Chromium, con el enlace 1248 → 1243); lo de
+  esos motores se ve en el CI.
+- **Shader de las naves** (para C.7): la mezcla gradual de luz a sólido evita saltos; con la nave quieta, calcular
+  una sola forma por partícula (la nave nodriza iba a tirones en el móvil por calcularse dos veces).
 
 **Deuda anotada:**
-- **Fase C · privacidad de Studios Demanzon:** el sitio no enseña cómo está construido el producto de la empresa
-  (arquitectura ni conexiones): solo herramientas, para qué y las viñetas del CV (nota de ADR-034). Vale también
-  para la ficha, el README y las capturas.
-- **Fase C · lo provisional del diseño** (docs de cada sección → «Pendiente»): redacción EN/ES de las tres
-  transmisiones; viñetas acortadas del registro contra el CV; frase del CTO solo con su permiso; nivel de inglés
-  visible o no; cifras de Mission control sacadas del repo en el build (o redondeadas), nunca a mano.
-- **Fase C · colores de canal:** los valores de `design-system.md` → «Transmisiones» son propuesta; pasan a tokens
-  en C.2 con el contraste AA medido sobre su fondo.
+- **CI · WebKit a ~3 fps (S35):** la traza del CI de C.2 lo midió: WebKit sin GPU pinta unos 3 frames por segundo con
+  la página entera, y la detonación pide 15 frames (la carga avanza como mucho 0,1 s por frame). Las esperas de
+  detonación de `journey.spec.ts` van a 15 s (`DETONATE_TIMEOUT_MS`). No dice nada de un móvil real: medir en un
+  iPhone (F6) que el Mission log (cursor que parpadea siempre, líneas de barrido, velo) no pese.
+- **AUD-F4-3C-2 · iPhone real:** el toque en el margen de la escena solo lo cubre el e2e con `touchscreen`; mirarlo
+  en un iPhone (si no hay móvil a mano, en F6).
+- **C.7 · Naves** (idea aprobada sin calendario): estudio, versiones de la prueba y lecciones del shader en
+  `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a pantalla completa). La prueba es el
+  artefacto privado «Naves · prueba»; copia del código en `_claude/naves/`. Al construir: ADR-035 y medir el peso
+  (~1,6 KB de margen en la escena tras F4.4 y F4.5).
+- **Fase C · privacidad de Studios Demanzon:** el sitio no enseña qué es el producto de la empresa ni cómo está
+  construido (arquitectura ni conexiones): solo herramientas, para qué y lo hecho (nota de ADR-034). Desde C.2 las
+  viñetas del registro y la bio van suavizadas (fuera «launcher», «cloud platform», «game downloads»); se ha pedido
+  lo mismo para el CV y LinkedIn en `trabajo-ofertas` (chat de mentor). Cuando cambie el CV, volver a copiar el PDF a
+  `public/`. Vale también para la ficha, el README y las capturas.
+- **Fase C · lo provisional de Mission control y Crew file** (docs de cada sección → «Pendiente»): redacción
+  EN/ES; nivel de inglés visible o no; cifras de Mission control sacadas del repo en el build (o redondeadas), nunca
+  a mano. El Mission log quedó cerrado en C.2.
+- **Fase C · colores de canal:** el ámbar ya es token con el contraste AA medido (C.2, `styles.test.ts`); el azul
+  y el verde siguen como propuesta de `design-system.md` → «Transmisiones» y pasan a tokens en C.4 y C.6, con su AA.
 - **C.6 · retrato:** sale de una sola foto (relieve, no cabeza completa): giro limitado (~±25°). Mejora posible: un
   escaneo 3D con una app del móvil (KIRI Engine o Scaniverse) y convertir el modelo a partículas. La foto y los
   datos del retrato no entran al repo hasta C.6 (copia y scripts en `_claude/retrato/`).
-- **`.gitignore`:** lo privado vive en `_claude/` (excluido con `.git/info/exclude`). Si Víctor lo quiere también
-  explícito en `.gitignore`, va en el PR de C.1 (no es solo docs, ADR-033).
 - **F4.5 · gravedad sobre la Tierra:** hoy la misma intensidad en todos los capítulos (F4.2); F4.5 la suaviza
   sobre la Tierra (`04-tierra.md`). Las constelaciones no son partículas: la gravedad no las mueve (F4.3b).
 - **Colores repetidos:** `--color-flash` y `--color-singularity` ya tienen test de pareja con `scenePalette`
@@ -69,10 +74,10 @@ aprobados. Solo docs en el repo; nada de código._
 - **F6 · Big Bang (ADR-030):** el `wdth` del `<h1>` cambia por frame mientras se carga o se baja por el hero:
   medir el CLS. Las variables `--_bang-*` van en `<html>`: cada escritura recalcula el estilo de toda la página
   mientras dura el hero; medirlo con Performance (y, si pesa, escribirlas más abajo).
-- **WebKit (CI) · test de Tab** («1280×720: every focusable element… comes into view with Tab»): falló tres veces
-  y pasó al reintento (la tercera, en S33, con el grupo de IA de Skills y «View project Chessmate»). Desde F4.3c,
-  si lo enfocado no se ve, vuelve a mirarlo unos frames antes de darlo por tapado. Si vuelve a fallar, ya no es
-  que se mida a mitad del desplazamiento: mirar `scroll-padding` en WebKit.
+- **WebKit (CI) · test de Tab** («1280×720: every focusable element… comes into view with Tab»): ha fallado cinco
+  veces; la 5.ª, en el CI de C.2, por tiempo (WebKit a ~3 fps y más enlaces con el Mission log). Desde C.2 lleva
+  `test.slow()` en WebKit (90 s). Desde F4.3c, si lo enfocado no se ve, vuelve a mirarlo unos frames antes de darlo
+  por tapado. Si vuelve a fallar por algo que no sea tiempo: mirar `scroll-padding` en WebKit.
 - **e2e en el equipo de Víctor (S32):** la primera tanda completa de Chromium en Windows sacó dos carreras de carga
   que pasaban solas (el recuento de chunks de `scene.spec.ts`, que contaba la descarga tardía de la página del
   `beforeEach`, y el espaciado del nombre en `journey.spec.ts`, que tardaba más de 5 s con pocos frames). Blindadas
@@ -216,38 +221,37 @@ aprobados. Solo docs en el repo; nada de código._
 - Si alguna ruta lanza un 404 desde un `loader` (`throw data(null, { status: 404 })`), choca con
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
 
+
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **C.1 · alinear el contenido con el CV** (objetivo: 20 nov): esquema → VB. Primero, la bio nueva EN/ES para que
-   Víctor la apruebe (Física 2019 con Python, vuelta en 2022, el curso de 975 h con Distinction, las prácticas, la IA
-   como acelerador). Toca `src/content/profile.ts`, `projects/astrohub.ts`, `projects/cosmos.ts`,
-   `public/Victor_Perez_CV.pdf` (copia de `trabajo-ofertas/cv/`) y `docs/01-contenido/`; tests y e2e que esperan 948
-   o el email antiguo; `npm run visual:update`.
-3. **AUD-F4-3C a la Mesa** (en la cola del tablero), en un chat nuevo:
-   `Usa la skill mesa. Encargo para la Mesa · AUD-F4-3C · base 05b14ab · hasta d0c022a` — Audita F4.3c (PR #94).
-   Especificación: `02-galaxia.md`, `constelaciones-y-placas.md`, roadmap F4.3 y vivas S33 #1–#10. Un auditor por
-   ámbito: estilos e interfaz · lógica (uiStore) · escena 3D · tests · documentación y ADR. No es hallazgo: deuda de
-   STATE.md, el roadmap (incluida la fase C: las skills y sus estrellas cambian en C.3) y lo decidido en las vivas.
-   Entrega: `_claude/cadena/aud-f4-3c/auditoria.md`.
-4. Después, C.2 a C.6 en su orden (C.3 tras corregir AUD-F4-3C); luego F4.4 · Tortuga.
-5. Víctor: preguntar a Ángel (CTO de Studios Demanzon) por la frase de su carta; redirigir el portfolio antiguo de
-   Vercel a tortoisecode.dev (un `vercel.json` con un 308 en ese proyecto); mirar las líneas de las constelaciones en
-   su pantalla (deuda «líneas … en retina»).
+2. **AUD-C2 a la Mesa** (en la cola del tablero), en un chat nuevo:
+   `Usa la skill mesa. Encargo para la Mesa · AUD-C2 · base 8ca6633 · hasta 585d523` — Audita C.2 (PR #97).
+   Especificación: `capitulos/interludio-1-mission-log.md`, `scroll-y-escena.md` → «Tramos del viaje»,
+   `design-system.md` → «Transmisiones», `componentes.md` → «Transmisión», ADR-034 y su nota de C.2, roadmap C.2 y
+   vivas S35 hasta #44 (`hecho/2026-11-21/decisiones-vivas-S35.md`). Un auditor por ámbito: estilos e interfaz ·
+   lógica y contenido · tests · documentación y ADR (la escena no cambia). No es hallazgo: deuda de STATE.md, el
+   roadmap (C.3–C.7) y lo decidido en las vivas. Entrega: `_claude/cadena/aud-c2/auditoria.md`.
+3. **C.3 · galaxia de skills** (objetivo: 25 nov), en paralelo con la auditoría: esquema → VB. Sale Bootstrap; entran
+   Next.js, NestJS, Electron, n8n, npm, pnpm y GLSL; skills de Master.D como el CV (vivas S35 #8). Recolocar las
+   estrellas con la reserva nueva del raíl (132 px); los menores de AUD-F4-3C en los archivos que reescribe;
+   posiciones, test de no solapamiento, fotos fijas (`npm run stills`) y peso.
+4. Después, C.4 a C.6 en su orden; C.7 (naves) si queda tiempo antes del 1 dic, si no en el pulido; luego F4.4.
+5. Víctor: suavizar el CV y LinkedIn con el chat de mentor (y avisar para volver a copiar el PDF); redirigir el
+   portfolio antiguo de Vercel a tortoisecode.dev (un `vercel.json` con un 308 en ese proyecto); mirar las líneas de
+   las constelaciones en su pantalla (deuda «líneas … en retina»).
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
-«Try it»). ~~CV en PDF EN/ES~~: el inglés sirve para los dos (C.1).
+«Try it»).
 **Limpieza manual del usuario:**
-- `_claude/tmp/repo-s34.tgz` (copia del repo para el build del contenedor, 18 MB): borrarlo.
-- Ramas locales ya fusionadas (todas menos `main`): las de las listas de los cierres 25 y 29 (en
-  `docs/_historial/estado/2026-10.md`) y de los cierres 30 y 31 (en `2026-11.md`) que sigan, más
-  `chore/docs-direct-to-main`, `fix/aud-docs-main`, `fix/aud-f4-3b` y `feat/f4-3c-skills-interaction`
-  (`git branch -D <rama>`). Para verlas: `git branch`.
+- Todo `_claude/tmp/` (copias del repo y diffs de las sesiones 34 y 35) y `_claude/lstree.txt`: borrarlos.
+- Ramas locales ya fusionadas (todas menos `main`, entre ellas `feat/c2-mission-log`, `fix/aud-f4-3c` y
+  `feat/c1-align-content-with-cv`): `git branch` para verlas y `git branch -D <rama>`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js` ni
   `hecho/2026-10-28/encuadre/`, que se reutilizan). Mover a mano `_claude/cadena/aud-f4-1/` a
-  `_claude/cadena/hecho/2026-11-18/` (desde aquí da «Permission denied»). No borrar `_claude/diseno/` ni
-  `_claude/retrato/` (privados, para la fase C).
-- En la raíz del repo, los zips del CI de S33 (`logs_120249887476.zip` y `playwright-report-webkit.zip`): borrarlos.
+  `_claude/cadena/hecho/2026-11-18/` (desde aquí da «Permission denied»). No borrar `_claude/diseno/`,
+  `_claude/retrato/` ni `_claude/naves/` (privados, para la fase C).
+- En la raíz del repo, si siguen, los zips de los informes del CI (`playwright-report-*.zip`): borrarlos.
 - Perfiles temporales de las pruebas sin WebGL: `$env:TEMP\cosmos-sin-webgl` y `$env:TEMP\cosmos-swiftshader`.
 - Si alguna vez falla `npm ci` dentro de Docker: `docker volume rm cosmos-portfolio-visual-node-modules`.
 
