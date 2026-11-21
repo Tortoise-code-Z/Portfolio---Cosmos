@@ -159,8 +159,13 @@ por paso, en este orden:
    +127 B de escena. Su auditoría y los menores de F4.3c, corregidos: PR #100 y #101.)*
 4. **Mission control** (objetivo: 27 nov): segundo interludio, tras la tortuga: cómo trabajo, en una cuenta atrás
    (plan, Visto Bueno, construcción, auditoría, CI en verde) que desemboca en la Tierra («Touchdown»).
+   *(Hecho: PR #102. Las cifras de la telemetría se cuentan al construir (ADR-035); la tortuga cambia a la Tierra en
+   la cola del interludio; canal azul a tokens con su AA. Su auditoría, corregida entera: PR #104. Aparte, la ficha de
+   proyecto con velo y la escena pausada hasta F5: PR #103.)*
 5. **Cosmos completo** (objetivo: 29 nov): ficha con proceso y puntos técnicos reales; README del repo en inglés y
    su descripción de GitHub (lo que F6 tenía para Cosmos se adelanta aquí).
+   *(Con Visto Bueno, sesión 38: el detalle de las fichas sale del JS de la home y lo importa solo la página de
+   proyecto; README con cuatro capturas; `metaDescription` solo para Cosmos; la ficha sigue sin imágenes hasta F6.)*
 6. **Epílogo · Crew file** (objetivo: 1 dic): capítulo 5 bajo la Tierra; el retrato de Víctor en partículas (forma 6,
    cargada como dato), la ficha con la formación (se muda de Contacto) y «Download CV». Antes de tocar el repo, una
    prueba del retrato fuera de él; si no convence, el epílogo se queda con la ficha.
