@@ -112,15 +112,27 @@ describe('projectMeta', () => {
     ]);
   });
 
-  it('con metaDescription, la descripción es esa y no el summary (también en Open Graph)', () => {
+  it('con metaDescription, la descripción es esa y no el summary (también en Open Graph); el JSON-LD sigue con el summary', () => {
+    const withMeta = { ...project, metaDescription: { en: 'Short Beta.', es: 'Beta corta.' } };
     const en = projectMeta({
       origin: ORIGIN,
       locale: 'en',
       profile: fakeProfile,
-      project: { ...project, metaDescription: { en: 'Short Beta.', es: 'Beta corta.' } },
+      project: withMeta,
+    });
+    const esMeta = projectMeta({
+      origin: ORIGIN,
+      locale: 'es',
+      profile: fakeProfile,
+      project: withMeta,
     });
     expect(metaContent(en, 'description')).toBe('Short Beta.');
     expect(metaContent(en, 'og:description')).toBe('Short Beta.');
+    expect(metaContent(esMeta, 'description')).toBe('Beta corta.');
+    expect(metaContent(esMeta, 'og:description')).toBe('Beta corta.');
+    // Los buscadores leen el JSON-LD entero: ahí no hace falta acortar (pagina-proyecto.md → SEO).
+    expect(jsonLdOf(en)).toMatchObject({ description: project.summary.en });
+    expect(jsonLdOf(esMeta)).toMatchObject({ description: project.summary.es });
   });
 
   it('lleva la ficha SoftwareSourceCode', () => {

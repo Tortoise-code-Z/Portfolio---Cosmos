@@ -4,11 +4,12 @@ My personal portfolio, built as a story. As you scroll, time moves forward: tens
 morph from a **singularity** into a **nebula**, a **galaxy**, a **cosmic turtle** that carries my projects on its
 shell, and finally **Earth**. Each stage of the universe is a section of the site.
 
-The goal was a site that is visually striking and still easy to use: all the content lives in the HTML, the site
-works without WebGL or JavaScript, and a **quick-mission mode** shows everything on one page.
+The goal was a site that is visually striking and still easy to use: all the content lives in the HTML and reads
+without WebGL or JavaScript, and a **quick-mission mode** shows everything on one page.
 
 I built it with **React, TypeScript and WebGL (React Three Fiber + my own GLSL shaders)**, using Claude Code as an
-AI pair programmer: I plan each step, approve it, and read and understand every change before it goes in.
+AI pair programmer: every step starts with a plan I approve, and I read and understand every change before it
+goes in.
 
 **Live:** [tortoisecode.dev](https://tortoisecode.dev)
 
@@ -63,32 +64,39 @@ AI pair programmer: I plan each step, approve it, and read and understand every 
   universe is the same on every visit and the main thread stays free.
 - **A 3D site that is still a website.** The scene loads after the first paint, in its own chunk, and the site is
   complete without it: all the content is in the pre-rendered HTML, and the scene is a decorative layer behind it.
-- **Performance budgets enforced by tests.** The whole scene, Three.js included, has to stay within 260 KB gzip,
-  and each page's own JavaScript within 40 KB. An end-to-end test measures the real build on every pull request.
+- **Performance budgets enforced by tests.** The scene's JavaScript, Three.js included, has to stay within 260 KB
+  gzip, and each page's own JavaScript within 40 KB. An end-to-end test measures the real build on every pull
+  request.
   It held 60 fps on desktop at the highest level in my measurements.
 - **Accessible WebGL.** The constellations are driven from the HTML panel, so they work with the keyboard and a
   screen reader; the scene never hides content and pauses when it isn't needed.
 - **Figures that can't go stale.** Mission control shows the number of tests, browsers and decisions in this repo.
   A Vite plugin counts them when the site is built, reading the test files with the TypeScript compiler.
 - **Working with AI without losing control.** Every step starts with a plan I approve, and a second AI session
-  audits each step with fresh eyes before the next one starts. Every decision that shapes the architecture is
+  audits each task with fresh eyes; its fixes ship before the next task. Every decision that shapes the architecture is
   written down as an ADR in [`DECISIONS.md`](./DECISIONS.md).
 
 ---
 
-## Architecture 🏗️
+## Architecture 🧱
 
-The code lives in `src/`, split into layers. Each layer can only import the ones below it, and **ESLint enforces
-it**: a forbidden import breaks the build.
+The code lives in `src/`, split into layers. Each layer has an allow-list of what it may import (for example, `ui`
+only imports `lib`, and `content` imports nothing), and **ESLint enforces it**: a forbidden import fails the lint, in
+the pre-commit hook and in CI.
 
 ```mermaid
-flowchart LR
-  content --> lib --> stores --> ui --> features --> routes
-  scene -.->|"loaded on demand"| features
+flowchart RL
+  routes --> features --> ui --> lib --> content
+  features --> stores --> lib
+  scene --> stores
+  scene --> content
+  features -. "import()" .-> scene
 ```
 
+_An arrow means "imports". Dashed: loaded on demand._
+
 - **`content`:** typed data (texts in English and Spanish, projects, skills, chapters). No logic.
-- **`lib`:** pure helpers (i18n, scroll, SEO, device detection).
+- **`lib`:** pure helpers (i18n, scroll, SEO, device detection). From `content`, only its types and texts.
 - **`stores`:** shared state with Zustand.
 - **`ui`:** presentational components that only receive props.
 - **`features`:** the pieces of the interface with their own logic (the journey, navigation, project pages).
@@ -115,14 +123,14 @@ Deployed as a static site on Vercel, with a preview per pull request.
 
 ---
 
-## Installation 🛠️
+## Installation 🔧
 
 ### Prerequisites
 
 - **Node.js** 24
 - **npm**
 - **Git**
-- **Docker** (only for the visual regression tests)
+- **Docker** (only for the visual regression tests and the scene stills)
 
 ### Steps
 
@@ -135,6 +143,9 @@ cd Portfolio---Cosmos
 
 # Install dependencies
 npm ci
+
+# Install the browsers for the end-to-end tests
+npx playwright install
 
 # Create your local env file (the public URL of the site)
 cp .env.example .env

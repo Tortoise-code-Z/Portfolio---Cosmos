@@ -34,7 +34,7 @@ const WITH_COVER: ReadonlySet<string> = new Set(['chessmate', 'astrohub']);
 
 /**
  * El detalle de cada ficha, por slug (su `metaDescription`). Escrito a mano, como `content/projects/index.ts`,
- * que no se puede importar aquí (junta las imágenes).
+ * que no se puede importar aquí (junta las imágenes): un test comprueba que tiene todos los proyectos.
  */
 const PROJECT_DETAILS: Readonly<Partial<Record<string, ProjectDetail>>> = {
   chessmate,
@@ -83,6 +83,7 @@ async function head(page: Page) {
       ogImage: attr('meta[property="og:image"]', 'content'),
       robots: attr('meta[name="robots"]', 'content'),
       description: attr('meta[name="description"]', 'content'),
+      ogDescription: attr('meta[property="og:description"]', 'content'),
       jsonLd: [...document.querySelectorAll('script[type="application/ld+json"]')].map(
         (element) => element.textContent,
       ),
@@ -107,6 +108,24 @@ test.describe('páginas indexables', () => {
         expect(meta.lang).toBe(locale);
         expect(meta.title).toBe(text.title);
         expect(meta.description).toEqual([text.description]);
+        expect(meta.ogDescription).toEqual([text.description]);
+        // Y en el HTML tal cual lo manda el servidor: lo que leen LinkedIn o X, que no ejecutan JavaScript.
+        const html = await (await page.request.get(path)).text();
+        const served = await page.evaluate((source) => {
+          const doc = new DOMParser().parseFromString(source, 'text/html');
+          const content = (selector: string): string[] =>
+            [...doc.querySelectorAll(selector)].map(
+              (element) => element.getAttribute('content') ?? '',
+            );
+          return {
+            description: content('meta[name="description"]'),
+            ogDescription: content('meta[property="og:description"]'),
+          };
+        }, html);
+        expect(served).toEqual({
+          description: [text.description],
+          ogDescription: [text.description],
+        });
         expect(meta.canonical).toEqual([canonical]);
         expect(meta.ogUrl).toEqual([canonical]);
         expect(meta.alternates).toEqual([
@@ -144,6 +163,12 @@ test.describe('imagen para compartir de las fichas', () => {
     test.skip(test.info().project.name !== 'chromium', 'Solo lee el contenido: basta una vez');
     const slugs = projectEntries.map(({ slug }) => slug);
     expect([...WITH_COVER].filter((slug) => !slugs.includes(slug))).toEqual([]);
+  });
+
+  test('la lista de detalles tiene todos los proyectos y solo ellos', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Solo lee el contenido: basta una vez');
+    const slugs = projectEntries.map(({ slug }) => slug).sort();
+    expect(Object.keys(PROJECT_DETAILS).sort()).toEqual(slugs);
   });
 
   for (const sitePage of PAGES) {

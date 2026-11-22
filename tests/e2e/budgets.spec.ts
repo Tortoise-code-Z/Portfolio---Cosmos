@@ -11,6 +11,7 @@ import { PROJECT_IMAGE_WIDTHS } from '../../src/content/imageWidths.ts';
 import { astrohub } from '../../src/content/projects/details/astrohub.ts';
 import { chessmate } from '../../src/content/projects/details/chessmate.ts';
 import { cosmos } from '../../src/content/projects/details/cosmos.ts';
+import { projectEntries } from '../../src/content/projects/entries.ts';
 import {
   STILL_CHAPTERS,
   STILL_FRAMES,
@@ -40,7 +41,8 @@ const EXPECTED_FONT_FILES = 4;
  *   12,6 KB, 404 7,0 KB; el margen cubre lo que falta de F2 (navegación, misión rápida, galería). En C.2
  *   (Mission log), la home pasó de 35 KB: 35,5 KB; se sube a 38 KB por las secciones de la fase C (calidad.md). En
  *   C.4 (Mission control, sus textos en los dos idiomas) llega a 38,4 KB: se sube a 40 KB, con margen para C.6. En
- *   C.5, con el detalle de las fichas fuera de la home (ADR-036), baja a 34,7 KB; la ficha, 33,8 KB.
+ *   C.5, con el detalle de las fichas fuera de la home (ADR-036), baja a 34,7 KB; la ficha, 33,8 KB al sacar el
+ *   detalle y 35,4 KB con la de Cosmos completa.
  */
 const FRAMEWORK_JS_BUDGET_BYTES = 112_000;
 const PAGE_OWN_JS_BUDGET_BYTES = 40_000;
@@ -400,11 +402,11 @@ test.describe('build budgets', () => {
   test('the detail of the project pages only travels in their JS, not in the home or the 404 (ADR-036)', () => {
     test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
     // Los párrafos de «About» de cada ficha, en los dos idiomas: lo más largo del detalle. Una sola ruta pinta
-    // todas las fichas, así que cada página de proyecto trae el detalle de las tres.
-    const paragraphs = [chessmate, astrohub, cosmos].flatMap(({ about }) => [
-      ...about.en,
-      ...about.es,
-    ]);
+    // todas las fichas, así que cada página de proyecto trae el detalle de las tres. La lista es a mano (los e2e no
+    // pueden importar `content/projects/index.ts`, que junta las imágenes): que tenga todos los proyectos.
+    const details = { chessmate, astrohub, cosmos };
+    expect(Object.keys(details).sort()).toEqual(projectEntries.map(({ slug }) => slug).sort());
+    const paragraphs = Object.values(details).flatMap(({ about }) => [...about.en, ...about.es]);
     const initialCode = (page: string): string =>
       [...pageScripts(page)]
         .map((script) => readFileSync(join(CLIENT_DIR, script), 'utf8'))

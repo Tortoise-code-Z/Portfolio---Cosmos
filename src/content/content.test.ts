@@ -279,7 +279,7 @@ describe('contenido', () => {
   });
 
   it('las listas que siempre se pintan tienen al menos un elemento (regla 8)', () => {
-    // process y highlights pueden ir vacíos: la sección no se pinta (Cosmos hasta F6).
+    // process y highlights pueden ir vacíos: la sección no se pinta (hoy ninguna ficha los deja vacíos).
     const lists: Record<string, readonly unknown[]> = {
       'profile.bio.en': profile.bio.en,
       'profile.bio.es': profile.bio.es,
@@ -332,8 +332,8 @@ describe('contenido', () => {
   });
 
   it('cada proyecto tiene su detalle y cada detalle es de un proyecto (ADR-036); el stack se junta entero', () => {
-    const slugs = projectEntries.map((entry) => entry.slug);
-    expect(Object.keys(projectDetails)).toEqual(slugs);
+    const slugs = projectEntries.map((entry) => entry.slug).sort();
+    expect(Object.keys(projectDetails).sort()).toEqual(slugs);
     for (const project of projects) {
       const entry = projectEntries.find(({ slug }) => slug === project.slug);
       const detail = projectDetails[project.slug];
@@ -341,8 +341,10 @@ describe('contenido', () => {
       expect(Object.keys(project.stack).sort()).toEqual(['core', 'design', 'libraries', 'tooling']);
       expect(project.about).toBe(detail?.about);
     }
-    // Un proyecto sin detalle no llega a pintarse a medias: el build falla con su nombre.
-    expect(() => assembleProjects(projectEntries, {}, projectMedia)).toThrow('«chessmate»');
+    // Un proyecto sin detalle no llega a pintarse a medias: el build falla con su nombre, aunque falte solo uno.
+    expect(() =>
+      assembleProjects(projectEntries, { ...projectDetails, cosmos: undefined }, projectMedia),
+    ).toThrow('«cosmos»');
   });
 
   it('la metaDescription de una ficha, si la hay, cabe en lo que enseñan los buscadores (≤ 160)', () => {
