@@ -173,7 +173,7 @@ por paso, en este orden:
    sin retrato —capítulo 5 en el canal verde, la ficha con los idiomas y la formación, el CV, el pie del sitio, el raíl
    de ocho paradas que encogen en un móvil apaisado y Contacto que cambia en su segunda mitad—; C.6b, el retrato con
    la transición del haz de barrido. Detalle en `05-crew-file.md`. Hechos: C.6a, PR #107; C.6b, PR #108; la
-   corrección de la auditoría de C.6a, en su PR.)*
+   corrección de la auditoría de C.6a, PR #109.)*
 7. **Naves** (idea de Víctor aprobada, sin calendario: después de C.6 o en el pulido). La escena trae cada
    transmisión: la nebulosa se convierte en un satélite que se acerca hasta que su pantalla llena la vista; la
    transmisión se lee a pantalla completa, como hoy, y al salir el satélite se aleja llevándose la pantalla con el
