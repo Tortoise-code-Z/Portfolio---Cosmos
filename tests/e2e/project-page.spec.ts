@@ -55,6 +55,24 @@ test.describe('project page', () => {
     ]);
   });
 
+  test('Cosmos: its process with the highlights and the README note; no Try it or gallery (until F6)', async ({
+    page,
+  }) => {
+    await page.goto('/projects/cosmos', { waitUntil: 'networkidle' });
+    const main = page.getByRole('main');
+    await expect(main.getByRole('heading', { level: 2 })).toHaveText([
+      'About the project',
+      'Key features',
+      'Tech stack',
+      'Development process',
+      'Notes',
+    ]);
+    await expect(
+      main.getByRole('heading', { level: 3, name: 'Technical highlights' }),
+    ).toBeVisible();
+    await expect(main.getByText('the README explains the architecture')).toBeVisible();
+  });
+
   test('«Back to the shell» lands on the projects chapter with the focus on that row', async ({
     page,
   }) => {

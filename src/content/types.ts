@@ -217,7 +217,7 @@ export interface Project {
     readonly design: readonly Label[];
     readonly tooling: readonly Label[];
   };
-  /** Vacío = la sección no se pinta (Cosmos hasta F6). */
+  /** Vacío = la sección no se pinta (hoy todas las fichas lo tienen). */
   readonly process: Localized<readonly string[]>;
   /** Retos técnicos resueltos. Vacío = la sección no se pinta. */
   readonly highlights: readonly Localized[];

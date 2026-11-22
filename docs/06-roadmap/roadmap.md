@@ -122,8 +122,9 @@ no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierr
 4. **Tortuga:** placas por huecos, pins, ciclo automático, resaltado sincronizado con las filas.
 5. **Tierra:** día/noche, amanecer, luces de ciudad, atmósfera y Sol.
 
-Con la galaxia y la tortuga hechas (pasos 3 y 4), la ficha de **Cosmos** suma «Interactive constellations and
-project plates» (`docs/01-contenido/proyectos/cosmos.md`, ⏳).
+Con la galaxia y la tortuga hechas (pasos 3 y 4), la ficha de **Cosmos** suma sus constelaciones: entró en C.5
+como «Skill constellations that light up with the mouse, keyboard or touch»; las placas, cuando tengan interacción
+(F5) (`docs/01-contenido/proyectos/cosmos.md` → «Features»).
 
 En cada paso que cambie lo que se ve de la escena (formas, shaders, cámara, placas, el Sol): `npm run stills` y las
 fotos nuevas en el mismo PR (ADR-029; el e2e de su huella lo recuerda). Si el paso crea una carpeta nueva en
@@ -196,8 +197,8 @@ reducido. Después siguen F4.4 y F4.5; F5 pasa seguramente a después del 1 dic.
 
 - Movimiento reducido completo, táctil, encuadre en los 6 tamaños de referencia, degradación de nivel en caliente.
 - Presupuestos de Lighthouse CI activados en CI; revisión con NVDA; pruebas en un móvil real.
-- Ficha de **Cosmos** con datos reales (proceso, retos, capturas; revisar el stack): adelantada a C.5. Imágenes Open
-  Graph EN/ES; favicon.
+- ✔ Ficha de **Cosmos** con datos reales (proceso, retos y funcionalidades; el stack revisado): adelantada a C.5.
+  Quedan aquí sus capturas (portada y galería). Imágenes Open Graph EN/ES; favicon.
 - ✔ SEO de las fichas: la meta description de Cosmos pasaba de 220 (EN) y 228 (ES) caracteres; adelantado a C.5
   con un `metaDescription` opcional (≤ 160, solo Cosmos; las demás siguen con el `summary`).
 - README del repo en inglés con capturas y arquitectura (adelantado a C.5); con él, la nota de la ficha de Cosmos
