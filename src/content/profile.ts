@@ -58,7 +58,6 @@ export const profile: Profile = {
       hours: 975,
       grade: { en: 'Distinction', es: 'Sobresaliente' },
       status: 'completed',
-      skills: ['HTML', 'CSS', 'JavaScript', 'AJAX', 'PHP', 'MySQL', 'Apache'],
     },
     {
       id: 'holamundo-react-ts',
@@ -67,7 +66,6 @@ export const profile: Profile = {
       period: { en: '2025', es: '2025' },
       hours: 13,
       status: 'completed',
-      skills: ['React', 'TypeScript'],
     },
   ],
 };

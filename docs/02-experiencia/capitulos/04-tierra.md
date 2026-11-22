@@ -2,7 +2,7 @@
 
 ## Propósito
 
-Cerrar el viaje y convertir el interés en un contacto. Metáfora: 13.800 millones de años después, aterrizamos
+Convertir el interés en un contacto (el viaje lo cierra el epílogo, el Crew file). Metáfora: 13.800 millones de años después, aterrizamos
 en casa.
 
 ## Contenido (`contact.*`, `perfil.md`)

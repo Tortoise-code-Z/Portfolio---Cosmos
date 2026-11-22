@@ -44,14 +44,19 @@ export function CrewFile(): ReactNode {
     [t('crewFile.role'), `${localize(locale, profile.role)}${SEPARATOR}${t('crewFile.stack')}`],
     [t('crewFile.base'), `${location.city}, ${localize(locale, location.country)}`],
     [t('crewFile.rightToWork'), localize(locale, availability.workPermit)],
-    [
-      t('crewFile.availability'),
-      [
-        ...(availability.availableNow ? [t('contact.availability.now')] : []),
-        workModesText(locale, availability.modes),
-        ...(availability.openToRelocation ? [t('contact.availability.relocation')] : []),
-      ].join(SEPARATOR),
-    ],
+    // Como en Contacto y la misión rápida: solo si busca trabajo (lo demás sigue siendo verdad).
+    ...(availability.openToWork
+      ? [
+          [
+            t('crewFile.availability'),
+            [
+              ...(availability.availableNow ? [t('contact.availability.now')] : []),
+              workModesText(locale, availability.modes),
+              ...(availability.openToRelocation ? [t('contact.availability.relocation')] : []),
+            ].join(SEPARATOR),
+          ] as const,
+        ]
+      : []),
     [
       t('crewFile.languages'),
       profile.languages.map((language) => localize(locale, language)).join(SEPARATOR),
@@ -122,18 +127,19 @@ export function CrewFile(): ReactNode {
         </a>
         <CopyButton text={contact.email} targetId={EMAIL_ID} subject={t('contact.copy.subject')} />
       </div>
-      <div className={styles.site}>
+      <footer className={styles.site}>
         {/*
          * Año: en la primera carga se ve el del build (con `suppressHydrationWarning`, React conserva el texto
-         * pre-renderizado y no lo corrige al hidratar); si se vuelve a montar en el cliente, el del navegador.
+         * pre-renderizado y no lo corrige al hidratar); si se vuelve a montar en el cliente, el del navegador. La
+         * captura del epílogo lo tapa (`data-site-year`): cambia cada 1 de enero.
          */}
-        <p suppressHydrationWarning>
+        <p suppressHydrationWarning data-site-year="">
           {t('footer.line', { year: String(new Date().getFullYear()) })}
         </p>
         <ActionLink href={SITE_REPOSITORY} kind="external">
           {t('footer.source')}
         </ActionLink>
-      </div>
+      </footer>
     </Transmission>
   );
 }

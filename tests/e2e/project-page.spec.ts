@@ -72,7 +72,7 @@ test.describe('project page', () => {
     await expect(
       main.getByRole('heading', { level: 3, name: 'Technical highlights' }),
     ).toBeVisible();
-    // La nota, del contenido: el texto lo puede reescribir Víctor (CO-4-A).
+    // La nota, del contenido: el texto lo puede reescribir Víctor.
     const note = cosmos.notes[0]?.text.en ?? '';
     expect(note).not.toBe('');
     await expect(main.getByText(note)).toBeVisible();

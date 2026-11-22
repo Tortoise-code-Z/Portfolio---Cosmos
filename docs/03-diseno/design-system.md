@@ -161,11 +161,12 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--scene-clear-mobile` | 70vh | Escena limpia antes del panel en móvil (< md) |
 | `--corner-size` | 14 px | Corchetes de esquina de los paneles, la portada de un proyecto y la 404 |
 | `--chapter-h-0` … `--chapter-h-4` | 150 / 150 / 220 / 240 / 130 vh (< md: 150 / 170 / 240 / 260 / 130) | Altura **mínima** de recorrido de cada capítulo (`scroll-y-escena.md`; About es más corta desde C.2: el cambio a galaxia pasó a la cola del interludio) |
-| `--interlude-min-h` | 100svh | Alto mínimo de la pantalla de un interludio |
+| `--interlude-min-h` | 100svh | Alto mínimo de la pantalla de una transmisión (un interludio o el Crew file) |
 | `--interlude-tail` | 100vh | La cola de un interludio: recorrido vacío en el que la escena cambia a la forma siguiente |
 | `--rail-room` | 160 px (< md: 44 px) | Lo que ocupa el raíl a la derecha: una transmisión a todo el ancho lo deja libre |
-| `--rail-half-h` | 7 × `--target-min` / 2 | Media altura del raíl (una parada por capítulo y por interludio): lo baja si no cabe bajo la barra, y la escena reserva lo mismo para sus etiquetas |
-| `--chapter-end-room` | 12vh | Aire bajo el último capítulo |
+| `--rail-stops` · `--rail-stop-min` · `--rail-stop` | 8 · 24 px · `clamp(24 px, (100svh − barra − zonas seguras) / 8, --target-min)` | Paradas del raíl (una por capítulo y por interludio) y el alto de cada una: 44 px, y en una ventana baja lo justo para caber bajo la barra, nunca por debajo de 24 px (WCAG 2.5.8) |
+| `--rail-half-h` | `--rail-stops` × `--rail-stop` / 2 | Media altura del raíl: lo baja si no cabe bajo la barra, y la escena reserva lo mismo para sus etiquetas (`railHalfHeight`) |
+| `--chapter-end-room` | 12vh | Aire bajo Contacto: más recorrido en su segunda mitad, donde la Tierra pasa al retrato |
 | `--hero-room-bottom` | 12vh (< sm: 10vh) | Aire bajo el contenido del hero |
 | `--hero-indent` · `--hero-lead-measure` | 0.6em · 40ch | Sangría de la segunda línea del nombre · ancho de la frase del hero |
 | `--singularity-halo-size` · `--singularity-core-size` | 46vmin · 6 px | Halo y punto de la singularidad en CSS |
@@ -206,7 +207,8 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
   diálogo no hace saltar la página a lo ancho.
 - Sin sombras de tarjeta. El único «brillo» de la interfaz es el halo del punto activo del raíl
   (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`), y el título de cada transmisión, el de su canal
-  (`--glow-channel-amber` = `0 0 18px --color-channel-amber-glow`; `--glow-channel-blue`, igual en azul), y el «T-0» de
+  (`--glow-channel-amber` = `0 0 18px --color-channel-amber-glow`; `--glow-channel-blue` y `--glow-channel-green`,
+  igual en azul y en verde), y el «T-0» de
   Mission control, un halo más ancho (`--glow-channel-blue-countdown`, un `drop-shadow` de 14 px).
   Las etiquetas de las estrellas llevan un halo oscuro (`--halo-star-label`, dos sombras de `--color-void`) para
   leerse sobre el núcleo de la galaxia: es contraste, no brillo.
@@ -246,12 +248,15 @@ profundo y el océano de la tortuga; verde = la Tierra, la vida y el fósforo de
 
 Lenguaje común de las tres:
 
-- **Terminal:** franja de canal arriba con «Skip transmission ↓», líneas de barrido finas sobre el fondo, brillo
+- **Terminal:** franja de canal arriba con «Skip transmission ↓» (en el epílogo, «All channels closed»), líneas de barrido finas sobre el fondo, brillo
   (`text-shadow`) solo en títulos y datos clave, teletipo con cursor, onda de señal abajo.
 - **Plano técnico:** cuadrícula doble (120 px y 24 px) en el color del canal muy tenue, cajas de línea fina, números
   en círculo que enlazan pieza ↔ entrada, líneas discontinuas para lo que vuelve atrás y cotas.
 - Todo el texto es DOM; barrido, brillo, cursor, onda y cuadrícula son decoración y se apagan o quedan quietos con
   movimiento reducido. Área táctil ≥ 44 px también aquí.
+- **Controles dentro de una transmisión** (el Crew file: «Download CV», el email y «Copy»): con los colores del sitio,
+  no del canal. El ámbar es la señal de «esto se puede tocar» (y de su estado) en todo el sitio, también sobre el
+  verde.
 
 Spec de cada una: `docs/02-experiencia/capitulos/` (`interludio-1-mission-log.md`,
 `interludio-2-mission-control.md`, `05-crew-file.md`).

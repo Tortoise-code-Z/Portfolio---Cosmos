@@ -47,9 +47,11 @@ goes in.
 
 ## Features ✨
 
-- **Scroll-driven particle morphing** across five scenes, with a Big Bang you can detonate by holding a button.
+- **Scroll-driven particle morphing** across six scenes, with a Big Bang you can detonate by holding a button.
 - **Skill constellations** that light up with the mouse, the keyboard or touch.
 - **Two interludes** styled as incoming transmissions: a mission log and how I work.
+- **An epilogue, the Crew file:** the same particles rebuild my portrait from a single photo, as a scanner hologram,
+  next to my details and the CV.
 - **Bilingual site** (English / Spanish), with a page per project pre-rendered for search engines.
 - **Quick-mission mode** with all the content on one page.
 - **Works without WebGL and with reduced motion:** without WebGL, still photos of the scene take its place.

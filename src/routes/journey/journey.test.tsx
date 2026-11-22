@@ -81,7 +81,7 @@ describe('Journey', () => {
     );
   });
 
-  it('el scroll fija el m de sceneStore tramo a tramo: About y Projects quietos, y las pantallas de los dos interludios; las colas cambian', async () => {
+  it('el scroll fija el m de sceneStore tramo a tramo: About y Projects quietos, y las pantallas de los dos interludios; las colas cambian, y Contacto al retrato en su segunda mitad', async () => {
     // jsdom no maqueta: cada tramo (capítulo, pantalla o cola de un interludio) mide 1000 px, en su orden.
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
       this: HTMLElement,
@@ -99,7 +99,7 @@ describe('Journey', () => {
     };
 
     // Tramos: 0 inicio · 1 About · 2 Mission log · 3 su cola · 4 Skills · 5 Projects · 6 Mission control · 7 su
-    // cola · 8 Contact.
+    // cola · 8 Contact · 9 Crew file.
     expect(at(1500)).toEqual({ mTarget: 1, interlude: null });
     expect(at(1990)).toEqual({ mTarget: 1, interlude: null });
     expect(at(2500)).toEqual({ mTarget: 1, interlude: 'mission-log' });
@@ -115,6 +115,13 @@ describe('Journey', () => {
     expect(at(7500).mTarget).toBeCloseTo(3.5);
     expect(at(7500).interlude).toBe('mission-control');
     expect(at(8000)).toEqual({ mTarget: 4, interlude: null });
+    // Contacto se queda en la Tierra hasta su 52 % y después cambia al retrato; el epílogo llega con él formado, y
+    // se lee como capítulo (no es un interludio).
+    expect(at(8500)).toEqual({ mTarget: 4, interlude: null });
+    expect(at(8760).mTarget).toBeGreaterThan(4);
+    expect(at(8760).mTarget).toBeLessThan(5);
+    expect(at(9000)).toEqual({ mTarget: 5, interlude: null });
+    expect(at(9500)).toEqual({ mTarget: 5, interlude: null });
   });
 
   it('la sugerencia de idioma va la última en el orden del Tab, después del modo misión rápida', async () => {

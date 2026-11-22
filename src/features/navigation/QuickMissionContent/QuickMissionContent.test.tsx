@@ -186,11 +186,12 @@ describe('QuickMissionContent', () => {
     ]);
   });
 
-  it('availability comes from the profile (with the languages), and the section goes away when not open to work', () => {
+  it('availability comes from the profile, and the section goes away when not open to work (not the languages)', () => {
     renderContent();
     expect(section('Availability')).toHaveTextContent(
-      'Open to workAvailable immediatelyRemote, hybrid, or on-siteOpen to relocationKillarney, IrelandEU citizen – full right to work in IrelandSpanish · English',
+      'Open to workAvailable immediatelyRemote, hybrid, or on-siteOpen to relocationKillarney, IrelandEU citizen – full right to work in Ireland',
     );
+    expect(section('Availability')).not.toHaveTextContent('Spanish');
     document.body.replaceChildren();
     state.availableNow = false;
     renderContent();
@@ -201,6 +202,7 @@ describe('QuickMissionContent', () => {
     state.openToWork = false;
     renderContent();
     expect(screen.queryByRole('heading', { level: 3, name: 'Availability' })).toBeNull();
+    expect(section('Education')).toHaveTextContent('Languages: Spanish · English');
   });
 
   it('contact: the email (mailto) with its own copy button, GitHub, LinkedIn and no CV without its PDF', () => {

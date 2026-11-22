@@ -287,14 +287,16 @@
   /*
    * El raíl: una parada por capítulo (6, con el epílogo) y por interludio (2), de `--target-min` de alto. En una ventana
    * baja (un móvil apaisado) no caben ocho de 44 px bajo la barra: las paradas encogen lo justo, nunca por debajo de
-   * `--rail-stop-min` (24 px, el mínimo de WCAG 2.5.8). Su media altura la comparten su CSS (lo baja si no cabe bajo la
+   * `--rail-stop-min` (24 px, el mínimo de WCAG 2.5.8), sin entrar en las zonas seguras de arriba ni de abajo (la barra
+   * de inicio de un iPhone apaisado). Su media altura la comparten su CSS (lo baja si no cabe bajo la
    * barra) y la reserva de las etiquetas de la escena (`STAR_LABEL_KEEP_OUT` y `railHalfHeight`, con su test).
    */
   --rail-stops: 8;
   --rail-stop-min: 24px;
   --rail-stop: clamp(
     var(--rail-stop-min),
-    (100svh - var(--topbar-h) - env(safe-area-inset-top, 0px)) / var(--rail-stops),
+    (100svh - var(--topbar-h) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) /
+      var(--rail-stops),
     var(--target-min)
   );
   --rail-half-h: calc(var(--rail-stops) * var(--rail-stop) / 2);

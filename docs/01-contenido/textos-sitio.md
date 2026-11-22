@@ -77,6 +77,9 @@ exponente ya escrito en superíndice (`t = 10⁻⁴³ s`). El HUD pinta en ámba
 | `hud.scale.4` | scale · 12,742 km across | escala · 12.742 km de diámetro |
 | `hud.scale.5` | scale · 1 crew member | escala · 1 tripulante |
 
+`hud.scale.5` no se ve: el HUD se esconde en el epílogo (lo lee como transmisión). Existe porque cada capítulo tiene
+su escala (`SCALE_KEYS` es un registro de todos).
+
 ## Capítulo 0 · Inicio (Singularidad)
 
 | Clave | EN | ES |

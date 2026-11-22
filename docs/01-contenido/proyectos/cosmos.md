@@ -2,7 +2,7 @@
 
 > No se publica nada que no esté hecho: la escena 3D entró en el resumen, las funcionalidades y el stack en F3.7;
 > el proceso, los retos, las constelaciones, los interludios y la nota del README, en C.5 (textos de Claude que
-> Víctor corrige en el PR, CO-4-A). Lo que espera se marca con ⏳: las imágenes (F6).
+> Víctor corrige en el PR). Lo que espera se marca con ⏳: las imágenes (F6).
 
 ## Ficha
 

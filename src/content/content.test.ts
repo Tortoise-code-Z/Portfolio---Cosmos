@@ -295,6 +295,7 @@ describe('contenido', () => {
       'profile.bio.en': profile.bio.en,
       'profile.bio.es': profile.bio.es,
       'profile.availability.modes': profile.availability.modes,
+      'profile.languages': profile.languages,
     };
     for (const project of projects) {
       lists[`${project.slug}.about.en`] = project.about.en;

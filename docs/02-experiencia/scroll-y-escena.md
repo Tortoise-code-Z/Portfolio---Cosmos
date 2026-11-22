@@ -38,7 +38,9 @@ About y la pantalla del Mission log se quedan en la nebulosa (`m` = 1: el reloj 
 vacía y sin puntero, la nebulosa cambia a galaxia, y Skills llega con la galaxia ya formada. Lo mismo con Projects y
 Mission control (desde C.4): la tortuga se queda quieta (`m` = 3) y cambia a la Tierra en la cola, y Contact llega
 con la Tierra formada. El epílogo (desde C.6) es un capítulo, no un interludio: Contacto cambia en su segunda mitad,
-como Skills, y el Crew file llega con su forma, el retrato.
+como Skills, y el Crew file llega con su forma, el retrato. Para el raíl y el HUD, el epílogo «se lee» con el mismo
+criterio que el resto de capítulos (`round(m)`, desde el 76 % de Contacto), no por su tramo como un interludio: con
+Contacto muy alto (la letra al 200 % en una tableta) puede marcarse con Contacto aún en pantalla, como Skills → Projects.
 
 **Cálculo de `m`** (función pura, testeable):
 

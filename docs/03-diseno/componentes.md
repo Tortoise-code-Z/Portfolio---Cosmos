@@ -60,8 +60,9 @@
   contraseña) para copiarlo a mano.
 - El resultado se anuncia en una región `role="status"` aparte; el foco no se mueve. Cada intento pinta el mensaje
   en un nodo nuevo: copiar dos veces seguidas se anuncia dos veces. Etiquetas comunes `copy.*`
-  (textos-sitio.md → «Botón copiar»). Lo usan Contacto y el modo misión rápida (el email) y el «Try it» de la ficha
-  (usuario y contraseña de las cuentas de demo).
+  (textos-sitio.md → «Botón copiar»). Lo usan Contacto, el Crew file y el modo misión rápida (el email; cada uno
+  selecciona el suyo, aunque haya dos en la página) y el «Try it» de la ficha (usuario y contraseña de las cuentas de
+  demo).
 
 ## Navegación
 
@@ -109,7 +110,9 @@
   cumple AA: 8,7:1 la sección y 4,7:1 la escena). Al pasar el puntero o con el foco del teclado, texto opaco.
 - En alto contraste (`forced-colors`) el punto activo se rellena con `Highlight`: no solo es más grande.
 - Nombre accesible = `aria-label` con el texto completo («About · Nebula»), también en escritorio.
-- Por debajo de md (900 px): solo puntos, cada enlace de 44 × 44 px, a 8 px del borde (el anillo de foco cabe).
+- Por debajo de md (900 px), y en una ventana ancha pero baja (`height < 30em`: un móvil grande apaisado, o la letra
+  grande), solo puntos, cada enlace de 44 px de ancho y `--rail-stop` de alto, a 8 px del borde (el anillo de foco
+  cabe). Las paradas que encogen no entran en las zonas seguras de arriba ni de abajo.
 - Solo se repinta cuando cambia el capítulo activo, no con cada píxel de scroll.
 
 ### Transmisión (`Transmission`, fase C)
@@ -118,13 +121,17 @@
   atenuada), la cuadrícula doble de plano y líneas de barrido debajo del texto. Deja libre a la derecha lo que ocupa
   el raíl (`--rail-room`). Una palabra larga parte (`overflow-wrap: anywhere`) en vez de cortarse con la letra al
   200 %.
+- Dos variantes (props exclusivas: el tipo no deja mezclarlas): un **interludio** (`id`, `clock`) o el **epílogo**,
+  un capítulo que se lee como transmisión (`chapter`, que solo puede ser el 5; `stripEnd`, `footer`): su ancla sale de
+  `CHAPTER_ANCHORS`, lleva `data-chapter` y no tiene cola.
 - Franja del canal arriba, con aire arriba y abajo (`--space-2`: el anillo de foco no se corta): indicador de señal
   y nombre del canal, y «Skip transmission ↓», un enlace de verdad al capítulo siguiente (`INTERLUDE[id].next`; salta
   con el foco en su título, como el raíl; ≥ 44 px). El enlace es `ChapterJumpLink`, el mismo de «Touchdown» en
-  Mission control.
+  Mission control. En el epílogo, en su sitio, `stripEnd` («All channels closed»), sin enlace.
 - Rótulo de cada transmisión (`incoming`: «Incoming transmission · source located» en el Mission log, «Mission
   control · how I work» en Mission control) con un triángulo delante (SVG propio), título `h2` en mono con brillo (enfocable por código, como los capítulos), el
-  contenido de cada transmisión y un pie con la onda de señal y el reloj parado. Con `titleDisplay`, en el sitio del
+  contenido de cada transmisión y un pie con la onda de señal y el reloj parado (en el epílogo, `footer`: «End of
+  journey · 13.8 billion years + now», lo último de la página). Con `titleDisplay`, en el sitio del
   título se ve otra cosa (el «T-0» de Mission control, `aria-hidden`) y el título queda escondido para el lector en el
   mismo `h2`. Con `className`, una transmisión puede dar otras columnas a su cuerpo (`--_body-columns`) y fijar en
   cuál van el rótulo y el título (`--_head-column`). El rótulo de cada bloque de dentro es `.heading` de
@@ -142,17 +149,20 @@
   teletipo, `[data-line]`, esperan tapadas) y se enciende una vez cuando su borde de arriba pasa el 80 % de la
   ventana (`data-on`; `TRANSMISSION_ENTRY`, un margen y no una proporción: una sección muy alta también llega):
   barrido de luz y líneas una tras otra (`--dur-teletype-*`). Sin JavaScript o con movimiento reducido no se arma:
-  todo quieto y visible. El texto está entero en el DOM siempre, y al imprimir no sale tapado.
-- Le sigue su cola (`--interlude-tail`): un tramo vacío, `aria-hidden` y sin puntero, en el que la escena cambia a la
+  todo quieto y visible. El texto está entero en el DOM siempre, y al imprimir no sale tapado. Una línea con algo
+  enfocado se destapa al momento (`:focus-within`): con Tab se puede llegar a un control que el teletipo aún no ha
+  escrito (el CV y el email del Crew file), y el recorte taparía su anillo de foco.
+- A un interludio lo sigue su cola (`--interlude-tail`): un tramo vacío, `aria-hidden` y sin puntero, en el que la escena cambia a la
   forma del capítulo siguiente.
 - Alto contraste: fuera la cuadrícula, el barrido y el brillo, y el velo se cambia por el fondo liso del sistema
   (`Canvas`): el texto, en los colores del sistema y sin la escena detrás.
 
 ### HUD (`CosmicHud`)
 - Dos líneas en mono: reloj (13 px, valores en ámbar) y escala (11 px, `--color-dim`). `aria-hidden`, sin
-  puntero. Mientras se lee un interludio (el raíl en su rombo) se esconde con un fundido: el pie de la transmisión ya
-  dice el reloj parado, y en escritorio se montaría sobre el registro. El valor en ámbar es el número que se inserta (`200`, `⁻⁴³`); «t = 0 s» y «t = ∞» van sin ámbar.
-- Abajo a la derecha en escritorio, abajo a la izquierda por debajo de 900 px y oculto por debajo de 520 px.
+  puntero. Mientras se lee una transmisión (un interludio, con el raíl en su rombo, o el epílogo) se esconde con un
+  fundido: el pie de la transmisión ya dice el reloj, y en escritorio se montaría sobre el registro. El valor en ámbar es el número que se inserta (`200`, `⁻⁴³`); «t = 0 s» y «t = ∞» van sin ámbar.
+- Abajo a la derecha en escritorio, abajo a la izquierda por debajo de 900 px y oculto por debajo de 520 px y en una
+  ventana ancha pero baja (`height < 30em`: el raíl llega hasta abajo y lo pisaría).
 - Lee `m` por suscripción y escribe en el DOM solo cuando cambia su texto, sin re-renderizar.
 
 ## Escena ↔ interfaz
@@ -209,10 +219,6 @@
 - Display 700, `wdth` 112, seleccionable (`user-select: all`), con corte de línea seguro en móvil. Tan ancho como
   su texto (no toda la fila del panel) y con el alto mínimo del área táctil (`--target-min`).
 
-### Órbita (`OrbitItem`, formación)
-- Rejilla de 2 columnas: título a la izquierda, periodo y horas a la derecha (mono); debajo, academia y skills.
-  Separador superior de 1 px.
-
 ## Diálogos y avisos
 
 ### Modo misión rápida (`QuickMissionDialog`)
@@ -225,9 +231,9 @@
   Ocupa también el hueco de la barra de scroll que reserva la página (`100vw`).
 - Título `h2` «Víctor Pérez · Frontend Developer» (escala de `h3` por debajo de sm) y secciones con su `h3` en mono
   ámbar: About (la bio), Projects (nombre `h4`, año, metadatos, resumen y enlaces), Experience (puesto y empresa,
-  lugar y periodo, y las entradas del registro), How I work (la frase y los cinco pasos de Mission control), Skills, Education (título, centro, periodo y horas; las habilidades
-  de cada curso solo en Contacto), Availability (si `openToWork`: abierto a trabajar, incorporación inmediata si
-  `availableNow`, modalidad, reubicación, ubicación y permiso de trabajo) y Contact (email con su `CopyButton`,
+  lugar y periodo, y las entradas del registro), How I work (la frase y los cinco pasos de Mission control), Skills, Education (título; centro, periodo, horas y nota; y los idiomas, con su etiqueta),
+  Availability (si `openToWork`: abierto a trabajar, incorporación inmediata si `availableNow`, modalidad,
+  reubicación, ubicación y permiso de trabajo) y Contact (email con su `CopyButton`,
   GitHub, LinkedIn, CV).
 - Marcado propio y compacto: lee `src/content/` como los capítulos, pero no reutiliza sus componentes (ADR-022).
 
@@ -310,6 +316,8 @@
 
 ## Accesibilidad común
 
-- Área táctil mínima 44 × 44 px en todo lo pulsable (aunque el dibujo sea menor). Única excepción escrita: la
-  etiqueta de estrella (ver «Etiqueta de estrella»), con el panel de Skills como alternativa.
+- Área táctil mínima 44 × 44 px en todo lo pulsable (aunque el dibujo sea menor). Dos excepciones escritas: la
+  etiqueta de estrella (ver «Etiqueta de estrella»), con el panel de Skills como alternativa, y las paradas del raíl en
+  una ventana baja (un móvil apaisado), que encogen hasta `--rail-stop-min` (24 px, el mínimo de WCAG 2.5.8) para que
+  quepan las ocho bajo la barra (ver «Raíl»; ADR-034, nota de C.6a).
 - Ningún estado se comunica solo con color: el activo del raíl también cambia de tamaño y `aria-current`.

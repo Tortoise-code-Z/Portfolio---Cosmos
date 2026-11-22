@@ -32,7 +32,8 @@ const CONFIG_FILE = /\.(?:ts|js|json)$/;
 const BINARY_FILE = /\.(?:png|jpe?g|webp|avif|gif|ico|woff2?|ttf|otf|pdf)$/i;
 /**
  * Vivas («viva S5 #1», «Viva-S5», «viva #9», «S22 #20»), encargos («AUD-F2-3-1», también sin fase: «AUD-DOCS-MAIN»),
- * claves de pregunta («F25-1-A», sin opción «F33-6», y de letras «CAM-1-B», «FIX-1»; no «ADR-027» ni «UTF-8»),
+ * claves de pregunta («F25-1-A», sin opción «F33-6», y de letras «CAM-1-B», «CO-4-A», «FIX-1»; no «ADR-027», «UTF-8»
+ * ni «ES-419»),
  * opciones sueltas («la opción A», también en mayúscula) y el buzón (`_claude/`, el archivo de las vivas).
  */
 const OFF_REPO_ALTERNATIVES = [
@@ -43,6 +44,7 @@ const OFF_REPO_ALTERNATIVES = [
   String.raw`\b[A-Z]+\d+-\d+-[A-Z]\b`,
   String.raw`\b[A-Z]+\d{2,}-\d+\b`,
   String.raw`\b(?!ADR-|UTF-)[A-Z]{3,}-\d+(?:-[A-Z])?\b`,
+  String.raw`\b[A-Z]{2}-\d+-[A-Z]\b`,
   String.raw`\b[Ll]a opción [A-C]\b`,
   String.raw`_claude\/`,
   String.raw`decisiones-vivas`,
@@ -80,7 +82,7 @@ const OFF_REPO_EXAMPLES = [
     path: 'g.ts',
     text: '// CAM-1-B\n// FIX-1\n// Viva S5 #1\n// La opción A\n// (S22 #20)\n// decisiones-vivas-S22.md',
   },
-  { path: 'h.ts', text: '// viva S5\n// Viva-S5\n// decisiones-vivas.md\n// F3-1-A' },
+  { path: 'h.ts', text: '// viva S5\n// Viva-S5\n// decisiones-vivas.md\n// F3-1-A\n// (CO-4-A)' },
 ] as const;
 
 describe('el código no cita notas de fuera del repo', () => {
@@ -93,7 +95,7 @@ describe('el código no cita notas de fuera del repo', () => {
         text: '// Tamaños: H1-2 · UTF-8 · ES-419 · F2.5-1 · ADR-027 · WCAG 2.1 · F3.3 · S22 · #20 · AB-1',
       },
     ]);
-    expect(found).toHaveLength(20);
+    expect(found).toHaveLength(21);
     expect(found.some((line) => line.startsWith('c.ts') || line.startsWith('e.ts'))).toBe(false);
   });
 

@@ -125,7 +125,7 @@ test.describe('chapter rail', () => {
       .getByRole('navigation', { name: 'Capítulos' })
       .getByRole('link', { name: 'Contacto · Tierra' })
       .focus();
-    // El último capítulo puede quedar más cerca del final que una pantalla: el scroll se para antes.
+    // Un capítulo cerca del final (Contacto: el Crew file, debajo, es corto) puede no llegar arriba: el scroll se para antes.
     const target = await page.evaluate(() =>
       Math.min(
         (document.getElementById('contact')?.offsetTop ?? -1) -
@@ -237,7 +237,7 @@ test.describe('chapter rail', () => {
         rail(page).getByRole('link').last().boundingBox(),
       ]);
       expect(first?.y ?? 0).toBeGreaterThanOrEqual((bar?.y ?? 0) + (bar?.height ?? 0));
-      // Y la última sigue dentro de la ventana, a 44 px.
+      // Y la última sigue dentro de la ventana (las paradas encogen lo justo, `--rail-stop`).
       expect((last?.y ?? 0) + (last?.height ?? 0)).toBeLessThanOrEqual(viewport.height);
     });
   }

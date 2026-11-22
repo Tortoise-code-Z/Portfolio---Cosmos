@@ -762,7 +762,7 @@
   (Vercel)»), `DEVELOPMENT_RULES.md` §10 y §13.
 
 ## ADR-034 · El contenido se alinea con el CV y el viaje gana dos interludios y un epílogo
-- Estado: Aceptada (el retrato del epílogo, condicionado a una prueba previa fuera del repo)
+- Estado: Aceptada (la prueba del retrato convenció: entra con la foto en el repo público, nota de C.6b)
 - Fecha: 2026-11-19
 - Contexto: desde el 25 nov 2026 el portfolio acompaña al CV en las candidaturas, y quien lo recibe compara los dos.
   El contenido no cuadraba con el CV: 948 h en vez de 975, un email antiguo, sin la experiencia de las prácticas
@@ -811,6 +811,21 @@
   media altura). La web no dice qué es el producto de la empresa de las prácticas, aunque el CV lo cuente: las
   viñetas van suavizadas (y se ha pedido lo mismo para el CV y LinkedIn). La frase de la carta del CTO, con su
   permiso. El JS propio de cada página pasa de 35 a 38 KB (`calidad.md`).
+- Nota (2026-11-22, C.6a): el epílogo sin retrato. Es un **capítulo** (con su ancla, `#crew-file`, y su parada en
+  el raíl) que se lee como transmisión: lleva la franja y el pie del canal, sin «Skip» ni cola, y el HUD se esconde
+  como en un interludio (su pie dice el reloj). Contacto se queda en la Tierra hasta su mitad (52 %, como Skills) y
+  cambia en la segunda. La formación y la firma del sitio se mudan al Crew file; la ficha enseña los idiomas sin
+  nivel. El raíl pasa a ocho paradas y, en una ventana baja (un móvil apaisado), encogen lo justo para caber bajo la
+  barra, **hasta 24 px como mínimo** (WCAG 2.5.8): es la segunda excepción escrita al área táctil de 44 px, junto a
+  la etiqueta de estrella (`componentes.md` → «Accesibilidad común»). En una ventana ancha pero baja, el raíl se queda
+  con los puntos y el HUD se esconde.
+- Nota (2026-11-22, C.6b): el retrato. La sexta forma sale de una foto de Víctor y sus datos (color y profundidad,
+  ~160 KB, `src/assets/portrait/`), que entran al repo público; el worker los descarga cuando la escena llega a la
+  Tierra y, si no llegan, la forma 5 se queda en la Tierra. Transición: las partículas llegan apagadas y un haz de
+  barrido, atado al morph, las enciende de arriba abajo; al acabar, «Identity verified». El Crew file va **abierto**
+  sobre la escena (sin el velo del canal; cada bloque de texto con el suyo) y, desde lg, con el visor en el centro y
+  la ficha a los lados. Pesó 967 B de la escena, del margen de ADR-032 (no hizo falta subir el límite). En táctil el
+  retrato no gira (la inclinación pide permiso en iOS): F6.
 - Detalle: `docs/06-roadmap/roadmap.md` → «C · Contenido y secciones nuevas»; cada sección, en su doc de
   `docs/02-experiencia/capitulos/` (`interludio-1-mission-log.md`, `interludio-2-mission-control.md`,
   `05-crew-file.md`) y el sistema visual en `docs/03-diseno/design-system.md` → «Transmisiones».
