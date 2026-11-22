@@ -3,7 +3,38 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { EPILOGUE } from '~/content/chapters';
+
 import { Transmission, TRANSMISSION_ENTRY } from './Transmission';
+
+/**
+ * Lo que el tipo no deja escribir: un interludio y un capítulo a la vez, o un capítulo que no sea el epílogo. No se
+ * ejecuta: lo comprueba `tsc` (un `@ts-expect-error` que no encuentra error falla el `typecheck`).
+ */
+const COMMON = {
+  channel: 'green',
+  channelLabel: 'c',
+  incoming: 'i',
+  titleId: 't',
+  title: 'T',
+} as const;
+export const TYPE_ONLY = (): readonly unknown[] => [
+  <Transmission
+    {...COMMON}
+    id="mission-log"
+    clock="t"
+    // @ts-expect-error -- un interludio no lleva lo del capítulo
+    chapter={EPILOGUE}
+    stripEnd="s"
+    footer="f"
+  >
+    x
+  </Transmission>,
+  // @ts-expect-error -- solo el epílogo se lee como transmisión (otro repetiría su ancla)
+  <Transmission {...COMMON} chapter={2} stripEnd="s" footer="f">
+    x
+  </Transmission>,
+];
 
 /** El observador de la entrada: el test decide cuándo entra la sección en la pantalla (y con qué opciones se creó). */
 class FakeObserver {

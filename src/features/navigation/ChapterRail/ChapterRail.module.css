@@ -107,8 +107,12 @@
   }
 }
 
-/* Por debajo de md (900px): solo los puntos, más pegados al borde. */
-@media (width < 900px) {
+/*
+ * Por debajo de md (900px), y en una ventana ancha pero baja (un móvil grande apaisado, o la letra grande: la consulta va
+ * en `em`), solo los puntos, más pegados al borde: con su texto, las ocho paradas no caben bajo la barra ni dejan sitio
+ * al HUD (que ahí se esconde, `CosmicHud.module.css`).
+ */
+@media (width < 900px), (height < 30em) {
   .rail {
     /* 8 px: el anillo de foco sale 5 px del enlace y no puede cortarse con el borde. */
     inset-inline-end: max(var(--space-2), env(safe-area-inset-right));

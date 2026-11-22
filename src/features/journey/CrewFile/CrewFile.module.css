@@ -145,10 +145,11 @@
 }
 
 .email:hover {
-  color: var(--_ch);
+  /* El ámbar, el estado de todo control del sitio (como «Download CV» y «Copy», y el email de Contacto). */
+  color: var(--color-star);
 }
 
-/* El pie del sitio: el viaje acaba aquí (antes cerraba Contacto). */
+/* La firma del sitio (antes cerraba Contacto); después, el pie de la transmisión cierra la página. */
 .site {
   display: flex;
   flex-wrap: wrap;

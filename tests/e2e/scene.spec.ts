@@ -468,16 +468,16 @@ test.describe('the scene with WebGL', () => {
     await expect(heroHalo(page)).not.toHaveCSS('opacity', '0');
     // El fondo es el color del espacio, no negro.
     await expectVoidBackground(page);
-    // Por los 5 capítulos hasta Contacto: el programa (uno solo, con todas las formas) compila y el raíl llega al
-    // final sin errores. Con la `m` suavizada (ADR-028) no se para a pintar cada forma.
-    for (const id of ['about', 'skills', 'projects', 'contact']) {
+    // Por los 6 capítulos hasta el Crew file (el retrato): el programa (uno solo, con todas las formas) compila y el
+    // raíl llega al final sin errores. Con la `m` suavizada (ADR-028) no se para a pintar cada forma.
+    for (const id of ['about', 'skills', 'projects', 'contact', 'crew-file']) {
       await page.locator(`#${id}`).scrollIntoViewIfNeeded();
       await nextFrames(page);
     }
     // El recorrido llega de verdad al último capítulo.
     await expect(
       page.getByRole('navigation', { name: 'Chapters' }).locator('[aria-current="step"]'),
-    ).toHaveAccessibleName(/^Contact/);
+    ).toHaveAccessibleName(/^Crew file/);
     await expectParticlesSeenInAbout(page);
     await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
     expect(errors).toEqual([]);
@@ -668,7 +668,7 @@ test.describe('the scene with WebGL', () => {
       });
       // Cada capítulo (su keyframe y, en escritorio, su encuadre) con el ratón moviéndose (paralaje) y
       // saliendo de la ventana (vuelve al centro); a 390 px, el campo de visión de móvil.
-      for (const id of ['about', 'skills', 'projects', 'contact']) {
+      for (const id of ['about', 'skills', 'projects', 'contact', 'crew-file']) {
         await page.locator(`#${id}`).scrollIntoViewIfNeeded();
         await page.mouse.move(viewport.width * 0.9, viewport.height * 0.2, { steps: 4 });
         await page.mouse.move(viewport.width * 0.1, viewport.height * 0.8, { steps: 4 });

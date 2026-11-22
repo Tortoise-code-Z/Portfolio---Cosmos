@@ -67,15 +67,25 @@ Texto visible (lo arma la interfaz a partir de los datos):
 | linkedin | https://www.linkedin.com/in/v%C3%ADctor-p%C3%A9rez-developer |
 | cv | `/Victor_Perez_CV.pdf` en los dos idiomas: el CV en inglés (ver `assets.md` → «CV en PDF») |
 
-## Formación («Órbitas completadas»)
+## Idiomas
 
-| id | title (EN / ES) | school | period (EN / ES) | hours | grade (EN / ES) | status | skills |
-|---|---|---|---|---|---|---|---|
-| `masterd-fullstack` | Advanced Course in Web Programming (Full-Stack) / Curso Superior en Programación de Páginas Web (Full-Stack) | Master.D | Jan 2023 – Oct 2024 / ene 2023 – oct 2024 | 975 | Distinction / Sobresaliente | completed | HTML, CSS, JavaScript, AJAX, PHP, MySQL, Apache |
-| `holamundo-react-ts` | React + TypeScript Course / Curso de React + TypeScript | Hola Mundo | 2025 / 2025 | 13 | — | completed | React, TypeScript |
+| languages (EN / ES) |
+|---|
+| Spanish / Español · English / Inglés |
 
-Como en el CV (C.1): el nombre y las horas del diploma de Master.D; las skills, sus módulos (HTML/CSS,
-JavaScript/AJAX, PHP, MySQL, Apache); la nota, en palabras («Distinction» / «Sobresaliente»), **nunca la numérica**.
-Es un curso no oficial: nunca «DAW», «FP» ni «Higher Technician». La interfaz la escribe tras las horas:
-`Jan 2023 – Oct 2024 · 975 h · Distinction`. Hola Mundo no lleva nota.
+Solo los idiomas, **sin nivel** (decidido en C.6). Los enseñan el Crew file (en su ficha) y la misión rápida (junto
+a la formación, con su etiqueta).
+
+## Formación
+
+| id | title (EN / ES) | school | period (EN / ES) | hours | grade (EN / ES) | status |
+|---|---|---|---|---|---|---|
+| `masterd-fullstack` | Advanced Course in Web Programming (Full-Stack) / Curso Superior en Programación de Páginas Web (Full-Stack) | Master.D | Jan 2023 – Oct 2024 / ene 2023 – oct 2024 | 975 | Distinction / Sobresaliente | completed |
+| `holamundo-react-ts` | React + TypeScript Course / Curso de React + TypeScript | Hola Mundo | 2025 / 2025 | 13 | — | completed |
+
+Como en el CV (C.1): el nombre y las horas del diploma de Master.D; la nota, en palabras («Distinction» /
+«Sobresaliente»), **nunca la numérica**. Es un curso no oficial: nunca «DAW», «FP» ni «Higher Technician». Los
+módulos de cada curso los lleva el CV, no el sitio. La interfaz la escribe así: en el Crew file, academia · horas ·
+nota (`Master.D · 975 h · Distinction`); en la misión rápida, con el periodo (`Master.D · Jan 2023 – Oct 2024 · 975
+h · Distinction`). Hola Mundo no lleva nota.
 Curso de Hola Mundo terminado: confirmado por Víctor (F2 · paso 2).

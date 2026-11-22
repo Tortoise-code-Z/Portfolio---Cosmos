@@ -65,6 +65,18 @@ describe('CosmicHud', () => {
     expect(hud).not.toHaveAttribute('data-hidden');
   });
 
+  it('hides in the epilogue too (a chapter read as a transmission, its footer says the clock), not on Contact', () => {
+    const hud = renderHud();
+    act(() => {
+      setScrollTarget(5);
+    });
+    expect(hud).toHaveAttribute('data-hidden');
+    act(() => {
+      setScrollTarget(4);
+    });
+    expect(hud).not.toHaveAttribute('data-hidden');
+  });
+
   it('shows the current m at once if the journey was already under way (reload mid-page)', () => {
     setScrollTarget(2);
     expect(renderHud()).toHaveTextContent('t ≈ 1 billion years');

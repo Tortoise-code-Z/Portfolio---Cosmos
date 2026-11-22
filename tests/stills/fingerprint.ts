@@ -7,7 +7,8 @@ import { assignPlates } from '../../src/scene/config/plateSlots/plateSlots.ts';
 
 /**
  * Huella de lo que se ve en las fotos fijas del modo sin WebGL (ADR-029): las formas, los shaders, la cámara, la
- * paleta, los niveles, las cuentas que comparten (`lib/math` y el suavizado de `m`, `lib/scroll/smoothM`), cómo se
+ * paleta, los niveles, las cuentas que comparten (`lib/math` y el suavizado de `m`, `lib/scroll/smoothM`), los
+ * tramos del viaje y su `m` (`content/chapters.ts`, `lib/scroll/mapM`: las fotos se sacan en el ancla, en su `base`), cómo se
  * piden las formas, cómo se monta el lienzo, el reloj y el movimiento reducido (las fotos se sacan con el reloj
  * parado: `uTime` = 0), las constelaciones (F4.3, sin sus etiquetas: son del DOM), el retrato (sus imágenes, el worker
  * que las lee y el hook que lo pide), cómo se sacan las fotos y las placas de la tortuga (una por proyecto). `npm run stills` la guarda en
@@ -34,6 +35,8 @@ export const STILLS_SOURCES = [
   'src/scene/sceneClock',
   'src/lib/math',
   'src/lib/scroll/smoothM',
+  'src/lib/scroll/mapM',
+  'src/content/chapters.ts',
   'src/lib/device/reducedMotion',
   'src/lib/device/sceneLevel/sceneLevel.ts',
   'src/features/scene-mount/stillFrames/stillFrames.ts',

@@ -113,6 +113,14 @@ export function QuickMissionContent(): ReactNode {
             </li>
           ))}
         </ul>
+        {/*
+         * Los idiomas son un dato suyo, no de su disponibilidad: junto a la formación (como en el Crew file), con su
+         * etiqueta. No en «About»: empujaría los proyectos fuera de la primera pantalla en un móvil.
+         */}
+        <p>
+          <span className={styles.term}>{`${t('crewFile.languages')}: `}</span>
+          {profile.languages.map((language) => localize(locale, language)).join(SEPARATOR)}
+        </p>
       </section>
 
       {availability.openToWork ? (
@@ -125,9 +133,6 @@ export function QuickMissionContent(): ReactNode {
             {availability.openToRelocation ? <li>{t('contact.availability.relocation')}</li> : null}
             <li>{`${location.city}, ${localize(locale, location.country)}`}</li>
             <li>{localize(locale, availability.workPermit)}</li>
-            <li>
-              {profile.languages.map((language) => localize(locale, language)).join(SEPARATOR)}
-            </li>
           </ul>
         </section>
       ) : null}

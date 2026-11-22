@@ -19,7 +19,7 @@ cosmos-portfolio/
 │  ├─ entry.client.tsx          ← (si hace falta personalizar la hidratación)
 │  ├─ routes.ts                 ← configuración de rutas EN/ES
 │  ├─ routes/                   ← una carpeta por ruta, con su test (ADR-018)
-│  │  ├─ journey/journey.tsx    ← el viaje (home): monta los 5 capítulos y los 2 interludios, en el orden de
+│  │  ├─ journey/journey.tsx    ← el viaje (home): monta los 6 capítulos (el epílogo incluido) y los 2 interludios, en el orden de
 │  │  │                           `JOURNEY_SEGMENTS`
 │  │  ├─ project/project.tsx    ← /projects/:slug
 │  │  └─ not-found/not-found.tsx
@@ -35,8 +35,9 @@ cosmos-portfolio/
 │  │                              y las imágenes (`media.ts`), que junta `index.ts`
 │  ├─ features/                 ← piezas de interfaz con lógica propia
 │  │  ├─ journey/               ← Hero, ChapterSection, ChapterPanel, Eyebrow, About, Skills, Projects,
-│  │  │                           ProjectRow, Contact, Transmission (la pantalla de un interludio, fase C),
-│  │  │                           MissionLog y MissionControl (los dos interludios), ChapterJumpLink (enlace
+│  │  │                           ProjectRow, Contact, Transmission (la pantalla de un interludio o del epílogo,
+│  │  │                           fase C), MissionLog y MissionControl (los dos interludios), CrewFile (el
+│  │  │                           epílogo, con el visor del retrato), ChapterJumpLink (enlace
 │  │  │                           que salta a un capítulo), BlinkCursor (el cursor del teletipo),
 │  │  │                           `chapterDom` (el contrato con el DOM que lee la
 │  │  │                           navegación y el mapeo de scroll), `useBigBang` y `BigBangFlash` (los efectos del Big Bang en el
@@ -236,7 +237,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
 | `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); grupo de skills encendido (`activeSkillGroup`, desde F4.3b: lo lee la escena en cada frame con `getState()`; lo escriben el panel y las etiquetas desde F4.3c: `setActiveSkillGroup` enciende y `releaseActiveSkillGroup` apaga solo si sigue encendido; `selectSceneOn` dice si hay escena); página de proyecto a la vista (`projectPageOpen`: la escribe la ficha al montarse y al irse; hasta F5, la escena se pausa con ella); después, proyecto activo (el que se resalta por puntero o foco en su fila, o por su pin: sincroniza filas y placas, F4.4) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto y, hasta F5, en la ficha); desde F5, la placa visitada |
-| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028; `setScrollTarget` no deja pasar lo que no sea un número finito), el interludio que se lee (`interlude`, fase C: lo escribe el viaje con `setReadingInterlude` en la pantalla y la cola del interludio), la carga de la detonación (`charge`, desde F4.1: la escribe el bucle del botón del hero en cada frame mientras carga o se descarga, ADR-030) y, más adelante en F4, peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget` y `charge` y deja su `m` suavizada y la carga en el `SceneFrame` que leen los `useFrame`; los efectos del Big Bang del hero (`useBigBang`, ADR-030) por suscripción, en su propio bucle y **sin re-render**; el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen la parada activa (`selectActiveStop`: el interludio mientras se lee, o el capítulo `round(m)`), y el HUD la lee para esconderse en un interludio; las fotos fijas del modo sin WebGL eligen `selectActiveChapter` (solo se repintan al cambiar) |
+| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028; `setScrollTarget` no deja pasar lo que no sea un número finito), el interludio que se lee (`interlude`, fase C: lo escribe el viaje con `setReadingInterlude` en la pantalla y la cola del interludio), la carga de la detonación (`charge`, desde F4.1: la escribe el bucle del botón del hero en cada frame mientras carga o se descarga, ADR-030) y, más adelante en F4, peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget` y `charge` y deja su `m` suavizada y la carga en el `SceneFrame` que leen los `useFrame`; los efectos del Big Bang del hero (`useBigBang`, ADR-030) por suscripción, en su propio bucle y **sin re-render**; el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen la parada activa (`selectActiveStop`: el interludio mientras se lee, o el capítulo `round(m)`), y el HUD la lee para esconderse en una transmisión (un interludio o el epílogo, `isTransmissionStop`); las fotos fijas del modo sin WebGL eligen `selectActiveChapter` (solo se repintan al cambiar) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
 ningún store: se guarda en `localStorage` (`lib/storage`), la lee solo `LanguageNotice` y la escriben el aviso y
@@ -266,7 +267,7 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
    capas (ADR-030).
 4. El raíl y el idioma eligen la parada activa (`selectActiveStop`: el interludio mientras se lee, o el capítulo
    `round(m)`); las fotos fijas (sin WebGL), `round(m)` (`selectActiveChapter`). El HUD se suscribe y solo toca el DOM
-   cuando cambia su texto o si se esconde (en un interludio) (cambios discretos, no por frame).
+   cuando cambia su texto o si se esconde (en una transmisión: un interludio o el epílogo) (cambios discretos, no por frame).
 
 ## Carga de la escena
 

@@ -100,5 +100,7 @@ describe('cosmicScale', () => {
     expect(cosmicScale('en', 0)).toBe('scale ≈ 10⁻³⁵ m');
     expect(cosmicScale('es', 2)).toBe('escala ≈ 100.000 años luz');
     expect(cosmicScale('en', 4)).toBe('scale · 12,742 km across');
+    // El epílogo tiene la suya, aunque no se vea: el HUD se esconde ahí (textos-sitio.md → «HUD»).
+    expect(cosmicScale('en', 5)).toBe('scale · 1 crew member');
   });
 });

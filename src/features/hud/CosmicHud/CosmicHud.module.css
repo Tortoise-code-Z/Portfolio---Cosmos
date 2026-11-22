@@ -23,7 +23,7 @@
   transition: opacity var(--dur-fade-base) var(--ease-out);
 }
 
-/* Leyendo un interludio: el pie de la transmisión ya dice el reloj parado. */
+/* Leyendo una transmisión (un interludio o el epílogo): su pie ya dice el reloj. */
 .hud[data-hidden] {
   opacity: 0;
 }
@@ -48,6 +48,16 @@
 
 /* Móvil pequeño (< sm 520px): sin HUD; el eyebrow de cada capítulo ya dice lo mismo. */
 @media (width < 520px) {
+  .hud {
+    display: none;
+  }
+}
+
+/*
+ * Una ventana ancha pero baja (un móvil grande apaisado, o la letra grande: la consulta va en `em`): el raíl llega hasta
+ * abajo y lo pisaría. Es decoración, como por debajo de sm.
+ */
+@media (width >= 900px) and (height < 30em) {
   .hud {
     display: none;
   }

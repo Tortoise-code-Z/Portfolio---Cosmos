@@ -17,11 +17,14 @@ Metáfora: las partículas que formaron el universo se recomponen en la cara de 
 - Título «CREW FILE».
 - **El retrato en partículas** (sexta forma, ADR-034), con esquinas de visor y líneas guía hacia los datos.
 - Ficha: Role (Frontend Developer · React + TypeScript) · Base (Killarney, Ireland: la ciudad y el país del perfil) · Right to work (EU
-  citizen · full right to work in Ireland) · Availability (immediate · remote, hybrid or on-site · relocation) ·
+  citizen · full right to work in Ireland) · Availability (immediate · remote, hybrid or on-site · relocation; como
+  en Contacto, solo si está abierto a trabajar) ·
   Languages (solo los idiomas, sin nivel: «Spanish · English») · Training (Advanced Course in Web Programming
   (Full-Stack), Master.D, 975 h, Distinction; React + TypeScript, Hola Mundo, 13 h). La formación se muda aquí desde
-  Contacto, y con ella el pie del sitio (firma y «This site is open source»), que cierra la página.
-- **Download CV** (el PDF de `public/`, el inglés en los dos idiomas) y el email con «Copy».
+  Contacto, y con ella la firma del sitio (un `<footer>`: «Víctor Pérez · Frontend Developer · año» y «This site is
+  open source»). Lo último de la página es el pie de la transmisión: la onda y «End of journey».
+- **Download CV** (el PDF de `public/`, el inglés en los dos idiomas) y el email con «Copy», con los colores del
+  sitio (el ámbar es el estado de todo control: `design-system.md` → «Transmisiones»).
 - Pie: «End of journey · 13.8 billion years + now».
 
 ## Escena (`m = 5`)

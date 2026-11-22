@@ -68,7 +68,8 @@ Víctor decide el Visto Bueno entendiendo el paso, no solo leyéndolo.
 - **Tokens siempre:** ningún color, tamaño o duración literal en componentes (ADR-005).
 - **Determinismo:** PRNG con semilla, nunca `Math.random` en la escena (ADR-011).
 - **Movimiento reducido de primera clase**, no un parche (`docs/02-experiencia/estados-y-accesibilidad.md`).
-- **Accesibilidad:** teclado, foco visible, contraste AA, área táctil ≥ 44 px, ningún estado comunicado solo con color.
+- **Accesibilidad:** teclado, foco visible, contraste AA, área táctil ≥ 44 px (las excepciones, escritas en
+  `docs/03-diseno/componentes.md` → «Accesibilidad común»), ningún estado comunicado solo con color.
 - **El código, `DECISIONS.md` y `docs/` citan docs y ADR del repo**, nunca las notas de trabajo que viven fuera de
   git (el buzón `_claude/`, las decisiones vivas, las claves de encargo `EST-…`/`AUD-…`, «la opción A»): el repo es
   público y esas referencias no se pueden seguir (quien lo lea en una entrevista no puede abrir una viva). Un ADR

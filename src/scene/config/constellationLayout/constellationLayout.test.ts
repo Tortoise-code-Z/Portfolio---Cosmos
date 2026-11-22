@@ -234,8 +234,15 @@ describe('constellationLayout', () => {
     }
     // La misma cuenta que usa el CSS del raíl (su alto y bajarlo si no cabe bajo la barra).
     expect(root).toContain('--rail-half-h: calc(var(--rail-stops) * var(--rail-stop) / 2);');
-    expect(root).toContain(
-      '(100svh - var(--topbar-h) - env(safe-area-inset-top, 0px)) / var(--rail-stops),',
+    // La declaración entera de la parada (sus dos topes también: un `clamp(…, …, 48px)` no pasaría), sin las zonas
+    // seguras: la escena no las ve y reserva de más.
+    const railStop = /--rail-stop:\s*([^;]+);/
+      .exec(root)?.[1]
+      ?.replace(/\s+/g, ' ')
+      .replace(/\(\s/g, '(')
+      .replace(/\s\)/g, ')');
+    expect(railStop).toBe(
+      'clamp(var(--rail-stop-min), (100svh - var(--topbar-h) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / var(--rail-stops), var(--target-min))',
     );
   });
 

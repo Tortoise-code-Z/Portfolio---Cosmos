@@ -141,7 +141,6 @@ export interface Education {
   readonly hours: number;
   readonly grade?: Localized;                // nota en palabras ('Distinction'); nunca la numérica
   readonly status: 'completed' | 'in-progress';
-  readonly skills: readonly string[];
 }
 
 export type SkillGroupId = 'web' | 'libraries' | 'tools' | 'ai';
@@ -268,7 +267,7 @@ export interface LaunchStep {
 8. Además: `LOCALES` = `en`, `es`, con EN primero; las 4 constelaciones en su orden y ninguna vacía; formación con
    ids únicos y horas enteras positivas; la misión con seis entradas y un manifiesto que las cubre todas, sin
    números que no existan; cada `cv` que no es `null`, un PDF que existe en `public/`; y al menos un elemento en las listas que la interfaz siempre pinta
-   (`bio`, `availability.modes`, y por proyecto `about`, `features`, `stack.core` y `tryIt.steps`).
+   (`bio`, `availability.modes`, `languages`, y por proyecto `about`, `features`, `stack.core` y `tryIt.steps`).
    `process` y `highlights` sí pueden ir vacíos: la sección no se pinta. La cuenta atrás de Mission control va de
    T-4 a T-0 sin huecos ni ids repetidos, con los pasos de antes del código seguidos y al principio, y su bucle va
    hacia atrás (de la auditoría a un paso anterior); `browserName` nombra los tres navegadores del CI y deja uno

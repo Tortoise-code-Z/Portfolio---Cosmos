@@ -17,7 +17,7 @@ import { clamp } from '~/lib/math/clamp/clamp';
  * discreto (el capítulo activo).
  */
 export interface SceneState {
-  /** `m` que pide el scroll (de 0 a 4). */
+  /** `m` que pide el scroll (de 0 a 5). */
   readonly mTarget: number;
   /**
    * `m` de la interfaz (raíl, HUD, idioma): `mTarget` tal cual, a saltos. La escena no lo escribe: suaviza su propia

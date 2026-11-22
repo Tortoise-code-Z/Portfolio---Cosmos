@@ -50,7 +50,8 @@ Nombre del proyecto: **`cosmos-portfolio`**. Repo en GitHub: **`Tortoise-code-Z/
 | 1 | Nebulosa y nacimiento de una estrella | Sobre mí | ≈ 200 millones de años | ≈ 20 años luz |
 | 2 | Galaxia espiral y constelaciones | Habilidades | ≈ 1000 millones de años | ≈ 100.000 años luz |
 | 3 | Tortuga cósmica con un bosque sobre el caparazón | Proyectos | tiempo mítico (∞) | 1 tortuga |
-| 4 | La Tierra al amanecer | Contacto + formación | 13.800 millones de años | 12.742 km |
+| 4 | La Tierra al amanecer | Contacto | 13.800 millones de años | 12.742 km |
+| 5 | El retrato de Víctor en partículas (epílogo, ADR-034) | Crew file: la ficha, la formación y el CV | (el pie: 13.800 millones de años + ahora) | 1 tripulante |
 
 El detalle de cada capítulo vive en `docs/02-experiencia/`.
 

@@ -10,8 +10,9 @@ import { forceLowScene, PARTICLES_PAINTED, withoutWebGL } from '../e2e/support/h
 
 /**
  * Un estado por capítulo (docs/05-tecnico/calidad.md → «Regresión visual»): se entra por su ancla, así que la
- * escena arranca en su `m` exacto (ADR-028), y se espera a que haya partículas pintadas y a que lleguen las
- * fuentes. Siempre en nivel Bajo (ver `beforeEach`).
+ * escena arranca en su `m` exacto (ADR-028), y se espera a que haya partículas pintadas (en el epílogo, también el
+ * retrato) y a que lleguen las fuentes. Siempre en nivel Bajo (ver `beforeEach`). El año de la firma del sitio va
+ * tapado (`data-site-year`).
  */
 /**
  * Las de los capítulos, siempre en Bajo (`forceLowScene`: se presenta como GPU con poca memoria; la del modo sin
@@ -33,10 +34,17 @@ for (const index of CHAPTER_INDICES) {
     if (index === EPILOGUE) await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(anchor === null ? '/' : `/#${anchor}`);
     await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-level', 'low');
+    // El retrato llega aparte, en su encargo al worker: sin esperarlo, la foto podría salir con la Tierra.
+    if (index === EPILOGUE) {
+      await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-portrait', 'loaded');
+    }
     await page.evaluate(async () => {
       await document.fonts.ready;
     });
-    await expect(page).toHaveScreenshot(`${name}.png`);
+    // El año de la firma (epílogo) cambia cada 1 de enero: va tapado.
+    await expect(page).toHaveScreenshot(`${name}.png`, {
+      mask: [page.locator('[data-site-year]')],
+    });
   });
 }
 

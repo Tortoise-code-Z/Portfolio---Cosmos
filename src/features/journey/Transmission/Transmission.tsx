@@ -1,11 +1,6 @@
 import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 
-import {
-  CHAPTER_ANCHORS,
-  INTERLUDE,
-  type ChapterIndex,
-  type InterludeId,
-} from '~/content/chapters';
+import { CHAPTER_ANCHORS, EPILOGUE, INTERLUDE, type InterludeId } from '~/content/chapters';
 import { cx } from '~/lib/css/cx/cx';
 import { prefersReducedMotion } from '~/lib/device/reducedMotion/reducedMotion';
 import { useT } from '~/lib/i18n/useT/useT';
@@ -27,13 +22,19 @@ type TransmissionPlace =
       readonly id: InterludeId;
       /** El reloj cósmico, parado: «t ≈ 200 million years». */
       readonly clock: string;
+      readonly chapter?: never;
+      readonly stripEnd?: never;
+      readonly footer?: never;
     }
   | {
-      readonly chapter: ChapterIndex;
+      /** Solo el epílogo se lee como transmisión (cualquier otro capítulo repetiría su ancla). */
+      readonly chapter: typeof EPILOGUE;
       /** Lo que cierra la franja del canal, en el sitio de «Skip transmission». */
       readonly stripEnd: string;
       /** El pie, entero: «End of journey · 13.8 billion years + now». */
       readonly footer: string;
+      readonly id?: never;
+      readonly clock?: never;
     };
 
 type TransmissionProps = TransmissionPlace & {
@@ -125,19 +126,21 @@ export function Transmission(props: TransmissionProps): ReactNode {
   } = props;
   const t = useT();
   const ref = useTransmissionEntry();
-  const interlude = 'id' in props ? props.id : null;
+  const interlude = props.id ?? null;
 
   return (
     <>
       <section
         ref={ref}
         id={
-          'id' in props ? INTERLUDE[props.id].anchor : (CHAPTER_ANCHORS[props.chapter] ?? undefined)
+          props.id === undefined
+            ? (CHAPTER_ANCHORS[props.chapter] ?? undefined)
+            : INTERLUDE[props.id].anchor
         }
         aria-labelledby={titleId}
         className={cx(styles.transmission, styles[channel], open && styles.open, className)}
         data-interlude={interlude ?? undefined}
-        data-chapter={'chapter' in props ? props.chapter : undefined}
+        data-chapter={props.chapter}
       >
         <div className={styles.strip}>
           <span className={styles.channel}>
@@ -149,7 +152,7 @@ export function Transmission(props: TransmissionProps): ReactNode {
             </span>
             {channelLabel}
           </span>
-          {'id' in props ? (
+          {props.id !== undefined ? (
             // «Skip transmission»: al capítulo siguiente, con el foco en su título.
             <ChapterJumpLink chapter={INTERLUDE[props.id].next} className={styles.skip}>
               {t('interlude.skip')}
@@ -188,7 +191,9 @@ export function Transmission(props: TransmissionProps): ReactNode {
           >
             <path d="M0 12 Q 10 2 20 12 T 40 12 T 60 12 T 80 12 T 100 12 T 120 12 T 140 12 T 160 12 T 180 12 T 200 12 T 220 12 T 240 12" />
           </svg>
-          <p>{'id' in props ? t('interlude.clock', { clock: props.clock }) : props.footer}</p>
+          <p>
+            {props.id === undefined ? props.footer : t('interlude.clock', { clock: props.clock })}
+          </p>
         </footer>
       </section>
       {interlude === null ? null : (

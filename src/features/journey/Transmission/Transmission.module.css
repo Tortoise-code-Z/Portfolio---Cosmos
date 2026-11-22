@@ -296,6 +296,15 @@
   transition-delay: calc(var(--_line, 0) * var(--dur-teletype-step));
 }
 
+/*
+ * Una línea con algo enfocado no espera su turno: se destapa ya (con Tab se puede llegar a un enlace o un botón que el
+ * teletipo aún no ha escrito, y el recorte taparía también su anillo de foco).
+ */
+.transmission[data-armed] [data-line]:focus-within {
+  clip-path: none;
+  transition: none;
+}
+
 @media (width >= 900px) {
   .body {
     padding-block-start: var(--space-8);

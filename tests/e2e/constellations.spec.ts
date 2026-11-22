@@ -2,10 +2,8 @@ import { expect, type Locator, type Page } from '@playwright/test';
 
 import { skillGroups } from '../../src/content/skills.ts';
 import type { SkillGroupId } from '../../src/content/types.ts';
-import {
-  railHalfHeight,
-  STAR_LABEL_KEEP_OUT,
-} from '../../src/scene/config/constellationLayout/constellationLayout.ts';
+import { keepOutZones } from '../../src/scene/math/labelFit/labelFit.ts';
+import { STAR_LABEL_KEEP_OUT } from '../../src/scene/config/constellationLayout/constellationLayout.ts';
 import { WIDE_LAYOUT_QUERY } from '../../src/scene/config/sceneConfig.ts';
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../../src/scene/contextLoss/contextLoss.ts';
 import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
@@ -410,6 +408,8 @@ test.describe('the constellations of Skills', () => {
       { width: 1280, height: 720 },
       { width: 768, height: 1024 },
       { width: 390, height: 844 },
+      { width: 844, height: 390 },
+      { width: 800, height: 360 },
     ]) {
       test(`${path} at ${String(viewport.width)}×${String(viewport.height)}: the real interface fits what the scene keeps the labels away from`, async ({
         page,
@@ -424,9 +424,16 @@ test.describe('the constellations of Skills', () => {
           throw new Error('No bar, rail or panel');
         expect(bar[3]).toBeLessThanOrEqual(keep.barBottom);
         expect(canvas.width - rail[0], 'rail width').toBeLessThanOrEqual(keep.rail.fromRight);
-        const railHalf = railHalfHeight(canvas.height, keep);
-        expect(canvas.height / 2 - rail[1], 'rail above the middle').toBeLessThanOrEqual(railHalf);
-        expect(rail[3] - canvas.height / 2, 'rail below the middle').toBeLessThanOrEqual(railHalf);
+        // El raíl de verdad cabe en la zona que la escena le guarda (la misma cuenta que usa: `keepOutZones`, sin su
+        // margen), también cuando sus paradas encogen y baja bajo la barra (un móvil apaisado).
+        const { marginPx } = STAR_LABEL_KEEP_OUT;
+        const railZone = keepOutZones(canvas.width, canvas.height, await isWide(page)).find(
+          ({ name }) => name === 'rail',
+        )?.rect;
+        if (railZone === undefined) throw new Error('No rail zone');
+        expect(rail[0], 'rail left edge').toBeGreaterThanOrEqual(railZone[0] + marginPx - 0.5);
+        expect(rail[1], 'rail top').toBeGreaterThanOrEqual(railZone[1] + marginPx - 0.5);
+        expect(rail[3], 'rail bottom').toBeLessThanOrEqual(railZone[3] - marginPx + 0.5);
         if (hudRect !== null) {
           expect(canvas.height - hudRect[1], 'HUD height').toBeLessThanOrEqual(keep.hud.fromBottom);
           if ('fromRight' in keep.hud) {

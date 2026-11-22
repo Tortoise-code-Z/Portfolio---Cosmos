@@ -123,7 +123,6 @@ export interface Education {
   /** Nota final en palabras, como en el CV ('Distinction'); nunca la numérica. Sin nota, se omite. */
   readonly grade?: Localized;
   readonly status: 'completed' | 'in-progress';
-  readonly skills: readonly string[];
 }
 
 export interface Profile {

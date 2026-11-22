@@ -7,32 +7,48 @@ import { test } from './support/test.ts';
 /**
  * El epílogo, Crew file (fase C · C.6a; docs/02-experiencia/capitulos/05-crew-file.md): el último capítulo, en el
  * canal verde, bajo Contacto. La ficha, «Download CV» y el email; el raíl marca su parada y el HUD se esconde (el pie
- * dice el reloj). Hasta C.6b la escena se queda en la Tierra. Se lee sin WebGL, con movimiento reducido, a 390 px,
- * con la letra al 200 % y con el raíl entero en un móvil apaisado.
+ * dice el reloj). La escena pinta el retrato (C.6b; su carga la mira `scene.spec.ts`). Se lee sin WebGL, con
+ * movimiento reducido, a 390 px, con la letra al 200 % y con el raíl entero en un móvil apaisado.
  */
 
 const crewFile = (page: Page) => page.locator('[data-chapter="5"]');
 const rail = (page: Page) => page.getByRole('navigation', { name: /^(?:Chapters|Capítulos)$/ });
 
 test.describe('Crew file', () => {
-  test('/#crew-file lands on it: its title under the bar, the rail on its stop and the HUD hidden', async ({
-    page,
-  }) => {
-    const errors = collectErrors(page);
-    await page.goto('/#crew-file', { waitUntil: 'networkidle' });
-    await expect(page.getByRole('region', { name: 'Crew file' })).toBeInViewport();
-    const [title, bar] = await Promise.all([
-      page.getByRole('heading', { level: 2, name: 'Crew file' }).boundingBox(),
-      page.getByRole('banner').boundingBox(),
-    ]);
-    expect(title?.y ?? 0).toBeGreaterThanOrEqual((bar?.y ?? 0) + (bar?.height ?? 0));
-    await expect(rail(page).locator('[aria-current="step"]')).toHaveAccessibleName(
-      'Crew file · Epilogue',
-    );
-    await expect(hud(page)).toHaveAttribute('data-hidden', '');
-    await expect(crewFile(page)).toContainText('End of journey · 13.8 billion years + now');
-    expect(errors).toEqual([]);
-  });
+  for (const { path, title, stop, closed, footer } of [
+    {
+      path: '/',
+      title: 'Crew file',
+      stop: 'Crew file · Epilogue',
+      closed: 'All channels closed',
+      footer: 'End of journey · 13.8 billion years + now',
+    },
+    {
+      path: '/es',
+      title: 'Ficha de tripulación',
+      stop: 'Tripulación · Epílogo',
+      closed: 'Todos los canales cerrados',
+      footer: 'Fin del viaje · 13.800 millones de años + ahora',
+    },
+  ]) {
+    test(`${path}#crew-file lands on it: its title under the bar, the rail on its stop and the HUD hidden`, async ({
+      page,
+    }) => {
+      const errors = collectErrors(page);
+      await page.goto(`${path}#crew-file`, { waitUntil: 'networkidle' });
+      await expect(page.getByRole('region', { name: title })).toBeInViewport();
+      const [heading, bar] = await Promise.all([
+        page.getByRole('heading', { level: 2, name: title }).boundingBox(),
+        page.getByRole('banner').boundingBox(),
+      ]);
+      expect(heading?.y ?? 0).toBeGreaterThanOrEqual((bar?.y ?? 0) + (bar?.height ?? 0));
+      await expect(rail(page).locator('[aria-current="step"]')).toHaveAccessibleName(stop);
+      await expect(hud(page)).toHaveAttribute('data-hidden', '');
+      await expect(crewFile(page)).toContainText(closed);
+      await expect(crewFile(page)).toContainText(footer);
+      expect(errors).toEqual([]);
+    });
+  }
 
   test('the rail stop travels to it, with the focus on its title', async ({ page }) => {
     await page.goto('/#contact', { waitUntil: 'networkidle' });
@@ -43,6 +59,8 @@ test.describe('Crew file', () => {
 
   test('it is the end of the page: nothing scrolls past its footer', async ({ page }) => {
     await page.goto('/#crew-file', { waitUntil: 'networkidle' });
+    // Sin WebGL (un motor del CI sin GPU), el aviso abajo alarga el documento lo que mide (`Notice`): fuera.
+    await settleScene(page);
     await page.evaluate(() => {
       window.scrollTo(0, document.documentElement.scrollHeight);
     });
@@ -50,7 +68,10 @@ test.describe('Crew file', () => {
       crewFile(page).boundingBox(),
       page.evaluate(() => window.innerHeight),
     ]);
-    expect(Math.round((section?.y ?? 0) + (section?.height ?? 0))).toBeLessThanOrEqual(end);
+    const bottom = Math.round((section?.y ?? 0) + (section?.height ?? 0));
+    // Las dos: no se sale por abajo y no hay nada debajo (con el scroll al final, el `≤` solo se cumple siempre).
+    expect(bottom).toBeLessThanOrEqual(end);
+    expect(bottom).toBeGreaterThanOrEqual(end - 1);
     await expect(
       crewFile(page).getByRole('link', { name: /^This site is open source/ }),
     ).toBeVisible();
@@ -98,13 +119,15 @@ test.describe('Crew file', () => {
         await page.evaluate(() => {
           document.documentElement.style.fontSize = '200%';
         });
-        const cut = await crewFile(page)
-          .locator('h2, li, dd, dt, p, a')
-          .evaluateAll((elements) =>
-            elements
-              .filter((element) => element.scrollWidth > element.clientWidth)
-              .map((element) => element.textContent.slice(0, 40)),
-          );
+        // El texto del cuerpo, los botones («Copy») y la franja del canal (su primer hijo).
+        const cut = await crewFile(page).evaluate((section) =>
+          [
+            ...section.querySelectorAll('h2, li, dd, dt, p, a, button'),
+            ...(section.firstElementChild?.querySelectorAll('*') ?? []),
+          ]
+            .filter((element) => element.scrollWidth > element.clientWidth)
+            .map((element) => element.textContent.slice(0, 40)),
+        );
         expect(cut).toEqual([]);
         // La sección entera, no la página: a 200 % las filas de Proyectos ya se salen (deuda de F6, STATE.md).
         const section = await crewFile(page).evaluate((element) => ({
@@ -159,11 +182,52 @@ test.describe('Crew file', () => {
     await withoutWebGL(page);
     await page.goto('/#crew-file', { waitUntil: 'networkidle' });
     const region = page.getByRole('region', { name: 'Crew file' });
+    await expect(region.getByRole('term')).toHaveCount(6);
     await expect(region.getByRole('term').first()).toHaveText('Role');
+    await expect(region.getByRole('link', { name: /^Download CV/ })).toBeVisible();
+    await expect(region.getByRole('link', { name: profile.contact.email })).toBeVisible();
+    await expect(region.getByRole('link', { name: /^This site is open source/ })).toBeVisible();
     await expect(page.locator('[data-scene-stills] img[data-still-chapter="5"]')).toHaveAttribute(
       'data-visible',
       'true',
     );
+  });
+
+  test('with the keyboard, what takes the focus is never hidden by the teletype', async ({
+    page,
+  }) => {
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    await settleScene(page);
+    await expect(crewFile(page)).toHaveAttribute('data-armed', '');
+    // El último control de Contacto y, con Tab, el primero del Crew file (antes de que el teletipo llegue a él).
+    await page.getByRole('region', { name: 'Touchdown' }).getByRole('link').last().focus();
+    await page.keyboard.press('Tab');
+    const focused = page.locator(':focus');
+    await expect(focused).toHaveAccessibleName(/^Download CV/);
+    await expect(focused).toBeInViewport();
+    expect(
+      await focused.evaluate((element) => {
+        const line = element.closest('[data-line]');
+        return line === null ? 'no line' : getComputedStyle(line).clipPath;
+      }),
+    ).toBe('none');
+  });
+
+  test('915×412 (a big phone on its side): the rail keeps only its dots and the HUD steps aside', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 915, height: 412 });
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    await expect(hud(page)).toBeHidden();
+    // Solo los puntos: cada parada, del ancho del área táctil (con su texto mide ~150 px).
+    const boxes = await rail(page)
+      .getByRole('link')
+      .evaluateAll((links) =>
+        links.map((link) => link.getBoundingClientRect().toJSON() as DOMRect),
+      );
+    expect(boxes).toHaveLength(8);
+    for (const box of boxes) expect(box.width).toBeLessThanOrEqual(48);
+    expect(boxes.at(-1)?.bottom ?? Infinity).toBeLessThanOrEqual(412 + 0.5);
   });
 
   test('Contact no longer carries the education nor the site footer', async ({ page }) => {
