@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { profile } from '~/content/profile';
-import { projects } from '~/content/projects';
+import { projectEntries as projects } from '~/content/projects/entries';
 import { skillGroups } from '~/content/skills';
 
 import { QuickMissionContent } from './QuickMissionContent';

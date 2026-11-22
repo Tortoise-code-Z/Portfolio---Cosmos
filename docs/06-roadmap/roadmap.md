@@ -173,7 +173,7 @@ por paso, en este orden:
    transmisión: la nebulosa se convierte en un satélite que se acerca hasta que su pantalla llena la vista; la
    transmisión se lee a pantalla completa, como hoy, y al salir el satélite se aleja llevándose la pantalla con el
    texto. En Mission control, una nave nodriza; el retrato llega directo desde la Tierra. Prueba fuera del repo hecha
-   (versión 8); falta ADR-036 y un PR: `docs/02-experiencia/transiciones-naves.md`.
+   (versión 8); falta ADR-037 y un PR: `docs/02-experiencia/transiciones-naves.md`.
 
 **Hecho cuando:** el sitio no contradice el CV, los dos interludios y el epílogo cumplen sus criterios (un doc por
 sección en `docs/02-experiencia/capitulos/`, escrito en su paso) en escritorio y móvil, sin WebGL y con movimiento

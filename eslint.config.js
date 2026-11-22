@@ -81,10 +81,39 @@ const TELEMETRY_DOOR = {
     'Las cifras del repo se leen de content/telemetry (siteTelemetry): es la única que importa virtual:site-telemetry (ADR-035).',
 };
 
+/**
+ * El detalle de las fichas (ADR-036) no viaja en el JS de la home: solo `content/projects/index.ts` importa
+ * `projects/details/`, y a ese índice (los proyectos enteros), solo la página de proyecto (`routes/project`,
+ * `features/project`). La home lee las tarjetas, `content/projects/entries`.
+ */
+const PROJECT_DETAILS_DOOR = {
+  // Por alias o ruta relativa, y `./details/…` desde la propia `content/projects/`.
+  regex: String.raw`(?:^|/)projects/details(?:/|$)|^\./details(?:/|$)`,
+  caseSensitive: true,
+  message:
+    'El detalle de las fichas solo lo importa content/projects/index.ts (ADR-036): la home lee content/projects/entries.',
+};
+const PROJECTS_DOOR = {
+  // Con `regex` y no con `group`, que cerraría también lo que cuelga de la carpeta: el índice queda cerrado y
+  // `content/projects/entries` (las tarjetas), abierto. Desde dentro de `content` (`./projects`, `.`) queda
+  // abierto, para su test: un dato de `content` que lo importara lo para el e2e de `budgets.spec.ts` (el JS de
+  // la home sin el detalle).
+  regex: String.raw`(?:^|/)content/projects(?:/index)?$`,
+  caseSensitive: true,
+  message:
+    'Los proyectos enteros (content/projects) solo los importa la página de proyecto: fuera de ella, las tarjetas de content/projects/entries (ADR-036).',
+};
+/** Las puertas que una regla de capa puede abrir (por defecto, todas cerradas). */
+const DOORS = {
+  telemetry: TELEMETRY_DOOR,
+  projectDetails: PROJECT_DETAILS_DOOR,
+  projects: PROJECTS_DOOR,
+};
+
 const LAYER_RULES = [
   {
     files: ['src/content/**'],
-    ignores: ['src/content/telemetry.ts'],
+    ignores: ['src/content/telemetry.ts', 'src/content/projects/index.ts'],
     forbidden: CONTENT_FORBIDDEN,
     message: CONTENT_MESSAGE,
   },
@@ -92,7 +121,13 @@ const LAYER_RULES = [
     files: ['src/content/telemetry.ts'],
     forbidden: CONTENT_FORBIDDEN,
     message: CONTENT_MESSAGE,
-    telemetryDoor: true,
+    opens: ['telemetry'],
+  },
+  {
+    files: ['src/content/projects/index.ts'],
+    forbidden: CONTENT_FORBIDDEN,
+    message: CONTENT_MESSAGE,
+    opens: ['projectDetails'],
   },
   {
     files: ['src/lib/**'],
@@ -125,19 +160,23 @@ const LAYER_RULES = [
     forbidden: [...THREE, ...['content', 'stores', 'features', 'scene', 'routes'].flatMap(layer)],
     message: 'ui solo puede importar lib (los datos llegan por props).',
   },
-  {
-    files: ['src/features/**'],
+  ...['src/features/**', 'src/features/project/**'].map((files) => ({
+    files: [files],
+    ...(files === 'src/features/**'
+      ? { ignores: ['src/features/project/**'] }
+      : { opens: ['projects'] }),
     forbidden: [...THREE, ...['scene', 'routes'].flatMap(layer)],
     message:
       'features no toca Three ni la escena: solo features/scene-mount/SceneMount la carga, en diferido.',
-  },
-  {
-    // Las rutas y la raíz pueden importar todas las capas menos la escena: Three entraría en el JS inicial.
-    files: ['src/routes/**', 'src/root.tsx'],
+  })),
+  // Las rutas y la raíz pueden importar todas las capas menos la escena: Three entraría en el JS inicial.
+  ...[['src/routes/**', 'src/root.tsx'], ['src/routes/project/**']].map((files) => ({
+    files,
+    ...(files.length === 2 ? { ignores: ['src/routes/project/**'] } : { opens: ['projects'] }),
     forbidden: [...THREE, ...layer('scene')],
     message:
       'routes y root.tsx no tocan Three ni la escena: solo features/scene-mount/SceneMount la carga, en diferido.',
-  },
+  })),
   {
     files: ['src/scene/**'],
     forbidden: [...['ui', 'features', 'routes'].flatMap(layer)],
@@ -210,24 +249,26 @@ export default defineConfig(
 
   // `caseSensitive`: por defecto los grupos no distinguen mayúsculas, y `**/Particles/**` cerraría también
   // `shaders/particles/`, que el código puro sí puede importar.
-  ...LAYER_RULES.map(
-    ({ files, ignores, forbidden, message, extra = [], telemetryDoor = false }) => ({
-      files,
-      ...(ignores === undefined ? {} : { ignores }),
-      rules: {
-        'no-restricted-imports': [
-          'error',
-          {
-            patterns: [
-              { group: forbidden, message, caseSensitive: true },
-              ...extra,
-              ...(telemetryDoor ? [] : [TELEMETRY_DOOR]),
-            ],
-          },
-        ],
-      },
-    }),
-  ),
+  // Cada regla lleva cerradas las puertas (DOORS) que no abre: una regla posterior de `no-restricted-imports`
+  // sustituiría a la de la capa, así que no pueden ir aparte.
+  ...LAYER_RULES.map(({ files, ignores, forbidden, message, extra = [], opens = [] }) => ({
+    files,
+    ...(ignores === undefined ? {} : { ignores }),
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: forbidden, message, caseSensitive: true },
+            ...extra,
+            ...Object.entries(DOORS)
+              .filter(([name]) => !opens.includes(name))
+              .map(([, door]) => door),
+          ],
+        },
+      ],
+    },
+  })),
 
   // `no-restricted-imports` no mira los `import()`: un import dinámico de la escena o de Three se
   // saltaría las capas. Solo `SceneMount` carga la escena así (arquitectura.md → «Carga de la escena»).
