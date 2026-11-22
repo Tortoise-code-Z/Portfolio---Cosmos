@@ -25,6 +25,13 @@ test.beforeEach(async ({ page }) => {
   await forceLowScene(page);
 });
 
+/**
+ * Lo que se espera a la escena (partículas pintadas, el retrato) antes de la foto: más que los 15 s de `expect`. En
+ * Docker, el primer test de cada tanda arranca en frío (el servidor, el navegador y SwiftShader compilando el shader) y
+ * se pasaba de 15 s, aunque la foto en sí saliera bien; con la escena ya caliente tarda ~2 s. La foto sigue con su plazo.
+ */
+const SCENE_TIMEOUT_MS = 60_000;
+
 for (const index of CHAPTER_INDICES) {
   const anchor = CHAPTER_ANCHORS[index];
   const name = `chapter-${String(index)}-${anchor ?? 'start'}`;
@@ -33,10 +40,14 @@ for (const index of CHAPTER_INDICES) {
     // El epílogo se pinta como una transmisión: con movimiento reducido, como los interludios (sin teletipo).
     if (index === EPILOGUE) await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(anchor === null ? '/' : `/#${anchor}`);
-    await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-level', 'low');
+    await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-level', 'low', {
+      timeout: SCENE_TIMEOUT_MS,
+    });
     // El retrato llega aparte, en su encargo al worker: sin esperarlo, la foto podría salir con la Tierra.
     if (index === EPILOGUE) {
-      await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-portrait', 'loaded');
+      await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-portrait', 'loaded', {
+        timeout: SCENE_TIMEOUT_MS,
+      });
     }
     await page.evaluate(async () => {
       await document.fonts.ready;
@@ -58,7 +69,9 @@ for (const interlude of INTERLUDES) {
   test(`interlude ${interlude.id} looks as it should`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(`/#${interlude.anchor}`);
-    await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-level', 'low');
+    await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-level', 'low', {
+      timeout: SCENE_TIMEOUT_MS,
+    });
     await page.evaluate(async () => {
       await document.fonts.ready;
     });
