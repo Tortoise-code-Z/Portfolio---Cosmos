@@ -201,8 +201,8 @@ reducido. Después siguen F4.4 y F4.5; F5 pasa seguramente a después del 1 dic.
   Quedan aquí sus capturas (portada y galería). Imágenes Open Graph EN/ES; favicon.
 - ✔ SEO de las fichas: la meta description de Cosmos pasaba de 220 (EN) y 228 (ES) caracteres; adelantado a C.5
   con un `metaDescription` opcional (≤ 160, solo Cosmos; las demás siguen con el `summary`).
-- README del repo en inglés con capturas y arquitectura (adelantado a C.5); con él, la nota de la ficha de Cosmos
-  vuelve a citarlo (`docs/01-contenido/proyectos/cosmos.md` → Notes, ⏳).
+- ✔ README del repo en inglés con capturas y arquitectura: adelantado a C.5 (siete capturas en `docs/readme/`), y
+  la nota de la ficha de Cosmos vuelve a citarlo.
 
 **Hecho cuando:** todas las métricas del brief se cumplen medidas en producción de preview. Etiqueta `v0.9.0`.
 

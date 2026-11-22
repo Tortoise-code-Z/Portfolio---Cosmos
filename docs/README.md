@@ -14,6 +14,7 @@
 | `05-tecnico/` | Stack con versiones, arquitectura, calidad, git, CI y despliegue | `README.md` |
 | `06-roadmap/` | Fases F0–F7 con su definición de «hecho» y tareas pendientes | `roadmap.md` |
 | `referencia/` | Prototipo v0.1 (referencia visual, no código a copiar) | `prototipo-v0.1.html` |
+| `readme/` | Las capturas del `README.md` del repo (C.5): 1897×955, escena en Alto, sin la barra del navegador | — |
 
 ## Orden de prioridad si dos documentos chocan
 
