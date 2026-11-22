@@ -86,9 +86,16 @@ const TELEMETRY_DOOR = {
  * `projects/details/`, y a ese índice (los proyectos enteros), solo la página de proyecto (`routes/project`,
  * `features/project`). La home lee las tarjetas, `content/projects/entries`.
  */
+/**
+ * El índice de los proyectos, se escriba como se escriba: la carpeta (con o sin barra final), `index` y `index` con su
+ * extensión (el proyecto permite importar con `.ts`). `entries` y lo demás de la carpeta quedan fuera.
+ */
+const PROJECTS_INDEX = String.raw`(?:^|/)content/projects(?:/(?:index(?:\.[cm]?[jt]sx?)?)?)?$`;
+/** El detalle de las fichas: `projects/details/` por alias o ruta relativa, y `./details/…` desde `content/projects/`. */
+const PROJECT_DETAILS = String.raw`(?:^|/)projects/details(?:/|$)|^\./details(?:/|$)`;
+
 const PROJECT_DETAILS_DOOR = {
-  // Por alias o ruta relativa, y `./details/…` desde la propia `content/projects/`.
-  regex: String.raw`(?:^|/)projects/details(?:/|$)|^\./details(?:/|$)`,
+  regex: PROJECT_DETAILS,
   caseSensitive: true,
   message:
     'El detalle de las fichas solo lo importa content/projects/index.ts (ADR-036): la home lee content/projects/entries.',
@@ -98,7 +105,7 @@ const PROJECTS_DOOR = {
   // `content/projects/entries` (las tarjetas), abierto. Desde dentro de `content` (`./projects`, `.`) queda
   // abierto, para su test: un dato de `content` que lo importara lo para el e2e de `budgets.spec.ts` (el JS de
   // la home sin el detalle).
-  regex: String.raw`(?:^|/)content/projects(?:/index)?$`,
+  regex: PROJECTS_INDEX,
   caseSensitive: true,
   message:
     'Los proyectos enteros (content/projects) solo los importa la página de proyecto: fuera de ella, las tarjetas de content/projects/entries (ADR-036).',
@@ -109,6 +116,13 @@ const DOORS = {
   projectDetails: PROJECT_DETAILS_DOOR,
   projects: PROJECTS_DOOR,
 };
+
+const FEATURES_FORBIDDEN = [...THREE, ...['scene', 'routes'].flatMap(layer)];
+const FEATURES_MESSAGE =
+  'features no toca Three ni la escena: solo features/scene-mount/SceneMount la carga, en diferido.';
+const ROUTES_FORBIDDEN = [...THREE, ...layer('scene')];
+const ROUTES_MESSAGE =
+  'routes y root.tsx no tocan Three ni la escena: solo features/scene-mount/SceneMount la carga, en diferido.';
 
 const LAYER_RULES = [
   {
@@ -160,23 +174,32 @@ const LAYER_RULES = [
     forbidden: [...THREE, ...['content', 'stores', 'features', 'scene', 'routes'].flatMap(layer)],
     message: 'ui solo puede importar lib (los datos llegan por props).',
   },
-  ...['src/features/**', 'src/features/project/**'].map((files) => ({
-    files: [files],
-    ...(files === 'src/features/**'
-      ? { ignores: ['src/features/project/**'] }
-      : { opens: ['projects'] }),
-    forbidden: [...THREE, ...['scene', 'routes'].flatMap(layer)],
-    message:
-      'features no toca Three ni la escena: solo features/scene-mount/SceneMount la carga, en diferido.',
-  })),
+  {
+    files: ['src/features/**'],
+    ignores: ['src/features/project/**'],
+    forbidden: FEATURES_FORBIDDEN,
+    message: FEATURES_MESSAGE,
+  },
+  // La página de proyecto: la misma capa, con el índice de los proyectos abierto (ADR-036).
+  {
+    files: ['src/features/project/**'],
+    forbidden: FEATURES_FORBIDDEN,
+    message: FEATURES_MESSAGE,
+    opens: ['projects'],
+  },
   // Las rutas y la raíz pueden importar todas las capas menos la escena: Three entraría en el JS inicial.
-  ...[['src/routes/**', 'src/root.tsx'], ['src/routes/project/**']].map((files) => ({
-    files,
-    ...(files.length === 2 ? { ignores: ['src/routes/project/**'] } : { opens: ['projects'] }),
-    forbidden: [...THREE, ...layer('scene')],
-    message:
-      'routes y root.tsx no tocan Three ni la escena: solo features/scene-mount/SceneMount la carga, en diferido.',
-  })),
+  {
+    files: ['src/routes/**', 'src/root.tsx'],
+    ignores: ['src/routes/project/**'],
+    forbidden: ROUTES_FORBIDDEN,
+    message: ROUTES_MESSAGE,
+  },
+  {
+    files: ['src/routes/project/**'],
+    forbidden: ROUTES_FORBIDDEN,
+    message: ROUTES_MESSAGE,
+    opens: ['projects'],
+  },
   {
     files: ['src/scene/**'],
     forbidden: [...['ui', 'features', 'routes'].flatMap(layer)],
@@ -205,6 +228,32 @@ const LAYER_RULES = [
     ],
   },
 ];
+
+/** Los `import()` que se pueden comprobar (cadena fija) y, de ellos, la escena: solo desde `SceneMount`. */
+const DYNAMIC_IMPORT_RULES = [
+  {
+    selector:
+      'ImportExpression[source.value=/^(?:three|@react-three\\/)|(?:^~|\\/)scene(?:\\/|$)/]',
+    message:
+      'La escena (y Three.js) solo se carga en diferido desde features/scene-mount/SceneMount.',
+  },
+  {
+    selector: "ImportExpression[source.type!='Literal']",
+    message:
+      'import() solo con una cadena fija: si no, las capas no pueden comprobar qué se carga (la escena y Three.js, solo desde features/scene-mount/SceneMount).',
+  },
+];
+/** La página de proyecto: puede cargar los proyectos enteros (ADR-036). El detalle, solo `content/projects/index.ts`. */
+const PROJECT_PAGE_FILES = ['src/features/project/**', 'src/routes/project/**'];
+const PROJECTS_INDEX_FILE = 'src/content/projects/index.ts';
+/** Las dos puertas de ADR-036 para un `import()` (`no-restricted-imports` no los mira). */
+const [PROJECTS_DYNAMIC_DOOR, PROJECT_DETAILS_DYNAMIC_DOOR] = [PROJECTS_INDEX, PROJECT_DETAILS].map(
+  (pattern) => ({
+    selector: `ImportExpression[source.value=/${pattern.replaceAll('/', '\\/')}/]`,
+    message:
+      'Los proyectos enteros solo los carga la página de proyecto, y el detalle de las fichas solo content/projects/index.ts, tampoco con import() (ADR-036).',
+  }),
+);
 
 export default defineConfig(
   globalIgnores([
@@ -273,25 +322,34 @@ export default defineConfig(
   // `no-restricted-imports` no mira los `import()`: un import dinámico de la escena o de Three se
   // saltaría las capas. Solo `SceneMount` carga la escena así (arquitectura.md → «Carga de la escena»).
   // Un `import()` cuya ruta no es una cadena fija (plantilla, variable) no se puede comprobar: se prohíbe.
+  // Las puertas del detalle de las fichas (ADR-036), también para un `import()`: fuera de la página de proyecto, ni el
+  // índice ni `details/` se cargan en diferido; en ella, el índice sí.
   {
     files: ['src/**'],
-    ignores: ['src/scene/**', 'src/features/scene-mount/SceneMount/SceneMount.tsx'],
+    ignores: [
+      'src/scene/**',
+      'src/features/scene-mount/SceneMount/SceneMount.tsx',
+      ...PROJECT_PAGE_FILES,
+      PROJECTS_INDEX_FILE,
+    ],
     rules: {
       'no-restricted-syntax': [
         'error',
-        {
-          selector:
-            'ImportExpression[source.value=/^(?:three|@react-three\\/)|(?:^~|\\/)scene(?:\\/|$)/]',
-          message:
-            'La escena (y Three.js) solo se carga en diferido desde features/scene-mount/SceneMount.',
-        },
-        {
-          selector: "ImportExpression[source.type!='Literal']",
-          message:
-            'import() solo con una cadena fija: si no, las capas no pueden comprobar qué se carga (la escena y Three.js, solo desde features/scene-mount/SceneMount).',
-        },
+        ...DYNAMIC_IMPORT_RULES,
+        PROJECTS_DYNAMIC_DOOR,
+        PROJECT_DETAILS_DYNAMIC_DOOR,
       ],
     },
+  },
+  {
+    files: PROJECT_PAGE_FILES,
+    rules: {
+      'no-restricted-syntax': ['error', ...DYNAMIC_IMPORT_RULES, PROJECT_DETAILS_DYNAMIC_DOOR],
+    },
+  },
+  {
+    files: [PROJECTS_INDEX_FILE],
+    rules: { 'no-restricted-syntax': ['error', ...DYNAMIC_IMPORT_RULES] },
   },
 
   // ADR-011: el mismo universo en cada visita. La escena usa el azar con semilla de `scene/shapes/prng`.

@@ -1,5 +1,5 @@
 // Fuente: docs/01-contenido/proyectos/astrohub.md. El detalle de la ficha: solo lo importa
-// `projects/index.ts`, que solo cargan la página de proyecto y los tests (ADR-036).
+// `projects/index.ts`, que solo cargan la página de proyecto y los tests (ADR-036), y los e2e, directamente.
 
 import type { ProjectDetail } from '../../types';
 import { DEMO_USER_LABEL, RESPONSIVE_DESIGN } from '../labels';

@@ -169,7 +169,9 @@ El diagrama es orientativo; manda la tabla.
 | `routes` (y `root.tsx`) | todo lo anterior menos la escena | `scene`, `three`, `@react-three/*` (la escena solo llega por `SceneMount`) |
 
 Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import prohibido rompe el lint. Los
-`import()` los vigila `no-restricted-syntax` (ver «Carga de la escena»).
+`import()` los vigila `no-restricted-syntax` (ver «Carga de la escena»), también los de las dos puertas de ADR-036
+(el índice de los proyectos y `projects/details/`). Las puertas tienen su test con la configuración real
+(`scripts/eslintDoors.test.ts`).
 
 **Entre features.** Una feature no importa componentes de otra. Si dos comparten un contrato (constantes o
 funciones sin React), vive en un módulo aparte de la feature que lo define y la otra importa solo ese módulo,

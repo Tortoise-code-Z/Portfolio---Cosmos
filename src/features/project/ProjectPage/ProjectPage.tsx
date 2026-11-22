@@ -30,7 +30,7 @@ interface ProjectPageProps {
 /**
  * Página de proyecto (docs/02-experiencia/pagina-proyecto.md): un documento normal, sin capítulos, en
  * una columna de lectura. Las secciones van en el orden de la spec y la que no tiene datos no se pinta
- * (Cosmos no tiene proceso, «Try it», portada ni galería: sus imágenes llegan en F6). Es el `<main>` de
+ * (Cosmos no tiene «Try it», portada ni galería: sus imágenes llegan en F6). Es el `<main>` de
  * la ruta. Apunta el proyecto como visto: al volver al viaje, el foco queda en su fila. Hasta F5, con escena, la
  * tapa con un velo casi opaco y la para mientras se ve (`projectPageOpen`).
  */

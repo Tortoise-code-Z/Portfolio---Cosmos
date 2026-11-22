@@ -52,7 +52,7 @@ describe('ProjectPage', () => {
   });
 
   it('Cosmos (sin «Try it» ni imágenes hasta F6): esas secciones no se pintan', async () => {
-    renderAt('/es/projects/cosmos', bySlug('cosmos'));
+    const container = renderAt('/es/projects/cosmos', bySlug('cosmos'));
     await screen.findByRole('heading', { level: 1, name: 'Cosmos' });
     expect(h2s()).toEqual([
       'Sobre el proyecto',
@@ -62,6 +62,8 @@ describe('ProjectPage', () => {
       'Notas',
     ]);
     expect(screen.getByRole('heading', { level: 3, name: 'Retos técnicos' })).toBeInTheDocument();
+    // Ni portada (no es un h2) ni ninguna otra imagen.
+    expect(container.querySelector('picture, img')).toBeNull();
   });
 
   it('solo retos, sin párrafos de proceso: van con su propio h2', async () => {

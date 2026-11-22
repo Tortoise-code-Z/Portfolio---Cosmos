@@ -105,9 +105,10 @@ calidad. Sin cifras que se queden viejas (el número de ADR o de tests lo da Mis
    that both the interface and the scene read. One particle system morphs between shapes in the vertex shader;
    the shapes are generated in a Web Worker with a fixed seed, so the universe is the same on every visit. The
    scene loads after the first paint, in its own chunk, and the site is complete without it.
-3. I work with Claude Code: I plan each step, approve it, and read and understand every change before it goes in.
-   A second AI session audits each step with fresh eyes, and its fixes ship before the next task. CI runs the unit
-   tests, end-to-end tests in Chromium, Firefox and WebKit, and visual regression on every pull request.
+3. I work with Claude Code: every step starts with a plan I approve, and I read and understand every change
+   before it goes in. A second AI session audits each task with fresh eyes, and its fixes ship before the next
+   task. CI runs the unit tests, end-to-end tests in Chromium, Firefox and WebKit, and visual regression on every
+   pull request.
 
 **ES**
 1. Empecé con un prototipo en HTML para probar la idea y después documenté la web entera antes de escribir código:
@@ -117,20 +118,26 @@ calidad. Sin cifras que se queden viejas (el número de ADR o de tests lo da Mis
    valor que leen la interfaz y la escena. Un solo sistema de partículas pasa de una forma a otra en el shader de
    vértices; las formas se generan en un Web Worker con una semilla fija, así que el universo es el mismo en cada
    visita. La escena se carga después de la primera pintura, en su propio chunk, y la web está completa sin ella.
-3. Trabajo con Claude Code: planifico cada paso, lo apruebo y leo y entiendo cada cambio antes de que entre. Una
-   segunda sesión de IA audita cada paso con ojos nuevos, y sus arreglos entran antes de la siguiente tarea. El CI
-   pasa los tests unitarios, los e2e en Chromium, Firefox y WebKit y la regresión visual en cada pull request.
+3. Trabajo con Claude Code: cada paso empieza con un plan que apruebo, y leo y entiendo cada cambio antes de que
+   entre. Una segunda sesión de IA audita cada tarea con ojos nuevos, y sus arreglos entran antes de la siguiente
+   tarea. El CI pasa los tests unitarios, los e2e en Chromium, Firefox y WebKit y la regresión visual en cada pull
+   request.
+
+El párrafo 3 dice el método como Mission control (`missionControl.step.audit`): se audita cada tarea, no cada
+paso.
 
 ## Highlights
 
-Desde C.5, con medidas reales: 60 fps estables en Alto (`rendimiento.md` → «Presupuesto», medido en F3.6c en un
-equipo de escritorio), el tope de 260 KB de la escena (ADR-032, `budgets.spec.ts`), la lectura sin WebGL ni JS
-(`scene.spec.ts`, `journey.spec.ts`) y la telemetría del build (ADR-035).
+Desde C.5, con medidas reales: 60 fps en Alto (`rendimiento.md` → «Presupuesto», una sola medida, en F3.6c, en un
+equipo de escritorio: de ahí «in my measurements» y «up to», porque con 4 núcleos o menos se arranca en Medio),
+el tope de 260 KB gzip del JavaScript de la escena, que comprueba un e2e en cada pull request (ADR-032,
+`budgets.spec.ts`; el worker y el reintento tienen su propio tope), la lectura sin WebGL ni JS (`scene.spec.ts`,
+`journey.spec.ts`) y la telemetría del build (ADR-035).
 
 | EN | ES |
 |---|---|
-| 60,000 particles at a steady 60 fps on desktop, with three quality levels that step down on the fly | 60.000 partículas a 60 fps estables en escritorio, con tres niveles de calidad que bajan sobre la marcha |
-| The whole 3D scene, Three.js included, within a 260 KB budget checked on every build | Toda la escena 3D, Three.js incluido, dentro de un presupuesto de 260 KB que se comprueba en cada build |
+| Up to 60,000 particles, holding 60 fps on desktop in my measurements, with three quality levels that step down on the fly | Hasta 60.000 partículas, a 60 fps en escritorio en mis mediciones, con tres niveles de calidad que bajan sobre la marcha |
+| The 3D scene's JavaScript, Three.js included, within a 260 KB gzip budget checked on every pull request | El JavaScript de la escena 3D, Three.js incluido, dentro de 260 KB gzip, que se comprueban en cada pull request |
 | Readable without WebGL or JavaScript, with still photos of the scene when WebGL is missing | Legible sin WebGL ni JavaScript, con fotos fijas de la escena cuando falta WebGL |
 | Mission control counts the repo's own tests and decisions when the site is built | Mission control cuenta los tests y las decisiones del propio repo al construir la web |
 
@@ -143,6 +150,10 @@ Desde C.5, con el README del repo:
 
 - `info` · EN: The source code is public; the README explains the architecture. · ES: El código es público; el
   README explica la arquitectura.
+
+## Try it
+
+`null`: la web ya es la demo.
 
 ## Imágenes ⏳
 

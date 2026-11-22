@@ -1,5 +1,5 @@
 // Fuente: docs/01-contenido/proyectos/cosmos.md. El detalle de la ficha: solo lo importa
-// `projects/index.ts`, que solo cargan la página de proyecto y los tests (ADR-036).
+// `projects/index.ts`, que solo cargan la página de proyecto y los tests (ADR-036), y los e2e, directamente.
 
 import type { ProjectDetail } from '../../types';
 import { RESPONSIVE_DESIGN } from '../labels';
@@ -68,22 +68,22 @@ export const cosmos: ProjectDetail = {
     en: [
       'I started with an HTML prototype to test the idea and then documented the whole site before writing code: content, experience, design and the 3D scene, chapter by chapter. It was built in phases, each one closed with its tests and an audit, and every decision that shaped the architecture went into a decision log.',
       'The content is typed data that lives in the HTML, pre-rendered for every page. Scrolling drives a single value that both the interface and the scene read. One particle system morphs between shapes in the vertex shader; the shapes are generated in a Web Worker with a fixed seed, so the universe is the same on every visit. The scene loads after the first paint, in its own chunk, and the site is complete without it.',
-      'I work with Claude Code: I plan each step, approve it, and read and understand every change before it goes in. A second AI session audits each step with fresh eyes, and its fixes ship before the next task. CI runs the unit tests, end-to-end tests in Chromium, Firefox and WebKit, and visual regression on every pull request.',
+      'I work with Claude Code: every step starts with a plan I approve, and I read and understand every change before it goes in. A second AI session audits each task with fresh eyes, and its fixes ship before the next task. CI runs the unit tests, end-to-end tests in Chromium, Firefox and WebKit, and visual regression on every pull request.',
     ],
     es: [
       'Empecé con un prototipo en HTML para probar la idea y después documenté la web entera antes de escribir código: contenido, experiencia, diseño y la escena 3D, capítulo a capítulo. Se construyó por fases, cada una cerrada con sus tests y una auditoría, y cada decisión que daba forma a la arquitectura quedó en un registro de decisiones.',
       'El contenido son datos tipados que viven en el HTML, pre-renderizado en cada página. El scroll mueve un único valor que leen la interfaz y la escena. Un solo sistema de partículas pasa de una forma a otra en el shader de vértices; las formas se generan en un Web Worker con una semilla fija, así que el universo es el mismo en cada visita. La escena se carga después de la primera pintura, en su propio chunk, y la web está completa sin ella.',
-      'Trabajo con Claude Code: planifico cada paso, lo apruebo y leo y entiendo cada cambio antes de que entre. Una segunda sesión de IA audita cada paso con ojos nuevos, y sus arreglos entran antes de la siguiente tarea. El CI pasa los tests unitarios, los e2e en Chromium, Firefox y WebKit y la regresión visual en cada pull request.',
+      'Trabajo con Claude Code: cada paso empieza con un plan que apruebo, y leo y entiendo cada cambio antes de que entre. Una segunda sesión de IA audita cada tarea con ojos nuevos, y sus arreglos entran antes de la siguiente tarea. El CI pasa los tests unitarios, los e2e en Chromium, Firefox y WebKit y la regresión visual en cada pull request.',
     ],
   },
   highlights: [
     {
-      en: '60,000 particles at a steady 60 fps on desktop, with three quality levels that step down on the fly',
-      es: '60.000 partículas a 60 fps estables en escritorio, con tres niveles de calidad que bajan sobre la marcha',
+      en: 'Up to 60,000 particles, holding 60 fps on desktop in my measurements, with three quality levels that step down on the fly',
+      es: 'Hasta 60.000 partículas, a 60 fps en escritorio en mis mediciones, con tres niveles de calidad que bajan sobre la marcha',
     },
     {
-      en: 'The whole 3D scene, Three.js included, within a 260 KB budget checked on every build',
-      es: 'Toda la escena 3D, Three.js incluido, dentro de un presupuesto de 260 KB que se comprueba en cada build',
+      en: "The 3D scene's JavaScript, Three.js included, within a 260 KB gzip budget checked on every pull request",
+      es: 'El JavaScript de la escena 3D, Three.js incluido, dentro de 260 KB gzip, que se comprueban en cada pull request',
     },
     {
       en: 'Readable without WebGL or JavaScript, with still photos of the scene when WebGL is missing',

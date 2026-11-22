@@ -166,7 +166,7 @@ por paso, en este orden:
 5. **Cosmos completo** (objetivo: 29 nov): ficha con proceso y puntos técnicos reales; README del repo en inglés y
    su descripción de GitHub (lo que F6 tenía para Cosmos se adelanta aquí).
    *(Con Visto Bueno, sesión 38: el detalle de las fichas sale del JS de la home y lo importa solo la página de
-   proyecto; README con cuatro capturas; `metaDescription` solo para Cosmos; la ficha sigue sin imágenes hasta F6.)*
+   proyecto; README con siete capturas (al principio eran cuatro); `metaDescription` solo para Cosmos; la ficha sigue sin imágenes hasta F6.)*
 6. **Epílogo · Crew file** (objetivo: 1 dic): capítulo 5 bajo la Tierra; el retrato de Víctor en partículas (forma 6,
    cargada como dato), la ficha con la formación (se muda de Contacto) y «Download CV». Antes de tocar el repo, una
    prueba del retrato fuera de él; si no convence, el epílogo se queda con la ficha.

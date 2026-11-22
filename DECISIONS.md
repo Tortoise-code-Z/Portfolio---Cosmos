@@ -874,4 +874,11 @@
   para C.6 sin tocar el tope de 40 KB. Las fichas suben 0,4 KB (33 419 → 33 818 B: el detalle ya iba en su chunk
   compartido con la home y ahora va en el de la ruta). Un campo nuevo de ficha va al detalle si la home no lo pinta.
 - Detalle: `docs/01-contenido/modelo-de-datos.md` y `docs/05-tecnico/arquitectura.md` → «Capas».
-
+- Nota (2026-11-22, tras auditarlo): precisiones del mismo PR y de su corrección.
+  - `metaDescription` (C.5, paso 2) también va en el detalle: solo la pinta la ficha.
+  - Quedan fuera de las puertas, a propósito, los tests (el de contenido importa el índice desde dentro de `content`,
+    que ESLint deja abierto) y los e2e, que importan `details/` directamente. Un dato de `content` que importara el
+    índice lo pararía el e2e de `budgets.spec.ts`.
+  - Las puertas cierran también el índice escrito con extensión o barra final (`~/content/projects/index.ts`) y los
+    `import()` (con `no-restricted-syntax`), y un test (`scripts/eslintDoors.test.ts`) las comprueba con la
+    configuración real.

@@ -2,6 +2,8 @@ import { expect, type Page } from '@playwright/test';
 
 import { test } from './support/test.ts';
 
+import { cosmos } from '../../src/content/projects/details/cosmos.ts';
+
 import { collectErrors, settleScene } from './support/helpers.ts';
 
 /**
@@ -70,7 +72,10 @@ test.describe('project page', () => {
     await expect(
       main.getByRole('heading', { level: 3, name: 'Technical highlights' }),
     ).toBeVisible();
-    await expect(main.getByText('the README explains the architecture')).toBeVisible();
+    // La nota, del contenido: el texto lo puede reescribir Víctor (CO-4-A).
+    const note = cosmos.notes[0]?.text.en ?? '';
+    expect(note).not.toBe('');
+    await expect(main.getByText(note)).toBeVisible();
   });
 
   test('«Back to the shell» lands on the projects chapter with the focus on that row', async ({
