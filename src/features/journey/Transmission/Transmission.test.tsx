@@ -74,6 +74,10 @@ afterEach(() => {
 });
 
 describe('Transmission', () => {
+  it('veiled over the scene by default; `open` leaves the scene in sight (the epilogue)', () => {
+    expect(renderTransmission().className).not.toMatch(/open/);
+  });
+
   it('channel strip, title (focusable by script) and the stopped clock in the footer', () => {
     const region = renderTransmission();
     expect(region).toHaveTextContent('Canal 01 · ámbar');

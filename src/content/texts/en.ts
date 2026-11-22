@@ -129,6 +129,7 @@ export const en = {
   'crewFile.channel': 'Channel 03 · green',
   'crewFile.closed': 'All channels closed',
   'crewFile.incoming': 'Crew file · identity verified',
+  'crewFile.verified': 'Identity verified',
   'crewFile.title': 'Crew file',
   'crewFile.lead': 'The one who built this journey. Everything you need to bring me on board.',
   'crewFile.role': 'Role',

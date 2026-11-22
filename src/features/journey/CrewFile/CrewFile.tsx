@@ -16,6 +16,8 @@ import { Transmission } from '../Transmission/Transmission';
 import styles from './CrewFile.module.css';
 
 const TITLE_ID = 'crew-file-title';
+/** Los campos de la ficha que van a la izquierda del visor en escritorio ancho (el resto, a la derecha). */
+const LEFT_FIELDS = 3;
 const EMAIL_ID = 'crew-file-email';
 const SEPARATOR = ' · ';
 
@@ -26,9 +28,11 @@ function lineStyle(line: number): CSSProperties {
 
 /**
  * Capítulo 5 · Crew file, el epílogo (docs/02-experiencia/capitulos/05-crew-file.md): el último capítulo, en el canal
- * verde. La ficha (puesto, base, permiso de trabajo, disponibilidad, idiomas y formación) es una lista de definiciones
- * real; «Download CV» va justo después del título (lo primero que se busca), y debajo el email con «Copy» y el pie del
- * sitio. El retrato en partículas llega en C.6b: hasta entonces la escena se queda en la Tierra.
+ * verde, abierto sobre la escena (`open`): el retrato en partículas se ve en el visor del centro (decorativo: esquinas
+ * y «Identity verified», que ya dice el aviso de arriba). La ficha (puesto, base, permiso de trabajo, disponibilidad,
+ * idiomas y formación) es una lista de definiciones real; en el DOM, «Download CV» va justo después del visor (lo
+ * primero que se busca en móvil), y después la ficha, el email con «Copy» y el pie del sitio. En escritorio ancho la
+ * ficha se reparte a los lados del visor y «Download CV» baja junto al email (CrewFile.module.css).
  */
 export function CrewFile(): ReactNode {
   const t = useT();
@@ -81,10 +85,17 @@ export function CrewFile(): ReactNode {
       titleId={TITLE_ID}
       title={t('crewFile.title')}
       footer={t('crewFile.footer')}
+      className={styles.crewFile}
+      open
     >
       <p className={styles.lead} data-line="" style={lineStyle(0)}>
         {t('crewFile.lead')}
       </p>
+      <div className={styles.visor} aria-hidden="true" data-crew-visor="">
+        <div className={styles.frame}>
+          <span className={styles.verified}>{t('crewFile.verified')}</span>
+        </div>
+      </div>
       {cv === null ? null : (
         <p className={styles.cv} data-line="" style={lineStyle(1)}>
           <ActionLink href={cv} kind="download">
@@ -94,7 +105,12 @@ export function CrewFile(): ReactNode {
       )}
       <dl className={styles.record}>
         {record.map(([term, value], index) => (
-          <div key={term} className={styles.field} data-line="" style={lineStyle(2 + index)}>
+          <div
+            key={term}
+            className={cx(styles.field, index < LEFT_FIELDS ? styles.left : styles.right)}
+            data-line=""
+            style={lineStyle(2 + index)}
+          >
             <dt>{term}</dt>
             <dd>{value}</dd>
           </div>

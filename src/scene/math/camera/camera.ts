@@ -59,8 +59,8 @@ function mix(out: MutablePoint, from: ScenePoint, to: ScenePoint, t: number, shi
 }
 
 /**
- * La pose para `m` (0–4; fuera, el capítulo del borde): entre el keyframe `k = ⌊m⌋` y el siguiente, con
- * `t = smoothstep(m − k)`; en `m = 4`, el último entero. En escritorio (`wide`) suma el `shiftX` interpolado a la
+ * La pose para `m` (0–5; fuera, el capítulo del borde): entre el keyframe `k = ⌊m⌋` y el siguiente, con
+ * `t = smoothstep(m − k)`; en `m = 5`, el último entero. En escritorio (`wide`) suma el `shiftX` interpolado a la
  * posición y al objetivo; el paralaje mueve solo la posición, así que la cámara gira un poco hacia el objetivo.
  */
 export function cameraPose(

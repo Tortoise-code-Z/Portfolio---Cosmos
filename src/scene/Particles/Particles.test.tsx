@@ -79,3 +79,42 @@ describe('useParticles', () => {
     expect(disposeMaterial).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('useParticles · the portrait', () => {
+  it('asks for it once, when the scene m reaches the Earth', () => {
+    const onPortraitWanted = vi.fn();
+    const frame = createSceneFrame();
+    renderHook((props: ParticlesProps) => useParticles(props), {
+      initialProps: { shapes, frame, onFirstFrame: vi.fn(), onPortraitWanted },
+    });
+    frame.m = 2.9;
+    paintFrame();
+    expect(onPortraitWanted).not.toHaveBeenCalled();
+    frame.m = 3;
+    paintFrame();
+    frame.m = 4.5;
+    paintFrame();
+    expect(onPortraitWanted).toHaveBeenCalledTimes(1);
+  });
+
+  it('adds pPor to the geometry when it arrives, and uPor follows it; new shapes start without it', () => {
+    const frame = createSceneFrame();
+    const portrait = new Float32Array(20 * 4);
+    const initialProps: ParticlesProps = { shapes, frame, onFirstFrame: vi.fn(), portrait: null };
+    const { result, rerender } = renderHook((props: ParticlesProps) => useParticles(props), {
+      initialProps,
+    });
+    paintFrame();
+    expect(result.current.geometry.getAttribute('pPor')).toBeUndefined();
+    expect(result.current.material.uniforms.uPor?.value).toBe(0);
+    rerender({ shapes, frame, onFirstFrame: vi.fn(), portrait });
+    paintFrame();
+    expect(result.current.geometry.getAttribute('pPor').array).toBe(portrait);
+    expect(result.current.geometry.getAttribute('pPor').itemSize).toBe(4);
+    expect(result.current.material.uniforms.uPor?.value).toBe(1);
+    rerender({ shapes: otherShapes, frame, onFirstFrame: vi.fn(), portrait: null });
+    paintFrame();
+    expect(result.current.geometry.getAttribute('pPor')).toBeUndefined();
+    expect(result.current.material.uniforms.uPor?.value).toBe(0);
+  });
+});

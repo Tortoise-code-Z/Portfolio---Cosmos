@@ -7,7 +7,8 @@
 > tiene un sitio en cada una. Unidades: «unidades de escena», todas las formas centradas en el origen.
 > Código: `src/scene/shapes/` (una carpeta por pieza) y `src/scene/config/` (lo compartido).
 > Los números que este documento no da salen del prototipo y viven, con nombre, al principio de cada
-> generador (`NEBULA`, `GALAXY`, `TURTLE`, `EARTH`): son el aspecto que ya se aprobó.
+> generador (`NEBULA`, `GALAXY`, `TURTLE`, `EARTH`, `PORTRAIT`): son el aspecto que ya se aprobó. El retrato
+> (forma 5) llega aparte, con sus imágenes: «Forma 5 · Retrato».
 
 ## Utilidades compartidas
 
@@ -82,6 +83,32 @@ placas cambian cuántos números gasta el caparazón); las demás formas y `aR.x
 | 14 % | Nubes: se vuelve a sortear la dirección mientras `fbm(dir · (2,4 · 3,2 · 2,4) + (0, 7, 0)) < 0,05` (máx. 20 intentos; si se agotan, la última) | 2 | 3,09 |
 | 12 % | Atmósfera | 3 | 3,12 + `rng² · 0,3` |
 
+## Forma 5 · Retrato (`pPor`, 4 por partícula; desde C.6b)
+
+Un relieve sacado de una sola foto (`docs/02-experiencia/capitulos/05-crew-file.md`), como holograma de escáner. No se
+genera con las demás: es un encargo aparte al worker (`rendimiento.md` → «Worker de las formas») que se pide cuando la
+escena llega a la Tierra (`PORTRAIT_LOAD_FROM_M` = 3). Hasta que llega, o si falla, la forma 5 es la Tierra (`uPor` 0).
+
+- **Datos:** dos imágenes de 720 × 637 en `src/assets/portrait/` (las genera `scripts/portrait/`, con su README):
+  `portrait-color.jpg`, la foto, y `portrait-depth.png` (R profundidad 1..255 y 0 = fondo · G distancia al borde ×16
+  · B contornos). El tamaño es contrato (`PORTRAIT_FRAME`): el generador rechaza otro.
+- **Sitios:** cada píxel de la figura en las filas del escáner (una de cada tres), en el centro de su fila; el borde de
+  la silueta (junto al fondo, no junto al borde de la foto) suma 5 paredes que se curvan hacia atrás y hacia dentro
+  (hasta 14 px, 0,3 de profundidad) y se oscurecen; un salto de profundidad de más de 0,025 con un vecino (la
+  mandíbula sobre el cuello) suma una pared hasta él (una por cada 0,04, máx. 24). Las partículas se reparten entre
+  los sitios al azar sin repetir (Fisher–Yates parcial) y, si hay más partículas que sitios, se repiten al azar.
+- **El retrato de `n` partículas es el principio del de más:** el azar de cada partícula no depende de `count`. La
+  degradación en caliente usa ese trozo y no pide otro.
+- **Mundo:** 7 unidades de ancho (`PORTRAIT_FRAME.width`), centrado en el origen y mirando a +Z. La profundidad se
+  estira a 0,33 del ancho de la prueba (2,4 unidades, «relieve 44 %») y cada punto se pone donde lo vio la cámara de
+  la foto (a 6,2 anchos de la prueba): de frente no se abren grietas entre planos.
+- **Luz (`pPor.w`):** la del holograma, ya calculada: el gris de la foto entre 4 niveles y continuo (robot ↔ realista
+  74 %), más los contornos y el borde de la silueta (a menos de ~3,6 px), y fundida en los últimos 165 px de abajo (la
+  foto corta el busto). El shader suma el haz de barrido, el parpadeo y los fallos de señal
+  (`particulas-y-shaders.md` → «Forma 5»).
+- Las cifras son las de la prueba de la sesión 34 con los ajustes que eligió Víctor; viven en `PORTRAIT`
+  (`src/scene/shapes/portrait`).
+
 ## Contrato y tests
 
 ```ts
@@ -100,6 +127,9 @@ interface ShapeSet {
 // TURTLE_TAG, TURTLE_FLIPPERS, EARTH_TAG
 // src/scene/shapes/generateShapes: lanza RangeError con una petición que no vale
 function generateShapes(request: ShapeRequest): ShapeSet;
+// El retrato, aparte (forma 5): PortraitRequest { count, seed }, PORTRAIT_FRAME, PORTRAIT_LOAD_FROM_M.
+// src/scene/shapes/portrait: escribe count · 4 en out; lanza RangeError con unas imágenes que no valen o sin figura
+function generatePortrait(count: number, rng: Rng, pixels: PortraitPixels, out: Float32Array): void;
 ```
 
 **Determinismo:** mismas entradas → mismos bytes **en el mismo motor de JavaScript** (Node en Vitest es V8, como
@@ -120,3 +150,7 @@ Tests (Vitest, sin WebGL):
    en paralelo: ese ruido solo suma): aviso por encima de 150 ms, falla por encima de 1 s (en entorno `node`).
    Medido en F3.2: ~0,4 s en el contenedor de Claude, casi todo la nube de la nebulosa.
 7. Una petición inválida → `RangeError` (los casos, en `shapeContract.test.ts`).
+8. El retrato (`portrait.test.ts`, con imágenes hechas a mano del tamaño del contrato): imágenes que no valen; mismos
+   bytes con la misma semilla; el de `n` es el principio del de más; las filas del escáner dentro del marco; más
+   cerca en la foto, más cerca de la cámara; la luz (foto, contornos, borde y el fundido de abajo); las paredes del
+   borde y de los saltos; más partículas que sitios.

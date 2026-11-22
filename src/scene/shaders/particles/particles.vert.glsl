@@ -1,11 +1,13 @@
 // Partículas de la escena (docs/04-escena/particulas-y-shaders.md). Un vértice por partícula: se evalúan solo
-// la forma actual y la siguiente (`m`) y se mezclan. Las etiquetas (TURTLE_*, EARTH_*, PLATE_*) y los colores
-// (COLOR_*) llegan en la cabecera que genera `scene/shaders/glslHeader` desde TypeScript.
+// la forma actual y la siguiente (`m`) y se mezclan. Las etiquetas (TURTLE_*, EARTH_*, PLATE_*), las medidas del
+// retrato (PORTRAIT_*) y los colores (COLOR_*) llegan en la cabecera que genera `scene/shaders/glslHeader` desde
+// TypeScript.
 // Tres.js añade `position`, las matrices, `cameraPosition` y la precisión (ShaderMaterial).
 
 attribute vec3 pGal;
 attribute vec3 pTur;
 attribute vec3 pEar;
+attribute vec4 pPor;
 attribute vec4 aR;
 
 uniform float uM;
@@ -18,12 +20,13 @@ uniform float uAspect;
 uniform vec2 uMouse;
 uniform float uMotion;
 uniform float uExtras;
+uniform float uPor;
 
 varying vec3 vCol;
 varying float vA;
 
 const float PI = 3.14159265;
-const float LAST_M = 3.999;
+const float LAST_M = 4.999;
 
 // Retraso por partícula del morph (aR.x) y dispersión a mitad de camino.
 const float MORPH_DELAY = 0.25;
@@ -58,6 +61,10 @@ float nz(vec3 p) {
     sin(p.y * 2.1 + sin(p.z * 1.9 + p.x * 0.5) * 1.2) +
     sin(p.z * 1.5 + sin(p.x * 2.3 + p.y * 0.9) * 1.4)
   ) / 3.0;
+}
+
+float hash(float n) {
+  return fract(sin(n) * 43758.5453);
 }
 
 bool isTag(float tag, float value) {
@@ -191,12 +198,44 @@ void earth(out vec3 P, out vec3 C, out float S, out float A) {
   A = a;
 }
 
+// Forma 5 · retrato: holograma de escáner con la luz de la foto (pPor.w), fallos de señal (una franja salta de
+// lado un instante) y giro limitado con el ratón. Llega apagado: el haz de barrido baja con el morph (m de 4 a 5)
+// y enciende lo que deja atrás; después pasa en bucle. Con movimiento reducido, encendido y sin haz ni fallos.
+// Hasta que llega el retrato (uPor 0), la Tierra.
+void portrait(out vec3 P, out vec3 C, out float S, out float A) {
+  if (uPor < 0.5) {
+    earth(P, C, S, A);
+    return;
+  }
+  vec3 p = pPor.xyz;
+  float tick = floor(uTime * 5.0);
+  float band = floor(p.y * 9.0);
+  float glitch = uMotion * step(0.99, hash(band * 1.37 + tick * 17.1));
+  p.x += glitch * (hash(band * 7.3 + tick) - 0.5) * 0.47;
+  p = rotY(p, uMouse.x * uGrav * 0.44);
+  float f = smoothstep(0.3, 1.0, uM - 4.0);
+  float sweep = mix(PORTRAIT_HALF_H, -PORTRAIT_HALF_H - 0.3, f);
+  float beam = f < 0.99 ? sweep : PORTRAIT_HALF_H * 1.1 - mod(uTime * 1.3, PORTRAIT_HALF_H * 3.0);
+  float lit = max(smoothstep(sweep - 0.05, sweep + 0.1, pPor.y), 1.0 - uMotion);
+  // El haz y los fallos no encienden lo que la foto funde (el corte del busto, abajo).
+  float i = pPor.w + (exp(-pow((pPor.y - beam) * 3.0, 2.0)) * uMotion + glitch * 0.6) * smoothstep(0.0, 0.1, pPor.w);
+  i *= 0.93 + 0.07 * sin(uTime * 23.0 + pPor.y * 3.0);
+  vec3 c = i < 0.6
+    ? mix(COLOR_PORTRAIT_DEEP, COLOR_PORTRAIT_GLOW, i / 0.6)
+    : mix(COLOR_PORTRAIT_GLOW, COLOR_PORTRAIT_HOT, clamp((i - 0.6) / 0.8, 0.0, 1.0));
+  P = p;
+  C = c * i * i * 1.5 * mix(0.12, 1.0, lit);
+  S = 1.5;
+  A = 0.8;
+}
+
 void shape(float k, out vec3 P, out vec3 C, out float S, out float A) {
   if (k < 0.5) singularity(P, C, S, A);
   else if (k < 1.5) nebula(P, C, S, A);
   else if (k < 2.5) galaxy(P, C, S, A);
   else if (k < 3.5) turtle(P, C, S, A);
-  else earth(P, C, S, A);
+  else if (k < 4.5) earth(P, C, S, A);
+  else portrait(P, C, S, A);
 }
 
 void main() {

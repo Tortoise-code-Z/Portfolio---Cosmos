@@ -24,6 +24,7 @@ import { followGravity } from '../math/gravity/gravity';
 import { createSceneClock } from '../sceneClock/sceneClock';
 import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
 import { useHotDegradation } from '../useHotDegradation/useHotDegradation';
+import { usePortrait } from '../usePortrait/usePortrait';
 import { useSceneShapes } from '../useSceneShapes/useSceneShapes';
 import { readVoidColour } from '../voidColour/voidColour';
 import styles from './SceneRoot.module.css';
@@ -118,6 +119,7 @@ export default function SceneRoot({
     onFailRef.current(reason);
   });
   const degradation = useHotDegradation({ level, active: painted, lowerTo });
+  const { portrait, want: wantPortrait } = usePortrait(shapes?.shapes.count ?? null);
 
   useEffect(() => {
     onFailRef.current = onFail;
@@ -255,6 +257,7 @@ export default function SceneRoot({
       data-shapes={shapes?.source}
       data-particles={painted ? 'painted' : undefined}
       data-paused={paused ? 'true' : undefined}
+      data-portrait={portrait === null ? undefined : 'loaded'}
       data-level={level}
     >
       <Canvas
@@ -270,7 +273,13 @@ export default function SceneRoot({
       >
         <CameraRig frame={frame} />
         {shapes === null ? null : (
-          <Particles shapes={shapes.shapes} frame={frame} onFirstFrame={onFirstFrame} />
+          <Particles
+            shapes={shapes.shapes}
+            frame={frame}
+            onFirstFrame={onFirstFrame}
+            portrait={portrait}
+            onPortraitWanted={wantPortrait}
+          />
         )}
         <BackgroundStars count={LEVEL_SETTINGS[level].stars} frame={frame} />
         <Constellations frame={frame} texts={skillLabels} labels={labelElements} />

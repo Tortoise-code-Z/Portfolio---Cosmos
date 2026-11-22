@@ -76,6 +76,7 @@ Reglas:
 | Constelaciones | estrellas `#fff0d7` con halo `#ffc88c`, líneas `#ffd9a0` |
 | Tortuga | caparazón `#1a998a`, bordes `#ffa847`, placas `#f2b861` (iluminada `#ffedc7`), bosque `#52f26b`, cuerpo `#38c7a3`, estela `#73bfff` |
 | Tierra | océano `#1247d9`, tierras `#47b852` / `#c79e5c`, nubes `#f2f7ff`, atmósfera `#599eff`, amanecer `#ff7326` |
+| Retrato (epílogo) | el verde del canal `#6dff9f`, con brillo `#d5ffe4`, sobre un verde hondo `#21804d` |
 
 ## Tipografía
 
@@ -173,7 +174,9 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--signal-gap` · `--signal-h` · `--signal-bar-w` | 2 px · 10 px · 3 px | Indicador de señal de la franja de una transmisión |
 | `--caret-size` | 0.5em | Triángulo de «Incoming transmission» (SVG) |
 | `--wave-max-w` · `--wave-stroke` | 360 px · 1,5 | Onda del pie de una transmisión (ancho máximo y trazo, en unidades del SVG) |
-| `--record-col-min` | 150 px | Columna mínima de la ficha del Mission log |
+| `--record-col-min` | 150 px | Columna mínima de la ficha del Mission log (y del Crew file en una columna) |
+| `--visor-h` · `--visor-w` | `min(62vw, 72svh)` · `min(52svh, 32vw)` | Visor del retrato en el Crew file: su alto (en móvil y tableta, el hueco del retrato en la columna, que ocupa ~58 % del ancho en una pantalla estrecha y ~72 % del alto en una ancha) y, desde lg, su ancho en el centro |
+| `--visor-corner` · `--visor-corners` | 28 px · 8 degradados | Largo de las esquinas del visor y su dibujo (en `currentcolor`) |
 | `--log-number-size` · `--log-tag-w` | 2.2em · 10ch | Círculo del número de una entrada del registro · columna de su etiqueta (escritorio) |
 | `--cursor-w` · `--cursor-h` · `--blink-count` | 0.6em · 1em · 4 | Cursor de bloque del teletipo de las transmisiones (`BlinkCursor`) y cuántas veces parpadea (menos de 5 s, WCAG 2.2.2) |
 | `--countdown-size` | `min(clamp(5rem, 33vw, 13rem), 40vw)` | Letra del «T-0» de Mission control: un tercio del ancho, nunca más del 40 % (las tres letras caben en una línea también con la letra al 200 %) |

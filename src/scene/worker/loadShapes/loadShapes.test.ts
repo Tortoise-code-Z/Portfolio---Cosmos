@@ -3,7 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { generateShapes } from '../../shapes/generateShapes/generateShapes';
 import type { ShapeRequest } from '../../shapes/shapeContract/shapeContract';
 import { handleShapesRequest } from '../handleShapesRequest/handleShapesRequest';
-import { loadShapes, SHAPES_WORKER_TIMEOUT_MS } from './loadShapes';
+import {
+  loadPortrait,
+  loadShapes,
+  PORTRAIT_WORKER_TIMEOUT_MS,
+  SHAPES_WORKER_TIMEOUT_MS,
+} from './loadShapes';
 
 const request: ShapeRequest = { count: 6, seed: 9, plates: [20] };
 
@@ -170,5 +175,38 @@ describe('loadShapes', () => {
       reason: 'timeout',
       detail: 'no answer in 50 ms',
     });
+  });
+});
+
+describe('loadPortrait', () => {
+  it('sends the portrait message, returns pPor and closes the worker', async () => {
+    const pending = loadPortrait({ count: 3, seed: 9 }, { createWorker });
+    expect(worker.sent).toEqual([{ kind: 'portrait', count: 3, seed: 9 }]);
+    const portrait = new Float32Array(12);
+    worker.reply({ ok: true, portrait });
+    await expect(pending).resolves.toEqual({ ok: true, value: portrait });
+    expect(worker.terminated).toBe(true);
+  });
+
+  it('waits longer than the shapes (it downloads its images), and says why it failed', async () => {
+    const late = loadPortrait({ count: 3, seed: 9 }, { createWorker });
+    vi.advanceTimersByTime(PORTRAIT_WORKER_TIMEOUT_MS - 1);
+    expect(worker.terminated).toBe(false);
+    vi.advanceTimersByTime(1);
+    await expect(late).resolves.toMatchObject({ ok: false, reason: 'timeout' });
+
+    worker = new FakeWorker();
+    const rejected = loadPortrait({ count: 3, seed: 9 }, { createWorker });
+    worker.reply({ ok: false, reason: '/assets/portrait-color.jpg: HTTP 404' });
+    await expect(rejected).resolves.toEqual({
+      ok: false,
+      reason: 'rejected',
+      detail: '/assets/portrait-color.jpg: HTTP 404',
+    });
+
+    worker = new FakeWorker();
+    const invalid = loadPortrait({ count: 3, seed: 9 }, { createWorker });
+    worker.reply({ ok: true, portrait: new Float32Array(4) });
+    await expect(invalid).resolves.toMatchObject({ ok: false, reason: 'invalid' });
   });
 });

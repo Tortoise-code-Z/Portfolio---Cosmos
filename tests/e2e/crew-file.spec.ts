@@ -155,14 +155,12 @@ test.describe('Crew file', () => {
     expect(new Set(clips)).toEqual(new Set(['none']));
   });
 
-  test('without WebGL it reads whole, over the still photo of the Earth (until C.6b)', async ({
-    page,
-  }) => {
+  test('without WebGL it reads whole, over the still photo of the portrait', async ({ page }) => {
     await withoutWebGL(page);
     await page.goto('/#crew-file', { waitUntil: 'networkidle' });
     const region = page.getByRole('region', { name: 'Crew file' });
     await expect(region.getByRole('term').first()).toHaveText('Role');
-    await expect(page.locator('[data-scene-stills] img[data-still-chapter="4"]')).toHaveAttribute(
+    await expect(page.locator('[data-scene-stills] img[data-still-chapter="5"]')).toHaveAttribute(
       'data-visible',
       'true',
     );

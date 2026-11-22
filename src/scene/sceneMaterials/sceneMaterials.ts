@@ -21,7 +21,7 @@ import starsVertex from '../shaders/stars/stars.vert.glsl?raw';
  */
 
 export interface ParticleUniforms {
-  /** `m` (0–4). */
+  /** `m` (0–5). */
   readonly uM: IUniform<number>;
   /** Segundos de animación (congelados con movimiento reducido). */
   readonly uTime: IUniform<number>;
@@ -40,6 +40,8 @@ export interface ParticleUniforms {
   readonly uMotion: IUniform<number>;
   /** 1 · 0 en Bajo: sin estela de la tortuga ni luces de ciudad. */
   readonly uExtras: IUniform<number>;
+  /** 1 con el retrato cargado (`pPor`) · 0 hasta entonces: la forma 5 es la Tierra. */
+  readonly uPor: IUniform<number>;
 }
 
 export interface StarUniforms {
@@ -81,6 +83,7 @@ export function createParticleUniforms(): ParticleUniforms {
     uMouse: { value: new Vector2(POINTER_AWAY, POINTER_AWAY) },
     uMotion: { value: 1 },
     uExtras: { value: 1 },
+    uPor: { value: 0 },
   };
 }
 
@@ -149,11 +152,14 @@ export function createSceneFrame(): SceneFrame {
   };
 }
 
+/** `portrait`: el retrato ya está en la geometría (`pPor`). */
 export function updateParticleUniforms(
   uniforms: ParticleUniforms,
   frame: Readonly<SceneFrame>,
+  portrait = false,
 ): void {
   uniforms.uM.value = frame.m;
+  uniforms.uPor.value = portrait ? 1 : 0;
   uniforms.uCharge.value = frame.charge;
   uniforms.uTime.value = frame.time;
   uniforms.uPR.value = frame.pixelRatio;

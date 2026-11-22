@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
 import { SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
-import { EARTH_TAG, TURTLE_TAG } from '../../shapes/shapeContract/shapeContract';
+import { EARTH_TAG, PORTRAIT_FRAME, TURTLE_TAG } from '../../shapes/shapeContract/shapeContract';
 import constellationLinesFragment from '../constellations/constellationLines.frag.glsl?raw';
 import constellationsVertex from '../constellations/constellations.vert.glsl?raw';
 import constellationStarsFragment from '../constellations/constellationStars.frag.glsl?raw';
@@ -22,7 +22,7 @@ const FRAGMENT_SHADERS = {
   constellationLinesFragment,
 };
 const SHADERS = { ...VERTEX_SHADERS, ...FRAGMENT_SHADERS };
-const HEADER_NAME = /\b(?:TURTLE|EARTH|PLATE|COLOR)_\w+/g;
+const HEADER_NAME = /\b(?:TURTLE|EARTH|PLATE|PORTRAIT|COLOR)_\w+/g;
 
 /** Los nombres que define la cabecera (`#define X …` y `const vec3 X = …`). */
 const defined = new Set(
@@ -39,6 +39,11 @@ describe('glslHeader', () => {
     }
     expect(header).toContain(`#define PLATE_FIRST ${glslFloat(FIRST_PLATE_LABEL)}\n`);
     expect(header).toContain(`#define PLATE_LAST ${glslFloat(LAST_PLATE_LABEL)}\n`);
+  });
+
+  it('defines the half height of the portrait, from its frame (the sweep goes from top to bottom)', () => {
+    const value = /#define PORTRAIT_HALF_H (\S+)\n/.exec(header)?.[1];
+    expect(Number(value)).toBeCloseTo(PORTRAIT_FRAME.halfHeight, 4);
   });
 
   it('a vec3 per palette colour, with its components', () => {

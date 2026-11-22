@@ -126,8 +126,13 @@
   control · how I work» en Mission control) con un triángulo delante (SVG propio), título `h2` en mono con brillo (enfocable por código, como los capítulos), el
   contenido de cada transmisión y un pie con la onda de señal y el reloj parado. Con `titleDisplay`, en el sitio del
   título se ve otra cosa (el «T-0» de Mission control, `aria-hidden`) y el título queda escondido para el lector en el
-  mismo `h2`. Con `className`, una transmisión puede dar otras columnas a su cuerpo (`--_body-columns`). El rótulo
-  de cada bloque de dentro es `.heading` de `Transmission.module.css` (cada una lo usa con `composes`).
+  mismo `h2`. Con `className`, una transmisión puede dar otras columnas a su cuerpo (`--_body-columns`) y fijar en
+  cuál van el rótulo y el título (`--_head-column`). El rótulo de cada bloque de dentro es `.heading` de
+  `Transmission.module.css` (cada una lo usa con `composes`).
+- **Abierta** (`open`, el epílogo): sin el velo del canal sobre la escena (solo la cuadrícula), para que se vea el
+  retrato; la franja, el rótulo, el título y el pie llevan el velo detrás, y quien la usa se lo pone a sus bloques de
+  texto: el contraste no depende de lo que pase por debajo. Recorta con `overflow: clip` (no `hidden`): lo pegajoso
+  de dentro sigue a la ventana (el visor del Crew file).
 - En alto contraste, las barras de señal y el cursor se pintan con `CanvasText` (son un fondo: el sistema los
   dejaría del color del fondo). Escrita una línea del teletipo, su recorte se abre `--space-5` más allá de su caja
   para no cortar el brillo de las cifras y de «Launch».

@@ -1,9 +1,9 @@
 # Capítulo 5 · Crew file (epílogo) · canal verde
 
 > Fase C, paso 6 (ADR-034). Bajo la Tierra, el último. Diseño aprobado el 2026-11-19
-> (`docs/03-diseno/design-system.md` → «Transmisiones»). En dos PR: **C.6a**, el epílogo sin retrato (hecho: el
-> capítulo, la ficha, el CV, el raíl de ocho paradas; textos en `textos-sitio.md` → «Epílogo», que Víctor corrige en
-> su PR), y **C.6b**, el retrato (la sexta forma).
+> (`docs/03-diseno/design-system.md` → «Transmisiones»). En dos PR: **C.6a**, el epílogo sin retrato (el capítulo, la
+> ficha, el CV, el raíl de ocho paradas; textos en `textos-sitio.md` → «Epílogo», que Víctor corrige en su PR), y
+> **C.6b**, el retrato (la sexta forma, el visor y la ficha a sus lados). Los dos, hechos.
 
 ## Propósito
 
@@ -26,40 +26,49 @@ Metáfora: las partículas que formaron el universo se recomponen en la cara de 
 
 ## Escena (`m = 5`)
 
-- Contacto cambia en su segunda mitad (del 52 %, como Skills): la Tierra pasa al retrato. Hasta C.6b no hay sexta
-  forma: con `m` entre 4 y 5 la escena se queda en la Tierra, y sin WebGL se ve la foto de la Tierra.
-- **Transición (decidida en C.6, para C.6b):** las partículas viajan de la Tierra al retrato y llegan apagadas; se encienden en
-  el verde del canal al paso del haz de barrido, atado al progreso del morph, y al acabar, «Identity verified». Con
-  movimiento reducido, el retrato ya formado y sin barrido.
-- El retrato: una foto de Víctor convertida en profundidad, cargada como dato aparte (una imagen de color, otra de
-  profundidad y contornos; ~150 KB) al acercarse a la Tierra; solo el código que la carga cuenta en el chunk de la
-  escena (ADR-032).
+- Contacto cambia en su segunda mitad (del 52 %, como Skills): la Tierra pasa al retrato (forma 5,
+  `docs/04-escena/formas.md` → «Retrato»).
+- **Transición:** las partículas viajan de la Tierra al retrato y llegan apagadas; se encienden en el verde del canal
+  al paso del haz de barrido, que baja de arriba abajo atado al progreso del morph (`m` de 4 a 5). Acabado el morph,
+  el haz pasa en bucle. Con movimiento reducido, el retrato encendido y sin haz ni fallos de señal.
+- El retrato: una foto de Víctor convertida en profundidad, cargada como dato aparte (`src/assets/portrait/`: la foto
+  y otra imagen con la profundidad, la distancia al borde y los contornos; ~160 KB) cuando la escena llega a la Tierra
+  (`m` ≥ 3). Lo pide y lo lee el worker de las formas; solo el código que lo pide cuenta en el chunk de la escena
+  (ADR-032). Si no llega, la forma 5 se queda en la Tierra.
 - Aspecto elegido: holograma de líneas de escáner (una fila de cada tres), luz en pocos niveles, rasgos y borde de
   la silueta encendidos, haz de barrido y fallos de señal ocasionales; en el verde del canal.
-- Giro limitado (~±25°) con el puntero: de una sola foto sale un relieve, no una cabeza completa.
+- Giro limitado (~±25°) con el ratón: de una sola foto sale un relieve, no una cabeza completa.
 
 ## Interacciones
 
-- El retrato sigue al puntero (inclinación en móvil, si se permite); la gravedad del cursor aparta partículas (C.6b).
+- El retrato gira con el ratón (hasta ~±25°, y vuelve de frente al salir) y la gravedad del cursor aparta partículas.
+  En táctil no gira: la inclinación del móvil pide permiso en iOS y se mira en F6 con un móvil real.
 - Download CV y Copy, como en Contacto.
 
 ## Layout
 
-- **Escritorio:** título arriba a la izquierda; retrato en el centro; datos a los lados con líneas guía; abajo, el
-  email y el botón del CV. Hasta C.6b, una columna: entrada, «Download CV», la ficha en rejilla y el email.
-- **Móvil:** título, retrato, **Download CV justo debajo** (lo primero que se busca), la ficha y el email.
+- La transmisión va **abierta** (`Transmission` con `open`): sin el velo del canal sobre la escena, para que el
+  retrato se vea; cada bloque de texto lleva el velo detrás, así que el contraste no depende de lo que pase por debajo.
+- **El visor:** cuatro esquinas y, al pie, «Identity verified» (se enciende cuando el teletipo acaba la ficha; repite el
+  aviso de arriba, así que es decoración, `aria-hidden`).
+- **Escritorio ancho (desde lg, 1280 px):** el aviso, el título y la entrada arriba a la izquierda; el visor en el
+  centro, centrado en la ventana como el retrato y pegado al centro de la pantalla mientras la ficha pasa; la ficha a
+  los lados (puesto, base y permiso a la izquierda; disponibilidad, idiomas y formación a la derecha), cada dato en su
+  recuadro con una línea guía hacia el visor; abajo, «Download CV» a la izquierda y el email a la derecha.
+- **Móvil y tableta:** una columna en el orden del DOM: título, entrada, el visor (un hueco del tamaño del retrato en
+  pantalla, `--visor-h`), **Download CV justo debajo** (lo primero que se busca), la ficha y el email.
 
 ## Accesibilidad y movimiento reducido
 
-- El lienzo es `aria-hidden`; el retrato tiene su alternativa en texto. Sin WebGL: una foto fija del retrato
-  (ADR-029). Con movimiento reducido: quieto, sin barrido ni fallos de señal.
+- El lienzo es `aria-hidden`, y el visor también: el retrato es decoración (la ficha dice quién es). Sin WebGL: la
+  foto fija del retrato (ADR-029). Con movimiento reducido: quieto, sin barrido ni fallos de señal.
 - La ficha es una lista de definiciones real; las líneas guía son decoración.
 
 ## Pendiente
 
-- C.6b: el retrato (la foto de la prueba de la sesión 34 y sus datos entran al repo público, con el VB de Víctor),
-  sus esquinas de visor y líneas guía, y el layout de escritorio con los datos a los lados.
-- Decidido en C.6: solo los idiomas, sin el nivel de inglés.
+- F6: la inclinación del móvil (con su permiso en iOS) y mirar el retrato en un móvil real.
+- Decidido en C.6: solo los idiomas, sin el nivel de inglés; la foto de la prueba de la sesión 34 y sus datos, en el
+  repo público.
 
 ## Aceptación
 

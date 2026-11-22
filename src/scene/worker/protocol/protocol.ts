@@ -1,4 +1,5 @@
 import {
+  type PortraitRequest,
   POSITION_KEYS,
   type ShapeRequest,
   shapeRequestProblem,
@@ -15,7 +16,16 @@ export type ShapesResponse =
   | { readonly ok: true; readonly shapes: ShapeSet }
   | { readonly ok: false; readonly reason: string };
 
-type Parsed<T> =
+/** El encargo del retrato (`kind` lo distingue del de las formas, que va sin él). */
+export interface PortraitMessage extends PortraitRequest {
+  readonly kind: 'portrait';
+}
+
+export type PortraitResponse =
+  | { readonly ok: true; readonly portrait: Float32Array }
+  | { readonly ok: false; readonly reason: string };
+
+export type Parsed<T> =
   { readonly ok: true; readonly value: T } | { readonly ok: false; readonly reason: string };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -34,6 +44,33 @@ export function parseShapesRequest(data: unknown): Parsed<ShapeRequest> {
   const request: ShapeRequest = { count, seed, plates };
   const problem = shapeRequestProblem(request);
   return problem === null ? { ok: true, value: request } : { ok: false, reason: problem };
+}
+
+/** ¿Es un encargo del retrato? (Lo demás se trata como encargo de las formas.) */
+export function isPortraitMessage(data: unknown): boolean {
+  return isRecord(data) && data.kind === 'portrait';
+}
+
+/** Lo que llega al worker con `kind: 'portrait'`: un `count` y una semilla que valen, o por qué no. */
+export function parsePortraitRequest(data: unknown): Parsed<PortraitRequest> {
+  if (!isRecord(data)) return { ok: false, reason: 'the request is not an object' };
+  const { count, seed } = data;
+  if (typeof count !== 'number' || typeof seed !== 'number') {
+    return { ok: false, reason: 'count and seed must be numbers' };
+  }
+  const problem = shapeRequestProblem({ count, seed, plates: [] });
+  return problem === null ? { ok: true, value: { count, seed } } : { ok: false, reason: problem };
+}
+
+/** Lo que vuelve del worker para el retrato de `count` partículas: su `pPor` (4 por partícula), o por qué no. */
+export function parsePortraitResponse(data: unknown, count: number): Parsed<Float32Array> {
+  if (!isRecord(data)) return { ok: false, reason: 'the response is not an object' };
+  if (data.ok === false) {
+    return { ok: false, reason: typeof data.reason === 'string' ? data.reason : 'rejected' };
+  }
+  return data.ok === true && isArrayOfLength(data.portrait, count * 4)
+    ? { ok: true, value: data.portrait }
+    : { ok: false, reason: 'the portrait array has the wrong type or length' };
 }
 
 /** Lo que vuelve del worker para un `count` pedido: las 5 matrices con sus longitudes, o por qué no. */

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import sharp from 'sharp';
 
-import { CHAPTER_ANCHORS } from '../../src/content/chapters.ts';
+import { CHAPTER_ANCHORS, EPILOGUE } from '../../src/content/chapters.ts';
 import {
   STILL_CHAPTERS,
   STILL_FRAMES,
@@ -77,6 +77,10 @@ for (const frameName of Object.keys(STILL_FRAMES) as StillFrameName[]) {
         await page.goto(`/#${String(CHAPTER_ANCHORS[chapter])}`);
         const scene = page.locator(PARTICLES_PAINTED);
         await expect(scene).toHaveAttribute('data-level', frame.level, { timeout: 60_000 });
+        // El retrato llega aparte, en su encargo al worker (sin él, el epílogo pinta la Tierra).
+        if (chapter === EPILOGUE) {
+          await expect(scene).toHaveAttribute('data-portrait', 'loaded', { timeout: 60_000 });
+        }
         // Solo el lienzo: lo demás, invisible (sin cambiar la maqueta).
         await page.addStyleTag({
           content:

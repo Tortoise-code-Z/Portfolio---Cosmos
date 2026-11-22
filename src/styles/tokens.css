@@ -311,6 +311,32 @@
   --wave-stroke: 1.5;
   /* Mission log: columna mínima de la ficha, círculo del número, columna de la etiqueta (ARREGLADO en 10 letras). */
   --record-col-min: 150px;
+  /*
+   * Crew file: el visor del retrato. Alto en móvil y tableta (un hueco en la columna, del tamaño del retrato en
+   * pantalla: ~58 % del ancho en una pantalla estrecha y ~72 % del alto en una ancha) y, desde lg, su ancho y alto en el
+   * centro de la ficha; el largo de sus esquinas y lo que se sale cada línea guía.
+   */
+  --visor-h: min(62vw, 72svh);
+  --visor-w: min(52svh, 32vw);
+  --visor-corner: 28px;
+  /* Las cuatro esquinas del visor, en `currentcolor` (el color del texto de quien las pinta). */
+  --visor-corners:
+    linear-gradient(currentcolor, currentcolor) top left / var(--visor-corner) var(--border-width)
+      no-repeat,
+    linear-gradient(currentcolor, currentcolor) top left / var(--border-width) var(--visor-corner)
+      no-repeat,
+    linear-gradient(currentcolor, currentcolor) top right / var(--visor-corner) var(--border-width)
+      no-repeat,
+    linear-gradient(currentcolor, currentcolor) top right / var(--border-width) var(--visor-corner)
+      no-repeat,
+    linear-gradient(currentcolor, currentcolor) bottom left / var(--visor-corner)
+      var(--border-width) no-repeat,
+    linear-gradient(currentcolor, currentcolor) bottom left / var(--border-width)
+      var(--visor-corner) no-repeat,
+    linear-gradient(currentcolor, currentcolor) bottom right / var(--visor-corner)
+      var(--border-width) no-repeat,
+    linear-gradient(currentcolor, currentcolor) bottom right / var(--border-width)
+      var(--visor-corner) no-repeat;
   --log-number-size: 2.2em;
   --log-tag-w: 10ch;
   /* Cursor de bloque del teletipo de las transmisiones (`BlinkCursor`) y cuántas veces parpadea (< 5 s: WCAG 2.2.2). */

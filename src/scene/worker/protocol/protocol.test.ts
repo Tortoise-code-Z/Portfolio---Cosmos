@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import { generateShapes } from '../../shapes/generateShapes/generateShapes';
-import { parseShapesRequest, parseShapesResponse, transferablesOf } from './protocol';
+import {
+  isPortraitMessage,
+  parsePortraitRequest,
+  parsePortraitResponse,
+  parseShapesRequest,
+  parseShapesResponse,
+  transferablesOf,
+} from './protocol';
 
 const valid = { count: 4, seed: 7, plates: [20] };
 
@@ -66,5 +73,50 @@ describe('transferablesOf', () => {
       shapes.earth.buffer,
       shapes.rand.buffer,
     ]);
+  });
+});
+
+describe('the portrait message', () => {
+  it('is told apart by its kind; anything else goes to the shapes', () => {
+    expect(isPortraitMessage({ kind: 'portrait', count: 4, seed: 7 })).toBe(true);
+    expect(isPortraitMessage(valid)).toBe(false);
+    expect(isPortraitMessage({ kind: 'shapes' })).toBe(false);
+    expect(isPortraitMessage(null)).toBe(false);
+  });
+
+  it('accepts a count and a seed, without plates', () => {
+    expect(parsePortraitRequest({ kind: 'portrait', count: 4, seed: 7 })).toEqual({
+      ok: true,
+      value: { count: 4, seed: 7 },
+    });
+  });
+
+  it.each([
+    ['not an object', undefined, /not an object/],
+    ['count as text', { count: '4', seed: 7 }, /numbers/],
+    ['count out of range', { count: 0, seed: 7 }, /count/],
+    ['a negative seed', { count: 4, seed: -1 }, /seed/],
+  ])('rejects %s, and says why', (_name, data, reason) => {
+    const parsed = parsePortraitRequest(data);
+    expect(parsed.ok).toBe(false);
+    if (!parsed.ok) expect(parsed.reason).toMatch(reason);
+  });
+
+  it('the response: 4 per particle, or the reason of a rejection', () => {
+    const portrait = new Float32Array(16);
+    expect(parsePortraitResponse({ ok: true, portrait }, 4)).toEqual({ ok: true, value: portrait });
+    expect(parsePortraitResponse({ ok: false, reason: 'HTTP 404' }, 4)).toEqual({
+      ok: false,
+      reason: 'HTTP 404',
+    });
+    expect(parsePortraitResponse({ ok: false }, 4)).toEqual({ ok: false, reason: 'rejected' });
+    for (const data of [
+      { ok: true, portrait: new Float32Array(12) },
+      { ok: true, portrait: [...portrait] },
+      { ok: true },
+      'portrait',
+    ]) {
+      expect(parsePortraitResponse(data, 4).ok).toBe(false);
+    }
   });
 });

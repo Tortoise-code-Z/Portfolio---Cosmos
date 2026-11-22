@@ -30,7 +30,7 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 - Fondo: degradado estático del espacio en CSS (`--gradient-space`, fijo en la capa de la escena, por debajo del
   contenido), que entra con el mismo fundido que el lienzo; hero con el punto CSS.
 - **Fotos fijas de la escena** (solo en el viaje, `/` y `/es`; ADR-029): encima del degradado, la foto de la forma
-  del capítulo activo (nebulosa, galaxia, tortuga, Tierra; en la singularidad, ninguna: ya está el punto CSS),
+  del capítulo activo (nebulosa, galaxia, tortuga, Tierra, retrato; en la singularidad, ninguna: ya está el punto CSS),
   sacada de la escena real (`npm run stills`; `docs/01-contenido/assets.md` → «Fotos fijas de la escena»). Son la
   escena sobre negro, fundidas con `screen` (el negro no se ve y las partículas se suman como luz) y encajadas con
   la regla del campo de visión de la cámara, así que caen donde caería la escena. Al cambiar de capítulo, la nueva
@@ -51,7 +51,7 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 |---|---|
 | Interfaz: fundidos de opacidad, en 150 ms (`--dur-fade-*`) | Interfaz: el resto de transiciones (color, desplazamiento) pasa a 0 ms (`--dur-fast/base/slow/flight`) |
 | Morph de formas y cámara ligados al scroll (lo controla el usuario) | Temblor, destello y vibración del hero |
-| Iluminación de constelaciones y placas | Giro autónomo de nebulosa, galaxia y Tierra; nado de la tortuga |
+| Iluminación de constelaciones y placas | Giro autónomo de nebulosa, galaxia y Tierra; nado de la tortuga; haz de barrido, fallos de señal y parpadeo del retrato (se ve encendido y quieto) |
 | Detonación (sin destello ni temblor) | Gravedad del cursor y paralaje de la cámara; ciclo automático de placas |
 | Nombre del hero (`wdth`, espaciado) y halo, ligados a la carga y al scroll (ADR-030) | Scroll suave en saltos (pasa a instantáneo) y vuelo de cámara a proyectos |
 | Transmisiones: su color, la cuadrícula, las líneas de barrido y el brillo del título, quietos; todo el texto a la vista | Transmisiones: el barrido de entrada, el teletipo (no se arma) y el parpadeo del cursor |

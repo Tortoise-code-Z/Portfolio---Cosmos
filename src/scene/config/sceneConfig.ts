@@ -47,7 +47,7 @@ export interface CameraKeyframe {
 /**
  * La cámara en cada capítulo (camara-y-encuadre.md → «Keyframes por capítulo»); entre dos, `smoothstep` de la
  * parte decimal de `m` (`cameraPose`). Uno por forma: 0 singularidad · 1 nebulosa · 2 galaxia · 3 tortuga ·
- * 4 Tierra. Del 1 al 4, las cifras del prototipo ajustadas con capturas en los tamaños de referencia (F3.6c): cada
+ * 4 Tierra · 5 retrato. Del 1 al 4, las cifras del prototipo ajustadas con capturas en los tamaños de referencia (F3.6c): cada
  * cámara algo más lejos de su objetivo, con el mismo ángulo, y la forma centrada en el hueco entre panel y raíl.
  */
 export const CAMERA_KEYFRAMES = [
@@ -56,6 +56,7 @@ export const CAMERA_KEYFRAMES = [
   { position: [0, 12.9, 14.2], target: [0, 0, 0], shiftX: -4.1 },
   { position: [4.8, 5.6, 9.9], target: [0, 0.6, 0], shiftX: -2.6 },
   { position: [0, 1.2, 12.1], target: [0, 0, 0], shiftX: -3.2 },
+  { position: [0, 0, 8.2], target: [0, 0, 0], shiftX: 0 },
 ] as const satisfies readonly CameraKeyframe[];
 
 /**

@@ -1,15 +1,15 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
-import type { BufferGeometry, ShaderMaterial } from 'three';
+import { BufferAttribute, type BufferGeometry, type ShaderMaterial } from 'three';
 
-import { createParticleGeometry } from '../particleGeometry/particleGeometry';
+import { createParticleGeometry, PORTRAIT_ATTRIBUTE } from '../particleGeometry/particleGeometry';
 import {
   createParticleMaterial,
   createParticleUniforms,
   updateParticleUniforms,
   type SceneFrame,
 } from '../sceneMaterials/sceneMaterials';
-import type { ShapeSet } from '../shapes/shapeContract/shapeContract';
+import { PORTRAIT_LOAD_FROM_M, type ShapeSet } from '../shapes/shapeContract/shapeContract';
 
 export interface ParticlesProps {
   readonly shapes: ShapeSet;
@@ -17,6 +17,10 @@ export interface ParticlesProps {
   readonly frame: Readonly<SceneFrame>;
   /** Su primer frame: a partir de aquí la escena pinta algo (el relevo del punto del hero). */
   readonly onFirstFrame: () => void;
+  /** El retrato (`pPor`) para estas formas, o `null` mientras no llega: la forma 5 es la Tierra. */
+  readonly portrait?: Float32Array | null;
+  /** La `m` de la escena llega a `PORTRAIT_LOAD_FROM_M`: hay que pedir el retrato (se llama una vez). */
+  readonly onPortraitWanted?: () => void;
 }
 
 /**
@@ -24,7 +28,13 @@ export interface ParticlesProps {
  * uniforms en cada frame, avisa **una vez** en el primero y libera la memoria de la GPU al cambiar las formas
  * (la geometría vieja) o al desmontar. Va aparte del componente para probarlo sin WebGL.
  */
-export function useParticles({ shapes, frame, onFirstFrame }: ParticlesProps): {
+export function useParticles({
+  shapes,
+  frame,
+  onFirstFrame,
+  portrait = null,
+  onPortraitWanted,
+}: ParticlesProps): {
   readonly geometry: BufferGeometry;
   readonly material: ShaderMaterial;
 } {
@@ -33,10 +43,24 @@ export function useParticles({ shapes, frame, onFirstFrame }: ParticlesProps): {
   const geometry = useMemo(() => createParticleGeometry(shapes), [shapes]);
   const painted = useRef(false);
   const onFirstFrameRef = useRef(onFirstFrame);
+  const portraitWanted = useRef(false);
+  /** El retrato está en la geometría: `uPor` lo sigue en cada frame. */
+  const portraitReady = useRef(false);
+  const onPortraitWantedRef = useRef(onPortraitWanted);
 
   useEffect(() => {
     onFirstFrameRef.current = onFirstFrame;
-  }, [onFirstFrame]);
+    onPortraitWantedRef.current = onPortraitWanted;
+  }, [onFirstFrame, onPortraitWanted]);
+  // El retrato se añade a la geometría de sus formas cuando llega; se va con ella (su `dispose`).
+  useEffect(() => {
+    if (portrait === null) return undefined;
+    geometry.setAttribute(PORTRAIT_ATTRIBUTE, new BufferAttribute(portrait, 4));
+    portraitReady.current = true;
+    return () => {
+      portraitReady.current = false;
+    };
+  }, [geometry, portrait]);
   useEffect(
     () => () => {
       geometry.dispose();
@@ -51,7 +75,11 @@ export function useParticles({ shapes, frame, onFirstFrame }: ParticlesProps): {
   );
 
   useFrame(() => {
-    updateParticleUniforms(uniforms, frame);
+    updateParticleUniforms(uniforms, frame, portraitReady.current);
+    if (!portraitWanted.current && frame.m >= PORTRAIT_LOAD_FROM_M) {
+      portraitWanted.current = true;
+      onPortraitWantedRef.current?.();
+    }
     if (!painted.current) {
       painted.current = true;
       onFirstFrameRef.current();
@@ -63,7 +91,7 @@ export function useParticles({ shapes, frame, onFirstFrame }: ParticlesProps): {
 
 /**
  * Las partículas (docs/04-escena/particulas-y-shaders.md): un solo `THREE.Points` con las 4 formas como
- * atributos; el shader mezcla la actual y la siguiente según `m`. Lo que cambia cada frame va por uniforms,
+ * atributos (el retrato, cuando llega); el shader mezcla la actual y la siguiente según `m`. Lo que cambia cada frame va por uniforms,
  * nunca por estado de React (ADR-004). Su lógica (geometría, uniforms, materiales) se prueba aparte; esto solo
  * la monta (`useParticles`).
  */
