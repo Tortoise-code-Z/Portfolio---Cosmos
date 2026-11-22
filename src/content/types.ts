@@ -204,6 +204,11 @@ export interface Project {
   readonly context: ProjectContext;
   /** 2–3 frases para la fila del capítulo y el modo misión rápida. */
   readonly summary: Localized;
+  /**
+   * La meta description de la ficha cuando el `summary` es demasiado largo para los buscadores (cortan hacia
+   * 155–160 caracteres): como mucho 160 en cada idioma (test). Sin ella, la descripción es el `summary`.
+   */
+  readonly metaDescription?: Localized;
   readonly about: Localized<readonly string[]>;
   readonly features: readonly Localized[];
   readonly stack: {
@@ -232,7 +237,8 @@ export interface Project {
 }
 
 /** Lo que solo pinta la página de proyecto (ADR-036): fuera del JS de la home. */
-type ProjectDetailKey = 'about' | 'features' | 'process' | 'highlights' | 'notes' | 'tryIt';
+type ProjectDetailKey =
+  'metaDescription' | 'about' | 'features' | 'process' | 'highlights' | 'notes' | 'tryIt';
 
 /**
  * La tarjeta de un proyecto (`projects/<slug>.ts`): lo que pintan la fila del capítulo y la misión

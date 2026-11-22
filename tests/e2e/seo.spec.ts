@@ -5,9 +5,12 @@ import { loadEnv } from 'vite';
 
 import { SHARE_IMAGE_WIDTH } from '../../src/content/imageWidths.ts';
 import { profile } from '../../src/content/profile.ts';
+import { astrohub } from '../../src/content/projects/details/astrohub.ts';
+import { chessmate } from '../../src/content/projects/details/chessmate.ts';
+import { cosmos } from '../../src/content/projects/details/cosmos.ts';
 import { projectEntries } from '../../src/content/projects/entries.ts';
 import { uiTexts } from '../../src/content/texts/index.ts';
-import type { Locale } from '../../src/content/types.ts';
+import type { Locale, ProjectDetail } from '../../src/content/types.ts';
 import { parseSiteUrl } from '../../src/lib/env/siteUrl/siteUrl.ts';
 import { indexablePaths, sitePages } from '../../src/lib/seo/pages/pages.ts';
 import { absoluteUrl } from '../../src/lib/seo/urls/urls.ts';
@@ -28,6 +31,16 @@ const PAGES = sitePages(projectEntries);
  * cargan el contenido sin Vite y no pueden importar las imágenes.
  */
 const WITH_COVER: ReadonlySet<string> = new Set(['chessmate', 'astrohub']);
+
+/**
+ * El detalle de cada ficha, por slug (su `metaDescription`). Escrito a mano, como `content/projects/index.ts`,
+ * que no se puede importar aquí (junta las imágenes).
+ */
+const PROJECT_DETAILS: Readonly<Partial<Record<string, ProjectDetail>>> = {
+  chessmate,
+  astrohub,
+  cosmos,
+};
 const INDEXABLE = indexablePaths(PAGES).map((path) => absoluteUrl(ORIGIN, path));
 const OG_LOCALE: Readonly<Record<Locale, string>> = { en: 'en_US', es: 'es_ES' };
 
@@ -47,7 +60,7 @@ function expectedText(
   const project = projectBySlug(sitePage.slug);
   return {
     title: texts['meta.project.title'].replace('{project}', project.name),
-    description: project.summary[locale],
+    description: (PROJECT_DETAILS[sitePage.slug]?.metaDescription ?? project.summary)[locale],
     name: project.name,
   };
 }

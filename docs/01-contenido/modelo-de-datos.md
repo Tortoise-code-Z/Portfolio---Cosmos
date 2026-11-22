@@ -169,6 +169,7 @@ export interface Project {
   readonly role: ProjectRole;
   readonly context: ProjectContext;
   readonly summary: Localized;               // 2–3 frases para la fila del capítulo y el modo misión rápida
+  readonly metaDescription?: Localized;      // la descripción de la ficha si el summary es largo (≤ 160; Cosmos)
   readonly about: Localized<readonly string[]>;
   readonly features: readonly Localized[];   // lo que hace el producto
   readonly stack: {
@@ -194,7 +195,7 @@ export interface Project {
 // En el código, cada proyecto se parte en tres (ADR-036): la tarjeta `projects/<slug>.ts` (`ProjectEntry`, lo que
 // pinta la home), el detalle `projects/details/<slug>.ts` (`ProjectDetail`, lo que solo pinta su página) y sus
 // imágenes en `media.ts` (`ProjectMedia`). `projects/index.ts` los junta en `Project`.
-type ProjectDetailKey = 'about' | 'features' | 'process' | 'highlights' | 'notes' | 'tryIt';
+type ProjectDetailKey = 'metaDescription' | 'about' | 'features' | 'process' | 'highlights' | 'notes' | 'tryIt';
 export type ProjectEntry = Omit<Project, ProjectDetailKey | 'stack' | 'cover' | 'gallery'> & {
   readonly stack: Pick<Project['stack'], 'core'>;            // el stack principal: las filas lo enseñan
 };
@@ -270,7 +271,8 @@ export interface LaunchStep {
    `process` y `highlights` sí pueden ir vacíos: la sección no se pinta. La cuenta atrás de Mission control va de
    T-4 a T-0 sin huecos ni ids repetidos, con los pasos de antes del código seguidos y al principio, y su bucle va
    hacia atrás (de la auditoría a un paso anterior); `browserName` nombra los tres navegadores del CI y deja uno
-   desconocido tal cual.
+   desconocido tal cual. Cada proyecto tiene su detalle y cada detalle es de un proyecto (ADR-036). La
+   `metaDescription` de una ficha, si la hay, mide como mucho 160 caracteres en cada idioma (hoy solo la de Cosmos).
 
 ## Relación con la escena
 

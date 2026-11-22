@@ -112,6 +112,17 @@ describe('projectMeta', () => {
     ]);
   });
 
+  it('con metaDescription, la descripción es esa y no el summary (también en Open Graph)', () => {
+    const en = projectMeta({
+      origin: ORIGIN,
+      locale: 'en',
+      profile: fakeProfile,
+      project: { ...project, metaDescription: { en: 'Short Beta.', es: 'Beta corta.' } },
+    });
+    expect(metaContent(en, 'description')).toBe('Short Beta.');
+    expect(metaContent(en, 'og:description')).toBe('Short Beta.');
+  });
+
   it('lleva la ficha SoftwareSourceCode', () => {
     expect(jsonLdOf(es)).toMatchObject({ '@type': 'SoftwareSourceCode', name: 'Beta' });
   });

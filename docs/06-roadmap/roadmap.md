@@ -198,8 +198,8 @@ reducido. Después siguen F4.4 y F4.5; F5 pasa seguramente a después del 1 dic.
 - Presupuestos de Lighthouse CI activados en CI; revisión con NVDA; pruebas en un móvil real.
 - Ficha de **Cosmos** con datos reales (proceso, retos, capturas; revisar el stack): adelantada a C.5. Imágenes Open
   Graph EN/ES; favicon.
-- SEO de las fichas: la meta description es el `summary` tal cual y la de Cosmos pasa de 220 (EN) y 228 (ES)
-  caracteres (los buscadores cortan hacia 155–160); decidir si se acorta o se añade un `metaDescription`.
+- ✔ SEO de las fichas: la meta description de Cosmos pasaba de 220 (EN) y 228 (ES) caracteres; adelantado a C.5
+  con un `metaDescription` opcional (≤ 160, solo Cosmos; las demás siguen con el `summary`).
 - README del repo en inglés con capturas y arquitectura (adelantado a C.5); con él, la nota de la ficha de Cosmos
   vuelve a citarlo (`docs/01-contenido/proyectos/cosmos.md` → Notes, ⏳).
 

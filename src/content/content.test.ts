@@ -345,6 +345,16 @@ describe('contenido', () => {
     expect(() => assembleProjects(projectEntries, {}, projectMedia)).toThrow('«chessmate»');
   });
 
+  it('la metaDescription de una ficha, si la hay, cabe en lo que enseñan los buscadores (≤ 160)', () => {
+    const withMeta = projects.filter(({ metaDescription }) => metaDescription !== undefined);
+    expect(withMeta.map(({ slug }) => slug)).toEqual(['cosmos']);
+    for (const { metaDescription } of withMeta) {
+      for (const locale of LOCALES) {
+        expect(metaDescription?.[locale].length).toBeLessThanOrEqual(160);
+      }
+    }
+  });
+
   it('las imágenes son de proyectos que existen', () => {
     const slugs = projectEntries.map((entry) => entry.slug);
     expect(Object.keys(projectMedia).filter((slug) => !slugs.includes(slug))).toEqual([]);

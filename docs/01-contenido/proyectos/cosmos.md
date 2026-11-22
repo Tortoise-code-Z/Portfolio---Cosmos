@@ -35,6 +35,16 @@ Con la escena (desde F3.7):
   galaxia, una tortuga cósmica y la Tierra mientras haces scroll. Hecha con React, TypeScript y WebGL, y
   legible sin nada de eso.
 
+## Meta description
+
+El `summary` pasa de 220 caracteres y los buscadores cortan hacia 155–160: la ficha lleva su `metaDescription`
+(≤ 160, test de contenido; C.5).
+
+- EN: Cosmos, the portfolio you are on: a scroll journey from the Big Bang to Earth in WebGL particles, built with
+  React and TypeScript and readable without WebGL. (157)
+- ES: Cosmos, el portfolio en el que estás: un viaje por scroll del Big Bang a la Tierra en partículas WebGL, hecho
+  con React y TypeScript y legible sin WebGL. (153)
+
 ## About
 
 **EN**

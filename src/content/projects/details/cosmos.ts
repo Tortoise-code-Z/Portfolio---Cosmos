@@ -5,6 +5,11 @@ import type { ProjectDetail } from '../../types';
 import { RESPONSIVE_DESIGN } from '../labels';
 
 export const cosmos: ProjectDetail = {
+  // El `summary` pasa de 220 caracteres y los buscadores cortan hacia 155–160: la ficha lleva la suya (≤ 160).
+  metaDescription: {
+    en: 'Cosmos, the portfolio you are on: a scroll journey from the Big Bang to Earth in WebGL particles, built with React and TypeScript and readable without WebGL.',
+    es: 'Cosmos, el portfolio en el que estás: un viaje por scroll del Big Bang a la Tierra en partículas WebGL, hecho con React y TypeScript y legible sin WebGL.',
+  },
   about: {
     en: [
       'Cosmos is my personal portfolio, designed as a story: scrolling moves time forward from the Big Bang to the present day, and each stage of the universe is a section of the site.',
