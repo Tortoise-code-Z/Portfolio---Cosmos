@@ -31,7 +31,10 @@
   252 738 B (+144 B, del margen). **F4.3c** (el puntero de las etiquetas) tenía ≤ 1 KB, también del margen: pesó
   172 B, **252 910 B**. **C.3** (37 estrellas en vez de 31, con sus líneas y sus etiquetas) pesó 127 B, también del
   margen: **253 037 B**. Las correcciones de las auditorías de C.2 (1 B) y de F4.3c (2 B), del margen:
-  **253 040 B**. Quedan 6 960 B: F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, y ~1,46 KB de margen. Los generadores no cuentan ahí: van en el worker
+  **253 040 B**. La sesión 38 (C.4, la pausa de la ficha y la corrección de su auditoría) pesó 31 B; C.5 nada (el
+  build de `main` tras su auditoría mide 253 069 B, medido igual que el e2e). **C.6a** (el raíl de ocho paradas, que encogen en una ventana
+  baja: `railHalfHeight` en la reserva de las etiquetas) pesó 52 B, del margen: **253 121 B**. Quedan 6 879 B: F4.4 ≤
+  2,5 KB y F4.5 ≤ 3 KB, y ~1,4 KB de margen, de los que C.6b (el retrato) tiene que salir. Los generadores no cuentan ahí: van en el worker
   (≤ 10 KB) y, para el reintento, en su propio chunk (≤ 10 KB).
 
 ## Niveles

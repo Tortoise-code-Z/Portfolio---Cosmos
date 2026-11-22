@@ -224,13 +224,18 @@ describe('constellationLayout', () => {
     expect(STAR_LABEL_KEEP_OUT.wide.panelRight).toBe(px('--space-5') + px('--panel-w'));
     expect(STAR_LABEL_KEEP_OUT.wide.barBottom).toBe(px('--topbar-h'));
     expect(STAR_LABEL_KEEP_OUT.narrow.barBottom).toBe(px('--topbar-h'));
-    // El raíl: un enlace de `--target-min` por capítulo y por interludio, centrado.
-    const railHalf = ((CHAPTER_INDICES.length + INTERLUDES.length) * px('--target-min')) / 2;
-    expect(STAR_LABEL_KEEP_OUT.wide.rail.halfHeight).toBe(railHalf);
-    expect(STAR_LABEL_KEEP_OUT.narrow.rail.halfHeight).toBe(railHalf);
-    // La misma media altura que usa el CSS del raíl para bajarlo si no cabe bajo la barra.
+    // El raíl: una parada por capítulo y por interludio, de `--target-min`, que encoge hasta `--rail-stop-min`.
+    const stops = CHAPTER_INDICES.length + INTERLUDES.length;
+    expect(root).toContain(`--rail-stops: ${String(stops)};`);
+    for (const { rail } of [STAR_LABEL_KEEP_OUT.wide, STAR_LABEL_KEEP_OUT.narrow]) {
+      expect(rail.stops).toBe(stops);
+      expect(rail.stopPx).toBe(px('--target-min'));
+      expect(rail.minStopPx).toBe(px('--rail-stop-min'));
+    }
+    // La misma cuenta que usa el CSS del raíl (su alto y bajarlo si no cabe bajo la barra).
+    expect(root).toContain('--rail-half-h: calc(var(--rail-stops) * var(--rail-stop) / 2);');
     expect(root).toContain(
-      `--rail-half-h: calc(${String(CHAPTER_INDICES.length + INTERLUDES.length)} * var(--target-min) / 2);`,
+      '(100svh - var(--topbar-h) - env(safe-area-inset-top, 0px)) / var(--rail-stops),',
     );
   });
 

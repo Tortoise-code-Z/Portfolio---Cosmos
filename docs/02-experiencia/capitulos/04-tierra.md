@@ -5,7 +5,7 @@
 Cerrar el viaje y convertir el interés en un contacto. Metáfora: 13.800 millones de años después, aterrizamos
 en casa.
 
-## Contenido (`contact.*`, `education.*`, `perfil.md`)
+## Contenido (`contact.*`, `perfil.md`)
 
 - Eyebrow: «Contact · Earth · t = 13.8 billion years». Título: «Touchdown». Frase de cierre.
 - **Disponibilidad:** Open to work · Available immediately · Remote, hybrid, or on-site · Open to relocation ·
@@ -13,8 +13,8 @@ en casa.
   Ciudadano de la UE, con pleno derecho a trabajar en Irlanda).
 - **Email** grande, seleccionable, con botón «Copy» (estados: Copied / Select and copy it).
 - Enlaces: GitHub, LinkedIn y, si existe, «Download CV (PDF)».
-- **Órbitas completadas:** la formación (título, academia, periodo, horas, skills).
-- Pie: línea de firma y «This site is open source» con enlace al repo.
+- La formación y el pie del sitio (firma y «This site is open source») se mudaron al epílogo en C.6
+  (`05-crew-file.md`).
 
 ## Escena en reposo (`m = 4`)
 
@@ -28,7 +28,8 @@ en casa.
 
 - Botón «Copy»: copia el email; si el portapapeles falla, selecciona el texto y lo indica.
 - Gravedad del cursor activa (suave) sobre la Tierra.
-- Fin del scroll: no hay más contenido debajo del pie.
+- Debajo, el epílogo (Crew file): en la segunda mitad de Contacto la Tierra empieza a convertirse en el retrato
+  (C.6b; hasta entonces no se ve).
 
 ## Layout
 

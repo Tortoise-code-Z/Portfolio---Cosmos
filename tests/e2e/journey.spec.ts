@@ -28,16 +28,21 @@ const CHAPTERS = {
     ['skills', 'My galaxy of tools'],
     ['projects', 'What I carry on my shell'],
     ['contact', 'Touchdown'],
+    ['crew-file', 'Crew file'],
   ],
   es: [
     ['about', 'Una estrella que nace de la curiosidad'],
     ['skills', 'Mi galaxia de herramientas'],
     ['projects', 'Lo que llevo a cuestas'],
     ['contact', 'Aterrizaje'],
+    ['crew-file', 'Ficha de tripulación'],
   ],
 } as const;
 
-/** Los títulos `h2` del viaje en orden: los capítulos y, tras About, el Mission log (fase C). */
+/**
+ * Los títulos `h2` del viaje en orden: los capítulos con sus dos interludios (el Mission log tras About y Mission
+ * control tras Projects) y, al final, el epílogo (fase C).
+ */
 const HEADINGS = {
   en: [
     'A star born from curiosity',
@@ -46,6 +51,7 @@ const HEADINGS = {
     'What I carry on my shell',
     'How I work',
     'Touchdown',
+    'Crew file',
   ],
   es: [
     'Una estrella que nace de la curiosidad',
@@ -54,6 +60,7 @@ const HEADINGS = {
     'Lo que llevo a cuestas',
     'Cómo trabajo',
     'Aterrizaje',
+    'Ficha de tripulación',
   ],
 } as const;
 
@@ -97,7 +104,7 @@ test.describe('the journey (home)', () => {
     ['/', 'en'],
     ['/es', 'es'],
   ] as const) {
-    test(`${path}: one h1, the four chapters and the two interludes in order, and no console errors`, async ({
+    test(`${path}: one h1, the five chapters, the two interludes and the epilogue in order, and no console errors`, async ({
       page,
     }) => {
       const errors = collectErrors(page);
@@ -370,7 +377,7 @@ test.describe('the journey (home)', () => {
     }
   });
 
-  test('the CV: the same English PDF from the top bar and Touchdown in both languages, and it is served', async ({
+  test('the CV: the same English PDF from the top bar, Touchdown and the Crew file in both languages, and it is served', async ({
     page,
   }) => {
     const CV = '/Victor_Perez_CV.pdf';
@@ -383,9 +390,11 @@ test.describe('the journey (home)', () => {
         'href',
         CV,
       );
-      const link = page.getByRole('link', { name: download });
-      await expect(link).toHaveAttribute('href', CV);
-      await expect(link).toHaveAttribute('download');
+      for (const region of ['contact', 'crew-file']) {
+        const link = page.locator(`#${region}`).getByRole('link', { name: download });
+        await expect(link).toHaveAttribute('href', CV);
+        await expect(link).toHaveAttribute('download');
+      }
     }
     const response = await page.request.get(CV);
     expect(response.status()).toBe(200);
@@ -719,10 +728,12 @@ test.describe('without JavaScript', () => {
       'href',
       '/es/projects/chessmate',
     );
-    await expect(page.getByRole('link', { name: 'victorperez@tortoisecode.dev' })).toHaveAttribute(
-      'href',
-      'mailto:victorperez@tortoisecode.dev',
-    );
+    // El email está en Contacto y en el epílogo (Crew file): los dos, en el HTML.
+    const emails = page.getByRole('link', { name: 'victorperez@tortoisecode.dev' });
+    await expect(emails).toHaveCount(2);
+    for (const email of await emails.all()) {
+      await expect(email).toHaveAttribute('href', 'mailto:victorperez@tortoisecode.dev');
+    }
   });
 
   test('the dark background does not depend on JavaScript (P1)', async ({ page }) => {

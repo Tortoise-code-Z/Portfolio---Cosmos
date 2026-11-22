@@ -1,10 +1,8 @@
 import type { ReactNode } from 'react';
 
 import { profile } from '~/content/profile';
-import { SITE_REPOSITORY } from '~/content/site';
 import { cx } from '~/lib/css/cx/cx';
 import { workModesText } from '~/lib/i18n/availability/availability';
-import { formatNumber } from '~/lib/i18n/format/format';
 import { localize } from '~/lib/i18n/localize/localize';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
 import { ActionLink } from '~/ui/ActionLink/ActionLink';
@@ -17,13 +15,12 @@ import shared from '../shared.module.css';
 import styles from './Contact.module.css';
 
 const TITLE_ID = 'contact-title';
-const EDUCATION_ID = 'contact-education';
 const EMAIL_ID = 'contact-email';
 
 /**
  * Capítulo 4 · Tierra · Contacto (docs/02-experiencia/capitulos/04-tierra.md): disponibilidad (sale del
- * perfil), email (enlace `mailto:` seleccionable y botón de copiar), enlaces, CV si existe el del
- * idioma, formación y pie.
+ * perfil), email (enlace `mailto:` seleccionable y botón de copiar), enlaces y CV si existe el del idioma.
+ * La formación y el pie del sitio se mudaron al epílogo (`CrewFile`, C.6).
  */
 export function Contact(): ReactNode {
   const t = useT();
@@ -81,45 +78,6 @@ export function Contact(): ReactNode {
             </li>
           )}
         </ul>
-
-        <h3 id={EDUCATION_ID} className={cx(shared.label, styles.educationTitle)}>
-          {t('education.title')}
-        </h3>
-        <ul
-          role="list"
-          aria-labelledby={EDUCATION_ID}
-          className={cx(shared.plainList, styles.orbits)}
-        >
-          {profile.education.map((item) => (
-            <li key={item.id} className={styles.orbit}>
-              <span className={styles.orbitTitle}>{item.title[locale]}</span>
-              <span className={styles.orbitWhen}>
-                {[
-                  localize(locale, item.period),
-                  t('education.hours', { n: formatNumber(locale, item.hours) }),
-                  ...(item.grade === undefined ? [] : [localize(locale, item.grade)]),
-                ].join(' · ')}
-              </span>
-              <span className={styles.orbitDetail}>
-                {`${item.school} · ${item.skills.join(', ')}`}
-              </span>
-            </li>
-          ))}
-        </ul>
-
-        <footer className={styles.footer}>
-          {/*
-           * Año: en la primera carga se ve el del build (con `suppressHydrationWarning`, React conserva
-           * el texto pre-renderizado y no lo corrige al hidratar); si Contact se vuelve a montar en el
-           * cliente (navegar y volver), el del navegador.
-           */}
-          <p suppressHydrationWarning>
-            {t('footer.line', { year: String(new Date().getFullYear()) })}
-          </p>
-          <ActionLink href={SITE_REPOSITORY} kind="external">
-            {t('footer.source')}
-          </ActionLink>
-        </footer>
       </ChapterPanel>
     </ChapterSection>
   );

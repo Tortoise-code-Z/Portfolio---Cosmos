@@ -41,7 +41,6 @@ function renderWithUnmount(): { region: HTMLElement; unmount: () => void } {
     <MemoryRouter initialEntries={['/es']}>
       <Transmission
         id="mission-log"
-        anchor="mission-log"
         channel="amber"
         channelLabel="Canal 01 · ámbar"
         incoming="Transmisión entrante"

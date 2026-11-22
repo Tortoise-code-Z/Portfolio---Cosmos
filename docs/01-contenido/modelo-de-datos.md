@@ -116,6 +116,7 @@ export interface Profile {
   };
   readonly cv: Localized<string | null>;     // ruta al PDF por idioma ('/Victor_Perez_CV.pdf'); null = no se muestra
   readonly education: readonly Education[];
+  readonly languages: readonly Localized[];  // sin nivel (Crew file, C.6): Spanish · English
 }
 
 // La experiencia como misión (src/content/experience.ts; docs/01-contenido/experiencia.md).

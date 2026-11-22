@@ -84,7 +84,7 @@ describe('activeChapter', () => {
 
   it('stays within the chapters that exist', () => {
     expect(activeChapter(-1)).toBe(0);
-    expect(activeChapter(9)).toBe(4);
+    expect(activeChapter(9)).toBe(5);
     expect(activeChapter(Number.NaN)).toBe(0);
   });
 });

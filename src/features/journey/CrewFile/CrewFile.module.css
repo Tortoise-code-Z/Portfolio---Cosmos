@@ -1,0 +1,114 @@
+/*
+ * Crew file, el epílogo (docs/02-experiencia/capitulos/05-crew-file.md → «Layout»): la entrada, «Download CV», la
+ * ficha (en rejilla en escritorio) y el email con su botón; debajo, el pie del sitio. Los colores salen del canal de
+ * la transmisión (`--_ch*`, Transmission.module.css). Hasta C.6b no hay retrato en el centro: todo va en una columna.
+ */
+.lead {
+  max-inline-size: var(--measure);
+  color: var(--_ch-bright);
+}
+
+.cv {
+  margin: 0;
+}
+
+.record {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--record-col-min), 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--_ch-line);
+}
+
+.field {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+}
+
+.field dt {
+  color: var(--_ch-dim);
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.field dd {
+  margin: 0;
+  color: var(--_ch-bright);
+  font-size: var(--text-small);
+  line-height: var(--leading-small);
+}
+
+/* La formación ocupa una fila entera: dos cursos, cada uno con su academia, horas y nota debajo. */
+.field:last-child {
+  grid-column: 1 / -1;
+}
+
+.training {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.training li {
+  display: grid;
+}
+
+.trainingTitle {
+  color: var(--_ch-bright);
+}
+
+.trainingDetail {
+  color: var(--_ch-dim);
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-micro);
+}
+
+/* El email y su botón de copiar, en la misma fila si caben; si no, el botón baja. */
+.emailRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.email {
+  display: inline-flex;
+  min-inline-size: 0;
+  align-items: center;
+  min-block-size: var(--target-min);
+  color: var(--_ch-bright);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  text-decoration-color: var(--_ch-line);
+  text-decoration-thickness: var(--border-width);
+  overflow-wrap: anywhere;
+  -webkit-user-select: all;
+  user-select: all;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.email:hover {
+  color: var(--_ch);
+}
+
+/* El pie del sitio: el viaje acaba aquí (antes cerraba Contacto). */
+.site {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  color: var(--_ch-dim);
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-micro);
+  text-transform: uppercase;
+}
+
+.site p {
+  margin: 0;
+}

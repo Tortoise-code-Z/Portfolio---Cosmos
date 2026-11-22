@@ -55,8 +55,8 @@ shell», arriba, y los enlaces del pie (GitHub, LinkedIn y el email).
 
 ## Raíl de capítulos (fijo, a la derecha)
 
-- 7 paradas: un punto por capítulo (5) y un rombo por interludio (2: el Mission log, entre About y Skills, y Mission
-  control, entre Projects y Contact); en escritorio cada una lleva **el nombre real de la sección** y, debajo, el de
+- 8 paradas: un punto por capítulo (6, con el epílogo, «Crew file · Epilogue») y un rombo por interludio (2: el
+  Mission log, entre About y Skills, y Mission control, entre Projects y Contact); en escritorio cada una lleva **el nombre real de la sección** y, debajo, el de
   la escena («Projects · Cosmic turtle»). En móvil, solo puntos y rombos con `aria-label`.
 - El activo se marca en ámbar y con `aria-current="step"`.
 - Clic o Enter: viaja a ese capítulo (scroll suave; instantáneo con movimiento reducido), lleva el foco a su

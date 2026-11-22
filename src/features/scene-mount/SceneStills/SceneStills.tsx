@@ -17,6 +17,7 @@ import desktop4Avif from '~/assets/scene-stills/avif/scene-still-desktop-4.avif'
 import desktop4Webp from '~/assets/scene-stills/webp/scene-still-desktop-4.webp';
 import handheld4Avif from '~/assets/scene-stills/avif/scene-still-handheld-4.avif';
 import handheld4Webp from '~/assets/scene-stills/webp/scene-still-handheld-4.webp';
+import { EPILOGUE, type ChapterIndex } from '~/content/chapters';
 import { selectActiveChapter, sceneStore } from '~/stores/sceneStore/sceneStore';
 import { selectSceneLevel, useUiStore } from '~/stores/uiStore/uiStore';
 
@@ -56,6 +57,15 @@ function isStillChapter(chapter: number): chapter is StillChapter {
 }
 
 /**
+ * La foto de un capítulo. El epílogo, hasta que tenga su forma (el retrato, C.6b), enseña la Tierra, como la escena
+ * (que con `m` = 5 se queda en el último keyframe).
+ */
+function stillOf(chapter: ChapterIndex): StillChapter | null {
+  if (chapter === EPILOGUE) return 4;
+  return isStillChapter(chapter) ? chapter : null;
+}
+
+/**
  * Las fotos fijas de la escena en el modo sin WebGL (ADR-029; docs/02-experiencia/estados-y-accesibilidad.md →
  * «Sin WebGL»): solo en el viaje (la ruta las pinta) y solo con el nivel `off`. Con escena, o mientras se decide,
  * nada: ni el DOM ni las descargas.
@@ -75,7 +85,7 @@ export function SceneStills(): ReactNode {
  */
 function Stills(): ReactNode {
   const chapter = useStore(sceneStore, selectActiveChapter);
-  const target = isStillChapter(chapter) ? chapter : null;
+  const target = stillOf(chapter);
   const [visited, setVisited] = useState<readonly StillChapter[]>([]);
   const [loaded, setLoaded] = useState<ReadonlySet<StillChapter>>(() => new Set());
   const [shown, setShown] = useState<StillChapter | null>(null);

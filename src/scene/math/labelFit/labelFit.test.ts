@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { STAR_LABEL_KEEP_OUT } from '../../config/constellationLayout/constellationLayout';
+import {
+  railHalfHeight,
+  STAR_LABEL_KEEP_OUT,
+} from '../../config/constellationLayout/constellationLayout';
 import {
   createLabelBox,
   fitLabels,
@@ -24,7 +27,7 @@ describe('keepOutZones', () => {
   it('on desktop: the panel, the bar, the rail (centred), the HUD and the edges, with a margin', () => {
     const zones = keepOutZones(1265, 720, true);
     const m = STAR_LABEL_KEEP_OUT.marginPx;
-    const aboveRail = 360 - wide.rail.halfHeight - m - 10; // el raíl va centrado en los 720 de alto
+    const aboveRail = 360 - railHalfHeight(720, wide) - m - 10; // el raíl va centrado en los 720 de alto
     expect(inside(zones, wide.panelRight + m - 1, 400)).toBe('panel');
     expect(inside(zones, wide.panelRight + m + 1, 400)).toBeUndefined();
     expect(inside(zones, 800, wide.barBottom + m - 1)).toBe('top bar');
@@ -43,7 +46,7 @@ describe('keepOutZones', () => {
     const railLeft = 1265 - wide.rail.fromRight - m;
     expect(inside(zones, railLeft + 1, 360)).toBe('rail');
     expect(inside(zones, railLeft - 1, 360)).toBeUndefined();
-    const railHalf = wide.rail.halfHeight;
+    const railHalf = railHalfHeight(720, wide);
     expect(inside(zones, railLeft + 1, 360 - railHalf - m + 1)).toBe('rail');
     expect(inside(zones, railLeft + 1, 360 - railHalf - m - 1)).toBeUndefined();
     const hudLeft = 1265 - wide.hud.fromRight - m;
@@ -69,14 +72,26 @@ describe('keepOutZones', () => {
   });
 
   it('a window too short for the rail under the bar (a phone on its side): the rail zone moves down with it', () => {
-    const zones = keepOutZones(844, 390, false);
+    // 440 de alto (una tableta pequeña apaisada): las ocho paradas de 44 px caben bajo la barra, pero no centradas.
+    const zones = keepOutZones(932, 440, false);
     const m = STAR_LABEL_KEEP_OUT.marginPx;
-    const x = 844 - narrow.rail.fromRight - m + 1;
+    const x = 932 - narrow.rail.fromRight - m + 1;
     const top = narrow.barBottom; // la primera parada empieza justo bajo la barra
-    const bottom = top + 2 * narrow.rail.halfHeight;
+    const bottom = top + narrow.rail.stops * narrow.rail.stopPx;
+    expect(railHalfHeight(440, narrow)).toBe((narrow.rail.stops * narrow.rail.stopPx) / 2);
     expect(inside(zones, x, bottom + m - 1)).toBe('rail');
     expect(inside(zones, x, bottom + m + 1)).toBeUndefined();
     expect(inside(zones, x, top + m + 1)).toBe('rail'); // por encima, la zona de la barra
+  });
+
+  it('a window too short for eight full stops (390 and 360 px high): the stops shrink and the rail ends at the bottom edge', () => {
+    for (const height of [390, 360]) {
+      const half = railHalfHeight(height, narrow);
+      expect(narrow.barBottom + 2 * half).toBe(height);
+      expect((2 * half) / narrow.rail.stops).toBeGreaterThanOrEqual(narrow.rail.minStopPx);
+    }
+    // Y nunca por debajo del mínimo: en una ventana absurda, el raíl se sale (antes que tapar el toque).
+    expect(railHalfHeight(200, narrow)).toBe((narrow.rail.stops * narrow.rail.minStopPx) / 2);
   });
 });
 

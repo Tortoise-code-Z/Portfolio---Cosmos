@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-import { CHAPTER_ANCHORS, CHAPTER_INDICES, INTERLUDES } from '../../src/content/chapters.ts';
+import {
+  CHAPTER_ANCHORS,
+  CHAPTER_INDICES,
+  EPILOGUE,
+  INTERLUDES,
+} from '../../src/content/chapters.ts';
 import { forceLowScene, PARTICLES_PAINTED, withoutWebGL } from '../e2e/support/helpers.ts';
 
 /**
@@ -24,6 +29,8 @@ for (const index of CHAPTER_INDICES) {
   const name = `chapter-${String(index)}-${anchor ?? 'start'}`;
 
   test(`chapter ${String(index)} (${anchor ?? 'start'}) looks as it should`, async ({ page }) => {
+    // El epílogo se pinta como una transmisión: con movimiento reducido, como los interludios (sin teletipo).
+    if (index === EPILOGUE) await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(anchor === null ? '/' : `/#${anchor}`);
     await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-level', 'low');
     await page.evaluate(async () => {

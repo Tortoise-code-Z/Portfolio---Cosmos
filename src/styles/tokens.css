@@ -85,6 +85,14 @@
   --color-channel-blue-grid: rgb(124 196 255 / 0.06);
   --color-channel-blue-line: rgb(124 196 255 / 0.3);
   --color-channel-blue-glow: rgb(124 196 255 / 0.45);
+  --color-channel-green: #6dff9f;
+  --color-channel-green-dim: #3f9a62;
+  --color-channel-green-bright: #d5ffe4;
+  --color-channel-green-bg: #010603;
+  --color-channel-green-veil: rgb(1 6 3 / 0.9);
+  --color-channel-green-grid: rgb(109 255 159 / 0.06);
+  --color-channel-green-line: rgb(109 255 159 / 0.3);
+  --color-channel-green-glow: rgb(109 255 159 / 0.45);
   --color-channel-scanline: rgb(0 0 0 / 0.22);
   /* Cuadrícula doble de plano (120 px y 24 px) del canal ámbar, y la banda de luz del barrido de entrada. */
   --gradient-channel-amber-grid:
@@ -132,6 +140,34 @@
     to bottom,
     transparent,
     var(--color-channel-blue-glow),
+    transparent
+  );
+  /* Lo mismo en el canal verde (Crew file, el epílogo). */
+  --gradient-channel-green-grid:
+    repeating-linear-gradient(
+      to right,
+      var(--color-channel-green-grid) 0 1px,
+      transparent 1px 120px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--color-channel-green-grid) 0 1px,
+      transparent 1px 120px
+    ),
+    repeating-linear-gradient(
+      to right,
+      var(--color-channel-green-grid) 0 1px,
+      transparent 1px 24px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--color-channel-green-grid) 0 1px,
+      transparent 1px 24px
+    );
+  --gradient-channel-green-sweep: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-channel-green-glow),
     transparent
   );
   /* El «T-0» enorme de Mission control: el brillante del canal en líneas de barrido, como en un monitor. */
@@ -249,10 +285,19 @@
   /* Lo que ocupa el raíl a la derecha (con su texto en escritorio): una transmisión a todo el ancho lo deja libre. */
   --rail-room: 160px;
   /*
-   * Media altura del raíl: una parada de `--target-min` por capítulo (5) y por interludio (2). La comparten su CSS
-   * (lo baja si no cabe bajo la barra) y la reserva de las etiquetas de la escena (`STAR_LABEL_KEEP_OUT`, su test).
+   * El raíl: una parada por capítulo (6, con el epílogo) y por interludio (2), de `--target-min` de alto. En una ventana
+   * baja (un móvil apaisado) no caben ocho de 44 px bajo la barra: las paradas encogen lo justo, nunca por debajo de
+   * `--rail-stop-min` (24 px, el mínimo de WCAG 2.5.8). Su media altura la comparten su CSS (lo baja si no cabe bajo la
+   * barra) y la reserva de las etiquetas de la escena (`STAR_LABEL_KEEP_OUT` y `railHalfHeight`, con su test).
    */
-  --rail-half-h: calc(7 * var(--target-min) / 2);
+  --rail-stops: 8;
+  --rail-stop-min: 24px;
+  --rail-stop: clamp(
+    var(--rail-stop-min),
+    (100svh - var(--topbar-h) - env(safe-area-inset-top, 0px)) / var(--rail-stops),
+    var(--target-min)
+  );
+  --rail-half-h: calc(var(--rail-stops) * var(--rail-stop) / 2);
 
   /* ── Transmisiones (interludios y epílogo, fase C) ────────────── */
   /* Indicador de señal de la franja: hueco entre barras, alto y ancho de cada barra. */
@@ -315,6 +360,7 @@
   /* Brillo del título de una transmisión, en el color de su canal. */
   --glow-channel-amber: 0 0 18px var(--color-channel-amber-glow);
   --glow-channel-blue: 0 0 18px var(--color-channel-blue-glow);
+  --glow-channel-green: 0 0 18px var(--color-channel-green-glow);
   /* El «T-0» de Mission control: un halo más ancho, para un título tan grande. */
   --glow-channel-blue-countdown: drop-shadow(0 0 14px var(--color-channel-blue-glow));
   --glow-singularity: 0 0 18px 4px var(--color-singularity);

@@ -50,6 +50,7 @@ const SCALE_KEYS = {
   2: 'hud.scale.2',
   3: 'hud.scale.3',
   4: 'hud.scale.4',
+  5: 'hud.scale.5',
 } as const satisfies Readonly<Record<ChapterIndex, UiKey>>;
 
 const SUPERSCRIPT: Readonly<Record<string, string>> = {
@@ -137,7 +138,7 @@ export function formatYears(locale: Locale, years: number): ClockText {
   return splitAtValue(translate(locale, 'hud.billionYears', { n: VALUE_MARK }), n);
 }
 
-/** El reloj del HUD para un `m` (0–4). */
+/** El reloj del HUD para un `m` (0–5; desde la Tierra, 13.800 millones de años). */
 export function cosmicClock(locale: Locale, m: number): ClockText {
   if (m < ZERO_UNTIL_M) return plain(translate(locale, 'hud.zero'));
   if (m >= MYTHIC_FROM_M && m < MYTHIC_UNTIL_M) return plain(translate(locale, 'hud.mythic'));
