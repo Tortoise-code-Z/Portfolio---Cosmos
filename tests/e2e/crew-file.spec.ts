@@ -59,6 +59,8 @@ test.describe('Crew file', () => {
 
   test('it is the end of the page: nothing scrolls past its footer', async ({ page }) => {
     await page.goto('/#crew-file', { waitUntil: 'networkidle' });
+    // Sin WebGL (un motor del CI sin GPU), el aviso abajo alarga el documento lo que mide (`Notice`): fuera.
+    await settleScene(page);
     await page.evaluate(() => {
       window.scrollTo(0, document.documentElement.scrollHeight);
     });
