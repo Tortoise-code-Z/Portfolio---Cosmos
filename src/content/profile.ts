@@ -42,6 +42,10 @@ export const profile: Profile = {
   // El PDF es el CV en inglés, para los dos idiomas: una copia del CV maestro, que vive fuera del repo. Cada vez que
   // cambie el CV, se vuelve a copiar aquí (docs/01-contenido/assets.md → «CV en PDF»).
   cv: { en: '/Victor_Perez_CV.pdf', es: '/Victor_Perez_CV.pdf' },
+  languages: [
+    { en: 'Spanish', es: 'Español' },
+    { en: 'English', es: 'Inglés' },
+  ],
   education: [
     {
       id: 'masterd-fullstack',

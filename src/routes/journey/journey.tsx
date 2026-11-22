@@ -10,6 +10,7 @@ import { About } from '~/features/journey/About/About';
 import { BigBangFlash } from '~/features/journey/BigBangFlash/BigBangFlash';
 import { JOURNEY_SEGMENT_SELECTOR } from '~/features/journey/chapterDom/chapterDom';
 import { Contact } from '~/features/journey/Contact/Contact';
+import { CrewFile } from '~/features/journey/CrewFile/CrewFile';
 import { Hero } from '~/features/journey/Hero/Hero';
 import { MissionControl } from '~/features/journey/MissionControl/MissionControl';
 import { MissionLog } from '~/features/journey/MissionLog/MissionLog';
@@ -64,7 +65,7 @@ export default function Journey(): ReactNode {
 }
 
 /**
- * El viaje: los cinco capítulos y los dos interludios (Mission log tras About, Mission control tras Projects), en el
+ * El viaje: los seis capítulos (el último, el epílogo) y los dos interludios (Mission log tras About, Mission control tras Projects), en el
  * orden de `JOURNEY_SEGMENTS` (docs/02-experiencia/README.md), sin montar la escena (la monta `Layout`, `root.tsx`), con la interfaz fija en el
  * orden del Tab (Skip → barra → contenido → raíl → sugerencia de idioma, si sale; el HUD es decorativo) y el modo
  * misión rápida (un diálogo modal: fuera del orden hasta que se abre). Su scroll fija `mTarget` en `sceneStore` (y
@@ -91,6 +92,7 @@ function JourneyPage(): ReactNode {
         <Projects />
         <MissionControl />
         <Contact />
+        <CrewFile />
       </main>
       <ChapterRail />
       <CosmicHud />

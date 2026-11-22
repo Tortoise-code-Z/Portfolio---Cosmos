@@ -28,6 +28,18 @@
   --_ch-sweep: var(--gradient-channel-blue-sweep);
 }
 
+.green {
+  --_ch: var(--color-channel-green);
+  --_ch-dim: var(--color-channel-green-dim);
+  --_ch-bright: var(--color-channel-green-bright);
+  --_ch-veil: var(--color-channel-green-veil);
+  --_ch-line: var(--color-channel-green-line);
+  --_ch-glow: var(--color-channel-green-glow);
+  --_ch-text-glow: var(--glow-channel-green);
+  --_ch-grid-bg: var(--gradient-channel-green-grid);
+  --_ch-sweep: var(--gradient-channel-green-sweep);
+}
+
 .transmission {
   position: relative;
   display: flex;
@@ -151,6 +163,11 @@
 
 .skip:hover {
   color: var(--_ch-bright);
+}
+
+/* En el epílogo no hay adónde saltar: la franja cierra con su estado («All channels closed»). */
+.stripEnd {
+  color: var(--_ch);
 }
 
 .body {

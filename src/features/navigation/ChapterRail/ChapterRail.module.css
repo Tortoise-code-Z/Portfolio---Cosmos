@@ -1,8 +1,8 @@
 /*
  * Raíl de capítulos (docs/03-diseno/componentes.md → «Raíl»): columna fija a la derecha, centrada en
- * vertical. Cada enlace ocupa el área táctil mínima aunque el punto mida 7 px. Si en el centro no cabe entero bajo la
- * barra (un móvil apaisado: hace falta ~436 px de alto), baja lo justo para que su primera parada empiece debajo; la
- * escena hace la misma cuenta para sus etiquetas (`keepOutZones`).
+ * vertical. Cada enlace ocupa el área táctil mínima aunque el punto mida 7 px (en una ventana baja, encoge lo justo:
+ * `--rail-stop`). Si en el centro no cabe entero bajo la barra (un móvil apaisado), baja lo justo para que su primera
+ * parada empiece debajo; la escena hace la misma cuenta para sus etiquetas (`keepOutZones`).
  */
 .rail {
   position: fixed;
@@ -29,7 +29,7 @@
   gap: var(--space-3);
   /* Todos tan anchos como el más ancho: los puntos quedan en una columna. */
   inline-size: 100%;
-  min-block-size: var(--target-min);
+  min-block-size: var(--rail-stop);
   min-inline-size: var(--target-min);
   color: var(--color-ink);
   text-align: end;

@@ -2,7 +2,10 @@ import { expect, type Locator, type Page } from '@playwright/test';
 
 import { skillGroups } from '../../src/content/skills.ts';
 import type { SkillGroupId } from '../../src/content/types.ts';
-import { STAR_LABEL_KEEP_OUT } from '../../src/scene/config/constellationLayout/constellationLayout.ts';
+import {
+  railHalfHeight,
+  STAR_LABEL_KEEP_OUT,
+} from '../../src/scene/config/constellationLayout/constellationLayout.ts';
 import { WIDE_LAYOUT_QUERY } from '../../src/scene/config/sceneConfig.ts';
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../../src/scene/contextLoss/contextLoss.ts';
 import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
@@ -421,12 +424,9 @@ test.describe('the constellations of Skills', () => {
           throw new Error('No bar, rail or panel');
         expect(bar[3]).toBeLessThanOrEqual(keep.barBottom);
         expect(canvas.width - rail[0], 'rail width').toBeLessThanOrEqual(keep.rail.fromRight);
-        expect(canvas.height / 2 - rail[1], 'rail above the middle').toBeLessThanOrEqual(
-          keep.rail.halfHeight,
-        );
-        expect(rail[3] - canvas.height / 2, 'rail below the middle').toBeLessThanOrEqual(
-          keep.rail.halfHeight,
-        );
+        const railHalf = railHalfHeight(canvas.height, keep);
+        expect(canvas.height / 2 - rail[1], 'rail above the middle').toBeLessThanOrEqual(railHalf);
+        expect(rail[3] - canvas.height / 2, 'rail below the middle').toBeLessThanOrEqual(railHalf);
         if (hudRect !== null) {
           expect(canvas.height - hudRect[1], 'HUD height').toBeLessThanOrEqual(keep.hud.fromBottom);
           if ('fromRight' in keep.hud) {

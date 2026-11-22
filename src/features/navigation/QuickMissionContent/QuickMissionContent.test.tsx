@@ -186,10 +186,10 @@ describe('QuickMissionContent', () => {
     ]);
   });
 
-  it('availability comes from the profile, and the section goes away when not open to work', () => {
+  it('availability comes from the profile (with the languages), and the section goes away when not open to work', () => {
     renderContent();
     expect(section('Availability')).toHaveTextContent(
-      'Open to workAvailable immediatelyRemote, hybrid, or on-siteOpen to relocationKillarney, IrelandEU citizen – full right to work in Ireland',
+      'Open to workAvailable immediatelyRemote, hybrid, or on-siteOpen to relocationKillarney, IrelandEU citizen – full right to work in IrelandSpanish · English',
     );
     document.body.replaceChildren();
     state.availableNow = false;

@@ -169,7 +169,10 @@ por paso, en este orden:
    proyecto; README con siete capturas (al principio eran cuatro); `metaDescription` solo para Cosmos; la ficha sigue sin imágenes hasta F6.)*
 6. **Epílogo · Crew file** (objetivo: 1 dic): capítulo 5 bajo la Tierra; el retrato de Víctor en partículas (forma 6,
    cargada como dato), la ficha con la formación (se muda de Contacto) y «Download CV». Antes de tocar el repo, una
-   prueba del retrato fuera de él; si no convence, el epílogo se queda con la ficha.
+   prueba del retrato fuera de él; si no convence, el epílogo se queda con la ficha. *(En dos PR: C.6a, el epílogo
+   sin retrato —capítulo 5 en el canal verde, la ficha con los idiomas y la formación, el CV, el pie del sitio, el raíl
+   de ocho paradas que encogen en un móvil apaisado y Contacto que cambia en su segunda mitad—; C.6b, el retrato con
+   la transición del haz de barrido. Detalle en `05-crew-file.md`.)*
 7. **Naves** (idea de Víctor aprobada, sin calendario: después de C.6 o en el pulido). La escena trae cada
    transmisión: la nebulosa se convierte en un satélite que se acerca hasta que su pantalla llena la vista; la
    transmisión se lee a pantalla completa, como hoy, y al salir el satélite se aleja llevándose la pantalla con el

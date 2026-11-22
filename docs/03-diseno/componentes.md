@@ -101,9 +101,10 @@
   log, entre About y Skills, y Mission control, entre Projects y Contact): texto (sección en Geologica 500 a 13 px + escena en mono 10 px, `--text-nano`) y punto de
   7 px; el de un interludio, un rombo del mismo tamaño. Los enlaces miden lo que el más ancho: los puntos forman una
   columna. Un interludio es el activo mientras se lee (su pantalla y la primera mitad de su cola).
-- Centrado en vertical; si no cabe entero bajo la barra (un móvil apaisado: siete paradas de 44 px piden ~436 px de
-  alto), baja lo justo para que su primera parada empiece debajo (`--rail-half-h`; la escena reserva lo mismo para sus
-  etiquetas, `keepOutZones`).
+- Centrado en vertical; si no cabe entero bajo la barra (un móvil apaisado), baja lo justo para que su primera parada
+  empiece debajo (`--rail-half-h`; la escena reserva lo mismo para sus etiquetas, `keepOutZones`). Desde C.6 son ocho
+  paradas: en una ventana baja (390 o 360 px de alto) no caben ocho de 44 px bajo la barra, así que encogen lo justo
+  (`--rail-stop`), nunca por debajo de 24 px (`--rail-stop-min`, el mínimo de WCAG 2.5.8).
 - Activo: punto ámbar relleno, escala 1,4 y halo; texto opaco. Inactivos: texto al 70 % (`--opacity-muted`, que
   cumple AA: 8,7:1 la sección y 4,7:1 la escena). Al pasar el puntero o con el foco del teclado, texto opaco.
 - En alto contraste (`forced-colors`) el punto activo se rellena con `Highlight`: no solo es más grande.

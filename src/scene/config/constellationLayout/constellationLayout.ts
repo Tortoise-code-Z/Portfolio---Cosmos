@@ -146,9 +146,9 @@ export function starLabelWidth(text: string, fontPx: number = STAR_LABEL_BOX.fon
  * abajo a la izquierda (se ve entre 520 y 899 px; por debajo no hay, pero su zona se reserva siempre, por
  * prudencia: a 360, 390 y 430 px no oculta ninguna etiqueta más). Con `marginPx` alrededor.
  * - De los tokens (lo comprueba su test con `tokens.css`): el panel (`--gutter` de escritorio, `--space-5`, más
- *   `--panel-w`), la barra (`--topbar-h`) y el alto del raíl (`--rail-half-h`: un enlace de `--target-min` por
- *   capítulo y por interludio, siete desde C.4). El raíl va centrado; si no cabe bajo la barra, baja lo justo
- *   (`keepOutZones` hace la misma cuenta).
+ *   `--panel-w`), la barra (`--topbar-h`) y las paradas del raíl (`--rail-stops`, una por capítulo y por interludio,
+ *   ocho desde C.6, de `--target-min`, que en una ventana baja encogen hasta `--rail-stop-min`: `railHalfHeight`). El
+ *   raíl va centrado; si no cabe bajo la barra, baja lo justo (`keepOutZones` hace la misma cuenta).
  * - Medido, porque depende del ancho de sus textos: lo que ocupan desde el borde el raíl (en escritorio, con el
  *   español, 155,1 en Chromium, medido en C.4 con «Control de misión», y 154,02 en WebKit, medido en C.3; 52 por
  *   debajo) y el HUD (62 de alto; de ancho, 247 en Chromium en
@@ -160,15 +160,34 @@ export const STAR_LABEL_KEEP_OUT = {
   wide: {
     panelRight: 564,
     barBottom: 64,
-    rail: { fromRight: 158, halfHeight: 154 },
+    rail: { fromRight: 158, stops: 8, stopPx: 44, minStopPx: 24 },
     hud: { fromRight: 256, fromBottom: 62 },
   },
   narrow: {
     barBottom: 64,
-    rail: { fromRight: 52, halfHeight: 154 },
+    rail: { fromRight: 52, stops: 8, stopPx: 44, minStopPx: 24 },
     hud: { fromLeft: 256, fromBottom: 62 },
   },
 } as const;
+
+/**
+ * Media altura del raíl en una ventana de `height` px de alto: sus paradas miden `stopPx`, salvo que no quepan bajo la
+ * barra; entonces encogen lo justo, hasta `minStopPx` (`--rail-stop` en `tokens.css`). Sin la zona segura de arriba,
+ * que la escena no ve: en un móvil con muesca reserva algo de más.
+ */
+export function railHalfHeight(
+  height: number,
+  {
+    barBottom,
+    rail,
+  }: {
+    readonly barBottom: number;
+    readonly rail: { readonly stops: number; readonly stopPx: number; readonly minStopPx: number };
+  },
+): number {
+  const stop = Math.min(Math.max((height - barBottom) / rail.stops, rail.minStopPx), rail.stopPx);
+  return (rail.stops * stop) / 2;
+}
 
 /**
  * Cómo se ven las constelaciones (constelaciones-y-placas.md → «Estados»): el tamaño de las estrellas en píxeles

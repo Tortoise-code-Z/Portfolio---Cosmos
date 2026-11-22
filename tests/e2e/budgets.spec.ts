@@ -42,7 +42,7 @@ const EXPECTED_FONT_FILES = 4;
  *   (Mission log), la home pasó de 35 KB: 35,5 KB; se sube a 38 KB por las secciones de la fase C (calidad.md). En
  *   C.4 (Mission control, sus textos en los dos idiomas) llega a 38,4 KB: se sube a 40 KB, con margen para C.6. En
  *   C.5, con el detalle de las fichas fuera de la home (ADR-036), baja a 34,7 KB; la ficha, 33,8 KB al sacar el
- *   detalle y 35,4 KB con la de Cosmos completa.
+ *   detalle y 35,4 KB con la de Cosmos completa. En C.6a, con el Crew file, la home llega a 35,5 KB.
  */
 const FRAMEWORK_JS_BUDGET_BYTES = 112_000;
 const PAGE_OWN_JS_BUDGET_BYTES = 40_000;

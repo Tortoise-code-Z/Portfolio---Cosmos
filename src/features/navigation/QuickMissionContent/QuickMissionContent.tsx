@@ -125,6 +125,9 @@ export function QuickMissionContent(): ReactNode {
             {availability.openToRelocation ? <li>{t('contact.availability.relocation')}</li> : null}
             <li>{`${location.city}, ${localize(locale, location.country)}`}</li>
             <li>{localize(locale, availability.workPermit)}</li>
+            <li>
+              {profile.languages.map((language) => localize(locale, language)).join(SEPARATOR)}
+            </li>
           </ul>
         </section>
       ) : null}

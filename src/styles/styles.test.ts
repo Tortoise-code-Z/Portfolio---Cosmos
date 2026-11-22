@@ -388,7 +388,7 @@ describe('design tokens', () => {
   );
 
   it('finds the transmission channels in tokens.css', () => {
-    expect(CHANNELS).toEqual(expect.arrayContaining(['amber', 'blue']));
+    expect(CHANNELS).toEqual(expect.arrayContaining(['amber', 'blue', 'green']));
   });
 
   // Si se retoca el color de un canal, su rejilla, sus líneas y su brillo no se quedan con el viejo.

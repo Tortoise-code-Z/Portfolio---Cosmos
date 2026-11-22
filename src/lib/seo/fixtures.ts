@@ -27,6 +27,7 @@ export const fakeProfile: Profile = {
   },
   cv: { en: null, es: null },
   education: [],
+  languages: [],
 };
 
 export const fakeSkillGroups: readonly SkillGroup[] = [

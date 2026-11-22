@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
 
-import { INTERLUDE } from '~/content/chapters';
 import { experience } from '~/content/experience';
 import { formatList } from '~/lib/i18n/format/format';
 import { localize } from '~/lib/i18n/localize/localize';
@@ -46,7 +45,6 @@ export function MissionLog(): ReactNode {
   return (
     <Transmission
       id="mission-log"
-      anchor={INTERLUDE['mission-log'].anchor}
       channel="amber"
       channelLabel={t('missionLog.channel')}
       incoming={t('missionLog.incoming')}

@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
 
-import { isInterludeStop } from '~/content/chapters';
+import { isTransmissionStop } from '~/content/chapters';
 import { useLocale } from '~/lib/i18n/useT/useT';
 import {
   activeChapter,
@@ -18,8 +18,8 @@ import styles from './CosmicHud.module.css';
  * escribe en el DOM solo cuando cambia el texto, sin re-renderizar (ADR-004). El HTML pre-renderizado
  * trae el de la singularidad, que es lo que se ve al cargar arriba del todo. Se pinta antes de que el
  * navegador muestre el frame (`useLayoutEffect`): al cambiar de idioma, React escribe el texto de
- * `m = 0` y no debe verse ni un frame. Mientras se lee un interludio (el raíl marca su rombo) se esconde: el pie de la
- * transmisión ya enseña el reloj parado, y en escritorio el HUD se montaría sobre su texto (`data-hidden`).
+ * `m = 0` y no debe verse ni un frame. Mientras se lee una transmisión (un interludio, con su rombo en el raíl, o el
+ * epílogo) se esconde: su pie ya enseña el reloj, y en escritorio el HUD se montaría sobre su texto (`data-hidden`).
  */
 export function CosmicHud(): ReactNode {
   const locale = useLocale();
@@ -32,7 +32,7 @@ export function CosmicHud(): ReactNode {
   useLayoutEffect(() => {
     let painted = '';
     const paint = (state: SceneState): void => {
-      const reading = isInterludeStop(selectActiveStop(state));
+      const reading = isTransmissionStop(selectActiveStop(state));
       // Se compara con el DOM (no con una copia): al cambiar de idioma el efecto vuelve a empezar con el mismo nodo.
       if (hud.current !== null && hud.current.hasAttribute('data-hidden') !== reading) {
         hud.current.toggleAttribute('data-hidden', reading);

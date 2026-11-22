@@ -2,8 +2,10 @@
 
 ## Idea
 
-El scroll es una **línea de tiempo**. Su posición se traduce en un número continuo `m` entre 0 y 4:
-`m = 0` es la singularidad, `m = 1` la nebulosa, `m = 2` la galaxia, `m = 3` la tortuga y `m = 4` la Tierra.
+El scroll es una **línea de tiempo**. Su posición se traduce en un número continuo `m` entre 0 y 5:
+`m = 0` es la singularidad, `m = 1` la nebulosa, `m = 2` la galaxia, `m = 3` la tortuga, `m = 4` la Tierra y `m = 5`
+el epílogo, el Crew file (desde C.6; hasta que llegue el retrato, C.6b, la escena no pasa de la Tierra: el shader y
+la cámara se quedan en su último keyframe).
 Todo lo que se mueve (partículas, cámara, HUD, raíl, efectos del hero) lee `m`. Nada más controla el tiempo.
 
 ```
@@ -25,7 +27,8 @@ cabe, la sección crece y nunca lo recorta (P1); `useChapterLayout` mide la altu
 | 2 · Galaxia | 220 vh | 240 vh | del 52 % al 100 % |
 | 3 · Tortuga | 240 vh | 260 vh | — (quieta: cambia en la cola de Mission control) |
 | ✦ Mission control | ≥ 100 svh (según contenido) + cola de 100 vh | igual | en la cola, del 0 % al 100 % |
-| 4 · Tierra | ≥ 130 vh (según contenido) | ≥ 130 vh | — (última) |
+| 4 · Tierra | ≥ 130 vh (según contenido) | ≥ 130 vh | del 52 % al 100 % (hacia el retrato; hasta C.6b no se ve) |
+| 5 · Crew file (epílogo) | ≥ 100 svh (según contenido) | igual | — (último) |
 
 ### Tramos del viaje
 
@@ -35,7 +38,8 @@ qué forma enseña (`base`) y desde qué fracción cambia a la siguiente (`morph
 About y la pantalla del Mission log se quedan en la nebulosa (`m` = 1: el reloj del HUD se para solo); en la cola,
 vacía y sin puntero, la nebulosa cambia a galaxia, y Skills llega con la galaxia ya formada. Lo mismo con Projects y
 Mission control (desde C.4): la tortuga se queda quieta (`m` = 3) y cambia a la Tierra en la cola, y Contact llega
-con la Tierra formada.
+con la Tierra formada. El epílogo (desde C.6) es un capítulo, no un interludio: Contacto cambia en su segunda mitad,
+como Skills, y el Crew file llega con su forma (el retrato, C.6b).
 
 **Cálculo de `m`** (función pura, testeable):
 

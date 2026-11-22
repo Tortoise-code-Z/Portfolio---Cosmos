@@ -53,7 +53,6 @@ export function MissionControl(): ReactNode {
   return (
     <Transmission
       id="mission-control"
-      anchor={INTERLUDE['mission-control'].anchor}
       channel="blue"
       channelLabel={t('missionControl.channel')}
       incoming={t('missionControl.incoming')}

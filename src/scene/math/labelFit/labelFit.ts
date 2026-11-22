@@ -1,4 +1,7 @@
-import { STAR_LABEL_KEEP_OUT } from '../../config/constellationLayout/constellationLayout';
+import {
+  railHalfHeight,
+  STAR_LABEL_KEEP_OUT,
+} from '../../config/constellationLayout/constellationLayout';
 
 /**
  * Las etiquetas proyectadas que caben (docs/04-escena/constelaciones-y-placas.md → «Etiquetas»): cada una se ve
@@ -38,9 +41,11 @@ export function createLabelBox(): LabelBox {
  */
 export function keepOutZones(width: number, height: number, wide: boolean): KeepOutZone[] {
   const { marginPx: m } = STAR_LABEL_KEEP_OUT;
-  const { barBottom, rail } = wide ? STAR_LABEL_KEEP_OUT.wide : STAR_LABEL_KEEP_OUT.narrow;
+  const keepOut = wide ? STAR_LABEL_KEEP_OUT.wide : STAR_LABEL_KEEP_OUT.narrow;
+  const { barBottom, rail } = keepOut;
+  const railHalf = railHalfHeight(height, keepOut);
   // El raíl va centrado, salvo que no quepa bajo la barra: entonces baja lo justo (ChapterRail.module.css).
-  const railCentre = Math.max(height / 2, barBottom + rail.halfHeight);
+  const railCentre = Math.max(height / 2, barBottom + railHalf);
   const shared: KeepOutZone[] = [
     { name: 'left edge', rect: [-Infinity, -Infinity, m, Infinity] },
     { name: 'right edge', rect: [width - m, -Infinity, Infinity, Infinity] },
@@ -50,9 +55,9 @@ export function keepOutZones(width: number, height: number, wide: boolean): Keep
       name: 'rail',
       rect: [
         width - rail.fromRight - m,
-        railCentre - rail.halfHeight - m,
+        railCentre - railHalf - m,
         Infinity,
-        railCentre + rail.halfHeight + m,
+        railCentre + railHalf + m,
       ],
     },
   ];

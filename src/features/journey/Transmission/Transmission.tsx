@@ -1,6 +1,11 @@
 import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 
-import { INTERLUDE, type InterludeId } from '~/content/chapters';
+import {
+  CHAPTER_ANCHORS,
+  INTERLUDE,
+  type ChapterIndex,
+  type InterludeId,
+} from '~/content/chapters';
 import { cx } from '~/lib/css/cx/cx';
 import { prefersReducedMotion } from '~/lib/device/reducedMotion/reducedMotion';
 import { useT } from '~/lib/i18n/useT/useT';
@@ -10,12 +15,28 @@ import { ChapterJumpLink } from '../ChapterJumpLink/ChapterJumpLink';
 import styles from './Transmission.module.css';
 
 /** Canal de color de una transmisión (docs/03-diseno/design-system.md → «Transmisiones»). */
-export type TransmissionChannel = 'amber' | 'blue';
+export type TransmissionChannel = 'amber' | 'blue' | 'green';
 
-interface TransmissionProps {
-  readonly id: InterludeId;
-  /** Ancla de la sección (la misma en los dos idiomas). */
-  readonly anchor: string;
+/**
+ * Dónde va la transmisión: un interludio (con «Skip transmission» al capítulo siguiente, el reloj parado en el pie y su
+ * cola) o un capítulo que se lee como transmisión, el epílogo (sin salto ni cola: la franja cierra con `stripEnd` y el
+ * pie dice `footer`).
+ */
+type TransmissionPlace =
+  | {
+      readonly id: InterludeId;
+      /** El reloj cósmico, parado: «t ≈ 200 million years». */
+      readonly clock: string;
+    }
+  | {
+      readonly chapter: ChapterIndex;
+      /** Lo que cierra la franja del canal, en el sitio de «Skip transmission». */
+      readonly stripEnd: string;
+      /** El pie, entero: «End of journey · 13.8 billion years + now». */
+      readonly footer: string;
+    };
+
+type TransmissionProps = TransmissionPlace & {
   readonly channel: TransmissionChannel;
   /** «Channel 01 · amber». */
   readonly channelLabel: string;
@@ -29,15 +50,13 @@ interface TransmissionProps {
    * escondido para el lector de pantalla. Lleva su propio estilo (lo pinta quien lo pasa).
    */
   readonly titleDisplay?: ReactNode;
-  /** El reloj cósmico, parado: «t ≈ 200 million years». */
-  readonly clock: string;
   /**
    * Clase propia de la sección, para su composición: puede dar al cuerpo otras columnas con `--_body-columns` (Mission
    * control pone la telemetría a la derecha en escritorio).
    */
   readonly className?: string | undefined;
   readonly children: ReactNode;
-}
+};
 
 /**
  * Cuándo se enciende una transmisión: cuando su borde de arriba pasa el 80 % de la ventana (un 20 % de la ventana
@@ -80,37 +99,31 @@ function useTransmissionEntry(): RefObject<HTMLElement | null> {
 }
 
 /**
- * Una transmisión entre capítulos (interludio, fase C · ADR-034; docs/02-experiencia/capitulos/interludio-*.md):
- * toma la pantalla en el color de su canal, con la franja del canal y «Skip transmission», y detrás la forma del
- * capítulo de antes, quieta y atenuada (su velo). «Skip transmission» lleva al capítulo que sigue (`INTERLUDE[id].next`).
- * Le sigue su cola: un tramo vacío y sin puntero en el que la escena cambia a la forma siguiente (`JOURNEY_SEGMENTS`).
- * Es hija directa de `<main>`: recoge el puntero (las estrellas no).
+ * Una transmisión (fase C · ADR-034; docs/02-experiencia/capitulos/interludio-*.md y 05-crew-file.md): toma la pantalla
+ * en el color de su canal, con la franja del canal arriba y el pie con la onda abajo. Un interludio va entre capítulos:
+ * detrás, la forma del capítulo de antes, quieta y atenuada (su velo); «Skip transmission» lleva al capítulo que sigue
+ * (`INTERLUDE[id].next`), y le sigue su cola, un tramo vacío y sin puntero en el que la escena cambia a la forma
+ * siguiente (`JOURNEY_SEGMENTS`). El epílogo es un capítulo (`data-chapter`, con su ancla): sin salto ni cola. Es hija
+ * directa de `<main>`: recoge el puntero (las estrellas no).
  */
-export function Transmission({
-  id,
-  anchor,
-  channel,
-  channelLabel,
-  incoming,
-  titleId,
-  title,
-  titleDisplay,
-  clock,
-  className,
-  children,
-}: TransmissionProps): ReactNode {
+export function Transmission(props: TransmissionProps): ReactNode {
+  const { channel, channelLabel, incoming, titleId, title, titleDisplay, className, children } =
+    props;
   const t = useT();
   const ref = useTransmissionEntry();
-  const { next } = INTERLUDE[id];
+  const interlude = 'id' in props ? props.id : null;
 
   return (
     <>
       <section
         ref={ref}
-        id={anchor}
+        id={
+          'id' in props ? INTERLUDE[props.id].anchor : (CHAPTER_ANCHORS[props.chapter] ?? undefined)
+        }
         aria-labelledby={titleId}
         className={cx(styles.transmission, styles[channel], className)}
-        data-interlude={id}
+        data-interlude={interlude ?? undefined}
+        data-chapter={'chapter' in props ? props.chapter : undefined}
       >
         <div className={styles.strip}>
           <span className={styles.channel}>
@@ -122,11 +135,15 @@ export function Transmission({
             </span>
             {channelLabel}
           </span>
-          {/* «Skip transmission»: al capítulo siguiente, con el foco en su título. */}
-          <ChapterJumpLink chapter={next} className={styles.skip}>
-            {t('interlude.skip')}
-            <span aria-hidden="true">↓</span>
-          </ChapterJumpLink>
+          {'id' in props ? (
+            // «Skip transmission»: al capítulo siguiente, con el foco en su título.
+            <ChapterJumpLink chapter={INTERLUDE[props.id].next} className={styles.skip}>
+              {t('interlude.skip')}
+              <span aria-hidden="true">↓</span>
+            </ChapterJumpLink>
+          ) : (
+            <span className={styles.stripEnd}>{props.stripEnd}</span>
+          )}
         </div>
         <div className={styles.body}>
           <p className={styles.incoming}>
@@ -157,10 +174,12 @@ export function Transmission({
           >
             <path d="M0 12 Q 10 2 20 12 T 40 12 T 60 12 T 80 12 T 100 12 T 120 12 T 140 12 T 160 12 T 180 12 T 200 12 T 220 12 T 240 12" />
           </svg>
-          <p>{t('interlude.clock', { clock })}</p>
+          <p>{'id' in props ? t('interlude.clock', { clock: props.clock }) : props.footer}</p>
         </footer>
       </section>
-      <div className={styles.tail} data-interlude-tail={id} aria-hidden="true" />
+      {interlude === null ? null : (
+        <div className={styles.tail} data-interlude-tail={interlude} aria-hidden="true" />
+      )}
     </>
   );
 }

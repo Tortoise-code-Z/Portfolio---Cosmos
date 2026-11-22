@@ -14,8 +14,10 @@ import {
   CHAPTER_INDICES,
   CHAPTER_STOPS,
   chapterHash,
+  EPILOGUE,
   INTERLUDES,
   isInterludeStop,
+  isTransmissionStop,
   JOURNEY_SEGMENTS,
   stopChapter,
 } from './chapters';
@@ -109,8 +111,9 @@ function fileOf(src: string): string {
 }
 
 describe('contenido', () => {
-  it('cinco capítulos en orden; ancla en todos menos el inicio, y todas distintas', () => {
-    expect(CHAPTER_INDICES).toEqual([0, 1, 2, 3, 4]);
+  it('seis capítulos en orden (el último, el epílogo); ancla en todos menos el inicio, y todas distintas', () => {
+    expect(CHAPTER_INDICES).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(EPILOGUE).toBe(CHAPTER_INDICES.at(-1));
     expect(CHAPTER_ANCHORS[0]).toBeNull();
     const anchors = CHAPTER_INDICES.slice(1).map((index) => CHAPTER_ANCHORS[index]);
     expect(anchors.every((anchor) => anchor !== null)).toBe(true);
@@ -178,7 +181,15 @@ describe('contenido', () => {
       expect(isInterludeStop(CHAPTER_STOPS[index])).toBe(false);
     }
     for (const interlude of INTERLUDES) expect(isInterludeStop(interlude.id)).toBe(true);
+    // Se leen como transmisión (el HUD se esconde): los interludios y el epílogo, ningún otro capítulo.
+    expect(
+      [
+        ...CHAPTER_INDICES.map((index) => CHAPTER_STOPS[index]),
+        ...INTERLUDES.map(({ id }) => id),
+      ].filter(isTransmissionStop),
+    ).toEqual([CHAPTER_STOPS[EPILOGUE], ...INTERLUDES.map(({ id }) => id)]);
     expect(chapterHash(0)).toBe('');
+    expect(chapterHash(EPILOGUE)).toBe('#crew-file');
     expect(chapterHash(2)).toBe('#skills');
   });
 

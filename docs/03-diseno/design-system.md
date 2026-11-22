@@ -231,8 +231,9 @@ color, uno por **canal**:
 
 (Desde C.2, el ámbar es token: `--color-channel-amber`, `-dim`, `-bright` y `-bg`, más el velo, la rejilla, la
 línea y el brillo (`--glow-channel-amber`); desde C.4, el azul igual (`--color-channel-blue…`, `--glow-channel-blue`),
-más el «T-0» de Mission control en líneas de barrido (`--gradient-channel-blue-countdown`) con su halo; el verde pasa
-a token en su paso, medido igual antes de dar sus valores por buenos. El atenuado azul aprobado (`#4f86bd`) daba
+más el «T-0» de Mission control en líneas de barrido (`--gradient-channel-blue-countdown`) con su halo; desde C.6, el
+verde igual (`--color-channel-green…`, `--glow-channel-green`), con los valores aprobados: pasan el AA medido (el
+atenuado, 4,8 : 1). El atenuado azul aprobado (`#4f86bd`) daba
 4,3 : 1 sobre el velo encima de una escena blanca: pasó a `#5a8fc6` (4,9 : 1), el mismo tono algo más claro. `styles.test.ts` mide lo
 que se pinta de verdad detrás del texto: comprueba que el velo es el `-bg` del canal con alfa ≥ 0,9 y mide el
 contraste AA del color, el atenuado y el brillante sobre ese velo encima de una escena blanca, el peor caso. Las

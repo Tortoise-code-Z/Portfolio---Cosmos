@@ -27,6 +27,7 @@ const LABEL_KEYS = {
   2: 'chapter.2',
   3: 'chapter.3',
   4: 'chapter.4',
+  5: 'chapter.5',
 } as const satisfies Readonly<Record<ChapterIndex, UiKey>>;
 
 const INTERLUDE_LABEL_KEYS = {

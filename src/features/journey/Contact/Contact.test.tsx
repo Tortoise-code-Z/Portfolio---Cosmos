@@ -3,7 +3,6 @@ import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { profile } from '~/content/profile';
-import { SITE_REPOSITORY } from '~/content/site';
 
 import { Contact } from './Contact';
 
@@ -139,38 +138,15 @@ describe('Contact', () => {
   it.each([
     [/^GitHub/, profile.contact.github],
     [/^LinkedIn/, profile.contact.linkedin],
-    [/^This site is open source/, SITE_REPOSITORY],
   ])('%s points to its profile and opens in a new tab', (name, href) => {
     const link = within(renderAt('/')).getByRole('link', { name });
     expect(link).toHaveAttribute('href', href);
     expect(link).toHaveAttribute('target', '_blank');
   });
 
-  it('education: one orbit per course with period, formatted hours and grade in the language', () => {
-    const region = renderAt('/es');
-    const orbits = within(region).getByRole('list', { name: 'Órbitas completadas · formación' });
-    const items = within(orbits).getAllByRole('listitem');
-    expect(items).toHaveLength(2);
-    expect(items[0]).toHaveTextContent(
-      'Curso Superior en Programación de Páginas Web (Full-Stack)',
-    );
-    expect(items[0]).toHaveTextContent('ene 2023 – oct 2024 · 975 h · Sobresaliente');
-    expect(items[0]).toHaveTextContent('Master.D · HTML, CSS');
-  });
-
-  it('education in English: the period and grade as the CV says them; no grade, no separator', () => {
-    const orbits = within(renderAt('/')).getByRole('list', {
-      name: 'Completed orbits · education',
-    });
-    const items = within(orbits).getAllByRole('listitem');
-    expect(items[0]).toHaveTextContent('Jan 2023 – Oct 2024 · 975 h · Distinction');
-    expect(items[1]).toHaveTextContent(/2025 · 13 hHola Mundo/);
-  });
-
-  it('footer signature with the current year', () => {
-    renderAt('/');
-    expect(
-      screen.getByText(`Víctor Pérez · Frontend Developer · ${String(new Date().getFullYear())}`),
-    ).toBeInTheDocument();
+  it('the education and the site footer moved to the Crew file (C.6)', () => {
+    const region = renderAt('/');
+    expect(within(region).queryByText(/Master\.D/)).toBeNull();
+    expect(within(region).queryByRole('link', { name: /^This site is open source/ })).toBeNull();
   });
 });

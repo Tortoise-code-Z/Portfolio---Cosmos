@@ -152,6 +152,8 @@ export interface Profile {
   /** Ruta al PDF por idioma; `null` = aún no existe y la interfaz no muestra el enlace. */
   readonly cv: Localized<string | null>;
   readonly education: readonly Education[];
+  /** Los idiomas que hablo, sin nivel (Crew file, C.6). */
+  readonly languages: readonly Localized[];
 }
 
 export type SkillGroupId = 'web' | 'libraries' | 'tools' | 'ai';

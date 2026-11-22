@@ -2,12 +2,12 @@
 // misma en los dos idiomas y el inicio no lleva. Lo leen los capítulos, el raíl y el mapeo de scroll.
 
 /** Posición del capítulo en el viaje: también es el valor de `m` en reposo (scroll-y-escena.md). */
-export type ChapterIndex = 0 | 1 | 2 | 3 | 4;
+export type ChapterIndex = 0 | 1 | 2 | 3 | 4 | 5;
 
-export type ChapterAnchor = 'about' | 'skills' | 'projects' | 'contact';
+export type ChapterAnchor = 'about' | 'skills' | 'projects' | 'contact' | 'crew-file';
 
 /** Los capítulos en orden de lectura. */
-export const CHAPTER_INDICES: readonly ChapterIndex[] = [0, 1, 2, 3, 4];
+export const CHAPTER_INDICES: readonly ChapterIndex[] = [0, 1, 2, 3, 4, 5];
 
 export const CHAPTER_ANCHORS: Readonly<Record<ChapterIndex, ChapterAnchor | null>> = {
   0: null,
@@ -15,7 +15,14 @@ export const CHAPTER_ANCHORS: Readonly<Record<ChapterIndex, ChapterAnchor | null
   2: 'skills',
   3: 'projects',
   4: 'contact',
+  5: 'crew-file',
 };
+
+/**
+ * El epílogo (fase C · paso 6, ADR-034): el último capítulo, el Crew file. Es un capítulo (tiene índice en `m` y su
+ * parada en el raíl), pero se pinta como una transmisión, en el canal verde (`docs/02-experiencia/capitulos/05-crew-file.md`).
+ */
+export const EPILOGUE = 5 satisfies ChapterIndex;
 
 /** Ancla de un capítulo en la URL (`#projects`); el inicio no lleva. */
 export function chapterHash(index: ChapterIndex): string {
@@ -63,11 +70,20 @@ export const CHAPTER_STOPS: Readonly<Record<ChapterIndex, ChapterStop>> = {
   2: 'chapter-2',
   3: 'chapter-3',
   4: 'chapter-4',
+  5: 'chapter-5',
 };
 
 /** ¿Es un interludio esta parada? */
 export function isInterludeStop(stop: JourneyStop): stop is InterludeId {
   return stop in INTERLUDE;
+}
+
+/**
+ * ¿Se lee esta parada como una transmisión (un interludio o el epílogo)? Tienen su propio reloj parado en el pie: el
+ * HUD se esconde.
+ */
+export function isTransmissionStop(stop: JourneyStop): boolean {
+  return isInterludeStop(stop) || stop === CHAPTER_STOPS[EPILOGUE];
 }
 
 /** El capítulo de una parada que no es un interludio (`chapter-2` → 2). */
@@ -85,7 +101,8 @@ export type JourneySegment =
  * su forma (`base`) y desde qué fracción cambia a la siguiente (`morphStart`; `null`, quieta). Antes de cada interludio,
  * el capítulo y la pantalla del interludio se quedan quietos y la forma cambia en su cola, al salir: About y el Mission
  * log con la nebulosa (a galaxia), Projects y Mission control con la tortuga (a la Tierra). El inicio cambia desde el
- * principio (el Big Bang) y Skills en su segunda mitad (la columna «Ventana de morph»). El último no cambia.
+ * principio (el Big Bang), y Skills y Contacto en su segunda mitad (la columna «Ventana de morph»). El último, el
+ * epílogo, no cambia.
  */
 export const JOURNEY_SEGMENTS: readonly (JourneySegment & {
   readonly base: ChapterIndex;
@@ -99,5 +116,8 @@ export const JOURNEY_SEGMENTS: readonly (JourneySegment & {
   { kind: 'chapter', chapter: 3, base: 3, morphStart: null },
   { kind: 'interlude', interlude: 'mission-control', base: 3, morphStart: null },
   { kind: 'interlude-tail', interlude: 'mission-control', base: 3, morphStart: 0 },
-  { kind: 'chapter', chapter: 4, base: 4, morphStart: null },
+  // Contacto cambia en su segunda mitad, como Skills: la Tierra pasa al retrato del epílogo. Hasta C.6b la escena no
+  // tiene sexta forma: con `m` entre 4 y 5 se queda en la Tierra (el shader y la cámara no pasan del último keyframe).
+  { kind: 'chapter', chapter: 4, base: 4, morphStart: 0.52 },
+  { kind: 'chapter', chapter: 5, base: 5, morphStart: null },
 ];

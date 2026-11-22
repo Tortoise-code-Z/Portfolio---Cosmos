@@ -18,6 +18,7 @@ const EN = [
   'Projects · Cosmic turtle',
   'Mission control · transmission',
   'Contact · Earth',
+  'Crew file · Epilogue',
 ];
 
 /** Enseña la dirección del router: así se ve si el enlace navegó en vez de saltar. */
@@ -73,6 +74,7 @@ describe('ChapterRail', () => {
       '/#projects',
       '/#mission-control',
       '/#contact',
+      '/#crew-file',
     ]);
   });
 
