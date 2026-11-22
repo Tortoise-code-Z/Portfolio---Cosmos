@@ -20,6 +20,11 @@ if (!isCI && process.env[VISUAL_DOCKER_ENV] !== '1') {
 /** Lo que puede tardar en quedar quieta una captura (SwiftShader pinta la escena con la CPU). */
 const SCREENSHOT_TIMEOUT_MS = 15_000;
 /**
+ * Lo que puede durar un test: la espera a la escena (`SCENE_TIMEOUT_MS` de `tests/visual/chapters.spec.ts`, 60 s en el
+ * arranque en frío de Docker) y la foto (15 s), con margen.
+ */
+const TEST_TIMEOUT_MS = 90_000;
+/**
  * Cuánto puede cambiar el color de un píxel sin que cuente como distinto (0–1, en el espacio YIQ de Playwright; su
  * valor por defecto, 0,2, deja pasar ~20 % de brillo). La misma imagen y el mismo build pintan igual y la escena es
  * oscura y tenue: un retoque del shader (alfa, brillo, color) tiene que verse.
@@ -30,6 +35,7 @@ const MAX_DIFF_PIXELS = 50;
 
 export default defineConfig({
   testDir: './tests/visual',
+  timeout: TEST_TIMEOUT_MS,
   snapshotPathTemplate: '{testDir}/__screenshots__/{projectName}/{arg}{ext}',
   fullyParallel: true,
   forbidOnly: isCI,

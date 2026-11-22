@@ -100,9 +100,10 @@ test o ADR nuevo y cada mes (las comprueba su e2e).
 - **Al cambiar algo visible a propósito:** `npm run visual:update`, mirar las PNG nuevas y commitearlas con el
   cambio. Sin más argumentos, borra antes todas las referencias (no queda ninguna sin test); los argumentos van a
   Playwright (`npm run visual -- --grep about` repite un capítulo, y con `--update` y cualquier otro argumento solo
-  rehace lo que casa y deja las demás). En local, mejor `npm run visual:update -- --workers=1`: el primer test
-  de una tanda puede pasarse de 30 s por el arranque en frío de Docker, y sin argumentos una referencia que falla
-  se queda borrada (S36). Si el CI falla, su informe (`playwright-report-visual`) trae la
+  rehace lo que casa y deja las demás). La espera a la escena antes de cada foto tiene su propio plazo, 60 s (el
+  test, 90 s): el primer test de una tanda arranca en frío en Docker y se pasaba de los 15 s de `expect` aunque la
+  foto saliera bien. Aun así, sin argumentos una referencia que falla se queda borrada (S36): en local,
+  `npm run visual:update -- --workers=1` rehace sin borrar. Si el CI falla, su informe (`playwright-report-visual`) trae la
   referencia, la captura y la diferencia.
 
 ## Presupuestos (Lighthouse CI y tamaño)
