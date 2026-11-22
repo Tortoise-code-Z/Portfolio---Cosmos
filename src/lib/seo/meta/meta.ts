@@ -131,7 +131,10 @@ export function homeMeta({
   ];
 }
 
-/** Descripción = `summary` tal cual; imagen para compartir = la portada, si la hay (sin ella, ninguna). */
+/**
+ * Descripción = su `metaDescription` si la tiene (un `summary` demasiado largo para los buscadores) y, si no,
+ * el `summary` tal cual; imagen para compartir = la portada, si la hay (sin ella, ninguna).
+ */
 export function projectMeta({
   origin,
   locale,
@@ -140,7 +143,7 @@ export function projectMeta({
 }: MetaInput & { readonly project: Project }): MetaDescriptor[] {
   const text = {
     title: translate(locale, 'meta.project.title', { project: project.name }),
-    description: project.summary[locale],
+    description: (project.metaDescription ?? project.summary)[locale],
   };
   return [
     ...baseMeta(

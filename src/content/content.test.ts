@@ -22,7 +22,7 @@ import {
 import { experience } from './experience';
 import { SHARE_IMAGE_WIDTH } from './imageWidths';
 import { profile } from './profile';
-import { projects } from './projects';
+import { assembleProjects, projectDetails, projects } from './projects';
 import { projectEntries } from './projects/entries';
 import { projectMedia } from './projects/media';
 import { skillGroups } from './skills';
@@ -328,6 +328,30 @@ describe('contenido', () => {
         project.gallery.map(({ src, alt }) => [fileOf(src), alt.en, alt.es]),
         project.slug,
       ).toEqual(expected?.gallery ?? []);
+    }
+  });
+
+  it('cada proyecto tiene su detalle y cada detalle es de un proyecto (ADR-036); el stack se junta entero', () => {
+    const slugs = projectEntries.map((entry) => entry.slug);
+    expect(Object.keys(projectDetails)).toEqual(slugs);
+    for (const project of projects) {
+      const entry = projectEntries.find(({ slug }) => slug === project.slug);
+      const detail = projectDetails[project.slug];
+      expect(project.stack).toEqual({ ...entry?.stack, ...detail?.stack });
+      expect(Object.keys(project.stack).sort()).toEqual(['core', 'design', 'libraries', 'tooling']);
+      expect(project.about).toBe(detail?.about);
+    }
+    // Un proyecto sin detalle no llega a pintarse a medias: el build falla con su nombre.
+    expect(() => assembleProjects(projectEntries, {}, projectMedia)).toThrow('«chessmate»');
+  });
+
+  it('la metaDescription de una ficha, si la hay, cabe en lo que enseñan los buscadores (≤ 160)', () => {
+    const withMeta = projects.filter(({ metaDescription }) => metaDescription !== undefined);
+    expect(withMeta.map(({ slug }) => slug)).toEqual(['cosmos']);
+    for (const { metaDescription } of withMeta) {
+      for (const locale of LOCALES) {
+        expect(metaDescription?.[locale].length).toBeLessThanOrEqual(160);
+      }
     }
   });
 

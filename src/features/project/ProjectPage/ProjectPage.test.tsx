@@ -51,10 +51,17 @@ describe('ProjectPage', () => {
     expect(screen.getByRole('region', { name: 'Try it' })).toBeInTheDocument();
   });
 
-  it('Cosmos (sin proceso, retos ni «Try it»): esas secciones no se pintan', async () => {
+  it('Cosmos (sin «Try it» ni imágenes hasta F6): esas secciones no se pintan', async () => {
     renderAt('/es/projects/cosmos', bySlug('cosmos'));
     await screen.findByRole('heading', { level: 1, name: 'Cosmos' });
-    expect(h2s()).toEqual(['Sobre el proyecto', 'Funcionalidades', 'Stack tecnológico', 'Notas']);
+    expect(h2s()).toEqual([
+      'Sobre el proyecto',
+      'Funcionalidades',
+      'Stack tecnológico',
+      'Proceso de desarrollo',
+      'Notas',
+    ]);
+    expect(screen.getByRole('heading', { level: 3, name: 'Retos técnicos' })).toBeInTheDocument();
   });
 
   it('solo retos, sin párrafos de proceso: van con su propio h2', async () => {

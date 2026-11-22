@@ -204,6 +204,11 @@ export interface Project {
   readonly context: ProjectContext;
   /** 2–3 frases para la fila del capítulo y el modo misión rápida. */
   readonly summary: Localized;
+  /**
+   * La meta description de la ficha cuando el `summary` es demasiado largo para los buscadores (cortan hacia
+   * 155–160 caracteres): como mucho 160 en cada idioma (test). Sin ella, la descripción es el `summary`.
+   */
+  readonly metaDescription?: Localized;
   readonly about: Localized<readonly string[]>;
   readonly features: readonly Localized[];
   readonly stack: {
@@ -212,7 +217,7 @@ export interface Project {
     readonly design: readonly Label[];
     readonly tooling: readonly Label[];
   };
-  /** Vacío = la sección no se pinta (Cosmos hasta F6). */
+  /** Vacío = la sección no se pinta (hoy todas las fichas lo tienen). */
   readonly process: Localized<readonly string[]>;
   /** Retos técnicos resueltos. Vacío = la sección no se pinta. */
   readonly highlights: readonly Localized[];
@@ -231,8 +236,26 @@ export interface Project {
   };
 }
 
-/** Un proyecto sin sus imágenes: sus textos y datos (`projects/<slug>.ts`). */
-export type ProjectEntry = Omit<Project, 'cover' | 'gallery'>;
+/** Lo que solo pinta la página de proyecto (ADR-036): fuera del JS de la home. */
+type ProjectDetailKey =
+  'metaDescription' | 'about' | 'features' | 'process' | 'highlights' | 'notes' | 'tryIt';
+
+/**
+ * La tarjeta de un proyecto (`projects/<slug>.ts`): lo que pintan la fila del capítulo y la misión
+ * rápida, más lo que usan las rutas, el sitemap y la escena (las placas). Del stack, solo el principal.
+ */
+export type ProjectEntry = Omit<Project, ProjectDetailKey | 'stack' | 'cover' | 'gallery'> & {
+  readonly stack: Pick<Project['stack'], 'core'>;
+};
+
+/**
+ * El detalle de un proyecto (`projects/details/<slug>.ts`): lo que solo lee su página. Solo lo importa
+ * `projects/index.ts` (ESLint), y a ese, solo la página de proyecto: así no viaja en el JS de la home
+ * (ADR-036). Del stack, todo menos el principal, que va en la tarjeta.
+ */
+export type ProjectDetail = Pick<Project, ProjectDetailKey> & {
+  readonly stack: Omit<Project['stack'], 'core'>;
+};
 
 /** Las imágenes de un proyecto (`projects/media.ts`): portada y galería. */
 export type ProjectMedia = Pick<Project, 'cover' | 'gallery'>;

@@ -30,8 +30,9 @@ cosmos-portfolio/
 │  │                              `experience.ts` (la experiencia del Mission log), `workflow.ts` (la secuencia
 │  │                              de Mission control), `telemetry.ts` (las cifras del repo, contadas al
 │  │                              construir: `virtual:site-telemetry`, ADR-035) y `site.ts` (repo del sitio)
-│  │                              incluidos; en `projects/`, los textos (`entries.ts`) aparte de las imágenes
-│  │                              (`media.ts`)
+│  │                              incluidos; en `projects/`, las tarjetas (`entries.ts`, lo que pinta la
+│  │                              home), el detalle de cada ficha (`details/`, solo para su página, ADR-036)
+│  │                              y las imágenes (`media.ts`), que junta `index.ts`
 │  ├─ features/                 ← piezas de interfaz con lógica propia
 │  │  ├─ journey/               ← Hero, ChapterSection, ChapterPanel, Eyebrow, About, Skills, Projects,
 │  │  │                           ProjectRow, Contact, Transmission (la pantalla de un interludio, fase C),
@@ -158,7 +159,7 @@ El diagrama es orientativo; manda la tabla.
 
 | Capa | Puede importar | No puede importar |
 |---|---|---|
-| `content` | nada salvo sus tipos y, en `projects/media.ts`, las capturas de `src/assets/` (ADR-023); en `telemetry.ts`, el módulo `virtual:site-telemetry` (ADR-035), que nadie más importa | React, Three, cualquier otra capa |
+| `content` | nada salvo sus tipos y, en `projects/media.ts`, las capturas de `src/assets/` (ADR-023); en `telemetry.ts`, el módulo `virtual:site-telemetry` (ADR-035), que nadie más importa; `projects/details/` solo lo importa `projects/index.ts`, y a ese índice (los proyectos enteros) solo `routes/project` y `features/project`: la home lee las tarjetas, `projects/entries` (ADR-036) | React, Three, cualquier otra capa |
 | `lib` | `content/types` (tipos y constantes de idioma) y `content/texts` (para `useT`) (ADR-017) | Los datos de `content` (perfil, proyectos, skills: le llegan por parámetro), `stores`, `ui`, `features`, `scene`, `routes`, Three |
 | `stores` | `lib`, `content` | `ui`, `features`, `scene`, `routes`, Three |
 | `ui` | `lib` | `stores`, `features`, `scene`, `routes`, `content` (recibe datos por props), Three |

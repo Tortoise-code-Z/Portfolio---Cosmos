@@ -1,8 +1,8 @@
 # Proyecto · Cosmos (este portfolio)
 
-> Lo marcado con ⏳ se completa con datos reales a medida que se construye (proceso, retos resueltos, capturas). No
-> se publica nada que no esté hecho: la escena 3D entró en el resumen, las funcionalidades y el stack en F3.7; las
-> constelaciones y placas entran con F4. Lo que espera se guarda aquí, marcado con ⏳.
+> No se publica nada que no esté hecho: la escena 3D entró en el resumen, las funcionalidades y el stack en F3.7;
+> el proceso, los retos, las constelaciones, los interludios y la nota del README, en C.5 (textos de Claude que
+> Víctor corrige en el PR, CO-4-A). Lo que espera se marca con ⏳: las imágenes (F6).
 
 ## Ficha
 
@@ -17,7 +17,7 @@
 | context | `personal` |
 | links.code | https://github.com/Tortoise-code-Z/Portfolio---Cosmos |
 | links.demo | https://tortoisecode.dev |
-| links.readme | https://github.com/Tortoise-code-Z/Portfolio---Cosmos#readme ⏳ (README en F6) |
+| links.readme | https://github.com/Tortoise-code-Z/Portfolio---Cosmos#readme (README desde C.5) |
 
 ## Tagline
 
@@ -34,6 +34,16 @@ Con la escena (desde F3.7):
 - ES: La web en la que estás. Decenas de miles de partículas pasan de una singularidad a una nebulosa, una
   galaxia, una tortuga cósmica y la Tierra mientras haces scroll. Hecha con React, TypeScript y WebGL, y
   legible sin nada de eso.
+
+## Meta description
+
+El `summary` pasa de 220 caracteres y los buscadores cortan hacia 155–160: la ficha lleva su `metaDescription`
+(≤ 160, test de contenido; C.5).
+
+- EN: Cosmos, the portfolio you are on: a scroll journey from the Big Bang to Earth in WebGL particles, built with
+  React and TypeScript and readable without WebGL. (157)
+- ES: Cosmos, el portfolio en el que estás: un viaje por scroll del Big Bang a la Tierra en partículas WebGL, hecho
+  con React y TypeScript y legible sin WebGL. (153)
 
 ## About
 
@@ -56,19 +66,21 @@ El párrafo 3 es la frase del CV (C.1, ADR-034): el flujo con IA se dice con nat
 
 ## Features
 
-En el contenido, en este orden; las marcadas con ⏳ entran cuando estén hechas (en su sitio de la tabla).
+En el contenido, en este orden.
 
 | EN | ES | Desde |
 |---|---|---|
 | Scroll-driven particle morphing across five scenes | Morph de partículas guiado por el scroll en cinco escenas | F3 |
-| ⏳ Interactive constellations and project plates | Constelaciones y placas de proyecto interactivas | F4 (pasos 3 y 4) |
+| Skill constellations that light up with the mouse, keyboard or touch | Constelaciones de habilidades que se encienden con el ratón, el teclado o el dedo | C.5 (hechas en F4.3 y C.3) |
+| Two interludes as incoming transmissions: a mission log and how I work | Dos interludios como transmisiones entrantes: un registro de misión y cómo trabajo | C.5 (hechos en C.2 y C.4) |
 | Bilingual site (English / Spanish) | Web bilingüe (inglés / español) | F2 |
 | Quick-mission mode with all the content on one page | Modo misión rápida con todo el contenido en una página | F2 |
 | Works without WebGL and with reduced motion | Funciona sin WebGL y con movimiento reducido | F3 |
 | A page per project, pre-rendered for search engines | Una página por proyecto, pre-renderizada para buscadores | F2 |
 
 Con la escena (F3.7), «Works without WebGL and with reduced motion» sustituye a la de F2, «Readable without
-JavaScript and with reduced motion» (ES: «Legible sin JavaScript y con movimiento reducido»).
+JavaScript and with reduced motion» (ES: «Legible sin JavaScript y con movimiento reducido»). Las placas de
+proyecto no salen todavía como funcionalidad: hoy son decorativas (su luz al volver de una ficha es de F5).
 
 ## Stack
 
@@ -80,35 +92,57 @@ piezas internas como Testing Library, Husky, vite-imagetools, Docker o Lighthous
 - design: CSS Modules, responsive design (EN: Responsive design · ES: Diseño responsive)
 - tooling: Vite, Vitest, Playwright, ESLint, Prettier, GitHub Actions, Vercel, Git, npm
 
-## Process ⏳
+## Process
 
-Vacío en el contenido (`{ en: [], es: [] }`) hasta F6: la sección no se pinta. Borrador de los temas a contar
-cuando estén hechos (2–3 párrafos, EN y ES):
-- Prototipo en HTML para validar la idea → documentación por capítulos → construcción por fases.
-- Un único sistema de partículas que pasa de una forma a otra en el shader de vértices.
-- Separación entre contenido, lógica del scroll, escena 3D e interfaz DOM.
+Desde C.5 (antes, vacío: la sección no se pintaba). Tres párrafos: el método, la arquitectura y el flujo con IA y
+calidad. Sin cifras que se queden viejas (el número de ADR o de tests lo da Mission control).
 
-## Highlights ⏳
+**EN**
+1. I started with an HTML prototype to test the idea and then documented the whole site before writing code:
+   content, experience, design and the 3D scene, chapter by chapter. It was built in phases, each one closed with
+   its tests and an audit, and every decision that shaped the architecture went into a decision log.
+2. The content is typed data that lives in the HTML, pre-rendered for every page. Scrolling drives a single value
+   that both the interface and the scene read. One particle system morphs between shapes in the vertex shader;
+   the shapes are generated in a Web Worker with a fixed seed, so the universe is the same on every visit. The
+   scene loads after the first paint, in its own chunk, and the site is complete without it.
+3. I work with Claude Code: I plan each step, approve it, and read and understand every change before it goes in.
+   A second AI session audits each step with fresh eyes, and its fixes ship before the next task. CI runs the unit
+   tests, end-to-end tests in Chromium, Firefox and WebKit, and visual regression on every pull request.
 
-Vacío en el contenido (`[]`) hasta F6. Candidatos (se confirman con medidas reales):
-- Morph de decenas de miles de partículas a 60 fps en un portátil medio.
-- Contenido accesible e indexable con la escena como capa decorativa.
-- Presupuesto de rendimiento adaptado a cada dispositivo.
+**ES**
+1. Empecé con un prototipo en HTML para probar la idea y después documenté la web entera antes de escribir código:
+   contenido, experiencia, diseño y la escena 3D, capítulo a capítulo. Se construyó por fases, cada una cerrada con
+   sus tests y una auditoría, y cada decisión que daba forma a la arquitectura quedó en un registro de decisiones.
+2. El contenido son datos tipados que viven en el HTML, pre-renderizado en cada página. El scroll mueve un único
+   valor que leen la interfaz y la escena. Un solo sistema de partículas pasa de una forma a otra en el shader de
+   vértices; las formas se generan en un Web Worker con una semilla fija, así que el universo es el mismo en cada
+   visita. La escena se carga después de la primera pintura, en su propio chunk, y la web está completa sin ella.
+3. Trabajo con Claude Code: planifico cada paso, lo apruebo y leo y entiendo cada cambio antes de que entre. Una
+   segunda sesión de IA audita cada paso con ojos nuevos, y sus arreglos entran antes de la siguiente tarea. El CI
+   pasa los tests unitarios, los e2e en Chromium, Firefox y WebKit y la regresión visual en cada pull request.
+
+## Highlights
+
+Desde C.5, con medidas reales: 60 fps estables en Alto (`rendimiento.md` → «Presupuesto», medido en F3.6c en un
+equipo de escritorio), el tope de 260 KB de la escena (ADR-032, `budgets.spec.ts`), la lectura sin WebGL ni JS
+(`scene.spec.ts`, `journey.spec.ts`) y la telemetría del build (ADR-035).
+
+| EN | ES |
+|---|---|
+| 60,000 particles at a steady 60 fps on desktop, with three quality levels that step down on the fly | 60.000 partículas a 60 fps estables en escritorio, con tres niveles de calidad que bajan sobre la marcha |
+| The whole 3D scene, Three.js included, within a 260 KB budget checked on every build | Toda la escena 3D, Three.js incluido, dentro de un presupuesto de 260 KB que se comprueba en cada build |
+| Readable without WebGL or JavaScript, with still photos of the scene when WebGL is missing | Legible sin WebGL ni JavaScript, con fotos fijas de la escena cuando falta WebGL |
+| Mission control counts the repo's own tests and decisions when the site is built | Mission control cuenta los tests y las decisiones del propio repo al construir la web |
+
+Si cambia el tope de la escena (ADR-032) o las partículas de Alto (`LEVEL_SETTINGS`), se cambia aquí y en el
+contenido.
 
 ## Notes
 
-Hoy (sin README):
-
-- `info` · EN: The source code is public on GitHub. · ES: El código es público en GitHub.
-
-⏳ Final (con el README del repo, F6):
+Desde C.5, con el README del repo:
 
 - `info` · EN: The source code is public; the README explains the architecture. · ES: El código es público; el
   README explica la arquitectura.
-
-## Try it
-
-`null`: la web ya es la demo.
 
 ## Imágenes ⏳
 

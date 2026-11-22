@@ -848,3 +848,30 @@
     pre-renderizado reciben las mismas cifras.
   - Solo `content/telemetry.ts` importa el módulo virtual (ESLint): los demás leen `siteTelemetry`.
 - Detalle: `docs/02-experiencia/capitulos/interludio-2-mission-control.md` → «Telemetría».
+
+## ADR-036 · El detalle de las fichas sale del JS de la home
+- Estado: Aceptada
+- Fecha: 2026-11-22
+- Contexto: cada proyecto era un solo objeto (`ProjectEntry`) con sus textos enteros, y la home lo importaba para
+  las filas del capítulo, la misión rápida y las placas de la escena. Así el JS inicial de la home llevaba el
+  «About», las funcionalidades, el proceso, los retos, las notas y el «Try it» de las tres fichas, que solo pinta
+  la página de proyecto: 38,4 KB de un tope de 40 al cerrar C.4, con C.5 (la ficha de Cosmos completa) y C.6 (el
+  Crew file) por llegar.
+- Decisión: cada proyecto se parte en dos. La **tarjeta** (`content/projects/<slug>.ts`, `ProjectEntry`) guarda lo
+  que pinta la home y lo que usan las rutas, el sitemap y la escena: slug, orden, destacado, nombre, lema, año, rol,
+  contexto, resumen, el stack principal (`stack.core`) y los enlaces. El **detalle**
+  (`content/projects/details/<slug>.ts`, `ProjectDetail`) guarda lo que solo lee su página: `about`, `features`, el
+  resto del stack, `process`, `highlights`, `notes` y `tryIt`. `content/projects/index.ts` junta tarjeta, detalle e
+  imágenes en el `Project` de siempre; un proyecto sin detalle rompe el build. ESLint vigila las dos puertas: solo
+  `content/projects/index.ts` importa `details/`, y a ese índice solo lo importan `routes/project` y
+  `features/project` (la home lee `content/projects/entries`). Un e2e de `budgets.spec.ts` comprueba sobre el build
+  que el JS inicial de la home y de la 404 no lleva ningún párrafo de «About», y que el de las fichas sí.
+- Alternativas descartadas: un chunk por ficha (cada página traería solo su detalle, ~2,5 KB menos), que pide
+  cargarlo aparte por slug con un `clientLoader` o un `import()` por proyecto: complica la ruta para ahorrar poco en
+  una página que va holgada; subir el tope de la home otra vez (ya subió dos veces en la fase C, por textos que la
+  home no pinta).
+- Consecuencias: la home baja de 38 484 a 34 663 B de JS propio (gzip; −3,8 KB), en EN y ES, y vuelve a tener margen
+  para C.6 sin tocar el tope de 40 KB. Las fichas suben 0,4 KB (33 419 → 33 818 B: el detalle ya iba en su chunk
+  compartido con la home y ahora va en el de la ruta). Un campo nuevo de ficha va al detalle si la home no lo pinta.
+- Detalle: `docs/01-contenido/modelo-de-datos.md` y `docs/05-tecnico/arquitectura.md` → «Capas».
+

@@ -3,7 +3,7 @@
 > Idea de Víctor (20 nov 2026, sesión 35), estudiada por el Taller sobre la copia del repo con C.2 hecho. **Aprobada
 > como idea y sin calendario:** va después de C.6 o en el pulido (roadmap → «C · 7. Naves»). La prueba fuera del
 > repo ya está hecha (apartado «Prueba», versiones 1–8): **manda la versión 8**, que cambia los apartados 3 a 5 (se
-> lee a pantalla completa, sin marco). Cuando se decida construirla: ADR-036 y este doc pasa a spec.
+> lee a pantalla completa, sin marco). Cuando se decida construirla: ADR-037 y este doc pasa a spec.
 
 ## La idea
 
@@ -185,7 +185,7 @@ se lee → galaxia, con el scroll, y un botón para cambiar de satélite a nave 
 
 1. **Prueba fuera del repo** (un artefacto, como el retrato): el satélite y la nave nodriza en partículas con el
    estilo del shader, los dos morphs y el encaje con un marco HTML al 85 %. Víctor elige la forma.
-2. **ADR-036:** mapa de formas (`uFrom`/`uTo`/`uT`), naves paramétricas en el shader, el tramo de llegada y el peso.
+2. **ADR-037:** mapa de formas (`uFrom`/`uTo`/`uT`), naves paramétricas en el shader, el tramo de llegada y el peso.
 3. **Construcción** en un PR: mapa de formas y tramos, satélite (Mission log), nave nodriza (Mission control), el
    retrato directo desde la Tierra (si C.6 no lo dejó ya así), CSS del marco, tests y capturas.
 

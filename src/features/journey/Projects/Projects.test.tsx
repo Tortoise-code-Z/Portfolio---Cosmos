@@ -2,7 +2,7 @@ import { act, render, screen, within } from '@testing-library/react';
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { projects } from '~/content/projects';
+import { projectEntries as projects } from '~/content/projects/entries';
 import { uiTexts } from '~/content/texts';
 import { localize } from '~/lib/i18n/localize/localize';
 import { setVisitedProject, useUiStore } from '~/stores/uiStore/uiStore';
