@@ -119,6 +119,16 @@ describe('CrewFile', () => {
     expect(firstLink).toBe(cv);
   });
 
+  it('«Identity verified» waits for the last field of the file, however many fields there are', () => {
+    const region = renderAt('/');
+    const fields = region.querySelectorAll<HTMLElement>('dl > [data-line]');
+    const verified = within(region).getByText('Identity verified');
+    expect(fields.length).toBeGreaterThan(0);
+    expect(verified.style.getPropertyValue('--_line')).toBe(
+      fields[fields.length - 1]?.style.getPropertyValue('--_line'),
+    );
+  });
+
   it('the visor of the portrait: decorative, between the lead and «Download CV» (in the gap of the column on a phone)', () => {
     const region = renderAt('/');
     const visor = region.querySelector('[data-crew-visor]');

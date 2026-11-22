@@ -1,6 +1,7 @@
 import { AdditiveBlending } from 'three';
 import { describe, expect, it } from 'vitest';
 
+import { PORTRAIT_FADE_IN_S } from '../config/sceneConfig';
 import constellationLinesFragment from '../shaders/constellations/constellationLines.frag.glsl?raw';
 import constellationsVertex from '../shaders/constellations/constellations.vert.glsl?raw';
 import constellationStarsFragment from '../shaders/constellations/constellationStars.frag.glsl?raw';
@@ -70,13 +71,26 @@ describe('particle uniforms', () => {
     }
   });
 
-  it('uPor says whether the portrait is in the geometry (not until it arrives)', () => {
+  it('uPor: 0 until the portrait is in the geometry; then it rises to 1 in PORTRAIT_FADE_IN_S, real seconds', () => {
     const uniforms = createParticleUniforms();
+    const step = { ...frame, delta: PORTRAIT_FADE_IN_S / 4 };
     expect(uniforms.uPor.value).toBe(0);
-    updateParticleUniforms(uniforms, frame, true);
+    updateParticleUniforms(uniforms, step);
+    expect(uniforms.uPor.value).toBe(0);
+    updateParticleUniforms(uniforms, step, true);
+    expect(uniforms.uPor.value).toBeCloseTo(0.25);
+    updateParticleUniforms(uniforms, step, true);
+    expect(uniforms.uPor.value).toBeCloseTo(0.5);
+    for (let i = 0; i < 5; i++) updateParticleUniforms(uniforms, step, true);
     expect(uniforms.uPor.value).toBe(1);
-    updateParticleUniforms(uniforms, frame);
+    updateParticleUniforms(uniforms, step);
     expect(uniforms.uPor.value).toBe(0);
+  });
+
+  it('uPor with reduced motion: straight to 1, with no rise', () => {
+    const uniforms = createParticleUniforms();
+    updateParticleUniforms(uniforms, { ...frame, reducedMotion: true, delta: 0.001 }, true);
+    expect(uniforms.uPor.value).toBe(1);
   });
 
   it('reduced motion and the low level turn their uniforms off', () => {

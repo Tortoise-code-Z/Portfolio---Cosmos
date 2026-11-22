@@ -33,7 +33,7 @@ la dirección de `position` escalada a casi cero.
 | `uMouse` | vec2 | dónde tira la gravedad, en NDC (el ratón o, al apagarse, el último punto donde estuvo) |
 | `uMotion` | float | 1 normal · 0 movimiento reducido (anula oscilaciones autónomas) |
 | `uExtras` | float | 1 · 0 en Bajo: esconde la estela de la tortuga (alfa 0) y apaga las luces de ciudad |
-| `uPor` | float | 1 con el retrato en la geometría (`pPor`) · 0 hasta entonces: la forma 5 pinta la Tierra |
+| `uPor` | float | 0 hasta que el retrato está en la geometría (`pPor`; la forma 5 pinta la Tierra); entonces sube a 1 en 0,6 s (`PORTRAIT_FADE_IN_S`, de golpe con movimiento reducido) y la Tierra pasa a retrato |
 
 `uCharge` lo conecta F4.1: la carga del botón del hero (`sceneStore.charge`, copiada en `SceneFrame.charge`) hincha
 el punto y lo hace vibrar; con movimiento reducido, `uTime` se congela y la vibración no se mueve (`scene/sceneClock`).
@@ -47,7 +47,8 @@ Ninguna etiqueta ni color se escribe a mano en el GLSL. `scene/shaders/glslHeade
 antepone a cada shader de vértices:
 - `#define TURTLE_<PARTE>` y `EARTH_<CAPA>` desde `TURTLE_TAG` y `EARTH_TAG` (`shapes/shapeContract`, el mismo
   contrato que escribe el generador), `TURTLE_FLIPPERS`, el rango de placas `PLATE_FIRST`..`PLATE_LAST` (20..26,
-  `config/plateSlots`) y la mitad del alto del retrato, `PORTRAIT_HALF_H` (`PORTRAIT_FRAME`).
+  `config/plateSlots`), la mitad del alto del retrato, `PORTRAIT_HALF_H`, y lo que mide su fundido de abajo,
+  `PORTRAIT_FADE_H` (`PORTRAIT_FRAME`).
 - `const vec3 COLOR_<NOMBRE>` desde `config/scenePalette`, que tiene todos los colores principales del design
   system, cada uno en su papel (lo comprueba su test con la tabla), y los matices del prototipo que la tabla no
   lista (los ojos de la tortuga son `COLOR_TURTLE_EYES` × 2: más brillantes que el blanco).
@@ -57,7 +58,8 @@ test comprueba que todo nombre `TURTLE_*`, `EARTH_*`, `PLATE_*`, `PORTRAIT_*` o 
 existe, que los de fragmentos no usan ninguno, y que ni las etiquetas (comparaciones, `abs(tag - …)`, `aR.y`/`aR.z`,
 un nombre desplazado más allá del ±0,5 de redondeo) ni los colores (`c = vec3(…)`) llevan números escritos a mano.
 Las potencias del GLSL nunca llevan base negativa (indefinido en GLSL ES): `exp(-q * q)` y un `rim` que no baja
-de 0. Las placas se comparan con `uPlate` **dentro**
+de 0. Lo vigila el test de la cabecera: solo deja los `pow(` cuya base se sabe ≥ 0 (`rim`, `2.0`, `1.0 - d * 2.0`);
+otro, a escribirse como producto. El mismo test ata `LAST_M` (donde se para `m` en el shader) a la última forma. Las placas se comparan con `uPlate` **dentro**
 de su rama (`PLATE_FIRST`..`PLATE_LAST`): `uPlate = 0` («ninguna») no casa nunca con la base del caparazón
 (etiqueta 0).
 
@@ -128,14 +130,18 @@ Holograma de escáner en el verde del canal del epílogo (`COLOR_PORTRAIT_DEEP` 
 son `--color-channel-green` y `-bright`). La luz de cada partícula llega en `pPor.w` (`formas.md` → «Forma 5»); el
 shader le suma:
 - **Haz de barrido.** Durante el morph (`m` de 4 a 5) baja de arriba abajo con `smoothstep(0,3; 1; m − 4)` y
-  enciende lo que deja atrás: por debajo, la partícula llega apagada (12 % de su luz). Acabado el morph, pasa en
-  bucle. Ni el haz ni los fallos encienden lo que la foto funde (el corte del busto).
-- **Fallos de señal:** cada 0,2 s, una franja horizontal de cada 100 salta de lado y brilla.
-- **Parpadeo** leve y **giro** con el ratón hasta ±0,44 rad (`uMouse.x · uGrav`: vuelve de frente al salir y en táctil
-  no gira).
+  enciende lo que deja atrás: por debajo, la partícula llega apagada (12 % de su luz). Si el retrato llega con la
+  escena ya ahí, el barrido va con la subida de `uPor` (`min(morph, uPor)`). Al acabar, entra el haz en bucle
+  fundido con el del barrido (en el último 20 %), sin saltar a mitad de la cara. Ni el haz ni los fallos encienden
+  lo que la foto funde (el corte del busto): se apagan con el mismo fundido, sacado de la altura (`PORTRAIT_FADE_H`).
+- **Fallos de señal:** cada 0,2 s, una franja horizontal de cada 100 salta de lado y brilla. El tick se acota
+  (`mod 997`): con `uTime` grande, `sin` pierde precisión en la GPU de un móvil y los fallos dejarían de ser al azar.
+- **Parpadeo** leve y **giro** con el ratón hasta ±0,44 rad (`uMouse.x`, acotado a ±1, `· uGrav`: vuelve de frente al
+  salir y en táctil no gira; arrastrando fuera de la ventana no pasa de ahí).
 - **Contraste:** el color va por `luz²`, para que los rasgos (ojos, cejas, barba) se lean sobre la piel.
 - Con movimiento reducido (`uMotion` 0), encendido entero y sin haz, fallos ni parpadeo que se mueva.
-- Sin retrato aún (`uPor` 0), `portrait()` pinta la Tierra.
+- Sin retrato aún (`uPor` 0), `portrait()` pinta la Tierra, y el morph del 4 al 5 va sin dispersión (no la hincha).
+  Mientras `uPor` sube, mezcla la Tierra y el retrato con el retraso por partícula del morph.
 
 ### Iluminación de la Tierra
 

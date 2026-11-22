@@ -56,6 +56,11 @@ const IMAGE_FILE = /\/assets\/[^"' ,]+\.(?:avif|webp|jpe?g|png)/g;
 /** Las fotos fijas del modo sin WebGL (ADR-029), tal cual las deja `npm run stills`: el build las copia sin tocar. */
 const STILLS_DIR = fileURLToPath(new URL('../../src/assets/scene-stills/', import.meta.url));
 /**
+ * Las imágenes del retrato (forma 5) en el build: las pide el worker con `?url`, ninguna página. Mismo límite que
+ * las demás; medido en C.6b, sin metadatos: 63 KB la foto y 89 KB el paquete de profundidad.
+ */
+const PORTRAIT_ASSET = /^portrait-(?:color|depth)-[\w-]+\.(?:jpg|png)$/;
+/**
  * JS de la escena (Three.js, React Three Fiber, lo que arrastran y `SceneRoot`), gzip: se pide en diferido
  * y ningún HTML lo nombra (ADR-020). Medido en F3.1, con el lienzo vacío: 241,6 KB, casi todo Three.js
  * entero (React Three Fiber lo importa completo). En F4.2, 249 066 B; ADR-032 lo sube a 260 KB para las
@@ -253,6 +258,17 @@ test.describe('build budgets', () => {
     expect(stills).toHaveLength(STILL_CHAPTERS.length * Object.keys(STILL_FRAMES).length * 2);
     const over = stills
       .map((still) => ({ still, bytes: statSync(join(STILLS_DIR, still)).size }))
+      .filter(({ bytes }) => bytes > IMAGE_BUDGET_BYTES);
+    expect(over).toEqual([]);
+  });
+
+  test('the portrait images (the worker downloads them from the turtle on) stay within the image budget', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Reads the build from disk: once is enough');
+    const portrait = readdirSync(ASSETS_DIR).filter((name) => PORTRAIT_ASSET.test(name));
+    // La foto y el paquete de profundidad: si cambian de nombre o de formato, este test tiene que enterarse.
+    expect(portrait).toHaveLength(2);
+    const over = portrait
+      .map((image) => ({ image, bytes: statSync(join(ASSETS_DIR, image)).size }))
       .filter(({ bytes }) => bytes > IMAGE_BUDGET_BYTES);
     expect(over).toEqual([]);
   });

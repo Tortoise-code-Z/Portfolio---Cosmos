@@ -79,7 +79,7 @@ for (const frameName of Object.keys(STILL_FRAMES) as StillFrameName[]) {
         await expect(scene).toHaveAttribute('data-level', frame.level, { timeout: 60_000 });
         // El retrato llega aparte, en su encargo al worker (sin él, el epílogo pinta la Tierra).
         if (chapter === EPILOGUE) {
-          await expect(scene).toHaveAttribute('data-portrait', 'loaded', { timeout: 60_000 });
+          await expect(scene).toHaveAttribute('data-portrait', 'painted', { timeout: 60_000 });
         }
         // Solo el lienzo: lo demás, invisible (sin cambiar la maqueta).
         await page.addStyleTag({

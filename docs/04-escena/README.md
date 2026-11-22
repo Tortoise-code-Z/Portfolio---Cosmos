@@ -9,7 +9,7 @@
 | Archivo | Qué define |
 |---|---|
 | `particulas-y-shaders.md` | Atributos, uniforms, shader de vértices y de fragmentos, mezcla, gravedad del cursor |
-| `formas.md` | Generadores de cada forma (singularidad, nebulosa, galaxia, tortuga, Tierra) y sus etiquetas |
+| `formas.md` | Generadores de cada forma (singularidad, nebulosa, galaxia, tortuga, Tierra, retrato) y sus etiquetas |
 | `camara-y-encuadre.md` | Keyframes de cámara, encuadre por capítulo, móvil, paralaje y vuelo a las placas |
 | `constelaciones-y-placas.md` | Estrellas de skills, líneas, placas de proyecto, pins y etiquetas proyectadas |
 | `rendimiento.md` | Niveles, presupuestos, degradación, pausa, alternativa sin WebGL y tests de la escena |
@@ -76,8 +76,10 @@ src/scene/
            stripGlslComments/ (los .glsl sin comentarios al compilar: plugin de vite.config.ts)
   useSceneShapes/          ← pide las formas al montar; reintento en el hilo principal (F3.2); `lowerTo` (F3.6)
   fpsMeter/ · useHotDegradation/   ← degradación en caliente: fps por ventanas de 2 s y bajar un nivel (F3.6)
-  worker/  shapes.worker.ts · handleShapesRequest/ · protocol/ · loadShapes/   (F3.2)
-  shapes/  prng/ · noise/ · sampling/ · hexGrid/ · nebula/ · galaxy/ · turtle/ · earth/ ·
+  usePortrait/             ← pide el retrato al llegar a la tortuga, una vez por visita (C.6b)
+  worker/  shapes.worker.ts · handleShapesRequest/ · protocol/ · loadShapes/   (F3.2) ·
+           handlePortraitRequest/ · decodePortrait/ (el retrato: sus imágenes, C.6b)
+  shapes/  prng/ · noise/ · sampling/ · hexGrid/ · nebula/ · galaxy/ · turtle/ · earth/ · portrait/ ·
            shapeContract/ · generateShapes/   (F3.2; la singularidad no se genera: formas.md)
            stars/   (F3.3: las estrellas de fondo, en el hilo principal)
   math/    camera/ (pose por m, FOV de móvil, paralaje; F3.4) · gravity/ (la gravedad del cursor; F4.2) ·

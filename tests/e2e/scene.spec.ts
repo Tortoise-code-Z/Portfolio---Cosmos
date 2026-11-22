@@ -35,7 +35,7 @@ import { SWIFTSHADER_RENDERER } from './support/renderers.ts';
 const SHAPES_WORKER = /\/assets\/shapes\.worker-[^/]+\.js$/;
 /** Los generadores, en su propio chunk: solo se descargan si el worker falla y hay que reintentar. */
 const GENERATOR_CHUNK = /\/assets\/generateShapes-[^/]+\.js$/;
-/** Las dos imágenes del retrato (forma 5), que pide el worker al acercarse a la Tierra. */
+/** Las dos imágenes del retrato (forma 5), que pide el worker al llegar a la tortuga. */
 const PORTRAIT_IMAGES = /\/assets\/portrait-(?:color|depth)-[^/]+\.(?:jpg|png)$/;
 /** Los dos chunks de la escena: `SceneRoot-*` (el componente) y `scene-*` (Three.js, R3F…, vite.config.ts). */
 const SCENE_CHUNK = /\/assets\/(?:scene|SceneRoot)-[^/]+\.js$/;
@@ -697,25 +697,33 @@ test.describe('the scene with WebGL', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the portrait is not downloaded at the start: the worker brings it near the Earth', async ({
+  test('the portrait is not downloaded at the start: the worker brings it from the turtle, and it paints without WebGL warnings', async ({
     page,
   }) => {
     const errors = collectErrors(page);
+    const glWarnings = collectGlWarnings(page);
     const images: string[] = [];
     page.on('request', (request) => {
       if (PORTRAIT_IMAGES.test(new URL(request.url()).pathname)) images.push(request.url());
     });
     await page.goto('/', { waitUntil: 'networkidle' });
-    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached();
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
+      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+    });
     await expect(page.locator('[data-portrait]')).toHaveCount(0);
     expect(images).toEqual([]);
     await page.locator('#contact').scrollIntoViewIfNeeded();
-    await expect(page.locator(SCENE_READY)).toHaveAttribute('data-portrait', 'loaded', {
-      timeout: PORTRAIT_WORKER_TIMEOUT_MS,
+    // El reloj del test corre desde el scroll, antes de que la `m` suavizada llegue a la tortuga: con margen.
+    await expect(page.locator(SCENE_READY)).toHaveAttribute('data-portrait', 'painted', {
+      timeout: PORTRAIT_WORKER_TIMEOUT_MS + SHAPES_WORKER_TIMEOUT_MS,
     });
+    // Ya pintado: unos frames más con él en la geometría, en el capítulo 5.
+    await page.locator('#crew-file').scrollIntoViewIfNeeded();
+    await nextFrames(page);
     // Las dos imágenes, una vez cada una (y así se sabe que el patrón casa con sus nombres).
     expect(images).toHaveLength(2);
     expect(errors).toEqual([]);
+    expect(glWarnings).toEqual([]);
   });
 
   test('portrait images that do not arrive: the Earth stays, warned once, and the scene goes on', async ({
@@ -728,12 +736,14 @@ test.describe('the scene with WebGL', () => {
     });
     await page.route(PORTRAIT_IMAGES, (route) => route.abort());
     await page.goto('/#crew-file');
-    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached();
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
+      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+    });
     await expect
       .poll(
         () => warnings.filter((text) => text.startsWith('[scene] The portrait did not arrive')),
         {
-          timeout: PORTRAIT_WORKER_TIMEOUT_MS,
+          timeout: PORTRAIT_WORKER_TIMEOUT_MS + SHAPES_WORKER_TIMEOUT_MS,
         },
       )
       .toHaveLength(1);
@@ -821,6 +831,48 @@ test.describe('the scene with WebGL', () => {
       await expect(scene).toHaveAttribute('data-level', 'low', { timeout: 30_000 });
       await expect(scene).toHaveAttribute('data-shapes', 'worker');
       expect(generator).toEqual([]);
+      await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
+      expect(errors).toEqual([]);
+      expect(glWarnings).toEqual([]);
+    });
+
+    test('the portrait on its way when the level goes down (entering by the Crew file): the same request, no WebGL warnings', async ({
+      page,
+      browserName,
+    }) => {
+      await startHigh(page, browserName);
+      const errors = collectErrors(page);
+      const glWarnings = collectGlWarnings(page);
+      const images: string[] = [];
+      page.on('request', (request) => {
+        if (PORTRAIT_IMAGES.test(new URL(request.url()).pathname)) images.push(request.url());
+      });
+      // Las imágenes se retienen hasta la primera bajada: el encargo del retrato está en marcha cuando cambia `count`.
+      let release = (): void => undefined;
+      const lowered = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      await page.route(PORTRAIT_IMAGES, async (route) => {
+        await lowered;
+        await route.continue();
+      });
+      await page.goto('/#crew-file');
+      const scene = page.locator(PARTICLES_PAINTED);
+      await expect(scene).toHaveAttribute('data-level', 'high', {
+        timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+      });
+      await expect.poll(() => images.length, { timeout: 30_000 }).toBe(2);
+      await expect(scene).toHaveAttribute('data-level', 'medium', { timeout: 30_000 });
+      release();
+      // Llega el retrato pedido en Alto y se pinta su principio (el de Medio, y después el de Bajo).
+      await expect(page.locator(SCENE_READY)).toHaveAttribute('data-portrait', 'painted', {
+        timeout: PORTRAIT_WORKER_TIMEOUT_MS,
+      });
+      await expect(scene).toHaveAttribute('data-level', 'low', { timeout: 30_000 });
+      await nextFrames(page);
+      await expect(page.locator(SCENE_READY)).toHaveAttribute('data-portrait', 'painted');
+      // Un solo encargo por visita: las dos imágenes, una vez cada una.
+      expect(images).toHaveLength(2);
       await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
       expect(errors).toEqual([]);
       expect(glWarnings).toEqual([]);

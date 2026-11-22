@@ -4,12 +4,26 @@ import { decodePortrait } from './decodePortrait';
 
 /**
  * jsdom no tiene `createImageBitmap` ni `OffscreenCanvas`: se sustituyen por unos que dan una imagen de `size`
- * píxeles (por URL) y apuntan cómo se leyó. Lo que se mira es el camino: descargar, leer sin gestión de color el
- * paquete de profundidad y fallar con un motivo claro.
+ * píxeles (por URL), con un valor propio en cada píxel (para saber cuál acaba en `color` y cuál en `pack`), y apuntan
+ * con qué opciones se leyó cada una. Lo que se mira es el camino: descargar, leer sin gestión de color el paquete de
+ * profundidad (y solo él) y fallar con un motivo claro.
  */
 const sizes = new Map<string, { width: number; height: number }>();
-const bitmapOptions: (ImageBitmapOptions | undefined)[] = [];
+/** Las opciones de `createImageBitmap`, por imagen. */
+const bitmapOptions = new Map<'color' | 'pack', ImageBitmapOptions | undefined>();
 let context2d = true;
+const COLOR_VALUE = 11;
+const PACK_VALUE = 22;
+
+type Which = 'color' | 'pack';
+const which = (url: string): Which => (url.includes('portrait-depth') ? 'pack' : 'color');
+
+interface FakeBitmap {
+  readonly width: number;
+  readonly height: number;
+  readonly image: Which;
+  readonly close: () => void;
+}
 
 class FakeCanvas {
   constructor(
@@ -18,12 +32,17 @@ class FakeCanvas {
   ) {}
   getContext() {
     if (!context2d) return null;
+    let drawn: Which = 'color';
     return {
-      drawImage: vi.fn(),
+      drawImage: (bitmap: FakeBitmap) => {
+        drawn = bitmap.image;
+      },
       getImageData: (_x: number, _y: number, width: number, height: number) => ({
         width,
         height,
-        data: new Uint8ClampedArray(width * height * 4).fill(width),
+        data: new Uint8ClampedArray(width * height * 4).fill(
+          drawn === 'pack' ? PACK_VALUE : COLOR_VALUE,
+        ),
       }),
     };
   }
@@ -31,26 +50,17 @@ class FakeCanvas {
 
 beforeEach(() => {
   context2d = true;
-  bitmapOptions.length = 0;
+  bitmapOptions.clear();
   sizes.clear();
   vi.stubGlobal(
     'fetch',
-    vi.fn((url: string) =>
-      Promise.resolve(
-        url.includes('missing')
-          ? new Response(null, { status: 404 })
-          : new Response(url, { status: 200 }),
-      ),
-    ),
+    vi.fn((url: string) => Promise.resolve(new Response(url, { status: 200 }))),
   );
   vi.stubGlobal('createImageBitmap', async (blob: Blob, options?: ImageBitmapOptions) => {
-    bitmapOptions.push(options);
-    const url = await blob.text();
-    const size = sizes.get(url.includes('portrait-depth') ? 'pack' : 'color') ?? {
-      width: 4,
-      height: 3,
-    };
-    return { ...size, close: vi.fn() };
+    const image = which(await blob.text());
+    bitmapOptions.set(image, options);
+    const size = sizes.get(image) ?? { width: 4, height: 3 };
+    return { ...size, image, close: vi.fn() } satisfies FakeBitmap;
   });
   vi.stubGlobal('OffscreenCanvas', FakeCanvas);
 });
@@ -60,16 +70,20 @@ afterEach(() => {
 });
 
 describe('decodePortrait', () => {
-  it('downloads both images and gives their pixels; the depth pack is read as data (no colour management)', async () => {
+  it('downloads both images and gives their pixels, each in its place; only the depth pack is read as data', async () => {
     const pixels = await decodePortrait();
     expect(pixels).toMatchObject({ width: 4, height: 3 });
     expect(pixels.color).toHaveLength(4 * 3 * 4);
     expect(pixels.pack).toHaveLength(4 * 3 * 4);
+    expect(pixels.color.every((value) => value === COLOR_VALUE)).toBe(true);
+    expect(pixels.pack.every((value) => value === PACK_VALUE)).toBe(true);
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(bitmapOptions).toContainEqual({
+    expect(bitmapOptions.get('pack')).toEqual({
       colorSpaceConversion: 'none',
       premultiplyAlpha: 'none',
     });
+    // La foto sí, con su gestión de color: es una imagen.
+    expect(bitmapOptions.get('color')).toBeUndefined();
   });
 
   it('fails with a reason: images of different sizes, no 2D canvas, an HTTP error', async () => {

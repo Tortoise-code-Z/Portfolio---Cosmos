@@ -98,7 +98,9 @@ export function CrewFile(): ReactNode {
       </p>
       <div className={styles.visor} aria-hidden="true" data-crew-visor="">
         <div className={styles.frame}>
-          <span className={styles.verified}>{t('crewFile.verified')}</span>
+          <span className={styles.verified} style={lineStyle(1 + record.length)}>
+            {t('crewFile.verified')}
+          </span>
         </div>
       </div>
       {cv === null ? null : (

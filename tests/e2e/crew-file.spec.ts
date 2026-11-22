@@ -50,6 +50,106 @@ test.describe('Crew file', () => {
     });
   }
 
+  for (const { width, height, path } of [
+    { width: 1280, height: 720, path: '/es' },
+    { width: 1440, height: 900, path: '/' },
+  ]) {
+    test(`${String(width)}×${String(height)} ${path}: the visor sits on the portrait, the file on its sides and the guides reach it`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height });
+      await page.goto(`${path}#crew-file`, { waitUntil: 'networkidle' });
+      await settleScene(page);
+      const layout = async () =>
+        page.evaluate(() => {
+          const box = (element: Element | null) => {
+            const rect = element?.getBoundingClientRect();
+            return rect === undefined
+              ? null
+              : { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+          };
+          const section = document.querySelector('[data-chapter="5"]');
+          const guide = (field: Element, side: 'left' | 'right') => {
+            const rect = field.getBoundingClientRect();
+            const after = getComputedStyle(field, '::after');
+            const length = Number.parseFloat(after.width);
+            return side === 'left' ? rect.right + length : rect.left - length;
+          };
+          const fields = [...(section?.querySelectorAll('dl > [data-line]') ?? [])];
+          // El lienzo o, sin WebGL, la foto fija del capítulo 5: el retrato va en su centro.
+          const canvas = document
+            .querySelector('canvas, img[data-still-chapter="5"]')
+            ?.getBoundingClientRect();
+          return {
+            // El centro del lienzo: el del retrato (la cámara del capítulo 5 no se aparta).
+            centre: canvas === undefined ? Number.NaN : (canvas.left + canvas.right) / 2,
+            middle: window.innerHeight / 2,
+            frame: box(section?.querySelector('[data-crew-visor] > div') ?? null),
+            title: box(section?.querySelector('h2') ?? null),
+            fields: fields.map((field) => box(field)),
+            guides: fields.map((field, index) => guide(field, index < 3 ? 'left' : 'right')),
+          };
+        });
+      const { centre, middle, frame, title, fields, guides } = await layout();
+      expect(frame).not.toBeNull();
+      if (frame === null || title === null) return;
+      expect(Math.abs((frame.left + frame.right) / 2 - centre)).toBeLessThanOrEqual(1);
+      // El título, entero a la izquierda del visor (en español, «Tripulación» sin partir ni entrar).
+      expect(title.right).toBeLessThanOrEqual(frame.left);
+      // Los campos 1–3 a su izquierda y los 4–6 a su derecha, sin pisarlo; cada línea guía llega justo al marco.
+      expect(fields).toHaveLength(6);
+      fields.forEach((field, index) => {
+        if (field === null) return;
+        if (index < 3) expect(field.right).toBeLessThanOrEqual(frame.left);
+        else expect(field.left).toBeGreaterThanOrEqual(frame.right);
+      });
+      guides.forEach((end, index) => {
+        expect(Math.abs(end - (index < 3 ? frame.left : frame.right))).toBeLessThanOrEqual(1);
+      });
+      // Al bajar por la ficha, el marco sigue pegado al centro de la pantalla (el retrato está fijo en el lienzo).
+      await page.mouse.wheel(0, height / 3);
+      await expect
+        .poll(async () => {
+          const after = await layout();
+          return after.frame === null
+            ? Infinity
+            : Math.abs((after.frame.top + after.frame.bottom) / 2 - middle);
+        })
+        .toBeLessThanOrEqual(1);
+    });
+  }
+
+  test('390 px and 1024 px (one column): the visor, with the proportion of the portrait, centred on it', async ({
+    page,
+  }) => {
+    for (const { width, height } of [
+      { width: 390, height: 844 },
+      { width: 1024, height: 768 },
+    ]) {
+      await page.setViewportSize({ width, height });
+      await page.goto('/#crew-file', { waitUntil: 'networkidle' });
+      await settleScene(page);
+      const { centre, frame } = await page.evaluate(() => {
+        const rect = document.querySelector('[data-crew-visor] > div')?.getBoundingClientRect();
+        const canvas = document
+          .querySelector('canvas, img[data-still-chapter="5"]')
+          ?.getBoundingClientRect();
+        return {
+          centre: canvas === undefined ? Number.NaN : (canvas.left + canvas.right) / 2,
+          frame:
+            rect === undefined ? null : { left: rect.left, width: rect.width, height: rect.height },
+        };
+      });
+      expect(frame).not.toBeNull();
+      if (frame === null) return;
+      expect(
+        Math.abs(frame.left + frame.width / 2 - centre),
+        `${String(width)} px`,
+      ).toBeLessThanOrEqual(1);
+      expect(frame.width / frame.height).toBeCloseTo(720 / 637, 2);
+    }
+  });
+
   test('the rail stop travels to it, with the focus on its title', async ({ page }) => {
     await page.goto('/#contact', { waitUntil: 'networkidle' });
     await rail(page).getByRole('link', { name: 'Crew file · Epilogue' }).click();

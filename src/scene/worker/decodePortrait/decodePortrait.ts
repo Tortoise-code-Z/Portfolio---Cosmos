@@ -5,8 +5,8 @@ import type { PortraitPixels } from '../../shapes/portrait/portrait';
 
 /**
  * Las imágenes del retrato, descargadas y leídas en el worker (docs/04-escena/rendimiento.md → «Worker de las
- * formas»): `fetch`, `createImageBitmap` y un `OffscreenCanvas`. Solo corre en un navegador: la lógica que se
- * prueba es la del generador (`shapes/portrait`), con píxeles hechos a mano; esto lo cubre el e2e de la escena.
+ * formas»): `fetch`, `createImageBitmap` y un `OffscreenCanvas`. Su test sustituye esas tres piezas del navegador y
+ * mira el camino (cada imagen a su sitio, el paquete leído como datos, los fallos); que se vea de verdad, el e2e.
  */
 
 /** Sin gestión de color ni alfa premultiplicado: el paquete de profundidad son datos, no una imagen. */

@@ -43,12 +43,22 @@ describe('usePortrait', () => {
     );
   });
 
-  it('waits for the shapes: no count, no request', () => {
-    const { result } = renderHook(() => usePortrait(null));
+  it('waits for the shapes: no count, no request; with the count, one request for it', async () => {
+    const { result, rerender } = renderHook((count: number | null) => usePortrait(count), {
+      initialProps: null as number | null,
+    });
     act(() => {
       result.current.want();
     });
     expect(loadPortrait).not.toHaveBeenCalled();
+    rerender(50);
+    await waitFor(() => {
+      expect(result.current.portrait).toEqual(portraitOf(50));
+    });
+    expect(loadPortrait).toHaveBeenCalledExactlyOnceWith(
+      { count: 50, seed: SCENE_SEED },
+      { signal: expect.any(AbortSignal) as unknown },
+    );
   });
 
   it('fewer particles (the hot degradation): the start of the one it has, without asking again', async () => {
@@ -66,9 +76,39 @@ describe('usePortrait', () => {
     expect(loadPortrait).toHaveBeenCalledTimes(1);
   });
 
-  it('if it does not arrive: a warning and the Earth (null), with no retry', async () => {
+  it('fewer particles while it is on its way: the same request (not cancelled) and the start of it', async () => {
+    let arrive: (() => void) | undefined;
+    vi.mocked(loadPortrait).mockImplementation(
+      (request) =>
+        new Promise((resolve) => {
+          arrive = () => {
+            resolve({ ok: true, value: portraitOf(request.count) });
+          };
+        }),
+    );
+    const { result, rerender } = renderHook((count: number) => usePortrait(count), {
+      initialProps: 50,
+    });
+    act(() => {
+      result.current.want();
+    });
+    const signal = vi.mocked(loadPortrait).mock.calls[0]?.[1]?.signal;
+    rerender(20);
+    expect(signal?.aborted).toBe(false);
+    act(() => {
+      arrive?.();
+    });
+    await waitFor(() => {
+      expect(result.current.portrait).toEqual(portraitOf(50).subarray(0, 20 * 4));
+    });
+    expect(loadPortrait).toHaveBeenCalledTimes(1);
+  });
+
+  it('if it does not arrive: a warning and the Earth (null), with no retry, not even with fewer particles', async () => {
     answers(() => ({ ok: false, reason: 'rejected', detail: 'HTTP 404' }));
-    const { result } = renderHook(() => usePortrait(50));
+    const { result, rerender } = renderHook((count: number) => usePortrait(count), {
+      initialProps: 50,
+    });
     act(() => {
       result.current.want();
     });
@@ -79,8 +119,12 @@ describe('usePortrait', () => {
         'HTTP 404',
       );
     });
+    rerender(20);
+    rerender(10);
+    await Promise.resolve();
     expect(result.current.portrait).toBeNull();
     expect(loadPortrait).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledTimes(1);
   });
 
   it('cancels the request when unmounted, and a cancelled one is not a warning', async () => {

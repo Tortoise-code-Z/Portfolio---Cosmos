@@ -6,6 +6,9 @@
  * Móvil y tableta, una columna en el orden del DOM: entrada, visor (el hueco del retrato), «Download CV», la ficha, el
  * email y el pie del sitio. Desde lg, el visor en el centro, centrado en la ventana como el retrato; la ficha a los
  * lados con sus líneas guía hacia él, y abajo «Download CV» y el email.
+ *
+ * El retrato está en el centro de la ventana (la cámara del capítulo 5 no se aparta), pero el cuerpo de la
+ * transmisión deja a la derecha el sitio del raíl (`--rail-room`): el visor se corre esa mitad para caer sobre él.
  */
 .lead {
   max-inline-size: var(--measure);
@@ -16,10 +19,14 @@
 
 /*
  * El visor: el hueco por el que se ve el retrato (en móvil, en la columna) y su marco, con cuatro esquinas y, al pie,
- * «Identity verified». Decoración.
+ * «Identity verified». Decoración. En una columna, del alto del retrato y con su proporción, centrado con él.
  */
 .visor {
+  justify-self: center;
   block-size: var(--visor-h);
+  max-inline-size: 100%;
+  aspect-ratio: var(--visor-ratio);
+  translate: calc(var(--rail-room) / 2) 0;
 }
 
 .frame {
@@ -45,14 +52,18 @@
   text-shadow: var(--_ch-text-glow);
 }
 
-/* Con la transmisión armada, «Identity verified» espera a que el teletipo acabe la ficha (sin movimiento reducido). */
+/*
+ * Con la transmisión armada, «Identity verified» espera a que el teletipo acabe la ficha (sin movimiento reducido): su
+ * `--_line` es la del último campo de la ficha (CrewFile.tsx), y entra cuando esa línea acaba de escribirse.
+ */
 [data-armed] .verified {
   opacity: 0;
 }
 
 [data-armed][data-on] .verified {
   opacity: 1;
-  transition: opacity var(--dur-fade-slow) var(--ease-out) calc(10 * var(--dur-teletype-step));
+  transition: opacity var(--dur-fade-slow) var(--ease-out)
+    calc(var(--_line) * var(--dur-teletype-step) + var(--dur-teletype-line));
 }
 
 .cv {
@@ -173,12 +184,19 @@
 @media (width >= 1280px) {
   /*
    * Tres columnas en el cuerpo de la transmisión: el aviso, el título y la entrada arriba a la izquierda; el visor en
-   * el centro, a todo el alto; la ficha a los lados (la misma rejilla dentro de la lista) y abajo «Download CV» y el
-   * email.
+   * el centro, a todo el alto; la ficha a los lados (la misma rejilla dentro de la lista) y abajo el email y
+   * «Download CV».
+   *
+   * La pista del centro cae bajo el visor: la primera mide hasta el centro de la ventana (el 50 % del cuerpo más la
+   * mitad del sitio del raíl), menos el hueco entre pistas y medio visor. La de la derecha, lo que queda (la más
+   * estrecha: el raíl). El aviso y el título, solo en la primera y con su letra (`--text-crew-title`): con la de un
+   * h1, en español, «Tripulación» no cabe en ella y entraría en el visor.
    */
   .crewFile {
-    --_body-columns: minmax(0, 1fr) var(--visor-w) minmax(0, 1fr);
-    --_head-column: 1 / 3;
+    --_body-columns: calc(50% + var(--rail-room) / 2 - var(--space-6) - var(--visor-w) / 2)
+      var(--visor-w) minmax(0, 1fr);
+    --_head-column: 1;
+    --_title-size: var(--text-crew-title);
   }
 
   .lead {
@@ -194,7 +212,9 @@
     inset-block: 0;
     inset-inline-start: 50%;
     inline-size: var(--visor-w);
+    max-inline-size: none;
     block-size: auto;
+    aspect-ratio: auto;
     translate: -50% 0;
     pointer-events: none;
   }
@@ -231,11 +251,11 @@
     grid-column: 3;
   }
 
-  /* Las líneas guía: de cada dato hacia el visor (decoración). */
+  /* Las líneas guía: de cada dato hasta el marco del visor, el hueco entre pistas (decoración). */
   .field::after {
     position: absolute;
     inset-block-start: calc(var(--space-3) + 0.5lh);
-    inline-size: calc(var(--space-6) + var(--space-5));
+    inline-size: var(--space-6);
     block-size: var(--border-width);
     background: var(--_ch-line);
     content: '';
@@ -250,18 +270,19 @@
   }
 
   /*
-   * «Download CV» y el email, abajo, en la misma fila (`order`: la rejilla los coloca después de la ficha; el foco
-   * sigue el DOM, y en la ficha no hay nada que enfocar). El pie del sitio, después.
+   * El email y «Download CV», abajo, en la misma fila (`order`: la rejilla los coloca después de la ficha; el foco
+   * sigue el DOM, y en la ficha no hay nada que enfocar). El email a la izquierda, la pista ancha: en la de la derecha
+   * no cabe sin partirse. El pie del sitio, después.
    */
-  .cv {
-    order: 1;
-    grid-column: 1;
-    align-self: center;
-  }
-
   .emailRow {
     order: 1;
+    grid-column: 1;
+  }
+
+  .cv {
+    order: 1;
     grid-column: 3;
+    align-self: center;
   }
 
   .site {

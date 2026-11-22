@@ -96,3 +96,10 @@ export const HOT_DEGRADATION = {
   warmupS: 2,
   minFps: { desktop: 45, handheld: 26 },
 } as const;
+
+/**
+ * El retrato aparece (`uPor` de 0 a 1) en estos segundos reales cuando llega con la escena ya en la Tierra o en el
+ * retrato (docs/04-escena/formas.md → «Retrato»): sin él, saltar al final por el raíl lo cambiaba de golpe. Cada
+ * partícula pasa con su retraso del morph y el haz de barrido baja con la subida. Con movimiento reducido, de golpe.
+ */
+export const PORTRAIT_FADE_IN_S = 0.6;

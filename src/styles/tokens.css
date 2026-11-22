@@ -314,12 +314,24 @@
   /* Mission log: columna mínima de la ficha, círculo del número, columna de la etiqueta (ARREGLADO en 10 letras). */
   --record-col-min: 150px;
   /*
-   * Crew file: el visor del retrato. Alto en móvil y tableta (un hueco en la columna, del tamaño del retrato en
-   * pantalla: ~58 % del ancho en una pantalla estrecha y ~72 % del alto en una ancha) y, desde lg, su ancho y alto en el
-   * centro de la ficha; el largo de sus esquinas y lo que se sale cada línea guía.
+   * Crew file: el visor del retrato. Alto en móvil y tableta (un hueco en la columna, del alto del retrato en pantalla:
+   * ~58 % del ancho entre los aspectos 0,55 y 1,25, algo más en un móvil, ~68 %, y ~72 % del alto en una pantalla
+   * ancha) y, desde lg, su ancho en el centro de la ficha (el alto del marco es el mismo `--visor-h`). La proporción
+   * del retrato (la de sus imágenes, `PORTRAIT_FRAME`: lo compara su test) y el largo de sus esquinas.
    */
   --visor-h: min(62vw, 72svh);
   --visor-w: min(52svh, 32vw);
+  --visor-ratio: 720 / 637;
+  /*
+   * El título del Crew file desde lg, en la pista de la izquierda del visor: la letra de un h2, o menos si «Tripulación»
+   * no cabe entera en esa pista. La pista mide media ventana menos el margen, el hueco entre pistas y medio visor
+   * (CrewFile.module.css); la palabra, 11 letras de 0,7 em (0,6 de la mono y 0,1 de espaciado): se divide entre 8,
+   * con margen para la barra de scroll, que `vw` cuenta.
+   */
+  --text-crew-title: min(
+    var(--text-h2),
+    (50vw - var(--gutter) - var(--space-6) - var(--visor-w) / 2) / 8
+  );
   --visor-corner: 28px;
   /* Las cuatro esquinas del visor, en `currentcolor` (el color del texto de quien las pinta). */
   --visor-corners:

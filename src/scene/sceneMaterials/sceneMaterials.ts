@@ -2,6 +2,7 @@ import { AdditiveBlending, ShaderMaterial, Vector2, type IUniform } from 'three'
 
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
 
+import { PORTRAIT_FADE_IN_S } from '../config/sceneConfig';
 import { createCameraPose, type CameraPose } from '../math/camera/camera';
 import { createGravity, type Gravity } from '../math/gravity/gravity';
 import { createScenePointer, type ScenePointer } from '../pointer/pointer';
@@ -40,7 +41,10 @@ export interface ParticleUniforms {
   readonly uMotion: IUniform<number>;
   /** 1 · 0 en Bajo: sin estela de la tortuga ni luces de ciudad. */
   readonly uExtras: IUniform<number>;
-  /** 1 con el retrato cargado (`pPor`) · 0 hasta entonces: la forma 5 es la Tierra. */
+  /**
+   * El retrato (`pPor`): 0 hasta que está en la geometría (la forma 5 es la Tierra); entonces sube a 1 en
+   * `PORTRAIT_FADE_IN_S` (de golpe con movimiento reducido) y la Tierra pasa a retrato.
+   */
   readonly uPor: IUniform<number>;
 }
 
@@ -152,14 +156,21 @@ export function createSceneFrame(): SceneFrame {
   };
 }
 
-/** `portrait`: el retrato ya está en la geometría (`pPor`). */
+/**
+ * `portrait`: el retrato ya está en la geometría (`pPor`). `uPor` sube desde lo que valía (los uniforms duran toda la
+ * visita, también al cambiar las formas): solo vuelve a 0 sin retrato.
+ */
 export function updateParticleUniforms(
   uniforms: ParticleUniforms,
   frame: Readonly<SceneFrame>,
   portrait = false,
 ): void {
   uniforms.uM.value = frame.m;
-  uniforms.uPor.value = portrait ? 1 : 0;
+  uniforms.uPor.value = !portrait
+    ? 0
+    : frame.reducedMotion
+      ? 1
+      : Math.min(1, uniforms.uPor.value + frame.delta / PORTRAIT_FADE_IN_S);
   uniforms.uCharge.value = frame.charge;
   uniforms.uTime.value = frame.time;
   uniforms.uPR.value = frame.pixelRatio;

@@ -28,7 +28,7 @@
 - **Para qué:** el modo sin WebGL del viaje (ADR-029; `docs/02-experiencia/estados-y-accesibilidad.md` → «Sin
   WebGL»): la forma del capítulo activo sobre el degradado del espacio. ✔ F3.9
 - **Origen:** la escena real, fotografiada por `npm run stills` dentro de la imagen de Playwright (Docker, como las
-  capturas; `tests/stills/stills.spec.ts`, `playwright.stills.config.ts`): entra por el ancla de cada capítulo 1–4
+  capturas; `tests/stills/stills.spec.ts`, `playwright.stills.config.ts`): entra por el ancla de cada capítulo 1–5
   con movimiento reducido y fotografía solo el lienzo, sobre negro (`--color-void` a `#000`).
 - **Encuadres** (`src/features/scene-mount/stillFrames` → `STILL_FRAMES`):
   - **Escritorio:** 2160 × 900 px a densidad 2, en Alto, con `shiftX`. Ajustada al alto cubre cualquier pantalla de
@@ -41,9 +41,10 @@
 - **Presupuesto:** cada archivo ≤ 200 KB (`budgets.spec.ts`; en F3.9, la mayor la WebP de la galaxia de escritorio,
   ~160 KB; las de móvil, ≤ 15 KB).
 - **Cuándo se rehacen:** al cambiar las formas, los shaders, la paleta, la cámara, los niveles, las cuentas que
-  comparten (`lib/math`), cómo se piden las formas, los proyectos (las placas de la tortuga) o el propio script.
+  comparten (`lib/math`), cómo se piden las formas, las imágenes del retrato (`src/assets/portrait/`, byte a byte), los
+  proyectos (las placas de la tortuga) o el propio script.
   `stills.json` guarda la huella de todo eso (`tests/stills/fingerprint.ts`; de los proyectos, solo sus placas) y
-  `budgets.spec.ts` falla si no coincide. La huella solo se escribe si en esa pasada se han rehecho las 16 fotos: `npm run stills`, mirar las fotos y commitearlas con el cambio (y `npm run visual:update` si cambia la
+  `budgets.spec.ts` falla si no coincide. La huella solo se escribe si en esa pasada se han rehecho las 20 fotos: `npm run stills`, mirar las fotos y commitearlas con el cambio (y `npm run visual:update` si cambia la
   captura del modo sin WebGL).
 
 ## Tipografías

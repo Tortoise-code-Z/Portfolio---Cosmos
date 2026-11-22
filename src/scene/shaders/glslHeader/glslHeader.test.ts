@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
+import { CAMERA_KEYFRAMES } from '../../config/sceneConfig';
 import { SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
 import { EARTH_TAG, PORTRAIT_FRAME, TURTLE_TAG } from '../../shapes/shapeContract/shapeContract';
 import constellationLinesFragment from '../constellations/constellationLines.frag.glsl?raw';
@@ -41,9 +42,29 @@ describe('glslHeader', () => {
     expect(header).toContain(`#define PLATE_LAST ${glslFloat(LAST_PLATE_LABEL)}\n`);
   });
 
-  it('defines the half height of the portrait, from its frame (the sweep goes from top to bottom)', () => {
+  it('defines the half height of the portrait and its fade at the bottom, from its frame', () => {
     const value = /#define PORTRAIT_HALF_H (\S+)\n/.exec(header)?.[1];
     expect(Number(value)).toBeCloseTo(PORTRAIT_FRAME.halfHeight, 4);
+    const fade = /#define PORTRAIT_FADE_H (\S+)\n/.exec(header)?.[1];
+    expect(Number(fade)).toBeCloseTo(PORTRAIT_FRAME.fadeHeight, 4);
+  });
+
+  it('LAST_M of the particles shader stops just short of the last shape (one per camera keyframe)', () => {
+    // El último morph va de la penúltima forma a la última: `floor(m)` llega a la penúltima y `k + 1` es la última.
+    const value = /const float LAST_M = (\S+);/.exec(particlesVertex)?.[1];
+    expect(Number(value)).toBeCloseTo(CAMERA_KEYFRAMES.length - 2 + 0.999, 6);
+  });
+
+  it('no pow() whose base can be negative (undefined in GLSL ES): only the bases known to be ≥ 0', () => {
+    // Una base que puede ser negativa se escribe como producto (`exp(-q * q)`): particulas-y-shaders.md.
+    const allowed = ['pow(rim,', 'pow(2.0,', 'pow(1.0 - d * 2.0,'];
+    for (const [name, source] of Object.entries(SHADERS)) {
+      const calls = [...source.matchAll(/\bpow\([^,]*,/g)].map(([call]) => call);
+      expect(
+        calls.filter((call) => !allowed.includes(call)),
+        name,
+      ).toEqual([]);
+    }
   });
 
   it('a vec3 per palette colour, with its components', () => {

@@ -176,7 +176,8 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--caret-size` | 0.5em | Triángulo de «Incoming transmission» (SVG) |
 | `--wave-max-w` · `--wave-stroke` | 360 px · 1,5 | Onda del pie de una transmisión (ancho máximo y trazo, en unidades del SVG) |
 | `--record-col-min` | 150 px | Columna mínima de la ficha del Mission log (y del Crew file en una columna) |
-| `--visor-h` · `--visor-w` | `min(62vw, 72svh)` · `min(52svh, 32vw)` | Visor del retrato en el Crew file: su alto (en móvil y tableta, el hueco del retrato en la columna, que ocupa ~58 % del ancho en una pantalla estrecha y ~72 % del alto en una ancha) y, desde lg, su ancho en el centro |
+| `--visor-h` · `--visor-w` · `--visor-ratio` | `min(62vw, 72svh)` · `min(52svh, 32vw)` · `720 / 637` | Visor del retrato en el Crew file: su alto (en móvil y tableta, el hueco del retrato en la columna: su alto en pantalla es ~58 % del ancho entre los aspectos 0,55 y 1,25, algo más en un móvil, ~68 %, y ~72 % del alto en una pantalla ancha; desde lg, también el alto del marco), desde lg su ancho en el centro, y la proporción del retrato (la de sus imágenes, `PORTRAIT_FRAME`; lo compara `shapeContract.test.ts`), que da el ancho del visor en una columna |
+| `--text-crew-title` | `min(--text-h2, (50vw − gutter − space-6 − visor-w / 2) / 8)` | El título del Crew file desde lg, en la columna de la izquierda del visor: la letra de un h2, o menos si «Tripulación» no cabe entera (11 letras de 0,7 em) |
 | `--visor-corner` · `--visor-corners` | 28 px · 8 degradados | Largo de las esquinas del visor y su dibujo (en `currentcolor`) |
 | `--log-number-size` · `--log-tag-w` | 2.2em · 10ch | Círculo del número de una entrada del registro · columna de su etiqueta (escritorio) |
 | `--cursor-w` · `--cursor-h` · `--blink-count` | 0.6em · 1em · 4 | Cursor de bloque del teletipo de las transmisiones (`BlinkCursor`) y cuántas veces parpadea (menos de 5 s, WCAG 2.2.2) |

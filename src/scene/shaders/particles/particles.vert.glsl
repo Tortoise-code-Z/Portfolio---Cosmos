@@ -201,24 +201,25 @@ void earth(out vec3 P, out vec3 C, out float S, out float A) {
 // Forma 5 · retrato: holograma de escáner con la luz de la foto (pPor.w), fallos de señal (una franja salta de
 // lado un instante) y giro limitado con el ratón. Llega apagado: el haz de barrido baja con el morph (m de 4 a 5)
 // y enciende lo que deja atrás; después pasa en bucle. Con movimiento reducido, encendido y sin haz ni fallos.
-// Hasta que llega el retrato (uPor 0), la Tierra.
+// Hasta que llega el retrato (uPor 0), la Tierra; al llegar, uPor sube a 1 en un instante y cada partícula pasa de
+// la Tierra al retrato con su retraso del morph (si llega con la escena ya aquí, el haz baja con esa subida).
 void portrait(out vec3 P, out vec3 C, out float S, out float A) {
-  if (uPor < 0.5) {
-    earth(P, C, S, A);
-    return;
-  }
   vec3 p = pPor.xyz;
-  float tick = floor(uTime * 5.0);
+  // El tick se acota: con uTime grande, sin() pierde precisión en la GPU y los fallos dejarían de ser al azar.
+  float tick = mod(floor(uTime * 5.0), 997.0);
   float band = floor(p.y * 9.0);
   float glitch = uMotion * step(0.99, hash(band * 1.37 + tick * 17.1));
   p.x += glitch * (hash(band * 7.3 + tick) - 0.5) * 0.47;
-  p = rotY(p, uMouse.x * uGrav * 0.44);
-  float f = smoothstep(0.3, 1.0, uM - 4.0);
+  p = rotY(p, clamp(uMouse.x, -1.0, 1.0) * uGrav * 0.44);
+  float f = min(smoothstep(0.3, 1.0, uM - 4.0), uPor);
   float sweep = mix(PORTRAIT_HALF_H, -PORTRAIT_HALF_H - 0.3, f);
-  float beam = f < 0.99 ? sweep : PORTRAIT_HALF_H * 1.1 - mod(uTime * 1.3, PORTRAIT_HALF_H * 3.0);
+  // Al acabar el barrido entra el haz en bucle, fundido (sin saltar a mitad de la cara). Bases al cuadrado, nunca pow.
+  float q = (pPor.y - sweep) * 3.0;
+  float r = (pPor.y - PORTRAIT_HALF_H * 1.1 + mod(uTime * 1.3, PORTRAIT_HALF_H * 3.0)) * 3.0;
+  float beam = mix(exp(-q * q), exp(-r * r), smoothstep(0.8, 1.0, f));
   float lit = max(smoothstep(sweep - 0.05, sweep + 0.1, pPor.y), 1.0 - uMotion);
-  // El haz y los fallos no encienden lo que la foto funde (el corte del busto, abajo).
-  float i = pPor.w + (exp(-pow((pPor.y - beam) * 3.0, 2.0)) * uMotion + glitch * 0.6) * smoothstep(0.0, 0.1, pPor.w);
+  // El haz y los fallos no encienden lo que la foto funde (el corte del busto, abajo): el mismo fundido, por la altura.
+  float i = pPor.w + (beam * uMotion + glitch * 0.6) * smoothstep(-PORTRAIT_HALF_H, PORTRAIT_FADE_H - PORTRAIT_HALF_H, pPor.y);
   i *= 0.93 + 0.07 * sin(uTime * 23.0 + pPor.y * 3.0);
   vec3 c = i < 0.6
     ? mix(COLOR_PORTRAIT_DEEP, COLOR_PORTRAIT_GLOW, i / 0.6)
@@ -227,6 +228,15 @@ void portrait(out vec3 P, out vec3 C, out float S, out float A) {
   C = c * i * i * 1.5 * mix(0.12, 1.0, lit);
   S = 1.5;
   A = 0.8;
+  if (uPor < 1.0) {
+    vec3 EP; vec3 EC; float ES; float EA;
+    earth(EP, EC, ES, EA);
+    float w = smoothstep(0.0, 1.0, clamp((uPor - aR.x * MORPH_DELAY) / MORPH_SPAN, 0.0, 1.0));
+    P = mix(EP, P, w);
+    C = mix(EC, C, w);
+    S = mix(ES, S, w);
+    A = mix(EA, A, w);
+  }
 }
 
 void shape(float k, out vec3 P, out vec3 C, out float S, out float A) {
@@ -258,7 +268,8 @@ void main() {
       cos(aR.w * 29.0 + uTime * 0.4),
       sin(aR.w * 23.0 - uTime * 0.3)
     );
-    P = mix(PA, PB, tt) + jitter * sin(tt * PI) * MORPH_SCATTER;
+    // Sin retrato, del 4 al 5 la Tierra va a sí misma: sin dispersión (no se hincha); con él, a la vez que sube.
+    P = mix(PA, PB, tt) + jitter * sin(tt * PI) * MORPH_SCATTER * (k > 3.5 ? uPor : 1.0);
     C = mix(CA, CB, tt);
   }
   float S = mix(SA, SB, tt);

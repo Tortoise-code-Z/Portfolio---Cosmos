@@ -14,7 +14,8 @@
 
 - **PRNG con semilla** (`shapes/prng`): `mulberry32` y `subSeed(semilla, nombre)` (FNV-1a del nombre más un
   mezclado final). `SCENE_SEED` (`config/sceneConfig.ts`) es la semilla del proyecto; cada parte (`nebula`,
-  `galaxy`, `turtle`, `earth`, `rand`) consume su propio flujo, así que retocar una forma no mueve las demás.
+  `galaxy`, `turtle`, `earth`, `rand` y, en su encargo aparte, `portrait`) consume su propio flujo, así que retocar
+  una forma no mueve las demás.
   `Math.random` está prohibido en `src/scene/**` (ESLint, ADR-011).
 - **Ruido** (`shapes/noise`): suma de senos anidados (`n3`) y `fbm` de 3 octavas (pesos 1 · 0,5 · 0,25,
   frecuencias × 1 · 2,03 · 4,1), los del prototipo. **No** necesita ser idéntico en GLSL: la tierra y las
@@ -86,15 +87,23 @@ placas cambian cuántos números gasta el caparazón); las demás formas y `aR.x
 ## Forma 5 · Retrato (`pPor`, 4 por partícula; desde C.6b)
 
 Un relieve sacado de una sola foto (`docs/02-experiencia/capitulos/05-crew-file.md`), como holograma de escáner. No se
-genera con las demás: es un encargo aparte al worker (`rendimiento.md` → «Worker de las formas») que se pide cuando la
-escena llega a la Tierra (`PORTRAIT_LOAD_FROM_M` = 3). Hasta que llega, o si falla, la forma 5 es la Tierra (`uPor` 0).
+genera con las demás: es un encargo aparte al worker (`rendimiento.md` → «Worker de las formas») que se pide al llegar
+a la tortuga, un tramo antes de la Tierra (`PORTRAIT_LOAD_FROM_M` = 3: la descarga tiene ese margen; no subirla a 4).
+Hasta que llega, o si falla, la forma 5 es la Tierra (`uPor` 0). Al llegar, `uPor` sube a 1 en 0,6 s
+(`PORTRAIT_FADE_IN_S`; de golpe con movimiento reducido) y cada partícula pasa de la Tierra al retrato con su retraso
+del morph: quien salta al final por el raíl o la misión rápida, o entra por `/#crew-file`, lo ve formarse, con el haz
+de barrido bajando con esa subida, en vez de un cambio seco. Sin retrato, el tramo del 4 al 5 lleva a la Tierra a sí
+misma sin la dispersión del morph (no se hincha).
 
 - **Datos:** dos imágenes de 720 × 637 en `src/assets/portrait/` (las genera `scripts/portrait/`, con su README):
-  `portrait-color.jpg`, la foto, y `portrait-depth.png` (R profundidad 1..255 y 0 = fondo · G distancia al borde ×16
-  · B contornos). El tamaño es contrato (`PORTRAIT_FRAME`): el generador rechaza otro.
+  `portrait-color.jpg`, la foto, y `portrait-depth.png` (R profundidad 3..255 y 0 = fondo · G distancia al borde ×16
+  · B contornos). El 1 y el 2 no se usan (`PORTRAIT.depthFloor`): los navegadores con protección contra huellas
+  (Brave) meten ruido de ±1–2 en lo que se lee de un canvas, y con el fondo en 0 exacto salían puntos sueltos por todo
+  el fondo. El tamaño es contrato (`PORTRAIT_FRAME`): el generador rechaza otro. Llevan solo píxeles, sin bloques de
+  metadatos (lo comprueba `shapeContract.test.ts`).
 - **Sitios:** cada píxel de la figura en las filas del escáner (una de cada tres), en el centro de su fila; el borde de
-  la silueta (junto al fondo, no junto al borde de la foto) suma 5 paredes que se curvan hacia atrás y hacia dentro
-  (hasta 14 px, 0,3 de profundidad) y se oscurecen; un salto de profundidad de más de 0,025 con un vecino (la
+  la silueta (junto al fondo, no junto al borde de la foto) suma 5 paredes que se curvan hacia atrás y hacia dentro,
+  lejos del fondo en horizontal y en vertical (hasta 14 px, 0,3 de profundidad; ninguna sale de la figura) y se oscurecen; un salto de profundidad de más de 0,025 con un vecino (la
   mandíbula sobre el cuello) suma una pared hasta él (una por cada 0,04, máx. 24). Las partículas se reparten entre
   los sitios al azar sin repetir (Fisher–Yates parcial) y, si hay más partículas que sitios, se repiten al azar.
 - **El retrato de `n` partículas es el principio del de más:** el azar de cada partícula no depende de `count`. La

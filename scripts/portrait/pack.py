@@ -2,7 +2,8 @@
 
 Escribe en CARPETA (src/assets/portrait/):
 - portrait-color.jpg: la foto a 720 px de ancho.
-- portrait-depth.png: R profundidad (1..255; 0 = fondo) · G distancia al borde ×16 · B contornos de la foto.
+- portrait-depth.png: R profundidad (3..255; 0 = fondo; 1 y 2 sin usar: margen para el ruido que algunos navegadores
+  meten al leer un canvas, PORTRAIT.depthFloor) · G distancia al borde ×16 · B contornos de la foto.
 El tamaño (720 × alto) es contrato con la escena: PORTRAIT_FRAME en src/scene/shapes/shapeContract. Ver README.md.
 """
 import os
@@ -36,7 +37,7 @@ ds = np.where(ms, num / np.maximum(den, 1e-4), ds)
 lo, hi = np.percentile(ds[ms], [1, 99.7])
 dn = np.clip((ds - lo) / (hi - lo), 0, 1)
 dist = cv2.distanceTransform(ms.astype(np.uint8), cv2.DIST_L2, 5)
-R = np.where(ms, 1 + np.round(dn * 254), 0).astype(np.uint8)
+R = np.where(ms, 3 + np.round(dn * 252), 0).astype(np.uint8)
 G = np.clip(dist * 16, 0, 255).astype(np.uint8)
 # Contornos de la foto (Sobel), en 8 niveles.
 gray = cv2.GaussianBlur(cv2.cvtColor(col, cv2.COLOR_BGR2GRAY).astype(np.float32) / 255, (0, 0), 1.8)
