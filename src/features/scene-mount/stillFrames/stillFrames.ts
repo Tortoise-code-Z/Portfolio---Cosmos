@@ -8,8 +8,8 @@ import type { RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
  * (docs/04-escena/camara-y-encuadre.md → «Campo de visión»).
  */
 
-/** Los capítulos con foto: el 0 (singularidad) ya tiene el punto CSS del hero. */
-export const STILL_CHAPTERS = [1, 2, 3, 4] as const;
+/** Los capítulos con foto: el 0 (singularidad) ya tiene el punto CSS del hero; el 5, el epílogo, el retrato. */
+export const STILL_CHAPTERS = [1, 2, 3, 4, 5] as const;
 export type StillChapter = (typeof STILL_CHAPTERS)[number];
 
 /** Un encuadre de las fotos: el tamaño de la ventana al sacarla, su densidad y el nivel de la escena. */

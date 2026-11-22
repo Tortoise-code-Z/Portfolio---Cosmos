@@ -42,6 +42,10 @@ export const SCENE_PALETTE = {
   earthDawn: '#ff7326',
   earthRim: '#ff8033',
   earthCity: '#ffb859',
+  // Retrato: el verde del canal del epílogo (`--color-channel-green` y `-bright`) sobre un fondo más hondo
+  portraitDeep: '#21804d',
+  portraitGlow: '#6dff9f',
+  portraitHot: '#d5ffe4',
   // Estrellas de fondo
   starCold: '#bfd1ff',
   starWarm: '#ffd9a6',

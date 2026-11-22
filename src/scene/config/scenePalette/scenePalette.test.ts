@@ -48,6 +48,9 @@ const DOCUMENTED_ROLES: Readonly<Partial<Record<ScenePaletteName, string>>> = {
   earthClouds: '#f2f7ff',
   earthAtmosphere: '#599eff',
   earthDawn: '#ff7326',
+  portraitGlow: '#6dff9f',
+  portraitHot: '#d5ffe4',
+  portraitDeep: '#21804d',
 };
 
 describe('scene palette', () => {
@@ -82,5 +85,10 @@ describe('the CSS pairs of the scene colours (styles/tokens.css)', () => {
 
   it('the Big Bang flash is one colour, in the scene and in the CSS', () => {
     expect(token('--color-flash')).toBe(SCENE_PALETTE.flash);
+  });
+
+  it('the portrait shines in the green of the epilogue channel', () => {
+    expect(token('--color-channel-green')).toBe(SCENE_PALETTE.portraitGlow);
+    expect(token('--color-channel-green-bright')).toBe(SCENE_PALETTE.portraitHot);
   });
 });

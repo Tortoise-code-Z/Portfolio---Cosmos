@@ -14,9 +14,10 @@
 | 2 · Galaxia | (0, 12,9, 14,2) | (0, 0, 0) | −4,1 |
 | 3 · Tortuga | (4,8, 5,6, 9,9) | (0, 0,6, 0) | −2,6 |
 | 4 · Tierra | (0, 1,2, 12,1) | (0, 0, 0) | −3,2 |
+| 5 · Retrato (epílogo) | (0, 0, 8,2) | (0, 0, 0) | 0 (centrado: el visor del Crew file está en el centro de la ventana) |
 
-- Entre keyframes: interpolación lineal de posición y objetivo con `t = smoothstep(fract(m))`. En `m = 4`, el
-  keyframe 4 exacto (sin el `3,999` del prototipo); fuera de 0–4, el capítulo del borde.
+- Entre keyframes: interpolación lineal de posición y objetivo con `t = smoothstep(fract(m))`. En `m = 5`, el
+  keyframe 5 exacto (sin el `4,999` del shader); fuera de 0–5, el capítulo del borde.
 - `shiftX` se suma **a la posición y al objetivo** (desplaza el encuadre sin cambiar el ángulo); lleva la escena
   a la derecha para dejar sitio a los paneles. Solo en escritorio: la misma media query que pone los paneles a un
   lado, `(width >= 900px)` (md; los breakpoints no son tokens: `tokens.css` los lista en su cabecera). Un test la

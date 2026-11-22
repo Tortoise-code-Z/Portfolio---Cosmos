@@ -13,16 +13,17 @@
 | `pGal` | vec3 | Forma 2 · galaxia |
 | `pTur` | vec3 | Forma 3 · tortuga |
 | `pEar` | vec3 | Forma 4 · Tierra |
+| `pPor` | vec4 | Forma 5 · retrato: posición y, en `w`, su luz. Llega después que las demás (`usePortrait`) y se añade entonces a la geometría; hasta entonces no existe |
 | `aR` | vec4 | `x` aleatorio 0–1 (retraso, brillo) · `y` etiqueta de la tortuga · `z` etiqueta de la Tierra · `w` aleatorio 0–1 (tamaño, tono) |
 
-Memoria: 16 floats por partícula → 60.000 partículas ≈ 3,8 MB. La forma 0 (singularidad) no ocupa memoria: es
+Memoria: 16 floats por partícula → 60.000 partículas ≈ 3,8 MB; con el retrato, 20 (≈ 4,8 MB). La forma 0 (singularidad) no ocupa memoria: es
 la dirección de `position` escalada a casi cero.
 
 ## Uniforms
 
 | Uniform | Tipo | Origen |
 |---|---|---|
-| `uM` | float | `m` suavizado por la escena (0–4; `SceneFrame.m`, ADR-028) |
+| `uM` | float | `m` suavizado por la escena (0–5; `SceneFrame.m`, ADR-028) |
 | `uTime` | float | reloj de animación de la escena (`scene/sceneClock`): segundos que avanzan con los frames, como mucho 0,1 s de uno a otro (una pestaña que vuelve no salta) y congelados con movimiento reducido |
 | `uCharge` | float | carga de la detonación (0–1) |
 | `uPR` | float | pixel ratio efectivo |
@@ -32,6 +33,7 @@ la dirección de `position` escalada a casi cero.
 | `uMouse` | vec2 | dónde tira la gravedad, en NDC (el ratón o, al apagarse, el último punto donde estuvo) |
 | `uMotion` | float | 1 normal · 0 movimiento reducido (anula oscilaciones autónomas) |
 | `uExtras` | float | 1 · 0 en Bajo: esconde la estela de la tortuga (alfa 0) y apaga las luces de ciudad |
+| `uPor` | float | 1 con el retrato en la geometría (`pPor`) · 0 hasta entonces: la forma 5 pinta la Tierra |
 
 `uCharge` lo conecta F4.1: la carga del botón del hero (`sceneStore.charge`, copiada en `SceneFrame.charge`) hincha
 el punto y lo hace vibrar; con movimiento reducido, `uTime` se congela y la vibración no se mueve (`scene/sceneClock`).
@@ -44,14 +46,14 @@ compartido que rellena el bucle antes de cada frame: ningún objeto nuevo por fr
 Ninguna etiqueta ni color se escribe a mano en el GLSL. `scene/shaders/glslHeader` genera una cabecera que se
 antepone a cada shader de vértices:
 - `#define TURTLE_<PARTE>` y `EARTH_<CAPA>` desde `TURTLE_TAG` y `EARTH_TAG` (`shapes/shapeContract`, el mismo
-  contrato que escribe el generador), `TURTLE_FLIPPERS` y el rango de placas `PLATE_FIRST`..`PLATE_LAST` (20..26,
-  `config/plateSlots`).
+  contrato que escribe el generador), `TURTLE_FLIPPERS`, el rango de placas `PLATE_FIRST`..`PLATE_LAST` (20..26,
+  `config/plateSlots`) y la mitad del alto del retrato, `PORTRAIT_HALF_H` (`PORTRAIT_FRAME`).
 - `const vec3 COLOR_<NOMBRE>` desde `config/scenePalette`, que tiene todos los colores principales del design
   system, cada uno en su papel (lo comprueba su test con la tabla), y los matices del prototipo que la tabla no
   lista (los ojos de la tortuga son `COLOR_TURTLE_EYES` × 2: más brillantes que el blanco).
 
 La cabecera solo va en los shaders de vértices: los de fragmentos no la llevan y no pueden usar sus nombres. Su
-test comprueba que todo nombre `TURTLE_*`, `EARTH_*`, `PLATE_*` o `COLOR_*` que usan los shaders de vértices
+test comprueba que todo nombre `TURTLE_*`, `EARTH_*`, `PLATE_*`, `PORTRAIT_*` o `COLOR_*` que usan los shaders de vértices
 existe, que los de fragmentos no usan ninguno, y que ni las etiquetas (comparaciones, `abs(tag - …)`, `aR.y`/`aR.z`,
 un nombre desplazado más allá del ±0,5 de redondeo) ni los colores (`c = vec3(…)`) llevan números escritos a mano.
 Las potencias del GLSL nunca llevan base negativa (indefinido en GLSL ES): `exp(-q * q)` y un `rim` que no baja
@@ -65,7 +67,7 @@ de su rama (`PLATE_FIRST`..`PLATE_LAST`): `uPlate = 0` («ninguna») no casa nun
 void shape(float k, out vec3 P, out vec3 C, out float S, out float A);  // posición, color, tamaño, alfa de la forma k
 
 void main() {
-  float m  = clamp(uM, 0.0, 3.999);
+  float m  = clamp(uM, 0.0, 4.999);
   float k  = floor(m);
   float t  = m - k;
   float tt = smoothstep(0.0, 1.0, clamp((t - aR.x * 0.25) / 0.75, 0.0, 1.0)); // retraso por partícula
@@ -119,6 +121,21 @@ El fondo sale de `scene/voidColour` con los números del hex tal cual (`hexToRgb
 paleta. **No** `new Color(token)`: toma el hex como sRGB y lo linealiza, y con la salida lineal el espacio se
 pintaría casi negro. Al recuperar el contexto WebGL, Three rehace su fondo en negro y `SceneRoot` lo vuelve a
 poner (`rendimiento.md` → «Robustez»).
+
+### Forma 5 · retrato
+
+Holograma de escáner en el verde del canal del epílogo (`COLOR_PORTRAIT_DEEP` → `_GLOW` → `_HOT`, los dos últimos
+son `--color-channel-green` y `-bright`). La luz de cada partícula llega en `pPor.w` (`formas.md` → «Forma 5»); el
+shader le suma:
+- **Haz de barrido.** Durante el morph (`m` de 4 a 5) baja de arriba abajo con `smoothstep(0,3; 1; m − 4)` y
+  enciende lo que deja atrás: por debajo, la partícula llega apagada (12 % de su luz). Acabado el morph, pasa en
+  bucle. Ni el haz ni los fallos encienden lo que la foto funde (el corte del busto).
+- **Fallos de señal:** cada 0,2 s, una franja horizontal de cada 100 salta de lado y brilla.
+- **Parpadeo** leve y **giro** con el ratón hasta ±0,44 rad (`uMouse.x · uGrav`: vuelve de frente al salir y en táctil
+  no gira).
+- **Contraste:** el color va por `luz²`, para que los rasgos (ojos, cejas, barba) se lean sobre la piel.
+- Con movimiento reducido (`uMotion` 0), encendido entero y sin haz, fallos ni parpadeo que se mueva.
+- Sin retrato aún (`uPor` 0), `portrait()` pinta la Tierra.
 
 ### Iluminación de la Tierra
 

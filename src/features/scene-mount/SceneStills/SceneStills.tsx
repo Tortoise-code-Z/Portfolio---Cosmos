@@ -17,7 +17,11 @@ import desktop4Avif from '~/assets/scene-stills/avif/scene-still-desktop-4.avif'
 import desktop4Webp from '~/assets/scene-stills/webp/scene-still-desktop-4.webp';
 import handheld4Avif from '~/assets/scene-stills/avif/scene-still-handheld-4.avif';
 import handheld4Webp from '~/assets/scene-stills/webp/scene-still-handheld-4.webp';
-import { EPILOGUE, type ChapterIndex } from '~/content/chapters';
+import desktop5Avif from '~/assets/scene-stills/avif/scene-still-desktop-5.avif';
+import desktop5Webp from '~/assets/scene-stills/webp/scene-still-desktop-5.webp';
+import handheld5Avif from '~/assets/scene-stills/avif/scene-still-handheld-5.avif';
+import handheld5Webp from '~/assets/scene-stills/webp/scene-still-handheld-5.webp';
+import type { ChapterIndex } from '~/content/chapters';
 import { selectActiveChapter, sceneStore } from '~/stores/sceneStore/sceneStore';
 import { selectSceneLevel, useUiStore } from '~/stores/uiStore/uiStore';
 
@@ -50,18 +54,18 @@ export const STILL_SOURCES: Readonly<
     desktop: { avif: desktop4Avif, webp: desktop4Webp },
     handheld: { avif: handheld4Avif, webp: handheld4Webp },
   },
+  5: {
+    desktop: { avif: desktop5Avif, webp: desktop5Webp },
+    handheld: { avif: handheld5Avif, webp: handheld5Webp },
+  },
 };
 
 function isStillChapter(chapter: number): chapter is StillChapter {
   return (STILL_CHAPTERS as readonly number[]).includes(chapter);
 }
 
-/**
- * La foto de un capítulo. El epílogo, hasta que tenga su forma (el retrato, C.6b), enseña la Tierra, como la escena
- * (que con `m` = 5 se queda en el último keyframe).
- */
+/** La foto de un capítulo (la singularidad no tiene: la pinta el punto CSS del hero). */
 function stillOf(chapter: ChapterIndex): StillChapter | null {
-  if (chapter === EPILOGUE) return 4;
   return isStillChapter(chapter) ? chapter : null;
 }
 

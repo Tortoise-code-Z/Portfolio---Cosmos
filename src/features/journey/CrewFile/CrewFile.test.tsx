@@ -101,6 +101,23 @@ describe('CrewFile', () => {
     expect(firstLink).toBe(cv);
   });
 
+  it('the visor of the portrait: decorative, between the lead and «Download CV» (in the gap of the column on a phone)', () => {
+    const region = renderAt('/');
+    const visor = region.querySelector('[data-crew-visor]');
+    expect(visor).toHaveAttribute('aria-hidden', 'true');
+    expect(visor).toHaveTextContent('Identity verified');
+    const lead = within(region).getByText(/^The one who built this journey/);
+    const cv = within(region).getByRole('link', { name: /^Download CV/ });
+    expect(
+      lead.compareDocumentPosition(visor as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      (visor as Node).compareDocumentPosition(cv) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // La transmisión va abierta: sin velo sobre la escena, el retrato se ve.
+    expect(region.className).toMatch(/open/);
+  });
+
   it('without a CV, no download link', () => {
     state.cvEn = null;
     expect(within(renderAt('/')).queryByRole('link', { name: /^Download CV/ })).toBeNull();

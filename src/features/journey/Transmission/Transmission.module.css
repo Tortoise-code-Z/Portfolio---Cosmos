@@ -57,6 +57,28 @@
   background: var(--_ch-grid-bg), var(--_ch-veil);
 }
 
+/*
+ * Abierta (el epílogo): sin velo, la escena se ve entre los bloques; cada bloque de texto lleva el velo del canal
+ * detrás, así que el contraste no depende de lo que pase por debajo (el retrato, al hacer scroll en móvil).
+ */
+.open {
+  /* Recorta igual que `hidden`, sin hacer de la sección un contenedor de scroll: lo pegajoso de dentro sigue a la ventana. */
+  overflow: clip;
+  background: var(--_ch-grid-bg);
+}
+
+.open .strip,
+.open .footer,
+.open .incoming,
+.open .title {
+  background: var(--_ch-veil);
+}
+
+.open .incoming,
+.open .title {
+  justify-self: start;
+}
+
 /* Líneas de barrido finas sobre el fondo (decoración: sin puntero). La franja, el cuerpo y el pie van por encima. */
 .transmission::after {
   position: absolute;
@@ -183,6 +205,8 @@
 }
 
 .incoming {
+  /* Una transmisión con varias columnas puede fijar en cuál van el aviso y el título (`--_head-column`). */
+  grid-column: var(--_head-column, auto);
   color: var(--_ch-dim);
   font-size: var(--text-small);
   line-height: var(--leading-small);
@@ -199,6 +223,7 @@
 }
 
 .title {
+  grid-column: var(--_head-column, auto);
   margin-block-start: calc(-1 * var(--space-4));
   color: var(--_ch-bright);
   font-family: var(--font-mono);

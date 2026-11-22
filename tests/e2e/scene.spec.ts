@@ -3,7 +3,10 @@ import { expect, type Page } from '@playwright/test';
 import { test } from './support/test.ts';
 
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../../src/scene/contextLoss/contextLoss.ts';
-import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
+import {
+  PORTRAIT_WORKER_TIMEOUT_MS,
+  SHAPES_WORKER_TIMEOUT_MS,
+} from '../../src/scene/worker/loadShapes/loadShapes.ts';
 import { isSoftwareRenderer } from '../../src/lib/device/webgl2/webgl2.ts';
 import { CAMERA_FIT } from '../../src/scene/config/sceneConfig.ts';
 import { STILL_FRAMES } from '../../src/features/scene-mount/stillFrames/stillFrames.ts';
@@ -32,6 +35,8 @@ import { SWIFTSHADER_RENDERER } from './support/renderers.ts';
 const SHAPES_WORKER = /\/assets\/shapes\.worker-[^/]+\.js$/;
 /** Los generadores, en su propio chunk: solo se descargan si el worker falla y hay que reintentar. */
 const GENERATOR_CHUNK = /\/assets\/generateShapes-[^/]+\.js$/;
+/** Las dos imágenes del retrato (forma 5), que pide el worker al acercarse a la Tierra. */
+const PORTRAIT_IMAGES = /\/assets\/portrait-(?:color|depth)-[^/]+\.(?:jpg|png)$/;
 /** Los dos chunks de la escena: `SceneRoot-*` (el componente) y `scene-*` (Three.js, R3F…, vite.config.ts). */
 const SCENE_CHUNK = /\/assets\/(?:scene|SceneRoot)-[^/]+\.js$/;
 const NOTICE = "Your browser can't show the 3D universe, but everything else is here.";
@@ -690,6 +695,51 @@ test.describe('the scene with WebGL', () => {
     // Los generadores van dentro del worker: su chunk del hilo principal es solo para el reintento.
     expect(generator).toEqual([]);
     expect(errors).toEqual([]);
+  });
+
+  test('the portrait is not downloaded at the start: the worker brings it near the Earth', async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    const images: string[] = [];
+    page.on('request', (request) => {
+      if (PORTRAIT_IMAGES.test(new URL(request.url()).pathname)) images.push(request.url());
+    });
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached();
+    await expect(page.locator('[data-portrait]')).toHaveCount(0);
+    expect(images).toEqual([]);
+    await page.locator('#contact').scrollIntoViewIfNeeded();
+    await expect(page.locator(SCENE_READY)).toHaveAttribute('data-portrait', 'loaded', {
+      timeout: PORTRAIT_WORKER_TIMEOUT_MS,
+    });
+    // Las dos imágenes, una vez cada una (y así se sabe que el patrón casa con sus nombres).
+    expect(images).toHaveLength(2);
+    expect(errors).toEqual([]);
+  });
+
+  test('portrait images that do not arrive: the Earth stays, warned once, and the scene goes on', async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    const warnings: string[] = [];
+    page.on('console', (message) => {
+      if (message.type() === 'warning') warnings.push(message.text());
+    });
+    await page.route(PORTRAIT_IMAGES, (route) => route.abort());
+    await page.goto('/#crew-file');
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached();
+    await expect
+      .poll(
+        () => warnings.filter((text) => text.startsWith('[scene] The portrait did not arrive')),
+        {
+          timeout: PORTRAIT_WORKER_TIMEOUT_MS,
+        },
+      )
+      .toHaveLength(1);
+    await expect(page.locator('[data-portrait]')).toHaveCount(0);
+    await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
+    expect(errors.filter((error) => !error.startsWith('Failed to load resource'))).toEqual([]);
   });
 
   test('a shapes worker that never arrives: generated once on the main thread, the scene goes on', async ({

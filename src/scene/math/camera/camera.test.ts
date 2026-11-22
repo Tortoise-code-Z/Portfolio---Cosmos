@@ -59,10 +59,10 @@ describe('cameraPose', () => {
     expect(pose(2.5).target).toEqual(point([0, 0.3, 0]));
   });
 
-  it('outside 0–4 stays on the edge chapter, and NaN is the singularity', () => {
+  it('outside 0–5 stays on the edge chapter, and NaN is the singularity', () => {
     expect(pose(-1)).toEqual(pose(0));
-    expect(pose(7)).toEqual(pose(4));
-    expect(pose(Number.POSITIVE_INFINITY)).toEqual(pose(4));
+    expect(pose(7)).toEqual(pose(5));
+    expect(pose(Number.POSITIVE_INFINITY)).toEqual(pose(5));
     expect(pose(Number.NaN)).toEqual(pose(0));
   });
 

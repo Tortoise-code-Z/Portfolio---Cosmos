@@ -131,6 +131,7 @@ export const es: UiTexts = {
   'crewFile.channel': 'Canal 03 · verde',
   'crewFile.closed': 'Todos los canales cerrados',
   'crewFile.incoming': 'Ficha de tripulación · identidad verificada',
+  'crewFile.verified': 'Identidad verificada',
   'crewFile.title': 'Ficha de tripulación',
   'crewFile.lead':
     'Quien ha construido este viaje. Todo lo que necesitas para sumarme a la tripulación.',

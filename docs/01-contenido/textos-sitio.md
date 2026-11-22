@@ -211,6 +211,7 @@ Textos de C.6a (los escribe Claude y Víctor los corrige en su PR). La ficha usa
 | `crewFile.channel` | Channel 03 · green | Canal 03 · verde |
 | `crewFile.closed` | All channels closed | Todos los canales cerrados |
 | `crewFile.incoming` | Crew file · identity verified | Ficha de tripulación · identidad verificada |
+| `crewFile.verified` | Identity verified | Identidad verificada |
 | `crewFile.title` | Crew file | Ficha de tripulación |
 | `crewFile.lead` | The one who built this journey. Everything you need to bring me on board. | Quien ha construido este viaje. Todo lo que necesitas para sumarme a la tripulación. |
 | `crewFile.role` | Role | Puesto |

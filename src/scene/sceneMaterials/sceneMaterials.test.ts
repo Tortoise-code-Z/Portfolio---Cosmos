@@ -70,6 +70,15 @@ describe('particle uniforms', () => {
     }
   });
 
+  it('uPor says whether the portrait is in the geometry (not until it arrives)', () => {
+    const uniforms = createParticleUniforms();
+    expect(uniforms.uPor.value).toBe(0);
+    updateParticleUniforms(uniforms, frame, true);
+    expect(uniforms.uPor.value).toBe(1);
+    updateParticleUniforms(uniforms, frame);
+    expect(uniforms.uPor.value).toBe(0);
+  });
+
   it('reduced motion and the low level turn their uniforms off', () => {
     const uniforms = createParticleUniforms();
     updateParticleUniforms(uniforms, { ...frame, reducedMotion: true, extras: false });

@@ -42,6 +42,7 @@ const IMPURE_SCENE_MODULES = [
   'particleGeometry',
   'useSceneShapes',
   'useHotDegradation',
+  'usePortrait',
   'contextLoss',
   'voidColour',
   'pause',

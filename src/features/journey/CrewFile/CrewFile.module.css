@@ -1,15 +1,64 @@
 /*
- * Crew file, el epílogo (docs/02-experiencia/capitulos/05-crew-file.md → «Layout»): la entrada, «Download CV», la
- * ficha (en rejilla en escritorio) y el email con su botón; debajo, el pie del sitio. Los colores salen del canal de
- * la transmisión (`--_ch*`, Transmission.module.css). Hasta C.6b no hay retrato en el centro: todo va en una columna.
+ * Crew file, el epílogo (docs/02-experiencia/capitulos/05-crew-file.md → «Layout»). La transmisión va abierta sobre la
+ * escena (`open`): el retrato se ve en el visor y cada bloque de texto lleva el velo del canal detrás. Los colores
+ * salen del canal (`--_ch*`, Transmission.module.css).
+ *
+ * Móvil y tableta, una columna en el orden del DOM: entrada, visor (el hueco del retrato), «Download CV», la ficha, el
+ * email y el pie del sitio. Desde lg, el visor en el centro, centrado en la ventana como el retrato; la ficha a los
+ * lados con sus líneas guía hacia él, y abajo «Download CV» y el email.
  */
 .lead {
   max-inline-size: var(--measure);
+  justify-self: start;
   color: var(--_ch-bright);
+  background: var(--_ch-veil);
+}
+
+/*
+ * El visor: el hueco por el que se ve el retrato (en móvil, en la columna) y su marco, con cuatro esquinas y, al pie,
+ * «Identity verified». Decoración.
+ */
+.visor {
+  block-size: var(--visor-h);
+}
+
+.frame {
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  block-size: 100%;
+  /* Las esquinas se pintan con el color del texto (`--visor-corners`). */
+  color: var(--_ch-dim);
+  background: var(--visor-corners);
+}
+
+.verified {
+  margin-block-end: var(--space-3);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width) solid var(--_ch-line);
+  color: var(--_ch);
+  background: var(--_ch-veil);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-shadow: var(--_ch-text-glow);
+}
+
+/* Con la transmisión armada, «Identity verified» espera a que el teletipo acabe la ficha (sin movimiento reducido). */
+[data-armed] .verified {
+  opacity: 0;
+}
+
+[data-armed][data-on] .verified {
+  opacity: 1;
+  transition: opacity var(--dur-fade-slow) var(--ease-out) calc(10 * var(--dur-teletype-step));
 }
 
 .cv {
+  justify-self: start;
   margin: 0;
+  background: var(--_ch-veil);
 }
 
 .record {
@@ -19,9 +68,11 @@
   margin: 0;
   padding: var(--space-4);
   border: var(--border-width) solid var(--_ch-line);
+  background: var(--_ch-veil);
 }
 
 .field {
+  position: relative;
   display: grid;
   align-content: start;
   gap: var(--space-1);
@@ -72,7 +123,9 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-self: start;
   gap: var(--space-2) var(--space-4);
+  background: var(--_ch-veil);
 }
 
 .email {
@@ -103,6 +156,7 @@
   justify-content: space-between;
   gap: var(--space-2) var(--space-5);
   color: var(--_ch-dim);
+  background: var(--_ch-veil);
   font-size: var(--text-micro);
   line-height: var(--leading-micro);
   letter-spacing: var(--tracking-micro);
@@ -111,4 +165,106 @@
 
 .site p {
   margin: 0;
+}
+
+/* ── Escritorio ancho: el visor en el centro y la ficha a los lados ─────────────────────────────────────────────── */
+
+@media (width >= 1280px) {
+  /*
+   * Tres columnas en el cuerpo de la transmisión: el aviso, el título y la entrada arriba a la izquierda; el visor en
+   * el centro, a todo el alto; la ficha a los lados (la misma rejilla dentro de la lista) y abajo «Download CV» y el
+   * email.
+   */
+  .crewFile {
+    --_body-columns: minmax(0, 1fr) var(--visor-w) minmax(0, 1fr);
+    --_head-column: 1 / 3;
+  }
+
+  .lead {
+    grid-column: 1;
+  }
+
+  /*
+   * El visor sale de la rejilla: una pista a todo el alto del cuerpo, centrada en la ventana como el retrato, y el
+   * marco pegado al centro de la pantalla mientras la ficha pasa (el retrato está fijo en el lienzo).
+   */
+  .visor {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 50%;
+    inline-size: var(--visor-w);
+    block-size: auto;
+    translate: -50% 0;
+    pointer-events: none;
+  }
+
+  .frame {
+    position: sticky;
+    inset-block-start: calc(50svh - var(--visor-h) / 2);
+    block-size: var(--visor-h);
+  }
+
+  .record {
+    grid-column: 1 / -1;
+    grid-template-columns: inherit;
+    grid-auto-flow: dense;
+    column-gap: inherit;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .field {
+    align-self: start;
+    padding: var(--space-3);
+    border: var(--border-width) solid var(--_ch-line);
+    background: var(--_ch-veil);
+  }
+
+  .left {
+    grid-column: 1;
+  }
+
+  .right,
+  .field:last-child {
+    grid-column: 3;
+  }
+
+  /* Las líneas guía: de cada dato hacia el visor (decoración). */
+  .field::after {
+    position: absolute;
+    inset-block-start: calc(var(--space-3) + 0.5lh);
+    inline-size: calc(var(--space-6) + var(--space-5));
+    block-size: var(--border-width);
+    background: var(--_ch-line);
+    content: '';
+  }
+
+  .left::after {
+    inset-inline-start: 100%;
+  }
+
+  .right::after {
+    inset-inline-end: 100%;
+  }
+
+  /*
+   * «Download CV» y el email, abajo, en la misma fila (`order`: la rejilla los coloca después de la ficha; el foco
+   * sigue el DOM, y en la ficha no hay nada que enfocar). El pie del sitio, después.
+   */
+  .cv {
+    order: 1;
+    grid-column: 1;
+    align-self: center;
+  }
+
+  .emailRow {
+    order: 1;
+    grid-column: 3;
+  }
+
+  .site {
+    order: 2;
+    grid-column: 1 / -1;
+  }
 }

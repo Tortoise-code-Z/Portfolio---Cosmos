@@ -1,5 +1,14 @@
-import type { ShapeRequest, ShapeSet } from '../../shapes/shapeContract/shapeContract';
-import { parseShapesResponse } from '../protocol/protocol';
+import type {
+  PortraitRequest,
+  ShapeRequest,
+  ShapeSet,
+} from '../../shapes/shapeContract/shapeContract';
+import {
+  type Parsed,
+  parsePortraitResponse,
+  parseShapesResponse,
+  type PortraitMessage,
+} from '../protocol/protocol';
 
 /**
  * Pide las formas al worker (docs/04-escena/rendimiento.md → «Worker de las formas»). Un worker por encargo
@@ -11,6 +20,9 @@ import { parseShapesResponse } from '../protocol/protocol';
 /** Plazo desde que se crea el worker (incluye su descarga), con la página visible u oculta. */
 export const SHAPES_WORKER_TIMEOUT_MS = 3000;
 
+/** El del retrato, que además descarga sus imágenes (~160 KB). */
+export const PORTRAIT_WORKER_TIMEOUT_MS = 15_000;
+
 export type ShapesFailure =
   /** No se pudo crear el worker (el navegador no lo deja, o no hay `Worker`). */
   | 'unavailable'
@@ -20,11 +32,15 @@ export type ShapesFailure =
   | 'message-error'
   /** El worker rechazó la petición (`{ ok: false }`). */
   | 'rejected'
-  /** La respuesta no trae las 5 matrices con sus longitudes. */
+  /** La respuesta no trae sus matrices con sus longitudes. */
   | 'invalid'
   | 'timeout'
   /** Quien pidió canceló (desmontaje): no es un fallo de la escena. */
   | 'aborted';
+
+export type WorkerResult<T> =
+  | { readonly ok: true; readonly value: T }
+  | { readonly ok: false; readonly reason: ShapesFailure; readonly detail: string };
 
 export type LoadShapesResult =
   | { readonly ok: true; readonly shapes: ShapeSet }
@@ -48,7 +64,7 @@ export function createShapesWorker(): Worker {
   });
 }
 
-const failure = (reason: ShapesFailure, detail: string): LoadShapesResult => ({
+const failure = (reason: ShapesFailure, detail: string): WorkerResult<never> => ({
   ok: false,
   reason,
   detail,
@@ -57,14 +73,16 @@ const failure = (reason: ShapesFailure, detail: string): LoadShapesResult => ({
 const describe = (error: unknown): string =>
   error instanceof Error ? `${error.name}: ${error.message}` : String(error);
 
-export function loadShapes(
-  request: ShapeRequest,
+/** Un encargo al worker: lo manda, valida la respuesta con `parse` y cierra el worker al acabar. */
+function askWorker<T>(
+  message: unknown,
+  parse: (data: unknown) => Parsed<T>,
   {
     signal,
     timeoutMs = SHAPES_WORKER_TIMEOUT_MS,
     createWorker = createShapesWorker,
-  }: LoadShapesOptions = {},
-): Promise<LoadShapesResult> {
+  }: LoadShapesOptions,
+): Promise<WorkerResult<T>> {
   return new Promise((resolve) => {
     if (signal?.aborted === true) {
       resolve(failure('aborted', 'cancelled before starting'));
@@ -79,7 +97,7 @@ export function loadShapes(
     }
 
     let settled = false;
-    function finish(result: LoadShapesResult): void {
+    function finish(result: WorkerResult<T>): void {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
@@ -98,9 +116,9 @@ export function loadShapes(
 
     worker.onmessage = (event: MessageEvent) => {
       const data: unknown = event.data;
-      const parsed = parseShapesResponse(data, request.count);
+      const parsed = parse(data);
       if (parsed.ok) {
-        finish({ ok: true, shapes: parsed.value });
+        finish(parsed);
         return;
       }
       const rejected =
@@ -117,9 +135,33 @@ export function loadShapes(
     };
 
     try {
-      worker.postMessage(request);
+      worker.postMessage(message);
     } catch (error) {
       finish(failure('error', describe(error)));
     }
+  });
+}
+
+export async function loadShapes(
+  request: ShapeRequest,
+  options: LoadShapesOptions = {},
+): Promise<LoadShapesResult> {
+  const result = await askWorker(
+    request,
+    (data) => parseShapesResponse(data, request.count),
+    options,
+  );
+  return result.ok ? { ok: true, shapes: result.value } : result;
+}
+
+/** El retrato (`pPor`) para `count` partículas: un encargo aparte, con su propio plazo. */
+export function loadPortrait(
+  request: PortraitRequest,
+  { timeoutMs = PORTRAIT_WORKER_TIMEOUT_MS, ...options }: LoadShapesOptions = {},
+): Promise<WorkerResult<Float32Array>> {
+  const message: PortraitMessage = { kind: 'portrait', ...request };
+  return askWorker(message, (data) => parsePortraitResponse(data, request.count), {
+    ...options,
+    timeoutMs,
   });
 }

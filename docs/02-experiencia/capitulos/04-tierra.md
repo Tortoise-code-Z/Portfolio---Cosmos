@@ -28,8 +28,8 @@ en casa.
 
 - Botón «Copy»: copia el email; si el portapapeles falla, selecciona el texto y lo indica.
 - Gravedad del cursor activa (suave) sobre la Tierra.
-- Debajo, el epílogo (Crew file): en la segunda mitad de Contacto la Tierra empieza a convertirse en el retrato
-  (C.6b; hasta entonces no se ve).
+- Debajo, el epílogo (Crew file): en la segunda mitad de Contacto la Tierra se convierte en el retrato
+  (`05-crew-file.md` → «Escena»).
 
 ## Layout
 

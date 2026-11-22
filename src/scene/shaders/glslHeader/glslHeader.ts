@@ -1,6 +1,11 @@
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
 import { hexToRgb, SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
-import { EARTH_TAG, TURTLE_FLIPPERS, TURTLE_TAG } from '../../shapes/shapeContract/shapeContract';
+import {
+  EARTH_TAG,
+  PORTRAIT_FRAME,
+  TURTLE_FLIPPERS,
+  TURTLE_TAG,
+} from '../../shapes/shapeContract/shapeContract';
 
 /**
  * Cabecera común de los shaders (docs/04-escena/particulas-y-shaders.md → «Etiquetas y colores»): las etiquetas
@@ -44,6 +49,7 @@ export function glslHeader(): string {
     `#define PLATE_FIRST ${glslFloat(FIRST_PLATE_LABEL)}`,
     `#define PLATE_LAST ${glslFloat(LAST_PLATE_LABEL)}`,
     ...defines('EARTH', EARTH_TAG),
+    `#define PORTRAIT_HALF_H ${glslFloat(Number(PORTRAIT_FRAME.halfHeight.toFixed(4)))}`,
     ...colours(),
     '',
   ].join('\n');

@@ -55,6 +55,11 @@ type TransmissionProps = TransmissionPlace & {
    * control pone la telemetría a la derecha en escritorio).
    */
   readonly className?: string | undefined;
+  /**
+   * Sin el velo del canal sobre la escena: la escena se ve entre los bloques, y cada bloque de texto lleva su velo
+   * detrás (la franja, el aviso, el título, el pie y lo que pinte quien la usa). El epílogo: el retrato en el centro.
+   */
+  readonly open?: boolean;
   readonly children: ReactNode;
 };
 
@@ -107,8 +112,17 @@ function useTransmissionEntry(): RefObject<HTMLElement | null> {
  * directa de `<main>`: recoge el puntero (las estrellas no).
  */
 export function Transmission(props: TransmissionProps): ReactNode {
-  const { channel, channelLabel, incoming, titleId, title, titleDisplay, className, children } =
-    props;
+  const {
+    channel,
+    channelLabel,
+    incoming,
+    titleId,
+    title,
+    titleDisplay,
+    className,
+    open = false,
+    children,
+  } = props;
   const t = useT();
   const ref = useTransmissionEntry();
   const interlude = 'id' in props ? props.id : null;
@@ -121,7 +135,7 @@ export function Transmission(props: TransmissionProps): ReactNode {
           'id' in props ? INTERLUDE[props.id].anchor : (CHAPTER_ANCHORS[props.chapter] ?? undefined)
         }
         aria-labelledby={titleId}
-        className={cx(styles.transmission, styles[channel], className)}
+        className={cx(styles.transmission, styles[channel], open && styles.open, className)}
         data-interlude={interlude ?? undefined}
         data-chapter={'chapter' in props ? props.chapter : undefined}
       >

@@ -20,6 +20,9 @@ export const SHAPE_ATTRIBUTES = {
 /** `aR`: 4 por partícula. */
 export const RAND_ATTRIBUTE = 'aR';
 
+/** El retrato (forma 5): 4 por partícula. Llega después que las demás (`usePortrait`) y se añade entonces. */
+export const PORTRAIT_ATTRIBUTE = 'pPor';
+
 /**
  * Una esfera que lo abarca todo, para que Three no la calcule sobre `position` (que es solo la nebulosa). El
  * objeto no se recorta por la cámara (`frustumCulled = false`): las formas ocupan regiones distintas.

@@ -68,12 +68,12 @@ describe('SceneStills', () => {
     expect(visible(container)).toEqual(['2']);
   });
 
-  it('the epilogue (Crew file) keeps the Earth until it has its own shape (C.6b), as the scene does', () => {
+  it('the epilogue (Crew file) has its own still, the portrait', () => {
     const { container } = renderOff(4);
     fireEvent.load(still(container, 4));
     goTo(5);
-    expect(visible(container)).toEqual(['4']);
-    expect(stills(container)).toHaveLength(1);
+    fireEvent.load(still(container, 5));
+    expect(visible(container)).toEqual(['5']);
   });
 
   it('keeps the previous still until the next one arrives, then fades between them', () => {
