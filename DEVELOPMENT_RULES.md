@@ -185,8 +185,11 @@ Método general en las skills `taller` y `mesa`; aquí, solo lo propio del proye
   `arquitectura.md`) · escena 3D (desde F3: rendimiento, cero asignaciones por frame, determinismo) · tests (que
   prueben lo que dicen, casos límite, sin fragilidad) · documentación y ADR (coherencia entre docs y con el código).
 - **Cada entrega se corrige entera** (desde la sesión 36): recomendados y menores, en su propio PR, justo después de
-  decidirla y antes del paso siguiente. Solo se aplaza lo que no se puede hacer sin un móvil real, NVDA o producción
-  (F6/F7), y queda en `STATE.md`. Antes de corregir un hallazgo «sospechado», su test se corre sobre la base para
+  decidirla y antes de fusionar el paso siguiente. Solo se aplaza lo que no se puede hacer sin un móvil real, NVDA o
+  producción (F6/F7), y queda en `STATE.md`.
+- **El paso siguiente puede avanzar mientras se audita el anterior** (desde la sesión 39): en su propia rama, sin
+  fusionarse hasta que la corrección de la auditoría esté en `main`; después se pone al día sobre ella. Si un hallazgo
+  toca algo que el paso nuevo ya cambió, se avisa a Víctor antes de corregirlo. Antes de corregir un hallazgo «sospechado», su test se corre sobre la base para
   confirmarlo.
 - **No es hallazgo:** la deuda anotada en `STATE.md`, lo planificado para pasos o fases posteriores del roadmap y lo
   que las decisiones vivas citadas en el encargo dan por decidido.

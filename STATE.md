@@ -3,51 +3,45 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **Fase C · C.1–C.4 hechos y sus auditorías corregidas** (`main` en `3fc0d16`; ninguna auditoría
-pendiente) · siguiente: **C.5 · Cosmos completo**, con su esquema ya aprobado (objetivo: 29 nov).
+**Dónde estamos:** **Fase C · C.1–C.5 hechos y auditados; C.6a (el epílogo sin retrato) fusionado** (`main` en
+`4743248`) · siguiente: **AUD-C6A a la Mesa**, su corrección y después **C.6b · el retrato** (objetivo: 1 dic).
 
-_Última actualización: 2026-11-21 (**CIERRE DE SESIÓN · 38**) · Mission control en producción con sus cifras contadas
-al construir; la ficha de proyecto se lee sobre la escena; AUD-C4 corregida entera. C.5 tiene Visto Bueno._
+_Última actualización: 2026-11-22 (**CIERRE DE SESIÓN · 39**) · C.5 completo (la ficha de Cosmos, el README y el
+detalle fuera de la home), AUD-C5 corregida entera y C.6a fusionado: el Crew file en el canal verde._
 
-**Hecho esta sesión** (vivas S38 en `_claude/cadena/hecho/2026-11-21/decisiones-vivas-S38.md`):
-1. **C.4 · Mission control** (PR #102, `ff5f75b`): el segundo interludio, canal azul, entre Projects y Contact. La
-   cuenta atrás T-4 Plan → T-0 Launch como lista ordenada, con la cota «No code yet» y el bucle de la auditoría
-   dibujados; un «T-0» decorativo con el título «How I work»; «Touchdown» a Contacto. Projects ya no cambia de forma:
-   la tortuga pasa a la Tierra en la cola del interludio. **Telemetría contada al construir** (ADR-035):
-   `scripts/siteTelemetry.ts` lee los tests escritos con el compilador de TypeScript, la matriz del CI y los ADR, y
-   los sirve como `virtual:site-telemetry`. Canal azul a tokens con su AA (`#5a8fc6` como atenuado). Piezas
-   compartidas: `ChapterJumpLink`, `BlinkCursor`, `titleDisplay`/`className` en `Transmission`. La misión rápida gana
-   «How I work». El raíl, 7 paradas. JS propio de la home: tope de 38 a 40 KB (38,4 KB; nota en ADR-020). Arreglo de
-   Firefox del enlace «Touchdown» al 200 % en el mismo PR.
-2. **La ficha de proyecto sin fondo** (PR #103, `3ef2a4e`): desde el viaje se veía la escena a pleno brillo detrás
-   (lienzo persistente; la atenuación es de F5). Hasta F5, `--color-veil` detrás del texto y la escena pausada
-   (FB-1-A).
-3. **AUD-C4 corregida entera** (PR #104, `3fc0d16`): 7 recomendados, 27 menores, P1-A (la frase de Audit dice lo que
-   se hace: «…; its fixes ship before the next task») y P2-B (textos aprobados). Lo principal: el raíl baja si no cabe
-   bajo la barra (móvil apaisado; `--rail-half-h`, la escena hace la misma cuenta); cifras y «T-0» sin partirse al
-   200 %; el contador más estricto (globs compartidos con Vitest y Playwright, falla con formas desconocidas, ADR
-   repetidos o navegadores raros; cuenta una vez por build); solo `content/telemetry.ts` importa el módulo virtual
-   (ESLint); el mes aparte en la captura; tests que fallan sin su código.
-4. **C.5 · Visto Bueno** (vivas S38 #17), antes que C.6 (el README y la ficha son lo que abre un tech lead): CO-1-A,
-   el detalle de las fichas sale del JS de la home (lo importa solo la página de proyecto; ADR-036); CO-2-A, README con
-   4 capturas que hace Víctor, la ficha sin imágenes hasta F6; CO-3-A, `metaDescription` opcional (≤ 160) solo para
-   Cosmos; CO-4-A, textos de Claude que Víctor corrige en el PR.
+**Hecho esta sesión** (vivas S39 en `_claude/cadena/hecho/2026-11-22/decisiones-vivas-S39.md`):
+1. **C.5 · Cosmos completo** (PR #105, `9f8f574`; 4 commits): el detalle de las fichas fuera del JS de la home
+   (ADR-036: tarjeta `ProjectEntry` en `content/projects/<slug>.ts`, detalle `ProjectDetail` en `details/`, que solo
+   junta `content/projects/index.ts`; la home baja de 38,5 a 34,7 KB); `metaDescription` opcional (≤ 160, solo
+   Cosmos); la ficha de Cosmos con proceso, retos medidos, funcionalidades nuevas y la nota del README; el
+   `README.md` en inglés con 7 capturas (las hizo Víctor; Claude las recortó al píxel: `docs/readme/`); la
+   descripción y los topics de GitHub en `ABOUT_REPOS.md` del Proyecto de claude.ai (Víctor los pega).
+2. **AUD-C5 corregida entera** (PR #106, `806cf02`): 3 recomendados y 18 menores. Lo principal: la ficha y el README
+   dicen el método como Mission control (se audita cada tarea) y los 60 fps «en mis mediciones»; el diagrama de capas
+   del README corregido (importa / allow-list / lint, no build); las puertas de ESLint de ADR-036 cierran también el
+   índice con extensión y los `import()`, con su test (`scripts/eslintDoors.test.ts`).
+3. **C.6a · el epílogo sin retrato** (PR #107, `4743248`), avanzado mientras la Mesa auditaba C.5 (regla nueva,
+   §13): el capítulo 5, Crew file, en el canal verde (tokens con su AA), con la ficha como lista de definiciones
+   (puesto, base, permiso, disponibilidad, idiomas sin nivel y la formación, que se muda de Contacto), «Download CV»
+   tras el título, el email y el pie del sitio; `Transmission` acepta un interludio o un capítulo; el raíl de 8
+   paradas que encogen en una ventana baja; el HUD se esconde en el epílogo; Contacto cambia en su segunda mitad (la
+   escena se queda en la Tierra hasta C.6b). Home 35,5 KB; escena +52 B.
+4. **Decisiones para C.6b:** la transición B (la Tierra se convierte en el retrato; las partículas se encienden al
+   paso del haz de barrido, atado al morph; al acabar, «Identity verified») y la foto de la prueba (sesión 34) entra
+   al repo público (`05-crew-file.md`).
 
 **Incidencias y lecciones:**
-- **Un color aprobado no garantiza AA:** el azul atenuado del diseño daba 4,32 : 1 sobre el velo en el peor caso.
-  Medir con `styles.test.ts` antes de dar un canal por bueno (el verde, en C.6).
-- **Firefox no encoge un `inline-flex`** con la letra al 200 % (Chromium sí): «Touchdown» se salía en el CI. Los e2e
-  de 200 % tienen que incluir títulos y enlaces, y correr también en `/es`, que tiene los textos largos.
-- **«→» (U+2192) no está en el subconjunto de IBM Plex Mono** («↑» y «↓» sí): las flechas en un texto van con el icono
-  (`arrow-right`), como hace `ui/ArrowText`.
-- **El JS de la home lleva los textos largos de todas las fichas** (`projects/entries`): por eso C.5 los saca (CO-1-A).
-- **`clip-path: inset(0)` recorta también el `text-shadow`:** el final del teletipo abre el recorte `--space-5`.
-- **Una captura debajo de una sección que cambia de alto puede cambiar sin cambiar nada** (el texto cae en otro
-  subpíxel: hasta 236/255 en los bordes de letra, no el ruido de ≤ 4/255): se queda la nueva.
-- **Tests de zona horaria:** `vi.stubEnv('TZ', …)` y, si el módulo guarda formateadores de `Intl`, `vi.resetModules()`
-  e importarlo de nuevo; si no, el test pasa sin su arreglo.
-- **Contenedor (S38):** como en S37 (Node 24 del paquete npm, Chromium de `/opt/pw-browsers` enlazado como 1248 en
-  `~/pwb`, `.env` desde `.env.example`, `git init` local); el repo se trae con `git archive` del commit de `main`.
+- **`npm run check` otra vez tras el último cambio de docs:** una clave del buzón («AUD-C4») escrita en
+  `rendimiento.md` después del check la paró `code-references.test.ts` en el pre-push de Víctor.
+- **El puente con el equipo de Víctor se corta al cerrar el portátil:** Claude sigue en la nube (contenedor) y
+  pasa los archivos al volver; si hace falta, un zip con las rutas del repo. Antes de pasarlos, comprobar que la
+  rama del equipo está sobre el `main` correcto (C.6a se hizo sobre `806cf02` y la rama seguía en `9f8f574`).
+- **`visual:update` sin argumentos borra todas las capturas:** las que fallan por el arranque en frío se quedan sin
+  archivo; se rehacen con `--workers=1` (no borra) y, si la primera sigue fallando, `--repeat-each=3 --grep`.
+- **Con 8 paradas el raíl no cabía en un móvil apaisado** (390 de alto; 360 ya se salía con 7): ahora encoge.
+- **Contenedor (S39):** como en S38 (Node 24 del paquete npm, Chromium de `/opt/pw-browsers` enlazado como 1248 en
+  `~/pwb`, `.env` desde `.env.example`, `git init` local); el repo se trae con un `tar` del árbol de trabajo.
+  Docker no arranca en el contenedor: `npm run stills` y `npm run visual` los pasa Víctor.
 
 **Deuda anotada:**
 - **CI · WebKit a ~3 fps (S35):** la traza del CI de C.2 lo midió: WebKit sin GPU pinta unos 3 frames por segundo con
@@ -58,20 +52,17 @@ al construir; la ficha de proyecto se lee sobre la escena; AUD-C4 corregida ente
   en un iPhone (si no hay móvil a mano, en F6).
 - **C.7 · Naves** (idea aprobada sin calendario): estudio, versiones de la prueba y lecciones del shader en
   `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a pantalla completa). La prueba es el
-  artefacto privado «Naves · prueba»; copia del código en `_claude/naves/`. Al construir: su ADR (ADR-037: C.5 se
-  queda el ADR-036, vivas S38 #17; el roadmap y `transiciones-naves.md` aún dicen ADR-036 y se cambian al escribir el
-  de C.5) y medir el peso (~1,4 KB de margen en la escena tras F4.4 y F4.5).
+  artefacto privado «Naves · prueba»; copia del código en `_claude/naves/`. Al construir: su ADR-037 y medir el peso
+  (C.6b sale antes del mismo margen de la escena).
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
   cómo está construido: solo herramientas, para qué y lo hecho (nota de ADR-034; `experiencia.md` → «Regla de
   privacidad», sin ejemplos desde AUD-C2: una lista en un repo público sería la filtración). Las viñetas y la bio van
   suavizadas; se ha pedido lo mismo para el CV y LinkedIn en `trabajo-ofertas` (chat de mentor). El historial de git
   conserva la descripción vieja: se acepta (AUD-C2-P1-A). Cuando cambie el CV, volver a copiar el PDF a
   `public/`. Vale también para la ficha, el README y las capturas.
-- **Fase C · lo provisional del Crew file** (`05-crew-file.md` → «Pendiente»): redacción EN/ES y nivel de inglés
-  visible o no. El Mission log quedó cerrado en C.2 y Mission control en C.4 (textos aprobados por Víctor, AUD-C4-P2).
-- **Fase C · color del canal verde (C.6):** el ámbar (C.2) y el azul (C.4) ya son tokens con su AA medido
-  (`styles.test.ts`, que lee los canales de `tokens.css`: el verde entra solo). El azul atenuado aprobado no llegaba
-  (4,32 : 1) y pasó a `#5a8fc6`: medir el verde antes de dar sus valores por buenos.
+- **Fase C · textos del Crew file (C.6a):** los escribió Claude (`textos-sitio.md` → «Epílogo») y entraron sin
+  cambios en el PR #107; Víctor los revisa cuando quiera (y la Mesa en AUD-C6A). El nivel de inglés no se enseña
+  (solo los idiomas).
 - **Hasta F5 · la ficha de proyecto con velo y pausa (S38):** el lienzo es persistente y la atenuación de la ficha
   es de F5; mientras, `--color-veil` detrás del texto y la escena pausada (`uiStore.projectPageOpen`). F5 los quita
   (roadmap → F5, `pagina-proyecto.md` → «Hasta F5»).
@@ -102,8 +93,6 @@ al construir; la ficha de proyecto se lee sobre la escena; AUD-C4 corregida ente
   en el PR #93 (`about:blank` antes de apuntar; `expect.poll` a 15 s). En S38, un `page.goto` de
   `mission-control.spec.ts` se pasó de 30 s esperando `networkidle` con la página ya pintada, y pasó al repetirlo. Si
   sale otra así, mirar primero si pasa sola (`--repeat-each=3`); si se repite, cambiar ese `goto` a `load`.
-- **F6 · meta description de Cosmos (AUD-F3-CIERRE-P1, A):** es el `summary` tal cual, 220 caracteres (EN) y 228
-  (ES); los buscadores cortan hacia 155–160. Decidir en F6 si se acorta o se añade un `metaDescription` (roadmap F6).
 - **F5 · la 404:** enseña la singularidad (bajo el título a 1440×900; entre el título y la frase a 390×844, sin tapar
   texto). La nebulosa atenuada llega en F5, con un e2e de que no tapa el texto (roadmap F5).
 - **Mediciones (desde F3.8):** Lighthouse y PageSpeed corren sin GPU y miden el modo sin WebGL (con fotos fijas):
@@ -130,8 +119,11 @@ al construir; la ficha de proyecto se lee sobre la escena; AUD-C4 corregida ente
   workers, las 4 primeras de escritorio; con `--workers=1`, a veces la primera, también sola con `--grep` (S36).
   `visual:update` sin argumentos borra **todas** las capturas antes de rehacerlas (`visual-in-docker.sh`): la que
   falla se queda borrada (devolverla con `git restore` si no cambia). Con `-- --workers=1` no borra
-  (`calidad.md` → «Regresión visual»). En la cola: un PR pequeño
-  que dé más tiempo o caliente el servidor solo en `visual`.
+  (`calidad.md` → «Regresión visual»). En S39 fue peor: la primera captura de escritorio (`chapter-0-start`) falló
+  siempre, también sola y con `--timeout=120000` (lo que se pasa son los 15 s del `expect` de `PARTICLES_PAINTED`); se
+  salvó con `npm run visual:update -- --workers=1 --repeat-each=3 --grep "chapter 0"` (la segunda vuelta, en
+  caliente, la escribe). Fuera de Docker la misma captura pinta en 2,5 s. En la cola: un PR pequeño que caliente el
+  servidor o dé más tiempo solo en `visual` (ya conviene).
   `visual:update` rehace todas y puede meter ruido (≤ 4/255) en capturas que no cambian (`chapter-0-start`,
   `chapter-4-contact`): devolverlas con `git restore` antes del commit.
 - **F6 · hero con la letra al 200 % (AUD-F4-1-4):** a 390 px el nombre ya no cabe en su columna y ahora se corta
@@ -146,9 +138,10 @@ al construir; la ficha de proyecto se lee sobre la escena; AUD-C4 corregida ente
   desde `SceneRoot`). Lo recuerdan §13, «hecho» y el roadmap.
 - **WebKit y el `<picture>`:** que WebKit pidiera el `src` del `<img>` antes de entrar en el `<picture>` es deducido
   (no hay WebKit en el contenedor); el arreglo lo vigila el e2e de escritorio sin WebGL en el CI.
-- **Peso de la escena:** 253 071 B de 260 000 (ADR-032 y sus notas; C.3 pesó 127 B, AUD-C2 1 B, los menores de
-  AUD-F4-3C 2 B y la sesión 38 —C.4, la pausa de la ficha y AUD-C4— 31 B). Topes que quedan: F4.4 ≤ 2,5 KB y
-  F4.5 ≤ 3 KB, ~1,43 KB de margen; cada paso apunta lo que pesó en `rendimiento.md`. Por
+- **Peso de la escena:** 253 121 B de 260 000 (ADR-032 y sus notas; C.3 pesó 127 B, AUD-C2 1 B, los menores de
+  AUD-F4-3C 2 B, la sesión 38 31 B, C.5 nada y C.6a 52 B: el raíl que encoge). Topes que quedan: F4.4 ≤ 2,5 KB y
+  F4.5 ≤ 3 KB, ~1,4 KB de margen, y **C.6b (el retrato) tiene que salir de ahí**: medirlo antes de nada y, si no cabe,
+  decidirlo (un ADR que suba el tope o recortar). Cada paso apunta lo que pesó en `rendimiento.md`. Por
   paquete se mide con `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con
   `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
@@ -244,37 +237,50 @@ al construir; la ficha de proyecto se lee sobre la escena; AUD-C4 corregida ente
   actualizar React Router, comprobar si ya lo pasa.
 - Si alguna ruta lanza un 404 desde un `loader` (`throw data(null, { status: 404 })`), choca con
   `@typescript-eslint/only-throw-error`: configurar el `allow` de la regla. Hoy ninguna lo hace.
-
+- **Hasta C.6b · el epílogo sobre la Tierra:** el Crew file tiene `m` = 5, pero la escena no tiene sexta forma: el
+  shader y la cámara se quedan en la Tierra (también la foto fija sin WebGL). Contacto ya cambia en su segunda mitad
+  (el 52 %, como Skills): con el retrato, esa ventana es la transición del haz de barrido (`05-crew-file.md`).
+- **C.6a · el raíl que encoge** (decidido por Claude con Víctor fuera; él lo vio en el PR): en una ventana baja las
+  ocho paradas bajan de 44 px hasta 24 px como mínimo (WCAG 2.5.8). El e2e lo mide en Chromium a 844×390 y 800×360;
+  en el CI, los tres motores. Mirarlo en un móvil real apaisado (F6).
+- **e2e · emails duplicados:** el email sale en Contacto y en el Crew file: un `getByRole('link', { name: email })`
+  sin acotar a su sección falla por modo estricto (lo arregló `journey.spec.ts`).
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **C.5 · Cosmos completo** (objetivo: 29 nov), con su VB (vivas S38 #17): rama `feat/cosmos-complete`. Primero
-   CO-1-A (el detalle de las fichas fuera del JS de la home, ADR-036; al escribirlo, Naves pasa a ADR-037 en el
-   roadmap y en `transiciones-naves.md`) y medir cuánto baja la home; después la ficha de Cosmos con proceso y retos
-   reales, funcionalidades (constelaciones y transmisiones) y la nota del README; `metaDescription`; el `README.md`
-   en inglés con el estilo del de Chessmate; la descripción y los topics de GitHub en `ABOUT_REPOS.md` del proyecto de
-   ofertas. Docs: `docs/01-contenido/proyectos/cosmos.md`, `modelo-de-datos.md`, `pagina-proyecto.md`, `calidad.md`
-   y el roadmap.
-3. Al cerrar C.5, su auditoría a la Mesa (se corrige entera antes de C.6). Después C.6 (1 dic); C.7 si queda tiempo.
-4. Propuesta sin VB: un PR pequeño para el arranque en frío de `npm run visual` (deuda).
-5. Víctor: **las 4 capturas del README** (1440×900, escena en Alto: inicio, galaxia, tortuga y Mission control);
-   suavizar el CV y LinkedIn con el chat de mentor (y avisar para volver a copiar el PDF); redirigir el portfolio
-   antiguo de Vercel a tortoisecode.dev (un `vercel.json` con un 308 en ese proyecto); mirar las líneas de las
-   constelaciones en su pantalla (deuda «líneas … en retina»).
+2. **AUD-C6A a la Mesa** (encargo listo para un chat nuevo):
+   `Usa la skill mesa. Encargo para la Mesa · AUD-C6A · base 806cf02 · hasta 4743248` · Audita C.6a · el epílogo
+   sin retrato (PR #107): el capítulo 5 Crew file (`EPILOGUE`, `isTransmissionStop`, `JOURNEY_SEGMENTS`), `CrewFile`
+   y `Transmission` con capítulo, el canal verde (tokens y AA), la formación y el pie mudados de Contacto,
+   `Profile.languages`, el raíl de 8 paradas que encoge (`--rail-stop`, `railHalfHeight`), el HUD escondido, la foto
+   de la Tierra en el capítulo 5 y `crew-file.spec.ts`. Especificación: `05-crew-file.md`, `componentes.md` (Raíl),
+   `design-system.md` (Transmisiones), `scroll-y-escena.md`, `textos-sitio.md` (Epílogo), ADR-034; vivas S39
+   #24–#27 y #32–#35 (`_claude/cadena/hecho/2026-11-22/decisiones-vivas-S39.md`). Ámbitos: estilos e interfaz ·
+   lógica y contenido · escena 3D (lo que toca: `labelFit`, `constellationLayout`) · tests · documentación y ADR.
+   No es hallazgo: la deuda de STATE, C.6b (retrato, transición, layout con datos a los lados), F5/F6. Entrega:
+   `_claude/cadena/aud-c6a/auditoria.md`.
+3. Corregirla entera en su PR. En paralelo (regla nueva de §13), el **esquema de C.6b**: medir antes el peso del
+   retrato (datos ~150 KB aparte; el código, del margen de ~1,4 KB), la transición B en el shader, la foto fija del
+   retrato, el layout de escritorio con los datos a los lados, la foto de la prueba al repo (`_claude/retrato/`).
+4. Propuesta (sin VB, ya conviene): el PR pequeño del arranque en frío de `npm run visual`.
+5. Víctor: pegar la descripción, la web y los topics de Cosmos en GitHub (`ABOUT_REPOS.md` del Proyecto de
+   claude.ai); suavizar el CV y LinkedIn con el chat de mentor (y avisar para volver a copiar el PDF); redirigir el
+   portfolio antiguo de Vercel a tortoisecode.dev; mirar las líneas de las constelaciones en su pantalla.
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»).
 **Limpieza manual del usuario:**
-- Todo `_claude/tmp/` (copias del repo, diffs y archivos de las sesiones 34 a 38, entre ellas `s37/`, `s38/`, `c3/`
-  y `aud-c2/`) y `_claude/lstree.txt`: borrarlos.
-- Ramas locales ya fusionadas (todas menos `main`, entre ellas `feat/mission-control`, `fix/project-page-backdrop` y
-  `fix/aud-c4`): `git branch` para verlas y `git branch -D <rama>`.
+- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 39, entre ellas `s37/`, `s38/`, `s39/`, `c3/`
+  y `aud-c2/`) y `_claude/lstree.txt`; `_claude/readme-originales/` (las capturas sin recortar) si ya no hacen falta;
+  `fix-aud-c5.zip` en Descargas (ya no hace falta).
+- Ramas locales ya fusionadas (todas menos `main`, entre ellas `feat/cosmos-complete`, `fix/aud-c5` y
+  `feat/crew-file`): `git branch` para verlas y `git branch -D <rama>`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol.tar.gz` y `cambio.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js` ni
   `hecho/2026-10-28/encuadre/`, que se reutilizan). Mover a mano `_claude/cadena/aud-f4-1/` a
-  `_claude/cadena/hecho/2026-11-18/` y `_claude/cadena/aud-c2/` a `_claude/cadena/hecho/2026-11-21/` (desde aquí
-  sigue dando «Permission denied»; `aud-c4/` sí se movió). No borrar `_claude/diseno/`, `_claude/retrato/`,
-  `_claude/naves/` ni `_claude/c3/`.
+  `_claude/cadena/hecho/2026-11-18/` y `_claude/cadena/aud-c2/` a `_claude/cadena/hecho/2026-11-21/` (y `aud-c5/` a
+  `hecho/2026-11-22/` si desde aquí no se pudo). No borrar `_claude/diseno/`, `_claude/retrato/`, `_claude/naves/` ni
+  `_claude/c3/`.
 - En la raíz del repo, `playwright-report-firefox.zip` y la carpeta `test-results/`: borrarlos.
 - Perfiles temporales de las pruebas sin WebGL: `$env:TEMP\cosmos-sin-webgl` y `$env:TEMP\cosmos-swiftshader`.
 - Si alguna vez falla `npm ci` dentro de Docker: `docker volume rm cosmos-portfolio-visual-node-modules`.
