@@ -1,5 +1,5 @@
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
-import { TURTLE_SWAY } from '../../config/sceneConfig';
+import { SUN, TURTLE_SWAY } from '../../config/sceneConfig';
 import { hexToRgb, SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
 import {
   EARTH_TAG,
@@ -40,6 +40,16 @@ function colours(): string[] {
 }
 
 /**
+ * La dirección de la luz de la Tierra: hacia el Sol desde el centro de la Tierra (el origen), así que el lado de día
+ * mira siempre al Sol que se ve (`SUN.position`).
+ */
+export function sunDirection(): [number, number, number] {
+  const [x, y, z] = SUN.position;
+  const length = Math.hypot(x, y, z);
+  return [x / length, y / length, z / length];
+}
+
+/**
  * La cabecera entera: se antepone al código de cada **vertex** shader. Los fragment shaders no la llevan (no la
  * usan, y así no pesan más): no pueden usar sus nombres (lo comprueba el test).
  */
@@ -51,6 +61,9 @@ export function glslHeader(): string {
     `#define PLATE_LAST ${glslFloat(LAST_PLATE_LABEL)}`,
     ...defines('TURTLE_SWAY', TURTLE_SWAY),
     ...defines('EARTH', EARTH_TAG),
+    `#define SUN_DIR vec3(${sunDirection()
+      .map((c) => glslFloat(Number(c.toFixed(4))))
+      .join(', ')})`,
     `#define PORTRAIT_HALF_H ${glslFloat(Number(PORTRAIT_FRAME.halfHeight.toFixed(4)))}`,
     `#define PORTRAIT_FADE_H ${glslFloat(Number(PORTRAIT_FRAME.fadeHeight.toFixed(4)))}`,
     ...colours(),

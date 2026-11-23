@@ -24,6 +24,7 @@ export const STILLS_SOURCES = [
   'src/scene/BackgroundStars',
   'src/scene/CameraRig',
   'src/scene/Constellations',
+  'src/scene/Sun',
   'src/scene/Particles',
   'src/scene/SceneRoot',
   'src/scene/particleGeometry',

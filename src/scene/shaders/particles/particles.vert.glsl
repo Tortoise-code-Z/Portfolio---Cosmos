@@ -170,13 +170,13 @@ void turtle(out vec3 P, out vec3 C, out float S, out float A) {
   A = a;
 }
 
-// Forma 4 · Tierra: giro lento, luz del Sol fija (día, noche y amanecer), luces de ciudad en la tierra de noche
+// Forma 4 · Tierra: giro lento, luz del Sol fija, desde donde está el Sol (`SUN_DIR`: día, noche y amanecer), luces de ciudad en la tierra de noche
 // (no en Bajo) y atmósfera con Fresnel según la cámara.
 void earth(out vec3 P, out vec3 C, out float S, out float A) {
   vec3 p = rotY(pEar, uTime * 0.05);
   float tag = aR.z;
   vec3 n = normalize(p);
-  float lam = dot(n, normalize(vec3(-0.72, 0.3, -0.45)));
+  float lam = dot(n, SUN_DIR);
   float day = smoothstep(-0.12, 0.45, lam);
   float q = lam * 4.5;
   float dawn = exp(-q * q);

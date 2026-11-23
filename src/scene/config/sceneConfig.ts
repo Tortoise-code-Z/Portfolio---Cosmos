@@ -95,6 +95,31 @@ export const PARALLAX = { x: 0.7, y: 0.45, rate: 2 } as const;
  */
 export const GRAVITY = { rate: 10, epsilon: 1e-3 } as const;
 
+/**
+ * La gravedad del cursor, más suave sobre la Tierra (docs/02-experiencia/capitulos/04-tierra.md → «Interacciones»):
+ * `uGrav` por `lerp(1, scale, presencia)`, con la presencia de su capítulo (`math/chapterPresence`). En el retrato
+ * (m = 5) la presencia ya es 0: su giro con el ratón no cambia.
+ */
+export const EARTH_GRAVITY = { chapter: 4, scale: 0.5 } as const;
+
+/**
+ * El Sol del capítulo de la Tierra (docs/04-escena/particulas-y-shaders.md → «Sol»): un brillo de `size` unidades de
+ * lado que mira a la cámara, en `position`, arriba a la izquierda de la Tierra y casi a su altura. La luz de la Tierra
+ * sale de aquí (`SUN_DIR` en la cabecera GLSL: la Tierra está en el origen), así que su lado de día mira siempre a
+ * este Sol. No va donde el prototipo (−2,6, 3, −5 y 9): su halo cruzaba el borde del panel y el de la barra de arriba
+ * y los dibujaba (`04-tierra.md` → «Layout»); más a la izquierda cae sobre el panel, y detrás de la Tierra ilumina su
+ * cara de atrás, que se ve a través de las partículas. Late ± `pulse` a ritmo `pulseRate` (quieto con movimiento
+ * reducido) y aparece con la presencia de su capítulo, hasta `opacity`.
+ */
+export const SUN = {
+  chapter: 4,
+  position: [-1.4, 2.9, -1],
+  size: 3.5,
+  pulse: 0.15,
+  pulseRate: 0.8,
+  opacity: 0.95,
+} as const;
+
 /** Subsemilla de las estrellas de fondo (como las de cada forma, `subSeed`). */
 export const STARS_SEED_NAME = 'stars';
 
