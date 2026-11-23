@@ -30,6 +30,7 @@
 | `nav.projects` | Projects | Proyectos |
 | `nav.contact` | Contact | Contacto |
 | `nav.cv` | CV | CV |
+| `nav.cvInEnglish` | CV (PDF, in English) | CV (PDF, en inglés) |
 | `nav.quick` | Quick mission | Modo misión rápida |
 | `nav.quickShort` | Quick | Rápida |
 | `nav.language` | Language | Idioma |
@@ -206,7 +207,7 @@ La formación y el pie (`footer.*`) se mudaron al epílogo en C.6; `education.ho
 
 ## Epílogo · Crew file (transmisión, canal verde)
 
-Textos de C.6a (los escribe Claude y Víctor los corrige en su PR). La ficha usa además `contact.availability.*`,
+Textos de C.6a (los escribió Claude; Víctor los revisa cuando quiera). La ficha usa además `contact.availability.*`,
 `availability.mode.*`, `contact.cv`, `contact.copy.subject`, `education.hours` y `footer.*`.
 
 | Clave | EN | ES |

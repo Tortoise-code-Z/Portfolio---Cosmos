@@ -5,7 +5,6 @@
 | Campo | Valor |
 |---|---|
 | name | Víctor Pérez |
-| fullName | Víctor David Pérez Alarcón |
 | alias | Tortoise_code |
 | role | EN: Frontend Developer · ES: Desarrollador Frontend |
 | headline | EN: Frontend developer building fast, precise and memorable interfaces with React and TypeScript. |

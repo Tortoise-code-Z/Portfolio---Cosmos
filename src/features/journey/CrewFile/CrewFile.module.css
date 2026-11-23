@@ -270,9 +270,11 @@
   }
 
   /*
-   * El email y «Download CV», abajo, en la misma fila (`order`: la rejilla los coloca después de la ficha; el foco
-   * sigue el DOM, y en la ficha no hay nada que enfocar). El email a la izquierda, la pista ancha: en la de la derecha
-   * no cabe sin partirse. El pie del sitio, después.
+   * El email y «Download CV», abajo, en la misma fila (`order`: la rejilla los coloca después de la ficha). El email
+   * a la izquierda, la pista ancha: en la de la derecha no cabe sin partirse. Va primero: la rejilla coloca en orden
+   * y no vuelve atrás (solo la ficha lleva `dense`), así que con el CV antes, en la columna 3, el email bajaría una
+   * fila. El foco sigue el DOM (el CV primero, como en una columna, donde va bajo el título): en esta fila va de
+   * derecha a izquierda, y en la ficha no hay nada que enfocar. El pie del sitio, después.
    */
   .emailRow {
     order: 1;
@@ -280,13 +282,13 @@
   }
 
   .cv {
-    order: 1;
+    order: 2;
     grid-column: 3;
     align-self: center;
   }
 
   .site {
-    order: 2;
+    order: 3;
     grid-column: 1 / -1;
   }
 }

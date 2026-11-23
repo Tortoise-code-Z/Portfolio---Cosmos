@@ -45,8 +45,8 @@ activo.
 | `--color-singularity` | `#fff2d9` | Punto CSS de la singularidad (hero sin escena) | — |
 | `--gradient-singularity-halo` | radial cálido → azul → transparente | Halo CSS del punto | — |
 | `--gradient-space` | dos nubes radiales muy tenues (violeta al 9 %, turquesa al 5 %) | Fondo del espacio sin escena (`no-gl`), en la capa del lienzo | — |
-| `--gradient-channel-amber-grid` | cuadrícula doble (120 px y 24 px) en `--color-channel-amber-grid` | Plano técnico de la transmisión ámbar | — |
-| `--gradient-channel-amber-sweep` | banda vertical transparente → brillo ámbar → transparente | Barrido de entrada de la transmisión ámbar | — |
+| `--gradient-channel-{amber,blue,green}-grid` | cuadrícula doble (120 px y 24 px) en `--color-channel-<canal>-grid` | Plano técnico de cada transmisión | — |
+| `--gradient-channel-{amber,blue,green}-sweep` | banda vertical transparente → brillo del canal → transparente | Barrido de entrada de cada transmisión | — |
 | `--gradient-scanlines` | líneas horizontales de 1 px cada 3 px en `--color-channel-scanline` | Líneas de barrido de todas las transmisiones, debajo del texto | — |
 
 **Garantía de lectura:** el peor caso medido (texto sobre el velo encima de la zona más brillante de la escena)
@@ -181,7 +181,7 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--visor-corner` · `--visor-corners` | 28 px · 8 degradados | Largo de las esquinas del visor y su dibujo (en `currentcolor`) |
 | `--log-number-size` · `--log-tag-w` | 2.2em · 10ch | Círculo del número de una entrada del registro · columna de su etiqueta (escritorio) |
 | `--cursor-w` · `--cursor-h` · `--blink-count` | 0.6em · 1em · 4 | Cursor de bloque del teletipo de las transmisiones (`BlinkCursor`) y cuántas veces parpadea (menos de 5 s, WCAG 2.2.2) |
-| `--countdown-size` | `min(clamp(5rem, 33vw, 13rem), 40vw)` | Letra del «T-0» de Mission control: un tercio del ancho, nunca más del 40 % (las tres letras caben en una línea también con la letra al 200 %) |
+| `--countdown-size` | `min(clamp(5rem, 33vw, 13rem), 40vw)` | Letra del «T-0» de Mission control: un tercio del ancho, nunca más del 40 % ni de su columna (`100cqi / 1,8`, con el título como contenedor: las tres letras caben en una línea también con la letra al 200 %, en móvil y en escritorio) |
 | `--telemetry-col-min` | 7rem | Columna mínima de la telemetría de Mission control: dos columnas como mucho, una si no caben (una cifra no se parte) |
 | `--sequence-bracket-h` · `--sequence-loop-h` · `--sequence-arrow` | 10 px · 28 px · 7 px | Esquema de Mission control: alto de la cota «No code yet», del bucle de la auditoría y punta de las flechas |
 | `--chip-dot-size` · `--opacity-breathe-low` | 6 px · 0,35 | Punto del chip «Open to work» y la opacidad más baja de su respiración |
@@ -229,11 +229,13 @@ Excepción al «la interfaz es sobria»: las dos secciones entre capítulos (Mis
 mantienen el radio 0, la tipografía mono (IBM Plex Mono) y el tema oscuro (ADR-015); cambian la composición y el
 color, uno por **canal**:
 
-| Canal | Sección | Color | Atenuado | Brillante | Fondo |
-|---|---|---|---|---|---|
-| 01 · ámbar | Mission log | `#ffb547` | `#b98636` | `#ffd79a` | `#070503` |
-| 02 · azul | Mission control | `#7cc4ff` | `#5a8fc6` | `#d6ecff` | `#02060d` |
-| 03 · verde | Crew file | `#6dff9f` | `#3f9a62` | `#d5ffe4` | `#010603` |
+| Canal | Sección | Color | Atenuado | Brillante | Fondo | Velo (alfa) | AA sobre el velo encima de blanco (color · atenuado · brillante) |
+|---|---|---|---|---|---|---|---|
+| 01 · ámbar | Mission log | `#ffb547` | `#b98636` | `#ffd79a` | `#070503` | 0,9 | 9,5 · 5,2 · 12,2 |
+| 02 · azul | Mission control | `#7cc4ff` | `#5a8fc6` | `#d6ecff` | `#02060d` | 0,9 | 8,8 · 4,9 · 13,6 |
+| 03 · verde | Crew file | `#6dff9f` | `#3f9a62` | `#d5ffe4` | `#010603` | 0,9 | 13,1 · 4,8 · 15,3 |
+
+Lo que sale del color de cada canal, con su alfa: la rejilla al 6 %, las líneas al 30 % y el brillo al 45 %.
 
 (Desde C.2, el ámbar es token: `--color-channel-amber`, `-dim`, `-bright` y `-bg`, más el velo, la rejilla, la
 línea y el brillo (`--glow-channel-amber`); desde C.4, el azul igual (`--color-channel-blue…`, `--glow-channel-blue`),
@@ -250,14 +252,17 @@ profundo y el océano de la tortuga; verde = la Tierra, la vida y el fósforo de
 Lenguaje común de las tres:
 
 - **Terminal:** franja de canal arriba con «Skip transmission ↓» (en el epílogo, «All channels closed»), líneas de barrido finas sobre el fondo, brillo
-  (`text-shadow`) solo en títulos y datos clave, teletipo con cursor, onda de señal abajo.
+  (`text-shadow`) solo en títulos y datos clave, teletipo con cursor (en el epílogo, sin cursor: su teletipo acaba en
+  «Identity verified», en el visor), onda de señal abajo.
 - **Plano técnico:** cuadrícula doble (120 px y 24 px) en el color del canal muy tenue, cajas de línea fina, números
   en círculo que enlazan pieza ↔ entrada, líneas discontinuas para lo que vuelve atrás y cotas.
 - Todo el texto es DOM; barrido, brillo, cursor, onda y cuadrícula son decoración y se apagan o quedan quietos con
   movimiento reducido. Área táctil ≥ 44 px también aquí.
-- **Controles dentro de una transmisión** (el Crew file: «Download CV», el email y «Copy»): con los colores del sitio,
-  no del canal. El ámbar es la señal de «esto se puede tocar» (y de su estado) en todo el sitio, también sobre el
-  verde.
+- **Controles dentro de una transmisión** (el Crew file: «Download CV», el email y «Copy»): el texto de un enlace, en
+  el color del canal («Download CV» y el enlace del pie en el del canal, el email en su brillante), y su estado
+  (puntero, foco, subrayado) en ámbar, la señal de «esto se puede tocar» en todo el sitio, también sobre el verde.
+  «Copy», botón del sitio, en blanco y ámbar al pasar. «Skip transmission» y «Touchdown» son de la transmisión: el
+  color del canal y, al pasar, su brillante.
 
 Spec de cada una: `docs/02-experiencia/capitulos/` (`interludio-1-mission-log.md`,
 `interludio-2-mission-control.md`, `05-crew-file.md`).

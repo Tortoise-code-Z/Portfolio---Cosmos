@@ -7,7 +7,6 @@ export const ORIGIN = 'https://cosmos.test';
 
 export const fakeProfile: Profile = {
   name: 'Ada Pérez',
-  fullName: 'Ada Pérez López',
   alias: 'Ada_code',
   role: { en: 'Frontend Developer', es: 'Desarrolladora Frontend' },
   headline: { en: 'Builds interfaces.', es: 'Construye interfaces.' },

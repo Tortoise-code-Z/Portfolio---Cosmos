@@ -24,8 +24,8 @@
 | `--dur-blink` | 1,05 s | Un parpadeo del cursor del teletipo de las transmisiones (`BlinkCursor`); parpadea `--blink-count` veces (4: menos de 5 s, WCAG 2.2.2) y se queda quieto. Sin parpadeo con movimiento reducido |
 | `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Entradas y vuelos (salida exponencial) |
 | `--ease-in-out` | `cubic-bezier(0.65, 0, 0.35, 1)` | Fundidos simétricos |
-| `--dur-fade-base` | = `--dur-base` | Fundidos de opacidad de duración base |
-| `--dur-fade-slow` | = `--dur-slow` | Fundidos de opacidad lentos: entrada del lienzo (y del fondo sin WebGL), las fotos fijas sin WebGL al cambiar de capítulo, avisos, diálogos |
+| `--dur-fade-base` | = `--dur-base` | Fundidos de opacidad de duración base (entre ellos, el HUD al esconderse leyendo una transmisión) |
+| `--dur-fade-slow` | = `--dur-slow` | Fundidos de opacidad lentos: entrada del lienzo (y del fondo sin WebGL), las fotos fijas sin WebGL al cambiar de capítulo, avisos, diálogos, «Identity verified» en el visor del Crew file |
 
 Con `prefers-reduced-motion: reduce`, las duraciones de la interfaz pasan a 0 ms, salvo los fundidos de
 opacidad, que se quedan en 150 ms. Se resuelve en `tokens.css`: `--dur-fast`, `--dur-base`, `--dur-slow` y

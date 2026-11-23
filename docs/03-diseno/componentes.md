@@ -144,8 +144,9 @@
 - En alto contraste, las barras de señal y el cursor se pintan con `CanvasText` (son un fondo: el sistema los
   dejaría del color del fondo). Escrita una línea del teletipo, su recorte se abre `--space-5` más allá de su caja
   para no cortar el brillo de las cifras y de «Launch».
-- Cursor de bloque del teletipo (`BlinkCursor`, el mismo en todas): parpadea unas pocas veces al escribirse su línea
-  y se queda quieto.
+- Cursor de bloque del teletipo (`BlinkCursor`, el mismo en los dos interludios): parpadea unas pocas veces al
+  escribirse su línea y se queda quieto. En el epílogo no hay cursor: el cierre de su teletipo es «Identity
+  verified», en el visor.
 - Entrada: con JavaScript y sin movimiento reducido, la sección se arma al montar (`data-armed`: las líneas del
   teletipo, `[data-line]`, esperan tapadas) y se enciende una vez cuando su borde de arriba pasa el 80 % de la
   ventana (`data-on`; `TRANSMISSION_ENTRY`, un margen y no una proporción: una sección muy alta también llega):

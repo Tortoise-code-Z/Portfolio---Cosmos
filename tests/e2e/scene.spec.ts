@@ -844,8 +844,11 @@ test.describe('the scene with WebGL', () => {
       const errors = collectErrors(page);
       const glWarnings = collectGlWarnings(page);
       const images: string[] = [];
+      let requestedAt = Number.NaN;
       page.on('request', (request) => {
-        if (PORTRAIT_IMAGES.test(new URL(request.url()).pathname)) images.push(request.url());
+        if (!PORTRAIT_IMAGES.test(new URL(request.url()).pathname)) return;
+        if (images.length === 0) requestedAt = Date.now();
+        images.push(request.url());
       });
       // Las imágenes se retienen hasta la primera bajada: el encargo del retrato está en marcha cuando cambia `count`.
       let release = (): void => undefined;
@@ -862,11 +865,18 @@ test.describe('the scene with WebGL', () => {
         timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
       });
       await expect.poll(() => images.length, { timeout: 30_000 }).toBe(2);
-      await expect(scene).toHaveAttribute('data-level', 'medium', { timeout: 30_000 });
+      // El plazo de la página para el retrato (`PORTRAIT_WORKER_TIMEOUT_MS`) corre desde que lo pide, sin reintento: la
+      // bajada tiene que llegar antes (con 2 s de margen) o la página lo da por perdido y el fallo parecería del retrato.
+      const left = PORTRAIT_WORKER_TIMEOUT_MS - (Date.now() - requestedAt) - 2_000;
+      expect(left, 'the portrait images took too long to be requested').toBeGreaterThan(0);
+      await expect(
+        scene,
+        'the level must go down before the page gives up the portrait (PORTRAIT_WORKER_TIMEOUT_MS): a slow machine, not the portrait',
+      ).toHaveAttribute('data-level', 'medium', { timeout: left });
       release();
       // Llega el retrato pedido en Alto y se pinta su principio (el de Medio, y después el de Bajo).
       await expect(page.locator(SCENE_READY)).toHaveAttribute('data-portrait', 'painted', {
-        timeout: PORTRAIT_WORKER_TIMEOUT_MS,
+        timeout: PORTRAIT_WORKER_TIMEOUT_MS + SHAPES_WORKER_TIMEOUT_MS,
       });
       await expect(scene).toHaveAttribute('data-level', 'low', { timeout: 30_000 });
       await nextFrames(page);

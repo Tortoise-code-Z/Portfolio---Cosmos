@@ -2,7 +2,7 @@
 
 > Fase C, paso 6 (ADR-034). Bajo la Tierra, el último. Diseño aprobado el 2026-11-19
 > (`docs/03-diseno/design-system.md` → «Transmisiones»). En dos PR: **C.6a**, el epílogo sin retrato (el capítulo, la
-> ficha, el CV, el raíl de ocho paradas; textos en `textos-sitio.md` → «Epílogo», que Víctor corrige en su PR), y
+> ficha, el CV, el raíl de ocho paradas; textos en `textos-sitio.md` → «Epílogo»: los escribió Claude y Víctor los revisa cuando quiera), y
 > **C.6b**, el retrato (la sexta forma, el visor y la ficha a sus lados). Los dos, hechos.
 
 ## Propósito
@@ -23,8 +23,9 @@ Metáfora: las partículas que formaron el universo se recomponen en la cara de 
   (Full-Stack), Master.D, 975 h, Distinction; React + TypeScript, Hola Mundo, 13 h). La formación se muda aquí desde
   Contacto, y con ella la firma del sitio (un `<footer>`: «Víctor Pérez · Frontend Developer · año» y «This site is
   open source»). Lo último de la página es el pie de la transmisión: la onda y «End of journey».
-- **Download CV** (el PDF de `public/`, el inglés en los dos idiomas) y el email con «Copy», con los colores del
-  sitio (el ámbar es el estado de todo control: `design-system.md` → «Transmisiones»).
+- **Download CV** (el PDF de `public/`, el inglés en los dos idiomas) y el email con «Copy»: el texto en el verde del
+  canal (el email, en su brillante; «Copy», blanco) y su estado en ámbar, el de todo control (`design-system.md` →
+  «Transmisiones»).
 - Pie: «End of journey · 13.8 billion years + now».
 
 ## Escena (`m = 5`)
@@ -37,7 +38,7 @@ Metáfora: las partículas que formaron el universo se recomponen en la cara de 
   con la escena ya aquí (un salto por el raíl o la misión rápida, entrar por `/#crew-file`), se forma en 0,6 s desde
   la Tierra con el haz bajando, en vez de aparecer de golpe.
 - El retrato: una foto de Víctor convertida en profundidad, cargada como dato aparte (`src/assets/portrait/`: la foto
-  y otra imagen con la profundidad, la distancia al borde y los contornos; ~160 KB) al llegar a la tortuga, un tramo
+  y otra imagen con la profundidad, la distancia al borde y los contornos; ~150 KB) al llegar a la tortuga, un tramo
   antes de la Tierra (`m` ≥ 3), una vez por visita. Lo pide y lo lee el worker de las formas; solo el código que lo pide cuenta en el chunk de la escena
   (ADR-032). Si no llega, la forma 5 se queda en la Tierra.
 - Aspecto elegido: holograma de líneas de escáner (una fila de cada tres), luz en pocos niveles, rasgos y borde de

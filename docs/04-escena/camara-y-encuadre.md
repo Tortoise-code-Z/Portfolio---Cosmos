@@ -82,7 +82,8 @@ fuera). Lo vigilan `stillFrames.test.ts` y `camera.test.ts`.
 ## Tamaños de referencia para validar el encuadre
 
 1280×720 · 1440×900 · 1920×1080 · 768×1024 · 390×844 · 360×740.
-En todos: nada importante bajo el raíl, la tortuga entera, la galaxia legible y la Tierra sin cortar por arriba.
+En todos: nada importante bajo el raíl, la tortuga entera, la galaxia legible, la Tierra sin cortar por arriba y el
+retrato entero, en su visor, sin pasar bajo la barra ni el raíl.
 
 - **Cómo se ajustó (F3.6c):** capturas de trabajo de los 5 capítulos en los 6 tamaños, en nivel Bajo y con
   movimiento reducido, cada una dos veces: con la interfaz y sin ella (solo el lienzo), para medir la caja de las

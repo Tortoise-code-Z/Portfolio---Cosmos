@@ -1,7 +1,16 @@
 import { expect, type Page } from '@playwright/test';
 
 import { profile } from '../../src/content/profile.ts';
-import { collectErrors, hud, settleScene, withoutWebGL } from './support/helpers.ts';
+import { CHAPTER_INDICES, INTERLUDES } from '../../src/content/chapters.ts';
+import { PORTRAIT_FRAME } from '../../src/scene/shapes/shapeContract/shapeContract.ts';
+import {
+  collectErrors,
+  hud,
+  lineClips,
+  settleScene,
+  TELETYPE_WRITTEN,
+  withoutWebGL,
+} from './support/helpers.ts';
 import { test } from './support/test.ts';
 
 /**
@@ -12,6 +21,9 @@ import { test } from './support/test.ts';
  */
 
 const crewFile = (page: Page) => page.locator('[data-chapter="5"]');
+/** Las paradas del raíl: los capítulos y los interludios. */
+const STOPS = CHAPTER_INDICES.length + INTERLUDES.length;
+
 const rail = (page: Page) => page.getByRole('navigation', { name: /^(?:Chapters|Capítulos)$/ });
 
 test.describe('Crew file', () => {
@@ -88,9 +100,13 @@ test.describe('Crew file', () => {
             title: box(section?.querySelector('h2') ?? null),
             fields: fields.map((field) => box(field)),
             guides: fields.map((field, index) => guide(field, index < 3 ? 'left' : 'right')),
+            email: box(
+              section?.querySelector('a[href^="mailto:"]')?.closest('[data-line]') ?? null,
+            ),
+            cv: box(section?.querySelector('a[download]')?.closest('[data-line]') ?? null),
           };
         });
-      const { centre, middle, frame, title, fields, guides } = await layout();
+      const { centre, middle, frame, title, fields, guides, email, cv } = await layout();
       expect(frame).not.toBeNull();
       if (frame === null || title === null) return;
       expect(Math.abs((frame.left + frame.right) / 2 - centre)).toBeLessThanOrEqual(1);
@@ -106,6 +122,15 @@ test.describe('Crew file', () => {
       guides.forEach((end, index) => {
         expect(Math.abs(end - (index < 3 ? frame.left : frame.right))).toBeLessThanOrEqual(1);
       });
+      // Abajo, en la misma fila: el email a la izquierda del visor y «Download CV» a su derecha.
+      expect(email).not.toBeNull();
+      expect(cv).not.toBeNull();
+      if (email === null || cv === null) return;
+      expect(email.right).toBeLessThanOrEqual(frame.left);
+      expect(cv.left).toBeGreaterThanOrEqual(frame.right);
+      expect(
+        Math.abs((email.top + email.bottom) / 2 - (cv.top + cv.bottom) / 2),
+      ).toBeLessThanOrEqual(1);
       // Al bajar por la ficha, el marco sigue pegado al centro de la pantalla (el retrato está fijo en el lienzo).
       await page.mouse.wheel(0, height / 3);
       await expect
@@ -146,7 +171,10 @@ test.describe('Crew file', () => {
         Math.abs(frame.left + frame.width / 2 - centre),
         `${String(width)} px`,
       ).toBeLessThanOrEqual(1);
-      expect(frame.width / frame.height).toBeCloseTo(720 / 637, 2);
+      expect(frame.width / frame.height).toBeCloseTo(
+        PORTRAIT_FRAME.imageWidth / PORTRAIT_FRAME.imageHeight,
+        2,
+      );
     }
   });
 
@@ -243,13 +271,13 @@ test.describe('Crew file', () => {
     { width: 844, height: 390 },
     { width: 800, height: 360 },
   ]) {
-    test(`${String(width)}×${String(height)} (a phone on its side): the whole rail fits under the bar, eight stops of at least 24 px`, async ({
+    test(`${String(width)}×${String(height)} (a phone on its side): the whole rail fits under the bar, every stop at least 24 px`, async ({
       page,
     }) => {
       await page.setViewportSize({ width, height });
       await page.goto('/#crew-file', { waitUntil: 'networkidle' });
       const links = rail(page).getByRole('link');
-      await expect(links).toHaveCount(8);
+      await expect(links).toHaveCount(STOPS);
       const boxes = await links.evaluateAll((elements) =>
         elements.map((element) => {
           const { top, bottom, height: size } = element.getBoundingClientRect();
@@ -272,16 +300,60 @@ test.describe('Crew file', () => {
     await page.goto('/#crew-file', { waitUntil: 'networkidle' });
     await settleScene(page);
     await expect(crewFile(page)).not.toHaveAttribute('data-armed');
-    const clips = await crewFile(page)
-      .locator('[data-line]')
-      .evaluateAll((lines) => lines.map((line) => getComputedStyle(line).clipPath));
-    expect(new Set(clips)).toEqual(new Set(['none']));
+    expect(new Set(await lineClips(crewFile(page)))).toEqual(new Set(['none']));
+  });
+
+  test('with motion, it switches on when it comes into view and the teletype ends with every line written', async ({
+    page,
+  }) => {
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    await expect(crewFile(page)).toHaveAttribute('data-armed', '');
+    await crewFile(page).scrollIntoViewIfNeeded();
+    await expect(crewFile(page)).toHaveAttribute('data-on', '');
+    // La ficha, el email y «Download CV»: ninguna línea se queda tapada (su numeración `--_line` crece con la ficha).
+    await expect
+      .poll(async () =>
+        (await lineClips(crewFile(page))).every((clip) => clip === TELETYPE_WRITTEN),
+      )
+      .toBe(true);
+  });
+
+  test('844×390 (a phone on its side): the teletype switches on and writes every line, however tall it is', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 844, height: 390 });
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    await expect(crewFile(page)).toHaveAttribute('data-armed', '');
+    // Se recorre la sección a pasos de media pantalla, hasta el final de la página.
+    const { top, bottom } = await crewFile(page).evaluate((section) => {
+      const box = section.getBoundingClientRect();
+      return { top: box.top + window.scrollY, bottom: box.bottom + window.scrollY };
+    });
+    for (let y = top - 390; y <= bottom; y += 195) {
+      await page.evaluate((to) => {
+        window.scrollTo({ top: to, behavior: 'instant' });
+      }, y);
+    }
+    await expect(crewFile(page)).toHaveAttribute('data-on', '');
+    await expect
+      .poll(async () =>
+        (await lineClips(crewFile(page))).every((clip) => clip === TELETYPE_WRITTEN),
+      )
+      .toBe(true);
   });
 
   test('without WebGL it reads whole, over the still photo of the portrait', async ({ page }) => {
     await withoutWebGL(page);
     await page.goto('/#crew-file', { waitUntil: 'networkidle' });
     const region = page.getByRole('region', { name: 'Crew file' });
+    // Sin WebGL el teletipo sigue (es CSS); `toBeVisible` no ve el `clip-path`: al acabar, ninguna línea tapada.
+    await expect
+      .poll(async () =>
+        (await lineClips(crewFile(page))).every(
+          (clip) => clip === 'none' || clip === TELETYPE_WRITTEN,
+        ),
+      )
+      .toBe(true);
     await expect(region.getByRole('term')).toHaveCount(6);
     await expect(region.getByRole('term').first()).toHaveText('Role');
     await expect(region.getByRole('link', { name: /^Download CV/ })).toBeVisible();
@@ -325,7 +397,7 @@ test.describe('Crew file', () => {
       .evaluateAll((links) =>
         links.map((link) => link.getBoundingClientRect().toJSON() as DOMRect),
       );
-    expect(boxes).toHaveLength(8);
+    expect(boxes).toHaveLength(STOPS);
     for (const box of boxes) expect(box.width).toBeLessThanOrEqual(48);
     expect(boxes.at(-1)?.bottom ?? Infinity).toBeLessThanOrEqual(412 + 0.5);
   });

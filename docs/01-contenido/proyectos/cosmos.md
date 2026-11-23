@@ -70,9 +70,10 @@ En el contenido, en este orden.
 
 | EN | ES | Desde |
 |---|---|---|
-| Scroll-driven particle morphing across five scenes | Morph de partículas guiado por el scroll en cinco escenas | F3 |
+| Scroll-driven particle morphing across six scenes | Morph de partículas guiado por el scroll en seis escenas | F3 (seis desde C.6b, con el retrato) |
 | Skill constellations that light up with the mouse, keyboard or touch | Constelaciones de habilidades que se encienden con el ratón, el teclado o el dedo | C.5 (hechas en F4.3 y C.3) |
 | Two interludes as incoming transmissions: a mission log and how I work | Dos interludios como transmisiones entrantes: un registro de misión y cómo trabajo | C.5 (hechos en C.2 y C.4) |
+| An epilogue, the Crew file: the same particles rebuild my portrait | Un epílogo, la ficha de tripulación: las mismas partículas reconstruyen mi retrato | Cierre de C (hecho en C.6a y C.6b) |
 | Bilingual site (English / Spanish) | Web bilingüe (inglés / español) | F2 |
 | Quick-mission mode with all the content on one page | Modo misión rápida con todo el contenido en una página | F2 |
 | Works without WebGL and with reduced motion | Funciona sin WebGL y con movimiento reducido | F3 |

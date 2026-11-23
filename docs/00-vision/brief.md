@@ -73,13 +73,14 @@ El detalle de cada capítulo vive en `docs/02-experiencia/`.
 ## 7. Alcance
 
 **Versión 1 (MVP)**
-- Los 5 capítulos con su escena de partículas y el morph entre ellos guiado por el scroll.
+- Los 6 capítulos (con el epílogo, el Crew file) y los 2 interludios, con su escena de partículas y el morph entre
+  ellos guiado por el scroll.
 - «Mantén pulsado para detonar», gravedad del cursor, constelaciones interactivas y placas de proyecto.
 - Barra superior, raíl de capítulos, HUD (reloj cósmico y escala) y **modo misión rápida**.
 - **Página propia por proyecto** (ruta tipo `/projects/chessmate`): descripción, retos, stack, capturas y enlaces.
   Se puede compartir y la indexan los buscadores.
 - **Disponibilidad visible**: indicador «open to work», ubicación y modalidad.
-- **CV en PDF** descargable (el enlace aparece cuando el PDF exista; prepararlo es tarea aparte).
+- **CV en PDF** descargable (desde C.1, el inglés en los dos idiomas).
 - Contenido bilingüe **EN (principal) / ES** con selector de idioma.
 - Alternativa sin WebGL, `prefers-reduced-motion` y versión móvil.
 - SEO básico (meta, Open Graph, imagen para compartir) y despliegue en Vercel.

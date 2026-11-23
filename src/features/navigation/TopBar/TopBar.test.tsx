@@ -10,13 +10,13 @@ import { QUICK_OPENER_ID } from '../quickMission';
 import { TopBar } from './TopBar';
 
 /** Perfil real con el CV como interruptor. */
-const state = vi.hoisted(() => ({ cvEn: null as string | null }));
+const state = vi.hoisted(() => ({ cvEn: null as string | null, cvEs: null as string | null }));
 
 vi.mock('~/content/profile', async (importOriginal) => {
   const original = await importOriginal<typeof import('~/content/profile')>();
   return {
     get profile() {
-      return { ...original.profile, cv: { en: state.cvEn, es: null } };
+      return { ...original.profile, cv: { en: state.cvEn, es: state.cvEs } };
     },
   };
 });
@@ -77,6 +77,7 @@ beforeEach(() => {
 afterEach(() => {
   useUiStore.setState(useUiStore.getInitialState(), true);
   state.cvEn = null;
+  state.cvEs = null;
   document.body.replaceChildren();
 });
 
@@ -131,10 +132,27 @@ describe('TopBar', () => {
   it('shows the CV link when the PDF of the language exists', () => {
     state.cvEn = '/cv/victor-perez-en.pdf';
     const bar = renderBar();
-    expect(within(bar).getByRole('link', { name: 'CV' })).toHaveAttribute(
-      'href',
-      '/cv/victor-perez-en.pdf',
-    );
+    const cv = within(bar).getByRole('link', { name: 'CV' });
+    expect(cv).toHaveAttribute('href', '/cv/victor-perez-en.pdf');
+    expect(cv).toHaveAttribute('download');
+    expect(cv).toHaveAttribute('hreflang', 'en');
+    expect(cv).toHaveAttribute('type', 'application/pdf');
+  });
+
+  it('in /es with the English PDF, the CV link downloads it and its name says it is in English', () => {
+    state.cvEn = '/cv/victor-perez-en.pdf';
+    state.cvEs = '/cv/victor-perez-en.pdf';
+    const cv = within(renderBar('/es')).getByRole('link', { name: 'CV (PDF, en inglés)' });
+    expect(cv).toHaveTextContent('CV');
+    expect(cv).toHaveAttribute('download');
+    expect(cv).toHaveAttribute('hreflang', 'en');
+  });
+
+  it('in /es with a Spanish PDF of its own, the CV link is plain «CV» in Spanish', () => {
+    state.cvEs = '/cv/victor-perez-es.pdf';
+    const cv = within(renderBar('/es')).getByRole('link', { name: 'CV' });
+    expect(cv).toHaveAttribute('href', '/cv/victor-perez-es.pdf');
+    expect(cv).toHaveAttribute('hreflang', 'es');
   });
 
   it('speaks Spanish in /es, with its links', () => {

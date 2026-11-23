@@ -166,7 +166,11 @@
   text-transform: uppercase;
 }
 
-@media (width >= 900px) {
+/*
+ * Escritorio ancho (lg), como el Crew file: el manifiesto en 3 × 2 junto al registro. Entre md y lg (900–1279 px), las
+ * cajas en 5/12 del cuerpo dejaban ~9 letras y partían «TypeScript» o «contenedores»: ahí va la columna de móvil.
+ */
+@media (width >= 1280px) {
   .columns {
     grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
     gap: var(--space-7);

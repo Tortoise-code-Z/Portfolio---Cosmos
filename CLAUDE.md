@@ -39,7 +39,7 @@ Versiones exactas y conflictos → `docs/05-tecnico/stack.md`.
 - Arquitectura (carpetas, capas, rutas, estado, errores) → `docs/05-tecnico/arquitectura.md`
 - Calidad (TS, lint, tests, cobertura, presupuestos, «hecho») → `docs/05-tecnico/calidad.md`
 - Git, CI, despliegue y seguridad → `docs/05-tecnico/git-y-despliegue.md`
-- Roadmap: fases F0–F7 y tareas de Víctor → `docs/06-roadmap/roadmap.md`
+- Roadmap: fases F0–F7 (y la fase C, entre F4.3 y F4.4) y tareas de Víctor → `docs/06-roadmap/roadmap.md`
 - Prototipo visual (referencia, no código a copiar) → `docs/referencia/prototipo-v0.1.html`
 - Decisiones (ADR) → `DECISIONS.md` · Estado → `STATE.md` · Reglas → `DEVELOPMENT_RULES.md`
 - Dudas de Víctor explicadas en cristiano → `_claude/dudas/` (fuera de git; índice en su `README.md`)

@@ -391,6 +391,16 @@ describe('design tokens', () => {
     expect(CHANNELS).toEqual(expect.arrayContaining(['amber', 'blue', 'green']));
   });
 
+  // WCAG 2.2.2: lo que parpadea solo, menos de 5 s. El cursor del teletipo (`BlinkCursor`): veces × lo que dura cada una.
+  it('the teletype cursor blinks for less than 5 seconds', () => {
+    const count = Number(tokenValue('--blink-count'));
+    const duration = /^(\d+(?:\.\d+)?)(m?s)$/.exec(tokenValue('--dur-blink'));
+    expect(Number.isInteger(count)).toBe(true);
+    expect(duration).not.toBeNull();
+    const seconds = Number(duration?.[1]) / (duration?.[2] === 'ms' ? 1000 : 1);
+    expect(count * seconds).toBeLessThan(5);
+  });
+
   // Si se retoca el color de un canal, su rejilla, sus líneas y su brillo no se quedan con el viejo.
   it.each(CHANNELS.flatMap((channel) => CHANNEL_DERIVED.map((part) => [channel, part] as const)))(
     'the %s channel%s colour is the channel colour with its own alpha',

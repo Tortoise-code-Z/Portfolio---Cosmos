@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
+import { CHAPTER_INDICES, JOURNEY_SEGMENTS } from '~/content/chapters';
+
 import {
   CAMERA_FIT,
   CAMERA_KEYFRAMES,
@@ -39,6 +41,16 @@ function point([x, y, z]: readonly number[]) {
 function pointer(x: number, y: number, inside = true): ScenePointer {
   return { x, y, inside };
 }
+
+describe('CAMERA_KEYFRAMES and the chapters', () => {
+  // Un capítulo nuevo sin su keyframe dejaría la cámara parada en el anterior sin que nada fallara.
+  it('has one keyframe per chapter, and every stretch of the journey rests on one', () => {
+    expect(CAMERA_KEYFRAMES).toHaveLength(CHAPTER_INDICES.length);
+    for (const segment of JOURNEY_SEGMENTS) {
+      expect(segment.base).toBeLessThan(CAMERA_KEYFRAMES.length);
+    }
+  });
+});
 
 describe('cameraPose', () => {
   it('sits exactly on each chapter keyframe at whole m, the last one included', () => {

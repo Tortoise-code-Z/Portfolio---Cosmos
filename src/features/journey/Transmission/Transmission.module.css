@@ -237,8 +237,10 @@
 }
 
 /* Un título que se ve de otra forma (`titleDisplay`): el sitio del título, sin su letra; la pinta quien lo pasa. */
+/* El título grande (el «T-0» de Mission control) se mide contra su columna: su letra puede usar `cqi`. */
 .titleDisplay {
   margin-block-start: calc(-1 * var(--space-4));
+  container-type: inline-size;
 }
 
 /* El rótulo de cada bloque dentro de una transmisión: cada una lo usa con `composes` (Mission log, Mission control). */

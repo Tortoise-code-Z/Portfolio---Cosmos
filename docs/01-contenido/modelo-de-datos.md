@@ -96,7 +96,6 @@ export type WorkMode = 'remote' | 'hybrid' | 'onsite';
 
 export interface Profile {
   readonly name: string;                     // 'Víctor Pérez'
-  readonly fullName: string;                 // 'Víctor David Pérez Alarcón'
   readonly alias: string;                    // 'Tortoise_code'
   readonly role: Localized;
   readonly headline: Localized;              // línea corta para SEO y tarjetas
