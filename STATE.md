@@ -3,38 +3,52 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **Fase C · C.1–C.6 hechos; C.6a auditada y corregida** (`main` en `d5153ad`) · siguiente:
-**decidir AUD-C6B** (entregada, sin decidir) y corregirla entera; después, el cierre de la fase C.
+**Dónde estamos:** **Fase C · C.1–C.6 hechos y todas sus auditorías corregidas** (`main` en `1b8a187`) · siguiente:
+**cierre de la fase C**: lanzar AUD-C-CIERRE a la Mesa, Lighthouse a mano y corregir la auditoría entera. C.7 (Naves)
+queda fuera del cierre.
 
-_Última actualización: 2026-11-22 (**CIERRE DE SESIÓN · 40**) · El retrato en partículas cierra el viaje (C.6b),
-AUD-C6A corregida entera y `npm run visual` con su propia espera a la escena._
+_Última actualización: 2026-11-23 (**CIERRE DE SESIÓN · 41**) · AUD-C6B corregida entera (PR #111) y el plan del
+cierre de la fase C decidido._
 
-**Hecho esta sesión** (vivas S40 en `_claude/cadena/hecho/2026-11-22/decisiones-vivas-S40.md`):
-1. **C.6b · el retrato** (PR #108, `83eb3aa`): la forma 5 sale de una foto de Víctor y sus datos
-   (`src/assets/portrait/`, ~160 KB, con `scripts/portrait/` para rehacerlos); el worker los descarga en un encargo
-   aparte cuando la escena llega a la Tierra (`m` ≥ 3) y, si no llegan, se queda la Tierra (`uPor`); con la
-   degradación en caliente no se piden otra vez (el retrato de `n` es el principio del de más). Shader: holograma de
-   escáner en el verde del canal, el haz de barrido atado al morph que enciende las partículas, fallos de señal y giro
-   con el ratón. El Crew file va **abierto** sobre la escena (`Transmission open`), con el visor en el centro y, desde
-   lg, la ficha a los lados. Foto fija del capítulo 5. Pesó 967 B del margen: sin ADR de límite (C6B-2-A no hizo falta).
-2. **AUD-C6A corregida entera** (PR #109, `bdcde67`; 8 recomendados, 18 menores, 4 preguntas, todo con las
-   recomendaciones): entre otras, la disponibilidad solo si busca trabajo; el teletipo destapa lo enfocado; props
-   exclusivas en `Transmission`; raíl con puntos y sin HUD en una ventana ancha pero baja; idiomas en la misión rápida
-   junto a la formación; fuera `Education.skills`; la captura del epílogo espera el retrato y tapa el año; ADR-034 con
-   notas de C.6a y C.6b y la excepción de 24 px en las reglas; pesos medidos commit a commit; README con el epílogo.
-3. **`npm run visual` en frío** (PR #110, `d5153ad`): la espera a la escena antes de cada foto tiene su plazo (60 s).
+**Hecho esta sesión** (vivas S41 en `_claude/cadena/hecho/2026-11-23/decisiones-vivas-S41.md`):
+1. **AUD-C6B corregida entera** (PR #111, `1b8a187`; 7 recomendados, 22 menores y 2 preguntas, con las
+   recomendaciones; P1-A, P2-A, 3-A; 5-A tras verlo Víctor en Brave). Entre otras:
+   - **Shader:** el haz sin `pow` de base negativa (un test vigila todos los `pow(` y ata `LAST_M` a la última forma);
+     el haz en bucle entra fundido; el fundido del busto por la altura (`PORTRAIT_FADE_H`); giro acotado; tick acotado.
+   - **El retrato que llega tarde** (salto por el raíl, `/#crew-file`): `uPor` sube en 0,6 s (`PORTRAIT_FADE_IN_S`)
+     y la Tierra pasa a retrato con el retraso del morph y el haz; sin retrato, el 4→5 no hincha la Tierra.
+   - **Carga:** un solo encargo por visita (`usePortrait`), `pPor` en `useLayoutEffect` y `uPor` leído de la geometría,
+     `data-portrait="painted"` al pintarlo entero, el worker responde el fallo al contestar.
+   - **Forma:** paredes del contorno hacia dentro (sin pelillos ni pinchos); canal R de 3 a 255 contra el ruido de
+     Brave (`PORTRAIT.depthFloor`; `pack.py` al día; el PNG rehecho sin la foto original); imágenes sin metadatos
+     (−11,5 KB, con test); `PORTRAIT_FRAME` desde constantes.
+   - **Crew file desde lg:** la pista del centro bajo el visor (pistas asimétricas), líneas guía hasta el marco,
+     título con `--text-crew-title` (variable nueva `--_title-size` de `Transmission`), **el email abajo a la izquierda
+     y «Download CV» a la derecha** (en la pista derecha el email se partía; Víctor lo vio en las capturas). En una
+     columna, el visor con la proporción del retrato (`--visor-ratio`) y centrado con él.
+   - **Tests y docs:** e2e de la degradación con el retrato en vuelo (falla en la base), del layout del Crew file y
+     presupuesto de las imágenes; arquitectura, docs de la escena, calidad, Crew file, design system, ADR-032/034.
+     Peso: +252 B (254 340 B).
+2. **Plan del cierre de la fase C** (vivas S41 #27–#29): CIERRE-C-0-A (sin C.7), 1-A (sin versión: `v0.3.0` al acabar
+   F4.5), 2-A (auditoría de cierre a la Mesa), 3-B (PageSpeed en F6). Roadmap, `transiciones-naves.md` y ADR-034 al
+   día. AUD-C-CIERRE preparada **sin lanzar** (mensaje abajo y en la cola del tablero; la copia del CV para la Mesa en
+   `_claude/cadena/aud-c-cierre/CV_base_EN.md`).
 
 **Incidencias y lecciones:**
-- **C.6b se fusionó con AUD-C6A abierta** (se saltó §13): la corrección se hizo sobre él, contrastando cada hallazgo
-  con el diff de C.6b. Sin daño, pero la regla sigue: no fusionar el paso nuevo hasta que la corrección esté en `main`.
-- **El CI de AUD-C6A falló en Firefox**: un e2e que mide el final de la página no quitaba el aviso sin WebGL (alarga
-  el body lo que mide). Lección: `settleScene` antes de medir el pie (ya lo decía `helpers.ts`).
-- **Los idiomas en «About» de la misión rápida** empujaban los proyectos fuera de la primera pantalla a 390 px en
-  español (lo vio `recruiter.spec.ts`): van junto a la formación.
-- **Contenedor (S40):** como en S39 (Node 24 del paquete npm, Chromium enlazado como 1248 en `~/pwb`, `.env` desde
-  `.env.example`, `git init` local, el árbol con un `tar`); los pasos al equipo de Víctor, con un `tar` y comprobando
-  sha256 antes y después. Firefox no se puede instalar en el contenedor. Docker no arranca: `stills` y `visual` en el
-  equipo de Víctor.
+- **Los binarios que pasan por el contenedor sueltos pueden volver firmados** (C2PA, ~5,7 KB por imagen: así llegaron
+  las del retrato en C.6b). Ahora lo rechaza `shapeContract.test.ts`; los binarios van dentro de un `tar` comprobado con
+  sha256, y las imágenes se miran en el equipo de Víctor tras copiarlas.
+- **En el equipo de Víctor, `tar` no puede sobrescribir** (sin permiso de borrar: «File exists»): se extrae a una
+  carpeta aparte y se copia con `cat` sobre cada archivo, comprobando antes que los de destino son los de la base.
+- **La fórmula de la Mesa para `LAST_M` iba desplazada en uno** (`length − 1`): es `length − 2 + 0,999`. Contrastar
+  cada arreglo propuesto con el código antes de copiarlo.
+- **Un unitario con `rerender` no ve un frame colado entre el render y los efectos** (`act` corre también los
+  efectos pasivos): ese orden lo dan `useLayoutEffect` y leer el estado de la geometría, no el test.
+- **Centrar con la ventana en un e2e:** comparar con el lienzo (o la foto fija), no con `clientWidth`
+  (`scrollbar-gutter: stable` lo descuadra 7,5 px).
+- **Contenedor (S41):** como en S40 (Node 24 del paquete npm, Chromium enlazado como 1248 en `~/pwb`, `.env` desde
+  `.env.example`, `git init` local, el árbol con `git archive` del commit de `main`). Docker no arranca: `stills` y
+  `visual` en el equipo de Víctor; las fotos fijas sin Docker solo para mirar.
 
 **Deuda anotada:**
 - **CI · WebKit a ~3 fps (S35):** la traza del CI de C.2 lo midió: WebKit sin GPU pinta unos 3 frames por segundo con
@@ -43,10 +57,12 @@ AUD-C6A corregida entera y `npm run visual` con su propia espera a la escena._
   iPhone (F6) que el Mission log (cursor que parpadea siempre, líneas de barrido, velo) no pese.
 - **AUD-F4-3C-2 · iPhone real:** el toque en el margen de la escena solo lo cubre el e2e con `touchscreen`; mirarlo
   en un iPhone (si no hay móvil a mano, en F6).
-- **C.7 · Naves** (idea aprobada sin calendario): estudio, versiones de la prueba y lecciones del shader en
-  `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a pantalla completa). La prueba es el
-  artefacto privado «Naves · prueba»; copia del código en `_claude/naves/`. Al construir: su ADR-037 y medir el peso
-  (el margen de la escena es ya de ~0,4 KB tras C.6b: casi seguro, con su ADR que suba el límite).
+- **C.7 · Naves** (fuera del cierre de la fase C, viva S41 #27: después de F4.5 o en el pulido): estudio, versiones
+  de la prueba y lecciones del shader en `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a
+  pantalla completa). La prueba es el artefacto privado «Naves · prueba»; copia del código en `_claude/naves/`. Al
+  construir: su ADR-037 (mapa de formas `uFrom`/`uTo`/`uT`, que obliga a rehacer sobre él lo del retrato atado a
+  `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: el margen libre es de ~0,16 KB
+  tras AUD-C6B, así que su ADR subirá el límite, con los números reales de F4.4 y F4.5.
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
   cómo está construido: solo herramientas, para qué y lo hecho (nota de ADR-034; `experiencia.md` → «Regla de
   privacidad», sin ejemplos desde AUD-C2: una lista en un repo público sería la filtración). Las viñetas y la bio van
@@ -64,6 +80,9 @@ AUD-C6A corregida entera y `npm run visual` con su propia espera a la escena._
 - **C.4 · la cuenta atrás con una pantalla por paso** al hacer scroll: para el pulido o C.7 (MC-2-A).
 - **C.4 · el ancho del raíl en WebKit** con «Control de misión» no se ha medido (154,02 es de C.3; Chromium da 155,1;
   se reservan 158 y el e2e de `constellations.spec.ts` lo compara en los tres motores).
+- **AUD-C6B-5 · Brave:** Víctor vio los puntos sueltos en Brave (no tiene Firefox); el arreglo (canal R de 3 a 255,
+  `PORTRAIT.depthFloor`) solo lo cubre un unitario: **mirar `/#crew-file` en Brave en producción** (o en la preview)
+  y, si se puede, en la ventana privada de Firefox o Safari.
 - **C.6b · el retrato:** de una sola foto sale un relieve (giro limitado, ~±25°, solo con ratón). En táctil no gira:
   la inclinación del móvil pide permiso en iOS (F6, con un móvil real, y mirar allí los fps con el atributo de más,
   `pPor`). Entre md y lg (900–1279 px) va la columna de móvil: el retrato se ve por el hueco del visor al pasar, no
@@ -128,8 +147,8 @@ AUD-C6A corregida entera y `npm run visual` con su propia espera a la escena._
   desde `SceneRoot`). Lo recuerdan §13, «hecho» y el roadmap.
 - **WebKit y el `<picture>`:** que WebKit pidiera el `src` del `<img>` antes de entrar en el `<picture>` es deducido
   (no hay WebKit en el contenedor); el arreglo lo vigila el e2e de escritorio sin WebGL en el CI.
-- **Peso de la escena:** 254 088 B de 260 000 (ADR-032 y sus notas; medido commit a commit en S40: tras S38 253 071,
-  C.5 −2, C.6a +52, C.6b +967). Quedan 5 912 B: F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, y ~0,4 KB de margen. Cada paso apunta lo
+- **Peso de la escena:** 254 340 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
+  C.5 −2, C.6a +52, C.6b +967, AUD-C6B +252). Quedan 5 660 B: F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, y ~0,16 KB de margen. Cada paso apunta lo
   que pesó en `rendimiento.md`. Por paquete se mide con `npx source-map-explorer <chunk>.js --gzip
   --no-border-checks` sobre un build con `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
@@ -236,28 +255,31 @@ AUD-C6A corregida entera y `npm run visual` con su propia espera a la escena._
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **Decidir AUD-C6B** (entregada a las 21:57: `_claude/cadena/aud-c6b/auditoria.md`; sello: 83eb3aa contrastado con
-   `main` bdcde67; 0 bloqueantes, 7 recomendados, 22 menores, 2 preguntas). Contrastarla antes con lo que cambió
-   desde su sello (`bdcde67..d5153ad`: solo el plazo de `visual`) y corregirla entera en su PR.
-3. **Cierre de la fase C**: lo que pida el roadmap («Hecho cuando» de la fase C): versión, Lighthouse a mano y, si
-   Víctor lo quiere, una auditoría de cierre de fase. Después, F4.4 y F4.5 (C.7 · Naves sin calendario).
-4. Víctor: pegar la descripción, la web y los topics de Cosmos en GitHub (`ABOUT_REPOS.md` del Proyecto de
-   claude.ai); suavizar el CV y LinkedIn con el chat de mentor (y avisar para volver a copiar el PDF); redirigir el
-   portfolio antiguo de Vercel a tortoisecode.dev; mirar las líneas de las constelaciones en su pantalla; revisar los
-   textos del Crew file y, si la quiere, una captura del Crew file para el README.
+2. **Lanzar AUD-C-CIERRE** (si Víctor no lo ha hecho ya; el mensaje está en la cola del tablero) y apuntarla
+   `[lanzado]`.
+3. **Lighthouse a mano** del cierre de C (`calidad.md` → «Mediciones»: tres pasadas y la mediana en `/`, `/es`,
+   `/projects/cosmos`, una ficha en ES y la 404; versión exacta de Lighthouse), en el contenedor sobre el build, y
+   apuntarlo en `calidad.md` («Cierre de la fase C»).
+4. **Corregir AUD-C-CIERRE entera** en su PR; después, el commit de docs del cierre (roadmap con la fase C hecha).
+   Sin versión ni etiqueta (CIERRE-C-1-A). Luego, **F4.4**.
+5. Víctor: mirar `/#crew-file` en Brave en producción (AUD-C6B-5); pegar la descripción, la web y los topics de
+   Cosmos en GitHub (`ABOUT_REPOS.md` del Proyecto de claude.ai); suavizar el CV y LinkedIn con el chat de mentor (y
+   avisar para volver a copiar el PDF); redirigir el portfolio antiguo de Vercel a tortoisecode.dev; mirar las líneas
+   de las constelaciones en su pantalla; revisar los textos del Crew file y, si la quiere, una captura del Crew file
+   para el README.
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»).
 **Limpieza manual del usuario:**
-- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 40, entre ellas `s37/` a `s40/`, `c3/` y
+- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 41, entre ellas `s37/` a `s41/`, `c3/` y
   `aud-c2/`) y `_claude/lstree.txt`; `_claude/readme-originales/` si ya no hacen falta.
-- Ramas locales ya fusionadas (todas menos `main`, entre ellas `feat/portrait`, `fix/aud-c6a` y
-  `fix/visual-cold-start`): `git branch` para verlas y `git branch -D <rama>`.
-- En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/` y de
-  `_claude/cadena/aud-c6b/`, los `arbol*.tar.gz` y los `*.diff` (nunca la carpeta `_claude/cadena/`, ni
-  `hecho/2026-10-28/medir-fps.js` ni `hecho/2026-10-28/encuadre/`). Mover a mano a `hecho/` lo que no se pudo desde
-  aquí (`aud-f4-1/` a `hecho/2026-11-18/`, `aud-c2/` a `hecho/2026-11-21/` y `aud-c6a/` a `hecho/2026-11-22/` si
-  siguen fuera). No borrar `_claude/diseno/`, `_claude/retrato/`, `_claude/naves/` ni `_claude/c3/`.
+- Ramas locales ya fusionadas (todas menos `main`, entre ellas `feat/portrait`, `fix/aud-c6a`, `fix/visual-cold-start`
+  y `fix/aud-c6b`): `git branch` para verlas y `git branch -D <rama>`.
+- En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
+  `arbol*.tar.gz` y los `*.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js` ni
+  `hecho/2026-10-28/encuadre/`). Mover a mano a `hecho/` lo que no se pudo desde aquí (`aud-f4-1/` a `hecho/2026-11-18/`,
+  `aud-c2/` a `hecho/2026-11-21/` si siguen fuera). No borrar
+  `_claude/diseno/`, `_claude/retrato/`, `_claude/naves/` ni `_claude/c3/`.
 - En la raíz del repo, `playwright-report-firefox.zip`, `playwright-report-firefox (1).zip` y `test-results/`.
 - Perfiles temporales de las pruebas sin WebGL: `$env:TEMP\cosmos-sin-webgl` y `$env:TEMP\cosmos-swiftshader`.
 - Si alguna vez falla `npm ci` dentro de Docker: `docker volume rm cosmos-portfolio-visual-node-modules`.

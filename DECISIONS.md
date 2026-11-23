@@ -834,6 +834,11 @@
   canal R del paquete deja libres el 1 y el 2 (el ruido de los navegadores con protección contra huellas). Pesó
   252 B más de la escena: quedan ~0,16 KB del margen tras reservar F4.4 y F4.5, así que las Naves (C.7) traerán su ADR
   para subir el límite.
+- Nota (2026-11-23, cierre de la fase C): la fase C se cierra sin las Naves (C.7): su «hecho cuando» no las pide, y
+  cambiar el modelo de formas del shader (`uFrom`/`uTo`/`uT`) obliga a rehacer el recorrido, las transmisiones y lo
+  recién hecho del retrato. Van después de F4.5 o en el pulido, con su ADR-037 y el peso real de F4.4 y F4.5. El
+  cierre no lleva versión ni etiqueta (`v0.3.0` llega al acabar F4.5); sí una auditoría de cierre de fase y Lighthouse
+  a mano.
 - Detalle: `docs/06-roadmap/roadmap.md` → «C · Contenido y secciones nuevas»; cada sección, en su doc de
   `docs/02-experiencia/capitulos/` (`interludio-1-mission-log.md`, `interludio-2-mission-control.md`,
   `05-crew-file.md`) y el sistema visual en `docs/03-diseno/design-system.md` → «Transmisiones».

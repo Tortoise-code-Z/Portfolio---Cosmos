@@ -1,4 +1,4 @@
-# Transiciones con naves (idea aprobada, después de C.6)
+# Transiciones con naves (idea aprobada; fuera del cierre de la fase C: después de F4.5 o en el pulido)
 
 > Idea de Víctor (20 nov 2026, sesión 35), estudiada por el Taller sobre la copia del repo con C.2 hecho. **Aprobada
 > como idea y sin calendario:** va después de C.6 o en el pulido (roadmap → «C · 7. Naves»). La prueba fuera del
