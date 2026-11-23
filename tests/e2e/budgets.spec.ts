@@ -16,6 +16,7 @@ import {
   STILL_CHAPTERS,
   STILL_FRAMES,
 } from '../../src/features/scene-mount/stillFrames/stillFrames.ts';
+import { stripGlslComments } from '../../src/scene/shaders/stripGlslComments/stripGlslComments.ts';
 import { stillsFingerprint } from '../stills/fingerprint.ts';
 
 /**
@@ -82,6 +83,27 @@ const SHADERS_DIR = fileURLToPath(new URL('../../src/scene/shaders/', import.met
 const SHADER_FILES = readdirSync(SHADERS_DIR, { recursive: true, encoding: 'utf8' }).filter(
   (file) => file.endsWith('.glsl'),
 );
+
+/** Las líneas de código de un shader, tal como llegan al build (sin comentarios) y sin la sangría. */
+function shaderCodeLines(source: string): string[] {
+  return stripGlslComments(source)
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => /^\w/.test(line));
+}
+
+/**
+ * La línea más larga de un shader que ningún otro tiene: la que prueba que ese archivo, y no otro con su misma
+ * primera línea (`uniform float uOpacity;`), está en el chunk.
+ */
+function ownCodeLine(shader: string): string | undefined {
+  const others = SHADER_FILES.filter((file) => file !== shader).map((file) =>
+    stripGlslComments(readFileSync(join(SHADERS_DIR, file), 'utf8')),
+  );
+  return shaderCodeLines(readFileSync(join(SHADERS_DIR, shader), 'utf8'))
+    .filter((line) => others.every((other) => !other.includes(line)))
+    .sort((a, b) => b.length - a.length)[0];
+}
 /** La URL de un worker (o de cualquier recurso) que Vite resuelve con `new URL(…, import.meta.url)`. */
 const ASSET_URL = /new URL\(\s*[`"'](\/assets\/[^`"']+\.js)[`"']/g;
 /** El import dinámico de `SceneMount` que trae la escena (en el chunk de `root`). */
@@ -331,9 +353,10 @@ test.describe('build budgets', () => {
     expect(SHADER_FILES.length).toBeGreaterThan(0);
     for (const shader of SHADER_FILES) {
       const source = readFileSync(join(SHADERS_DIR, shader), 'utf8');
-      // El código del shader sí llega (si no, el test buscaría en el sitio equivocado)…
-      const firstCodeLine = source.split('\n').find((line) => /^\w/.test(line)) ?? '';
-      expect(code, shader).toContain(firstCodeLine.trim());
+      // El código del shader sí llega (si no, el test buscaría en el sitio equivocado): una línea que solo tiene él…
+      const ownLine = ownCodeLine(shader);
+      expect(ownLine, shader).toBeDefined();
+      expect(code, shader).toContain(ownLine);
       // …y ningún trozo de texto de sus comentarios, de línea o de bloque (el plugin
       // `cosmos:glsl-without-comments`). Solo letras ASCII: si el minificador escapara las tildes, un trozo con
       // «í» no casaría nunca y el test no vigilaría nada.

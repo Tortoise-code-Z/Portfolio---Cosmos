@@ -57,13 +57,13 @@ const seen = vi.hoisted(
     stars: number[];
     cameraFrame: unknown;
     constellations: { frame: unknown; texts: unknown; labels: unknown } | null;
-    sunFrames: unknown[];
+    sunFrame: unknown;
   } => ({
     frame: null,
     stars: [],
     cameraFrame: null,
     constellations: null,
-    sunFrames: [],
+    sunFrame: null,
   }),
 );
 vi.mock('../CameraRig/CameraRig', () => ({
@@ -129,7 +129,7 @@ vi.mock('../PlatePins/PlatePins', () => ({
 }));
 vi.mock('../Sun/Sun', () => ({
   Sun: function FakeSun({ frame }: { readonly frame: unknown }) {
-    seen.sunFrames.push(frame);
+    seen.sunFrame = frame;
     return null;
   },
 }));
@@ -244,7 +244,7 @@ afterEach(() => {
   seen.stars = [];
   seen.cameraFrame = null;
   seen.constellations = null;
-  seen.sunFrames = [];
+  seen.sunFrame = null;
   vi.unstubAllGlobals();
   sceneStore.setState(sceneStore.getInitialState(), true);
   useUiStore.setState(useUiStore.getInitialState(), true);
@@ -423,7 +423,7 @@ describe('SceneRoot', () => {
     });
     // La cámara y el Sol leen el mismo frame.
     expect(seen.cameraFrame).toBe(seen.frame);
-    expect(seen.sunFrames.at(-1)).toBe(seen.frame);
+    expect(seen.sunFrame).toBe(seen.frame);
     expect(advance).toHaveBeenCalledTimes(2);
     // R3F avanza con los segundos del bucle (sus `useFrame` leen el reloj del frame compartido).
     expect(advance).toHaveBeenLastCalledWith(1);
@@ -717,6 +717,18 @@ describe('SceneRoot', () => {
     frames.tick(5050);
     expect(frame.plate).toBe(21);
     expect(scene?.getAttribute('data-plate')).toBe('astrohub');
+  });
+
+  it('mounts the Sun on every level with the frame its camera writes in, which says the particles are not painted yet', () => {
+    for (const level of ['high', 'medium', 'low'] as const) {
+      seen.sunFrame = null;
+      // Sin formas todavía (el simulacro de `useSceneShapes`): el Sol ya está, y su frame le dice que espere.
+      const { unmount } = renderScene(level);
+      expect(seen.sunFrame, level).not.toBeNull();
+      expect(seen.sunFrame, level).toBe(seen.cameraFrame);
+      expect((seen.sunFrame as { painted: boolean }).painted, level).toBe(false);
+      unmount();
+    }
   });
 
   it('paints the constellations with the frame its camera writes in, and their labels in their own layer', () => {

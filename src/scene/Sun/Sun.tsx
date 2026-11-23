@@ -62,8 +62,11 @@ export function useSun({ frame }: SunProps): {
 
 /**
  * El Sol del capítulo de la Tierra (F4.5; docs/04-escena/particulas-y-shaders.md → «Sol»): un brillo que mira a la
- * cámara, entre el panel y la Tierra y por encima, que aparece con su capítulo y late despacio. No es una partícula:
- * la gravedad del cursor no lo mueve. En todos los niveles (son dos triángulos).
+ * cámara, sobre el limbo superior izquierdo de la Tierra, que aparece con su capítulo (cuando la Tierra ya está
+ * pintada) y late despacio. No es una partícula: la gravedad del cursor no lo mueve. En todos los niveles (son dos
+ * triángulos). Sin recorte (`frustumCulled`): Three recorta con la esfera de la geometría (radio √2) y el shader abre
+ * el cuadrado más allá (`uSize / 2`, hasta 1,83); con el recorte, el halo desaparecería de golpe con el centro aún
+ * fuera de la vista.
  */
 export function Sun(props: SunProps): ReactNode {
   const { geometry, material } = useSun(props);

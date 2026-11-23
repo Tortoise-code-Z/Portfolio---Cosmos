@@ -1,7 +1,12 @@
 import { AdditiveBlending } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { EARTH_GRAVITY, PORTRAIT_FADE_IN_S, SUN } from '../config/sceneConfig';
+import {
+  CHAPTER_PRESENCE_FADE,
+  EARTH_GRAVITY,
+  PORTRAIT_FADE_IN_S,
+  SUN,
+} from '../config/sceneConfig';
 import constellationLinesFragment from '../shaders/constellations/constellationLines.frag.glsl?raw';
 import constellationsVertex from '../shaders/constellations/constellations.vert.glsl?raw';
 import constellationStarsFragment from '../shaders/constellations/constellationStars.frag.glsl?raw';
@@ -30,6 +35,17 @@ import {
   updateSunUniforms,
   type SceneFrame,
 } from './sceneMaterials';
+
+/** La `m` a cada lado de `chapter` con esa presencia (`chapterPresence`): `side` −1 hacia atrás, +1 hacia delante. */
+function mWithPresence(chapter: number, presence: number, side: -1 | 1): number {
+  return chapter + side * ((1 - presence) / CHAPTER_PRESENCE_FADE);
+}
+
+/**
+ * Una presencia algo por debajo de 0: la `m` justo pasado el final de la rampa (en el final exacto, el redondeo deja
+ * ~1e-16).
+ */
+const PAST_THE_RAMP = -1e-6;
 
 const frame: Readonly<SceneFrame> = {
   m: 2.5,
@@ -105,16 +121,25 @@ describe('particle uniforms', () => {
 
   it('the cursor gravity is softer over the Earth (EARTH_GRAVITY), and whole away from it', () => {
     const uniforms = createParticleUniforms();
+    const whole = frame.gravity.strength;
     const at = (m: number): number => {
       updateParticleUniforms(uniforms, { ...frame, m });
       return uniforms.uGrav.value;
     };
-    expect(at(EARTH_GRAVITY.chapter)).toBeCloseTo(0.7 * EARTH_GRAVITY.scale);
-    // Entre la tortuga y la Tierra, a medias; en la tortuga y en el retrato (su giro con el ratón), entera.
-    expect(at(EARTH_GRAVITY.chapter - 0.25)).toBeGreaterThan(0.7 * EARTH_GRAVITY.scale);
-    expect(at(EARTH_GRAVITY.chapter - 0.25)).toBeLessThan(0.7);
-    expect(at(EARTH_GRAVITY.chapter - 1)).toBe(0.7);
-    expect(at(EARTH_GRAVITY.chapter + 1)).toBe(0.7);
+    expect(at(EARTH_GRAVITY.chapter)).toBeCloseTo(whole * EARTH_GRAVITY.scale);
+    // Por los dos lados (la tortuga y el retrato, que también gira con `uGrav`), a medias con media presencia y entera
+    // justo pasado el final de la rampa.
+    for (const side of [-1, 1] as const) {
+      expect(at(mWithPresence(EARTH_GRAVITY.chapter, 0.5, side))).toBeCloseTo(
+        whole * (1 + EARTH_GRAVITY.scale) * 0.5,
+      );
+      expect(at(mWithPresence(EARTH_GRAVITY.chapter, 0.01, side))).toBeLessThan(whole);
+      expect(at(mWithPresence(EARTH_GRAVITY.chapter, PAST_THE_RAMP, side))).toBe(whole);
+    }
+    // A medio morph hacia el retrato, aún suavizada; en la tortuga y en el retrato, entera.
+    expect(at(EARTH_GRAVITY.chapter + 0.25)).toBeLessThan(whole);
+    expect(at(EARTH_GRAVITY.chapter - 1)).toBe(whole);
+    expect(at(EARTH_GRAVITY.chapter + 1)).toBe(whole);
   });
 
   it('reduced motion and the low level turn their uniforms off', () => {
@@ -197,10 +222,44 @@ describe('sun uniforms', () => {
       return uniforms.uOpacity.value;
     };
     expect(opacityAt(SUN.chapter)).toBe(SUN.opacity);
-    expect(opacityAt(SUN.chapter - 0.25)).toBeGreaterThan(0);
-    expect(opacityAt(SUN.chapter - 0.25)).toBeLessThan(SUN.opacity);
+    // Por los dos lados, con la rampa de la presencia: a medias con media y nada justo pasado su final.
+    for (const side of [-1, 1] as const) {
+      expect(opacityAt(mWithPresence(SUN.chapter, 0.5, side))).toBeCloseTo(SUN.opacity * 0.5);
+      expect(opacityAt(mWithPresence(SUN.chapter, 0.01, side))).toBeGreaterThan(0);
+      expect(opacityAt(mWithPresence(SUN.chapter, PAST_THE_RAMP, side))).toBe(0);
+    }
     expect(opacityAt(SUN.chapter - 1)).toBe(0);
     expect(opacityAt(SUN.chapter + 1)).toBe(0);
+  });
+
+  it('waits for the particles: nothing on its chapter before they are painted (the Earth not there yet)', () => {
+    const uniforms = createSunUniforms();
+    updateSunUniforms(uniforms, { ...frame, m: SUN.chapter, painted: false });
+    expect(uniforms.uOpacity.value).toBe(0);
+    updateSunUniforms(uniforms, { ...frame, m: SUN.chapter, painted: true });
+    expect(uniforms.uOpacity.value).toBe(SUN.opacity);
+  });
+
+  it('is seen whole with reduced motion and on the low level (it only stops pulsing)', () => {
+    const uniforms = createSunUniforms();
+    for (const change of [{ reducedMotion: true }, { extras: false }]) {
+      updateSunUniforms(uniforms, { ...frame, ...change, m: SUN.chapter });
+      expect(uniforms.uOpacity.value, JSON.stringify(change)).toBe(SUN.opacity);
+    }
+  });
+
+  it('glows with the alpha profile of the constellation stars: the same block in both shaders', () => {
+    // Copiado (los fragment shaders no llevan cabecera, por peso): de `CORE` al color, todo igual salvo de dónde sale
+    // la distancia al centro (`vUv` del cuadrado, `gl_PointCoord` del punto).
+    const profile = (source: string): string | undefined =>
+      /const float CORE[\s\S]*?gl_FragColor[^\n]*/
+        .exec(source)?.[0]
+        .split('\n')
+        .filter((line) => !/^\s*float d = /.test(line))
+        .join('\n');
+    const sun = profile(sunFragment);
+    expect(sun).toContain('const float HALO');
+    expect(sun).toBe(profile(constellationStarsFragment));
   });
 
   it('pulses with the scene clock, within ± SUN.pulse; still at its size with reduced motion', () => {

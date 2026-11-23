@@ -203,6 +203,13 @@ function emptyClip(page: Page): Clip {
 }
 
 /**
+ * El núcleo del Sol en la Tierra a 1280×720 (escritorio): `SUN.position` proyectado con la pose del capítulo 4
+ * (`CAMERA_KEYFRAMES[4]` y su `shiftX`, 55° en vertical) cae hacia (737, 200), con un radio de unos 94 px. Entre el
+ * panel (acaba en 624) y el raíl, bajo la barra.
+ */
+const SUN_CLIP_1280: Clip = { x: 707, y: 170, width: 60, height: 60 };
+
+/**
  * Las partículas se ven en el capítulo 1: se entra por su ancla en una carga nueva (un ancla da su `m` exacto y la
  * escena arranca en él, sin suavizado), se espera a que el raíl lo marque y, junto a los paneles, buena parte de los
  * píxeles no es el fondo. Con un tamaño de punto 0, alfa 0 o un atributo vacío, casi ninguno. Desde otra página del
@@ -748,6 +755,45 @@ test.describe('the scene with WebGL', () => {
     await expect(page.locator('[data-portrait]')).toHaveCount(0);
     await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
     expect(errors.filter((error) => !error.startsWith('Failed to load resource'))).toEqual([]);
+  });
+
+  test('entering straight into Contact, the Sun waits for the Earth: no glow over the void while the shapes arrive', async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    const glWarnings = collectGlWarnings(page);
+    // El worker de las formas no llega hasta que el test lo suelta: el lienzo y su bucle ya están, la Tierra no.
+    let release = (): void => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route(SHAPES_WORKER, async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.setViewportSize({ width: 1280, height: 720 });
+    // Por su ancla, la `m` arranca exacta en la Tierra (ADR-028): el Sol, en su capítulo desde el primer frame.
+    await page.goto('/#contact');
+    await expect(page.locator(SCENE_READY)).toBeAttached();
+    const background = await voidRgb(page);
+    const voidBrightness = background.reduce((sum, channel) => sum + channel, 0) / 3;
+    const brightest = async (): Promise<number> =>
+      Math.max(...(await brightnessGrid(page, SUN_CLIP_1280, 20)).flat()) - voidBrightness;
+    // Unos frames del bucle sin formas: donde va el Sol, solo el fondo (alguna estrella no llena una celda).
+    await nextFrames(page);
+    await nextFrames(page);
+    await expect(page.locator(PARTICLES_PAINTED)).toHaveCount(0);
+    expect(await brightest()).toBeLessThan(8);
+    release();
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
+      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+    });
+    // Con la Tierra pintada, el Sol se ve ahí (y así se sabe que la zona es la suya).
+    await expect.poll(brightest).toBeGreaterThan(60);
+    // Su programa compila sin avisos en cada motor: el resto de los tests no se para en la Tierra.
+    await expect(page.locator('html')).not.toHaveClass(/\bno-gl\b/);
+    expect(errors).toEqual([]);
+    expect(glWarnings).toEqual([]);
   });
 
   test('a shapes worker that never arrives: generated once on the main thread, the scene goes on', async ({

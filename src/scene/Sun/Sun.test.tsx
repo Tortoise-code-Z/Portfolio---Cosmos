@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { SUN } from '../config/sceneConfig';
+import { CHAPTER_PRESENCE_FADE, SUN } from '../config/sceneConfig';
 import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
 import { Sun, useSun } from './Sun';
 
@@ -22,8 +22,10 @@ afterEach(() => {
   frameCallbacks.length = 0;
 });
 
+/** El Sol con un frame de la escena ya pintada (la Tierra está): sin ella, el Sol espera. */
 function renderSun() {
   const frame = createSceneFrame();
+  frame.painted = true;
   const hook = renderHook(() => useSun({ frame }));
   return { ...hook, frame };
 }
@@ -33,10 +35,25 @@ describe('useSun', () => {
     const { result } = renderSun();
     const position = result.current.geometry.getAttribute('position');
     expect(position.count).toBe(6);
-    const corners = Array.from({ length: 6 }, (_, i) => [position.getX(i), position.getY(i)]);
-    for (const [x, y] of corners) {
-      expect(Math.abs(x ?? 0)).toBe(1);
-      expect(Math.abs(y ?? 0)).toBe(1);
+    const vertices = Array.from({ length: 6 }, (_, i): readonly [number, number] => [
+      position.getX(i),
+      position.getY(i),
+    ]);
+    for (const [x, y] of vertices) {
+      expect(Math.abs(x)).toBe(1);
+      expect(Math.abs(y)).toBe(1);
+    }
+    // Las cuatro esquinas del cuadrado, y cada triángulo de cara a la cámara (antihorario, área con signo > 0: con
+    // `FrontSide`, uno al revés no se pintaría y quedaría medio Sol). Dos de área 2 cubren el cuadrado entero.
+    expect(new Set(vertices.map(([x, y]) => `${String(x)},${String(y)}`)).size).toBe(4);
+    const vertex = (i: number): readonly [number, number] => vertices[i] ?? [0, 0];
+    for (const first of [0, 3]) {
+      const [ax, ay] = vertex(first);
+      const [bx, by] = vertex(first + 1);
+      const [cx, cy] = vertex(first + 2);
+      expect((bx - ax) * (cy - ay) - (cx - ax) * (by - ay), `triangle from ${String(first)}`).toBe(
+        4,
+      );
     }
   });
 
@@ -59,6 +76,50 @@ describe('useSun', () => {
     expect(material.visible).toBe(false);
   });
 
+  it('turns on and off right at the edges of its ramp, on both sides (the turtle and the portrait)', () => {
+    const { result, frame } = renderSun();
+    const { material } = result.current;
+    // La `m` con esa presencia del capítulo (`chapterPresence`), a cada lado.
+    const at = (presence: number, side: -1 | 1): number =>
+      SUN.chapter + side * ((1 - presence) / CHAPTER_PRESENCE_FADE);
+    for (const side of [-1, 1] as const) {
+      frame.m = at(0.01, side);
+      paintFrame();
+      expect(material.visible, `side ${String(side)}`).toBe(true);
+      // Justo pasado el final de la rampa (en el final exacto, el redondeo deja ~1e-16 de presencia).
+      frame.m = at(-1e-6, side);
+      paintFrame();
+      expect(material.visible, `side ${String(side)}`).toBe(false);
+    }
+  });
+
+  it('waits for the Earth: not painted on its chapter until the particles are', () => {
+    const { result, frame } = renderSun();
+    const { material } = result.current;
+    frame.painted = false;
+    frame.m = SUN.chapter;
+    paintFrame();
+    expect(material.visible).toBe(false);
+    frame.painted = true;
+    paintFrame();
+    expect(material.visible).toBe(true);
+  });
+
+  it('is painted on its chapter with reduced motion and on the low level (it only stops pulsing)', () => {
+    const { result, frame } = renderSun();
+    const { material } = result.current;
+    frame.m = SUN.chapter;
+    frame.reducedMotion = true;
+    paintFrame();
+    expect(material.visible).toBe(true);
+    expect(material.uniforms.uOpacity?.value).toBe(SUN.opacity);
+    frame.reducedMotion = false;
+    frame.extras = false;
+    paintFrame();
+    expect(material.visible).toBe(true);
+    expect(material.uniforms.uOpacity?.value).toBe(SUN.opacity);
+  });
+
   it('frees the geometry and the material when unmounted', () => {
     const { result, unmount } = renderSun();
     const disposeGeometry = vi.spyOn(result.current.geometry, 'dispose');
@@ -68,7 +129,7 @@ describe('useSun', () => {
     expect(disposeMaterial).toHaveBeenCalledTimes(1);
   });
 
-  it('Sun mounts its square where the config puts it, always (it spans the screen: never culled)', () => {
+  it('Sun mounts its square where the config puts it, never culled: the shader opens it beyond its geometry bounds', () => {
     const frame = createSceneFrame();
     // El componente, llamado como un hook: da el `<mesh>` que R3F montaría.
     const { result } = renderHook(() => Sun({ frame }));

@@ -73,7 +73,7 @@ src/scene/
   pause/                   ← cuándo pausar el bucle: pestaña oculta o misión rápida abierta (F3.5)
   PlatePins/               ← los pins de las placas: su capa del DOM en `body` y cómo se colocan en cada frame (F4.4b)
   labelWriter/             ← escribe en el DOM una etiqueta colocada (estrellas y pins), solo lo que cambia (F4.4b)
-  shaders/ particles/ · stars/ · constellations/ · sun/ (los .glsl) · glslHeader/ (etiquetas y colores desde TS)   (F3.3)
+  shaders/ particles/ · stars/ · constellations/ · sun/ (los .glsl) · glslHeader/ (etiquetas, colores y `SUN_DIR` desde TS)   (F3.3)
            stripGlslComments/ (los .glsl sin comentarios al compilar: plugin de vite.config.ts)
   useSceneShapes/          ← pide las formas al montar; reintento en el hilo principal (F3.2); `lowerTo` (F3.6)
   fpsMeter/ · useHotDegradation/   ← degradación en caliente: fps por ventanas de 2 s y bajar un nivel (F3.6)

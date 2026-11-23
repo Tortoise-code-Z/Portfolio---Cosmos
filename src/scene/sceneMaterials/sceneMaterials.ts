@@ -166,8 +166,8 @@ export interface SceneFrame {
    */
   transmission: boolean;
   /**
-   * Las partículas ya se han pintado (el primer frame con formas, `Particles` → `onFirstFrame`): antes, lo que se
-   * coloca sobre una forma (los pins) no tiene dónde.
+   * Las partículas ya se han pintado (el primer frame con formas, `Particles` → `onFirstFrame`): antes, lo que va con
+   * una forma (los pins, el Sol) no tiene dónde.
    */
   painted: boolean;
 }
@@ -237,10 +237,12 @@ export function updateStarUniforms(uniforms: StarUniforms, frame: Readonly<Scene
 
 /**
  * El Sol (docs/04-escena/particulas-y-shaders.md → «Sol»): aparece con la presencia de su capítulo, hasta
- * `SUN.opacity`, y late con el reloj de la escena; con movimiento reducido, quieto en su tamaño.
+ * `SUN.opacity`, y late con el reloj de la escena; con movimiento reducido, quieto en su tamaño. Nada antes de que
+ * las partículas se pinten (`frame.painted`: entrando por `/#contact`, mientras llegan las formas, brillaría sobre el
+ * vacío), como los pins.
  */
 export function updateSunUniforms(uniforms: SunUniforms, frame: Readonly<SceneFrame>): void {
-  uniforms.uOpacity.value = chapterPresence(frame.m, SUN.chapter) * SUN.opacity;
+  uniforms.uOpacity.value = frame.painted ? chapterPresence(frame.m, SUN.chapter) * SUN.opacity : 0;
   uniforms.uSize.value = frame.reducedMotion
     ? SUN.size
     : SUN.size + Math.sin(frame.time * SUN.pulseRate) * SUN.pulse;
