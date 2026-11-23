@@ -62,28 +62,41 @@ export const TURTLE_FLIPPERS = 4;
 export const EARTH_TAG = { ocean: 0, land: 1, clouds: 2, atmosphere: 3 } as const;
 
 /**
- * Forma 5 · retrato (docs/04-escena/formas.md → «Retrato»): llega aparte, al acercarse a la Tierra
- * (`PORTRAIT_LOAD_FROM_M`), en un encargo propio al worker. Es un `pPor` de 4 por partícula: posición (x, y, z) y
- * la luz del holograma en w (la que sale de la foto; el shader suma el barrido y los fallos de señal).
+ * Forma 5 · retrato (docs/04-escena/formas.md → «Retrato»): llega aparte, al llegar a la tortuga, un tramo antes de
+ * la Tierra (`PORTRAIT_LOAD_FROM_M`), en un encargo propio al worker. Es un `pPor` de 4 por partícula: posición
+ * (x, y, z) y la luz del holograma en w (la que sale de la foto; el shader suma el barrido y los fallos de señal).
  */
 export interface PortraitRequest {
   readonly count: number;
   readonly seed: number;
 }
 
+/** El tamaño de las imágenes del retrato (`src/assets/portrait/`), en píxeles: lo que escribe `scripts/portrait/`. */
+const PORTRAIT_IMAGE_WIDTH = 720;
+const PORTRAIT_IMAGE_HEIGHT = 637;
+/** El ancho del retrato en la escena, en unidades: el alto sale de la proporción de las imágenes. */
+const PORTRAIT_WIDTH = 7;
+/** La foto corta el busto abajo: se funde en estos últimos píxeles (el generador y el shader). */
+const PORTRAIT_FADE_BOTTOM_PX = 165;
+
 /**
- * Las imágenes del retrato (`src/assets/portrait/`): su tamaño, en píxeles, es contrato (el generador rechaza
- * otro) y el del retrato en la escena sale de él: `width` unidades de ancho, centrado en el origen y mirando a +Z.
- * `halfHeight` llega al shader (el haz de barrido va de arriba abajo).
+ * Las medidas del retrato: el tamaño de las imágenes es contrato (el generador rechaza otro) y el del retrato en la
+ * escena sale de él: `width` unidades de ancho, centrado en el origen y mirando a +Z. `halfHeight` y `fadeHeight`
+ * (el fundido de abajo, en unidades) llegan al shader. Con una foto nueva solo cambian las constantes de arriba.
  */
 export const PORTRAIT_FRAME = {
-  imageWidth: 720,
-  imageHeight: 637,
-  width: 7,
-  halfHeight: (7 * 637) / 720 / 2,
+  imageWidth: PORTRAIT_IMAGE_WIDTH,
+  imageHeight: PORTRAIT_IMAGE_HEIGHT,
+  width: PORTRAIT_WIDTH,
+  halfHeight: (PORTRAIT_WIDTH * PORTRAIT_IMAGE_HEIGHT) / PORTRAIT_IMAGE_WIDTH / 2,
+  fadeBottomPx: PORTRAIT_FADE_BOTTOM_PX,
+  fadeHeight: (PORTRAIT_WIDTH * PORTRAIT_FADE_BOTTOM_PX) / PORTRAIT_IMAGE_WIDTH,
 } as const;
 
-/** A partir de esta `m` (la Tierra a la vista) se pide el retrato. */
+/**
+ * A partir de esta `m` se pide el retrato: al llegar a la tortuga (3), un tramo antes de la Tierra (4), para que la
+ * descarga tenga ese margen. No subirla a 4.
+ */
 export const PORTRAIT_LOAD_FROM_M = 3;
 
 const UINT32_MAX = 0xffff_ffff;

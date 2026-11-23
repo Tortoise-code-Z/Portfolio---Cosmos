@@ -222,12 +222,13 @@
   fill: currentcolor;
 }
 
+/* Una transmisión con el título en una columna estrecha puede bajarle la letra (`--_title-size`; el Crew file desde lg). */
 .title {
   grid-column: var(--_head-column, auto);
   margin-block-start: calc(-1 * var(--space-4));
   color: var(--_ch-bright);
   font-family: var(--font-mono);
-  font-size: var(--text-h1);
+  font-size: var(--_title-size, var(--text-h1));
   font-weight: var(--weight-mono-strong);
   line-height: var(--leading-h1);
   letter-spacing: var(--tracking-micro);

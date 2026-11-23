@@ -33,10 +33,12 @@ Metáfora: las partículas que formaron el universo se recomponen en la cara de 
   `docs/04-escena/formas.md` → «Retrato»).
 - **Transición:** las partículas viajan de la Tierra al retrato y llegan apagadas; se encienden en el verde del canal
   al paso del haz de barrido, que baja de arriba abajo atado al progreso del morph (`m` de 4 a 5). Acabado el morph,
-  el haz pasa en bucle. Con movimiento reducido, el retrato encendido y sin haz ni fallos de señal.
+  el haz pasa en bucle. Con movimiento reducido, el retrato encendido y sin haz ni fallos de señal. Si el retrato llega
+  con la escena ya aquí (un salto por el raíl o la misión rápida, entrar por `/#crew-file`), se forma en 0,6 s desde
+  la Tierra con el haz bajando, en vez de aparecer de golpe.
 - El retrato: una foto de Víctor convertida en profundidad, cargada como dato aparte (`src/assets/portrait/`: la foto
-  y otra imagen con la profundidad, la distancia al borde y los contornos; ~160 KB) cuando la escena llega a la Tierra
-  (`m` ≥ 3). Lo pide y lo lee el worker de las formas; solo el código que lo pide cuenta en el chunk de la escena
+  y otra imagen con la profundidad, la distancia al borde y los contornos; ~160 KB) al llegar a la tortuga, un tramo
+  antes de la Tierra (`m` ≥ 3), una vez por visita. Lo pide y lo lee el worker de las formas; solo el código que lo pide cuenta en el chunk de la escena
   (ADR-032). Si no llega, la forma 5 se queda en la Tierra.
 - Aspecto elegido: holograma de líneas de escáner (una fila de cada tres), luz en pocos niveles, rasgos y borde de
   la silueta encendidos, haz de barrido y fallos de señal ocasionales; en el verde del canal.
@@ -57,9 +59,13 @@ Metáfora: las partículas que formaron el universo se recomponen en la cara de 
 - **Escritorio ancho (desde lg, 1280 px):** el aviso, el título y la entrada arriba a la izquierda; el visor en el
   centro, centrado en la ventana como el retrato y pegado al centro de la pantalla mientras la ficha pasa; la ficha a
   los lados (puesto, base y permiso a la izquierda; disponibilidad, idiomas y formación a la derecha), cada dato en su
-  recuadro con una línea guía hacia el visor; abajo, «Download CV» a la izquierda y el email a la derecha.
+  recuadro con una línea guía que llega hasta el marco; abajo, el email a la izquierda y «Download CV» a la derecha.
+  La columna del centro cae bajo el visor y la de la derecha es la más estrecha (el raíl ocupa su lado): el email no
+  cabría en ella sin partirse, y el título va con la letra de un h2, que baja lo justo para que «Tripulación» quepa
+  entera en la columna de la izquierda (`--text-crew-title`).
 - **Móvil y tableta:** una columna en el orden del DOM: título, entrada, el visor (un hueco del tamaño del retrato en
-  pantalla, `--visor-h`), **Download CV justo debajo** (lo primero que se busca), la ficha y el email.
+  pantalla: su alto, `--visor-h`, y su proporción, `--visor-ratio`, centrado con el retrato aunque la columna deje
+  sitio al raíl), **Download CV justo debajo** (lo primero que se busca), la ficha y el email.
 
 ## Accesibilidad y movimiento reducido
 

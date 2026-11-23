@@ -713,6 +713,8 @@
 - Nota (2026-11-21, fase C): F4.3c pesó 172 B, no 1 KB (252 910 B), y C.3 (la galaxia de skills con 37 estrellas)
   127 B (253 037 B). Quedan 6 963 B: con F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, ~1,46 KB de margen. Esta cuenta sustituye a la
   de la nota anterior; lo que pesa cada paso sigue en `rendimiento.md`.
+- Nota (2026-11-22, C.6b): el retrato y la corrección de su auditoría pesaron 1 219 B (254 340 B; detalle en la nota
+  de C.6b de ADR-034). Quedan 5 660 B: tras F4.4 y F4.5, ~0,16 KB de margen. Esta cuenta sustituye a la anterior.
 - Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).
 
 ## ADR-033 · Los commits de solo documentación van directos a `main`
@@ -820,12 +822,18 @@
   la etiqueta de estrella (`componentes.md` → «Accesibilidad común»). En una ventana ancha pero baja, el raíl se queda
   con los puntos y el HUD se esconde.
 - Nota (2026-11-22, C.6b): el retrato. La sexta forma sale de una foto de Víctor y sus datos (color y profundidad,
-  ~160 KB, `src/assets/portrait/`), que entran al repo público; el worker los descarga cuando la escena llega a la
-  Tierra y, si no llegan, la forma 5 se queda en la Tierra. Transición: las partículas llegan apagadas y un haz de
-  barrido, atado al morph, las enciende de arriba abajo; al acabar, «Identity verified». El Crew file va **abierto**
+  ~160 KB, `src/assets/portrait/`), que entran al repo público; el worker los descarga al llegar a la tortuga, un
+  tramo antes de la Tierra, y, si no llegan, la forma 5 se queda en la Tierra. Transición: las partículas llegan
+  apagadas y un haz de barrido, atado al morph, las enciende de arriba abajo; «Identity verified», en el visor, se
+  enciende cuando el teletipo acaba la ficha (no con el morph: es decoración y repite el aviso de arriba). El Crew file va **abierto**
   sobre la escena (sin el velo del canal; cada bloque de texto con el suyo) y, desde lg, con el visor en el centro y
   la ficha a los lados. Pesó 967 B de la escena, del margen de ADR-032 (no hizo falta subir el límite). En táctil el
-  retrato no gira (la inclinación pide permiso en iOS): F6.
+  retrato no gira (la inclinación pide permiso en iOS): F6. Con la corrección de su auditoría: si el retrato llega con
+  la escena ya en el capítulo 5 (un salto por el raíl, entrar por `/#crew-file`), aparece en 0,6 s con el retraso por
+  partícula del morph y el haz, en vez de cambiar de golpe (`uPor` deja de ser 0/1); un solo encargo por visita; el
+  canal R del paquete deja libres el 1 y el 2 (el ruido de los navegadores con protección contra huellas). Pesó
+  252 B más de la escena: quedan ~0,16 KB del margen tras reservar F4.4 y F4.5, así que las Naves (C.7) traerán su ADR
+  para subir el límite.
 - Detalle: `docs/06-roadmap/roadmap.md` → «C · Contenido y secciones nuevas»; cada sección, en su doc de
   `docs/02-experiencia/capitulos/` (`interludio-1-mission-log.md`, `interludio-2-mission-control.md`,
   `05-crew-file.md`) y el sistema visual en `docs/03-diseno/design-system.md` → «Transmisiones».

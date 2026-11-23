@@ -45,7 +45,7 @@ for (const index of CHAPTER_INDICES) {
     });
     // El retrato llega aparte, en su encargo al worker: sin esperarlo, la foto podría salir con la Tierra.
     if (index === EPILOGUE) {
-      await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-portrait', 'loaded', {
+      await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-portrait', 'painted', {
         timeout: SCENE_TIMEOUT_MS,
       });
     }

@@ -7,11 +7,13 @@ import { generatePortrait, PORTRAIT, portraitPixelsProblem, type PortraitPixels 
 const W = PORTRAIT_FRAME.imageWidth;
 const H = PORTRAIT_FRAME.imageHeight;
 const EPS = 1e-4;
+/** El valor del canal R a media profundidad (0,5): la figura va de `depthFloor` a 255. */
+const MID_DEPTH = PORTRAIT.depthFloor + (255 - PORTRAIT.depthFloor) / 2;
 
 interface Figure {
   /** ¿Es figura el píxel? (Si no, fondo: profundidad 0.) */
   readonly inside?: (x: number, y: number) => boolean;
-  /** Profundidad del paquete (1..255). */
+  /** Profundidad del paquete (`depthFloor`..255). */
   readonly depth?: (x: number, y: number) => number;
   /** Gris de la foto (0..255). */
   readonly grey?: (x: number, y: number) => number;
@@ -24,7 +26,7 @@ interface Figure {
 /** Unas imágenes hechas a mano, del tamaño del contrato. */
 function pixels({
   inside = () => true,
-  depth = () => 128,
+  depth = () => MID_DEPTH,
   grey = () => 160,
   contour = () => 0,
   border = () => 255,
@@ -100,7 +102,7 @@ describe('generatePortrait', () => {
       rows.add(Math.round(row));
       expect(Math.abs(x)).toBeLessThanOrEqual(PORTRAIT_FRAME.width / 2 + EPS);
       expect(Math.abs(y)).toBeLessThanOrEqual(PORTRAIT_FRAME.halfHeight + EPS);
-      // Profundidad 128 de 255: casi en el plano del origen.
+      // La profundidad del medio: en el plano del origen.
       expect(Math.abs(z)).toBeLessThan(0.01);
     }
     expect(rows.size).toBe(Math.ceil(H / PORTRAIT.rowStep));
@@ -144,7 +146,7 @@ describe('generatePortrait', () => {
       const row = Math.round(rowOf(out[i * 4 + 1] ?? 0));
       const light = out[i * 4 + 3] ?? 0;
       if (row === H - 1) expect(light).toBeLessThan(EPS);
-      if (row < H - PORTRAIT.fadeBottomPx) expect(light).toBeGreaterThan(0.5);
+      if (row < H - PORTRAIT_FRAME.fadeBottomPx) expect(light).toBeGreaterThan(0.5);
     }
   });
 
@@ -166,6 +168,31 @@ describe('generatePortrait', () => {
       (z) => z > -0.2 && z < 0.2,
     );
     expect(between.length).toBeGreaterThan(0);
+  });
+
+  it('the silhouette walls curve inwards on every side: none leaves the figure (back in photo pixels)', () => {
+    const out = portrait(20_000, BOX);
+    const scale = PORTRAIT_FRAME.width / W;
+    const photoDistance = (PORTRAIT.photoDistance * PORTRAIT_FRAME.width) / PORTRAIT.probeWidth;
+    for (let i = 0; i < 20_000; i++) {
+      const [x = 0, y = 0, z = 0] = out.subarray(i * 4, i * 4 + 3);
+      // Se deshace la perspectiva de la foto (más lejos, algo mayor) para volver a su píxel.
+      const unit = scale * ((photoDistance - z) / photoDistance);
+      const px = x / unit + W / 2;
+      const py = H / 2 - y / unit;
+      expect(px).toBeGreaterThanOrEqual(200 - EPS);
+      expect(px).toBeLessThanOrEqual(520 + EPS);
+      expect(py).toBeGreaterThanOrEqual(150 - EPS);
+      expect(py).toBeLessThanOrEqual(450 + EPS);
+    }
+  });
+
+  it('a background read with noise (1 or 2, as some anti-fingerprinting browsers give) is still background', () => {
+    const noisy = pixels({ inside: (x, y) => x >= 200 && x < 520 && y >= 150 && y < 450 });
+    for (let i = 0; i < W * H; i++) {
+      if ((noisy.pack[i * 4] ?? 0) === 0) noisy.pack[i * 4] = 1 + (i % 2);
+    }
+    expect(portrait(5000, noisy)).toEqual(portrait(5000, BOX));
   });
 
   it('more particles than sites: every particle gets a place, none is left empty or broken', () => {

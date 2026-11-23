@@ -170,9 +170,10 @@ se lee → galaxia, con el scroll, y un botón para cambiar de satélite a nave 
 
 ## Coste y riesgos
 
-- **Peso de la escena:** quedan ~1,46 KB de margen (desde C.3) tras F4.4 (≤ 2,5 KB) y F4.5 (≤ 3 KB) (ADR-032). Estimación: dos
-  naves paramétricas y el mapa de formas, ~1–2 KB gzip. Puede caber justo o pedir subir el tope (ADR, decisión de
-  Víctor). Se mide en la prueba antes de decidir.
+- **Peso de la escena:** tras el retrato (C.6b y la corrección de su auditoría) quedan ~0,16 KB de margen tras F4.4
+  (≤ 2,5 KB) y F4.5 (≤ 3 KB) (ADR-032; `rendimiento.md` → «Presupuesto»). Estimación: dos naves paramétricas y el mapa
+  de formas, ~1–2 KB gzip: ya no caben sin un ADR nuevo que suba el tope (decisión de Víctor). Se mide en la prueba
+  antes de decidir.
 - **El cambio de forma:** hoy el morph dispersa las partículas a mitad (`MORPH_SCATTER`). De una nebulosa a un objeto
   pequeño y nítido puede verse sucio: la prueba tiene que enseñar los dos morphs (nebulosa → satélite → galaxia).
 - **Escala:** un satélite al lado de una nebulosa no tiene la escala del resto del viaje. Se justifica en el relato

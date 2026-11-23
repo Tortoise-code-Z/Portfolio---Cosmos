@@ -58,6 +58,7 @@ cosmos-portfolio/
 │  ├─ scene/                    ← motor 3D (docs/04-escena), cargado en diferido: SceneRoot (el `<Canvas>`),
 │  │                              contextLoss (pérdida del contexto WebGL: un intento de restaurar),
 │  │                              useSceneShapes (pide las formas; reintento en el hilo principal),
+│  │                              usePortrait (el retrato: un encargo aparte al worker, una vez por visita),
 │  │                              fpsMeter y useHotDegradation (la degradación en caliente: fps por ventanas),
 │  │                              Particles (useParticles) y BackgroundStars (useBackgroundStars; montan los Points),
 │  │                              particleGeometry (atributos), sceneMaterials (uniforms, materiales y el
@@ -75,9 +76,10 @@ cosmos-portfolio/
 │  │  │                           plateSlots (huecos de las placas, assignPlates), scenePalette (los colores) y
 │  │  │                           constellationLayout (estrellas y líneas de las skills, caja de su etiqueta)
 │  │  ├─ shapes/                ← código puro: prng, noise, sampling, hexGrid, un generador por forma
-│  │  │                           (nebula, galaxy, turtle, earth), shapeContract, generateShapes y stars
-│  │  │                           (las estrellas de fondo, en el hilo principal)
-│  │  └─ worker/                ← shapes.worker.ts (la entrada), handleShapesRequest, protocol y loadShapes
+│  │  │                           (nebula, galaxy, turtle, earth, portrait), shapeContract, generateShapes y
+│  │  │                           stars (las estrellas de fondo, en el hilo principal)
+│  │  └─ worker/                ← shapes.worker.ts (la entrada), handleShapesRequest, handlePortraitRequest,
+│  │                              decodePortrait (descarga y lee las imágenes del retrato), protocol y loadShapes
 │  ├─ ui/                       ← componentes genéricos sin dominio: ButtonOutline, HoldButton, ActionLink,
 │  │                              CopyButton, Notice, Icon, VisuallyHidden, ArrowText (las «→» del texto
 │  │                              con el icono), Picture (`<picture>` AVIF/WebP) y Lightbox (visor de imágenes)
@@ -111,8 +113,10 @@ cosmos-portfolio/
 │  ├─ styles/                   ← tokens.css, global.css, fonts.css
 │  ├─ assets/projects/<slug>/   ← capturas originales `NN-<nombre>.png` (vite-imagetools genera las variantes
 │  │                               con los presets `?project` y `?share` de vite.config.ts; ADR-023)
-│  └─ assets/scene-stills/      ← fotos fijas del modo sin WebGL, `{avif,webp}/` y su huella `stills.json`
-│                                  (las saca `npm run stills`; ADR-029)
+│  ├─ assets/scene-stills/      ← fotos fijas del modo sin WebGL, `{avif,webp}/` y su huella `stills.json`
+│  │                               (las saca `npm run stills`; ADR-029)
+│  └─ assets/portrait/          ← las dos imágenes del retrato (forma 5): la foto y el paquete de profundidad
+│                                  (las escribe scripts/portrait/; las descarga el worker con `?url`)
 ├─ public/                      ← favicon.svg, apple-touch-icon.png, og/, cv/ (robots.txt y sitemap.xml
 │                                  se generan en el build)
 ├─ tests/
@@ -126,7 +130,9 @@ cosmos-portfolio/
 │                                 visual-in-docker.sh y stills-in-docker.sh. Y el criterio de los commits de solo
 │                                 docs (ADR-033): docsOnly.ts, con su test, y la orden docs-only.ts. Y el
 │                                 contador de las cifras de Mission control (ADR-035): siteTelemetry.ts, con su
-│                                 test, un plugin de Vite (y de Vitest) que sirve `virtual:site-telemetry`
+│                                 test, un plugin de Vite (y de Vitest) que sirve `virtual:site-telemetry`. Y
+                                 portrait/: los Python que sacan de una foto las imágenes del retrato (fuera del
+                                 build; su README)
 ├─ docs/                        ← esta documentación
 ├─ .github/workflows/ci.yml
 └─ (configs) react-router.config.ts · vite.config.ts · vitest.config.ts · playwright.config.ts · playwright.visual.config.ts · playwright.stills.config.ts ·
@@ -166,7 +172,7 @@ El diagrama es orientativo; manda la tabla.
 | `ui` | `lib` | `stores`, `features`, `scene`, `routes`, `content` (recibe datos por props), Three |
 | `features` | `ui`, `lib`, `stores`, `content` y, solo en `scene-mount/SceneStills`, las fotos fijas de `src/assets/scene-stills/` (ADR-029) | `three`, `@react-three/*`, `scene` (salvo el punto de montaje diferido), `routes` |
 | `scene` | `lib`, `stores`, `content` (solo ids y orden) | `features`, `ui`, `routes` |
-| `scene/{shapes,math,config,worker}` (código puro: va en el worker) | `lib`, `content/types` (los datos, por parámetro; sus tests sí usan el contenido real) y los módulos de `scene/` fuera de `IMPURE_SCENE_MODULES` (hoy `pointer`, `frameLoop`, `sceneClock`, `fpsMeter`, `shaders`; `math/camera` y `math/gravity` usan el tipo de `scene/pointer`) | Three, React, Zustand, `stores`, `features`, `ui`, `routes`, los módulos de la escena con Three, React o un store, y `contextLoss` (`IMPURE_SCENE_MODULES` de `eslint.config.js`), los datos de `content` y cualquier `import()` |
+| `scene/{shapes,math,config,worker}` (código puro: va en el worker) | `lib`, `content/types` (los datos, por parámetro; sus tests sí usan el contenido real), solo en `worker/decodePortrait` las imágenes de `src/assets/portrait/` con `?url` (las descarga el worker), y los módulos de `scene/` fuera de `IMPURE_SCENE_MODULES` (hoy `pointer`, `frameLoop`, `sceneClock`, `fpsMeter`, `shaders`; `math/camera` y `math/gravity` usan el tipo de `scene/pointer`) | Three, React, Zustand, `stores`, `features`, `ui`, `routes`, los módulos de la escena con Three, React o un store, y `contextLoss` (`IMPURE_SCENE_MODULES` de `eslint.config.js`), los datos de `content` y cualquier `import()` |
 | `routes` (y `root.tsx`) | todo lo anterior menos la escena | `scene`, `three`, `@react-three/*` (la escena solo llega por `SceneMount`) |
 
 Se hacen cumplir con `no-restricted-imports` de ESLint por carpeta: un import prohibido rompe el lint. Los
@@ -309,7 +315,7 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   le prohíbe Three, React, Zustand, `stores`, los módulos de la escena que usan Three, React o un store, más
   `contextLoss`, que vive con el lienzo (por ruta relativa: `SceneRoot`, `CameraRig`, `Particles`,
   `BackgroundStars`, `Constellations`, `ConstellationLabels`, `sceneMaterials`, `particleGeometry`,
-  `useSceneShapes`, `useHotDegradation`, `contextLoss`, `voidColour`, `pause`; `pointer`, `frameLoop`, `sceneClock`, `fpsMeter` y `shaders` no, son DOM o cálculo sin
+  `useSceneShapes`, `useHotDegradation`, `usePortrait`, `contextLoss`, `voidColour`, `pause`; `pointer`, `frameLoop`, `sceneClock`, `fpsMeter` y `shaders` no, son DOM o cálculo sin
   dependencias), los datos de `content` (solo sus tipos) y cualquier `import()` (un import así engordaría el
   worker sin avisar), y prohíbe `Math.random` en toda la escena, también escrito
   `globalThis.Math.random` (ADR-011: el azar con semilla de `scene/shapes/prng`). **Un módulo nuevo de `scene/`

@@ -50,6 +50,7 @@ export function glslHeader(): string {
     `#define PLATE_LAST ${glslFloat(LAST_PLATE_LABEL)}`,
     ...defines('EARTH', EARTH_TAG),
     `#define PORTRAIT_HALF_H ${glslFloat(Number(PORTRAIT_FRAME.halfHeight.toFixed(4)))}`,
+    `#define PORTRAIT_FADE_H ${glslFloat(Number(PORTRAIT_FRAME.fadeHeight.toFixed(4)))}`,
     ...colours(),
     '',
   ].join('\n');

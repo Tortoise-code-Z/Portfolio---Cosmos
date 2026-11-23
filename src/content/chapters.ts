@@ -116,8 +116,8 @@ export const JOURNEY_SEGMENTS: readonly (JourneySegment & {
   { kind: 'chapter', chapter: 3, base: 3, morphStart: null },
   { kind: 'interlude', interlude: 'mission-control', base: 3, morphStart: null },
   { kind: 'interlude-tail', interlude: 'mission-control', base: 3, morphStart: 0 },
-  // Contacto cambia en su segunda mitad, como Skills: la Tierra pasa al retrato del epílogo. Hasta C.6b la escena no
-  // tiene sexta forma: con `m` entre 4 y 5 se queda en la Tierra (el shader y la cámara no pasan del último keyframe).
+  // Contacto cambia en su segunda mitad, como Skills: la Tierra pasa al retrato del epílogo (la forma 5). Si el retrato
+  // aún no ha llegado, con `m` entre 4 y 5 la escena se queda en la Tierra (docs/04-escena/formas.md → «Retrato»).
   { kind: 'chapter', chapter: 4, base: 4, morphStart: 0.52 },
   { kind: 'chapter', chapter: 5, base: 5, morphStart: null },
 ];

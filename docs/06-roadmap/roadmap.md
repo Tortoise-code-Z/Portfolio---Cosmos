@@ -167,8 +167,8 @@ por paso, en este orden:
    su descripción de GitHub (lo que F6 tenía para Cosmos se adelanta aquí).
    *(Con Visto Bueno, sesión 38: el detalle de las fichas sale del JS de la home y lo importa solo la página de
    proyecto; README con siete capturas (al principio eran cuatro); `metaDescription` solo para Cosmos; la ficha sigue sin imágenes hasta F6. Hecho: PR #105, y la corrección de su auditoría, PR #106.)*
-6. **Epílogo · Crew file** (objetivo: 1 dic): capítulo 5 bajo la Tierra; el retrato de Víctor en partículas (forma 6,
-   cargada como dato), la ficha con la formación (se muda de Contacto) y «Download CV». Antes de tocar el repo, una
+6. **Epílogo · Crew file** (objetivo: 1 dic): capítulo 5 bajo la Tierra; el retrato de Víctor en partículas (la sexta
+   forma, la 5 en `formas.md`; cargada como dato), la ficha con la formación (se muda de Contacto) y «Download CV». Antes de tocar el repo, una
    prueba del retrato fuera de él; si no convence, el epílogo se queda con la ficha. *(En dos PR: C.6a, el epílogo
    sin retrato —capítulo 5 en el canal verde, la ficha con los idiomas y la formación, el CV, el pie del sitio, el raíl
    de ocho paradas que encogen en un móvil apaisado y Contacto que cambia en su segunda mitad—; C.6b, el retrato con

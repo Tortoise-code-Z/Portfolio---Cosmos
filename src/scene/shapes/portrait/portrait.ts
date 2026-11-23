@@ -6,7 +6,7 @@ import { PORTRAIT_FRAME } from '../shapeContract/shapeContract';
 /**
  * Forma 5 · retrato (docs/04-escena/formas.md → «Retrato»): un relieve sacado de una sola foto, como holograma de
  * escáner. Lee dos imágenes de `src/assets/portrait/` (las genera `scripts/portrait/`): `portrait-color.jpg`, la
- * foto, y `portrait-depth.png` (R profundidad 1..255 y 0 = fondo · G distancia al borde ×16 · B contornos). Las
+ * foto, y `portrait-depth.png` (R profundidad 3..255 y 0 = fondo · G distancia al borde ×16 · B contornos). Las
  * cifras son las de la prueba de la sesión 34 con los ajustes que eligió Víctor (`PORTRAIT`).
  */
 
@@ -19,6 +19,11 @@ export interface PortraitPixels {
 }
 
 export const PORTRAIT = {
+  /**
+   * Canal R del paquete: la figura va de aquí a 255 y el fondo es 0. El 1 y el 2 no se usan: algunos navegadores con
+   * protección contra huellas (Brave) meten ruido de ±1–2 en lo que se lee de un canvas, y un fondo a 1 sería figura.
+   */
+  depthFloor: 3,
   /** Escáner: una fila de cada tres. */
   rowStep: 3,
   /** Relieve: la profundidad de la foto (0–1) se estira a esta fracción del ancho de la prueba (2,4). */
@@ -27,14 +32,12 @@ export const PORTRAIT = {
   photoDistance: 6.2,
   /** El ancho del mundo de la prueba: las cifras de arriba van en esas unidades. */
   probeWidth: 2.4,
-  /** Borde de la silueta: paredes que se curvan hacia atrás y hacia dentro, más oscuras. */
+  /** Borde de la silueta: paredes que se curvan hacia atrás y hacia dentro (lejos del fondo), más oscuras. */
   rim: { walls: 5, inward: 14, depth: 0.3, shade: 0.55 },
   /** Saltos de profundidad dentro de la figura (la mandíbula sobre el cuello): una pared. */
   gap: { from: 0.025, step: 0.04, max: 24, shade: 0.35 },
   /** Luz: robot (pocos niveles) ↔ realista, el brillo de los contornos y el del borde de la silueta. */
   light: { levels: 4, realism: 0.74, base: 0.1, gain: 0.85, edge: 0.9, rim: 0.6, rimReach: 0.3 },
-  /** La foto corta el busto abajo: se funde en los últimos píxeles. */
-  fadeBottomPx: 165,
 } as const;
 
 const SITE_FRONT = 0;
@@ -89,10 +92,12 @@ export function generatePortrait(
   const problem = portraitPixelsProblem(pixels);
   if (problem !== null) throw new RangeError(`[scene] Invalid portrait: ${problem}`);
   const { width, height, pack } = pixels;
-  const depth = (index: number): number => (at(pack, index * 4) - 1) / 254;
+  const { depthFloor } = PORTRAIT;
+  const depth = (index: number): number =>
+    Math.max(at(pack, index * 4) - depthFloor, 0) / (255 - depthFloor);
   const inside = (x: number, y: number): boolean => x >= 0 && y >= 0 && x < width && y < height;
   const isFigure = (x: number, y: number): boolean =>
-    inside(x, y) && at(pack, (y * width + x) * 4) !== 0;
+    inside(x, y) && at(pack, (y * width + x) * 4) >= depthFloor;
   /** Fondo dentro de la imagen: el borde de la silueta (el de la foto no cuenta). */
   const isBackground = (x: number, y: number): boolean => inside(x, y) && !isFigure(x, y);
 
@@ -155,8 +160,9 @@ export function generatePortrait(
       }
       const f = Math.sqrt(rng());
       const inward = PORTRAIT.rim.inward * f * f;
+      // Hacia dentro: lejos del fondo (b apunta a él), en x y en y.
       x = px + 0.5 - bx * inward;
-      y = py + 0.5 + by * inward;
+      y = py + 0.5 - by * inward;
       z -= PORTRAIT.rim.depth * Math.sin((f * Math.PI) / 2);
       shade = 1 - PORTRAIT.rim.shade * f;
     } else if (kind === SITE_GAP) {
@@ -175,6 +181,6 @@ export function generatePortrait(
     out[i * 4 + 1] = (height / 2 - y) * scale * perspective;
     out[i * 4 + 2] = tz;
     out[i * 4 + 3] =
-      light(pixels, index * 4, shade) * smoothstep(height, height - PORTRAIT.fadeBottomPx, y);
+      light(pixels, index * 4, shade) * smoothstep(height, height - PORTRAIT_FRAME.fadeBottomPx, y);
   }
 }

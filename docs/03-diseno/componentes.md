@@ -134,7 +134,8 @@
   journey · 13.8 billion years + now», lo último de la página). Con `titleDisplay`, en el sitio del
   título se ve otra cosa (el «T-0» de Mission control, `aria-hidden`) y el título queda escondido para el lector en el
   mismo `h2`. Con `className`, una transmisión puede dar otras columnas a su cuerpo (`--_body-columns`) y fijar en
-  cuál van el rótulo y el título (`--_head-column`). El rótulo de cada bloque de dentro es `.heading` de
+  cuál van el rótulo y el título (`--_head-column`), y bajar la letra del título si su columna es estrecha
+  (`--_title-size`; por defecto, la de un h1: el Crew file desde lg). El rótulo de cada bloque de dentro es `.heading` de
   `Transmission.module.css` (cada una lo usa con `composes`).
 - **Abierta** (`open`, el epílogo): sin el velo del canal sobre la escena (solo la cuadrícula), para que se vea el
   retrato; la franja, el rótulo, el título y el pie llevan el velo detrás, y quien la usa se lo pone a sus bloques de

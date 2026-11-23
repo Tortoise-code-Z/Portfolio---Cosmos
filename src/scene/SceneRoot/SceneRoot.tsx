@@ -106,6 +106,8 @@ export default function SceneRoot({
   const [ready, setReady] = useState(false);
   /** Las partículas ya se han pintado: lo esperan los e2e (`data-particles`). */
   const [painted, setPainted] = useState(false);
+  /** El retrato ya se ha pintado entero: lo esperan los e2e, las capturas y las fotos fijas (`data-portrait`). */
+  const [portraitPainted, setPortraitPainted] = useState(false);
   /** El bucle está en pausa: lo miran los e2e (`data-paused`). */
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
@@ -244,6 +246,10 @@ export default function SceneRoot({
     setReady(true);
   }
 
+  function onPortraitPainted(): void {
+    setPortraitPainted(true);
+  }
+
   function onFirstFrame(): void {
     setPainted(true);
     onPaintedRef.current?.();
@@ -257,7 +263,7 @@ export default function SceneRoot({
       data-shapes={shapes?.source}
       data-particles={painted ? 'painted' : undefined}
       data-paused={paused ? 'true' : undefined}
-      data-portrait={portrait === null ? undefined : 'loaded'}
+      data-portrait={portraitPainted ? 'painted' : undefined}
       data-level={level}
     >
       <Canvas
@@ -279,6 +285,7 @@ export default function SceneRoot({
             onFirstFrame={onFirstFrame}
             portrait={portrait}
             onPortraitWanted={wantPortrait}
+            onPortraitPainted={onPortraitPainted}
           />
         )}
         <BackgroundStars count={LEVEL_SETTINGS[level].stars} frame={frame} />

@@ -83,7 +83,8 @@ export default defineConfig({
       include: ['src/**/*.{ts,tsx}', 'scripts/docsOnly.ts', 'scripts/siteTelemetry.ts'],
       // Fuera de la cobertura: root.tsx (el documento HTML solo lo pintan los e2e; su lógica, `meta`,
       // `ErrorBoundary` y `HydrateFallback`, la prueba root.test.tsx), routes.ts (configuración) y la entrada
-      // del worker de las formas (solo conecta el mensaje con `handleShapesRequest`, que sí se prueba).
+      // del worker de las formas (solo conecta el mensaje con `handleShapesRequest` o `handlePortraitRequest`, que sí
+      // se prueban).
       exclude: [
         'src/**/*.test.{ts,tsx}',
         'src/**/*.d.ts',

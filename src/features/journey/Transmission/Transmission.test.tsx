@@ -63,14 +63,15 @@ function reducedMotion(reduced: boolean): void {
   );
 }
 
-function renderTransmission(): HTMLElement {
-  return renderWithUnmount().region;
+function renderTransmission(open = false): HTMLElement {
+  return renderWithUnmount(open).region;
 }
 
-function renderWithUnmount(): { region: HTMLElement; unmount: () => void } {
+function renderWithUnmount(open = false): { region: HTMLElement; unmount: () => void } {
   const { unmount } = render(
     <MemoryRouter initialEntries={['/es']}>
       <Transmission
+        open={open}
         id="mission-log"
         channel="amber"
         channelLabel="Canal 01 · ámbar"
@@ -107,6 +108,8 @@ afterEach(() => {
 describe('Transmission', () => {
   it('veiled over the scene by default; `open` leaves the scene in sight (the epilogue)', () => {
     expect(renderTransmission().className).not.toMatch(/open/);
+    document.body.replaceChildren();
+    expect(renderTransmission(true).className).toMatch(/open/);
   });
 
   it('channel strip, title (focusable by script) and the stopped clock in the footer', () => {
