@@ -1,5 +1,4 @@
 import {
-  useEffect,
   useLayoutEffect,
   useRef,
   type FocusEvent,
@@ -25,26 +24,14 @@ import { ChapterPanel } from '../ChapterPanel/ChapterPanel';
 import { ChapterSection } from '../ChapterSection/ChapterSection';
 import { Eyebrow } from '../Eyebrow/Eyebrow';
 import shared from '../shared.module.css';
+import { useTapOutsideTurnsOff } from '../useTapOutsideTurnsOff/useTapOutsideTurnsOff';
 import styles from './Skills.module.css';
 
 const TITLE_ID = 'skills-title';
 
-/**
- * Tocar fuera apaga: solo un toque limpio, un `click` (deslizar o salir del capítulo no lo dan). Se
- * escucha en la fase de captura del documento, antes que nada de la página: apaga, y si el toque cae en un grupo o en
- * una etiqueta, su propio `click` lo vuelve a encender después (manda el último gesto).
- */
-function useTapOutsideTurnsOff(sceneOn: boolean): void {
-  useEffect(() => {
-    if (!sceneOn) return undefined;
-    const turnOff = (): void => {
-      setActiveSkillGroup(null);
-    };
-    document.addEventListener('click', turnOff, { capture: true });
-    return () => {
-      document.removeEventListener('click', turnOff, { capture: true });
-    };
-  }, [sceneOn]);
+/** Un toque fuera apaga el grupo (`useTapOutsideTurnsOff`). */
+function turnSkillsOff(): void {
+  setActiveSkillGroup(null);
 }
 
 /**
@@ -155,7 +142,7 @@ export function Skills(): ReactNode {
   const sceneOn = useUiStore(selectSceneOn);
   const groups = useRef<HTMLUListElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
-  useTapOutsideTurnsOff(sceneOn);
+  useTapOutsideTurnsOff(sceneOn, turnSkillsOff);
   useTurnOffWithoutScene(sceneOn, groups, title);
 
   return (

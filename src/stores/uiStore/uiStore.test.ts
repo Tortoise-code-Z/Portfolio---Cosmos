@@ -3,12 +3,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   closeQuickMission,
   openQuickMission,
+  releaseActiveProject,
   releaseActiveSkillGroup,
+  selectActiveProject,
   selectActiveSkillGroup,
   selectLanguageNoticeOpen,
   selectQuickMissionOpen,
   selectSceneLevel,
   selectSceneOn,
+  setActiveProject,
   setActiveSkillGroup,
   setLanguageNoticeOpen,
   setProjectPageOpen,
@@ -166,6 +169,34 @@ describe('uiStore', () => {
     releaseActiveSkillGroup('ai');
     expect(selectActiveSkillGroup(useUiStore.getState())).toBeNull();
     releaseActiveSkillGroup('ai');
+    expect(listener).toHaveBeenCalledTimes(1);
+    unsubscribe();
+  });
+
+  it('keeps the pointed project (none at first), and does not notify when it did not change', () => {
+    expect(selectActiveProject(useUiStore.getState())).toBeNull();
+    const listener = vi.fn();
+    const unsubscribe = useUiStore.subscribe(listener);
+    setActiveProject('astrohub');
+    setActiveProject('astrohub');
+    expect(selectActiveProject(useUiStore.getState())).toBe('astrohub');
+    setActiveProject(null);
+    expect(selectActiveProject(useUiStore.getState())).toBeNull();
+    expect(listener).toHaveBeenCalledTimes(2);
+    unsubscribe();
+  });
+
+  it('releases a project only while it is still the pointed one (the last gesture wins)', () => {
+    setActiveProject('chessmate');
+    setActiveProject('cosmos');
+    const listener = vi.fn();
+    const unsubscribe = useUiStore.subscribe(listener);
+    releaseActiveProject('chessmate');
+    expect(selectActiveProject(useUiStore.getState())).toBe('cosmos');
+    expect(listener).not.toHaveBeenCalled();
+    releaseActiveProject('cosmos');
+    expect(selectActiveProject(useUiStore.getState())).toBeNull();
+    releaseActiveProject('cosmos');
     expect(listener).toHaveBeenCalledTimes(1);
     unsubscribe();
   });

@@ -25,6 +25,20 @@ export const PLATE_SLOTS: readonly PlateSlot[] = [
 
 export const FIRST_PLATE_LABEL = 20;
 export const LAST_PLATE_LABEL = 26;
+/** Ninguna placa: `uPlate` 0 no casa con ninguna etiqueta de placa. */
+export const NO_PLATE = 0;
+
+/** El resaltado de las placas (docs/04-escena/constelaciones-y-placas.md → «Resaltado»). */
+export const PLATE_LOOK = {
+  /** La `m` de la tortuga (capítulo 3). */
+  turtleM: 3,
+  /** Presencia del capítulo 3, con la misma rampa que la del 2: 1 en la tortuga y 0 a ±0,56 de ella. */
+  presenceFade: 1.8,
+  /** Por debajo de esta presencia no se ilumina ninguna placa (el prototipo). */
+  litFrom: 0.2,
+  /** Sin nada señalado, una placa cada 2,6 s. */
+  cycleSeconds: 2.6,
+} as const;
 
 /** Un proyecto en su placa. */
 export interface PlateAssignment {
@@ -47,4 +61,16 @@ export function assignPlates(projects: readonly PlateProject[]): PlateAssignment
     const project = ordered[index];
     return project === undefined ? [] : [{ slug: project.slug, label: slot.label }];
   });
+}
+
+/** La etiqueta de la placa de un proyecto, o `NO_PLATE` (sin proyecto o sin placa). Sin objetos nuevos: va por frame. */
+export function plateLabelOf(plates: readonly PlateAssignment[], slug: string | null): number {
+  for (const plate of plates) if (plate.slug === slug) return plate.label;
+  return NO_PLATE;
+}
+
+/** El proyecto de una placa, o `null` (ninguna, o una sin proyecto). */
+export function plateSlugOf(plates: readonly PlateAssignment[], label: number): string | null {
+  for (const plate of plates) if (plate.label === label) return plate.slug;
+  return null;
 }

@@ -27,12 +27,17 @@ escena. Metáfora: según el mito, una tortuga carga con el mundo; la tuya carga
 
 ## Interacciones
 
-- **Hover o foco en una fila** → su placa se ilumina (blanco cálido, pulso suave) y su pin se marca.
+- **Hover o foco en una fila** (el foco del teclado en uno de sus enlaces) → su placa se ilumina (blanco cálido,
+  pulso suave), su pin se marca y la fila se marca como *hot*. Soltar apaga solo si sigue siendo el señalado (manda
+  el último gesto).
 - **Hover en un pin** → se ilumina su placa y se marca su fila.
 - **Clic en un pin o en «View project»** → transición a la página del proyecto (ver `pagina-proyecto.md`).
-- **Sin interacción:** las placas se iluminan por turnos cada ~2,6 s para mostrar que son interactivas; al
-  interactuar, el ciclo se detiene.
-- **Táctil:** tocar un pin ilumina su placa; un segundo toque (o el botón de la fila) abre el proyecto.
+- **Sin interacción:** las placas se iluminan por turnos cada ~2,6 s para mostrar que son interactivas; mientras
+  hay un proyecto señalado, el ciclo se detiene y, al soltarlo, vuelve a empezar la cuenta. El ciclo no marca las
+  filas: solo ilumina la placa (y su pin).
+- **Táctil:** tocar una fila ilumina su placa; tocar fuera la apaga (deslizar no). Tocar un pin ilumina su placa; un
+  segundo toque (o el botón de la fila) abre el proyecto.
+- Al ir a una ficha o al apagarse la escena, no queda nada señalado. Sin escena, las filas solo se resaltan.
 
 ## Layout
 

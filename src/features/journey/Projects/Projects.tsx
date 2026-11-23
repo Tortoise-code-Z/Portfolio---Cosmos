@@ -5,13 +5,19 @@ import { CHAPTER_ANCHORS } from '~/content/chapters';
 import { projectEntries } from '~/content/projects/entries';
 import { cx } from '~/lib/css/cx/cx';
 import { useT } from '~/lib/i18n/useT/useT';
-import { takeVisitedProject } from '~/stores/uiStore/uiStore';
+import {
+  selectSceneOn,
+  setActiveProject,
+  takeVisitedProject,
+  useUiStore,
+} from '~/stores/uiStore/uiStore';
 
 import { ChapterPanel } from '../ChapterPanel/ChapterPanel';
 import { ChapterSection } from '../ChapterSection/ChapterSection';
 import { Eyebrow } from '../Eyebrow/Eyebrow';
 import { ProjectRow } from '../ProjectRow/ProjectRow';
 import shared from '../shared.module.css';
+import { useTapOutsideTurnsOff } from '../useTapOutsideTurnsOff/useTapOutsideTurnsOff';
 import styles from './Projects.module.css';
 
 const TITLE_ID = 'projects-title';
@@ -42,16 +48,30 @@ function useFocusVisitedRow(list: RefObject<HTMLUListElement | null>): void {
   }, [list, navigationType, hash]);
 }
 
+/** Nada señalado: un toque fuera (`useTapOutsideTurnsOff`), irse del viaje o apagarse la escena. */
+function turnProjectsOff(): void {
+  setActiveProject(null);
+}
+
+/** Sin viaje o sin escena, nada señalado: al desmontarse el viaje (ir a una ficha) o apagarse la escena. */
+function useTurnOffWithoutScene(sceneOn: boolean): void {
+  useEffect(() => (sceneOn ? turnProjectsOff : undefined), [sceneOn]);
+}
+
 /**
  * Capítulo 3 · Tortuga cósmica · Proyectos (docs/02-experiencia/capitulos/03-tortuga.md): una fila por
- * proyecto en orden de lectura, con enlaces reales (funcionan sin escena). Al volver de una página de
- * proyecto, el foco queda en su fila.
+ * proyecto en orden de lectura, con enlaces reales (funcionan sin escena). Con la escena encendida, cada fila
+ * ilumina la placa de su proyecto (`uiStore.activeProject`, que la escena lee en cada frame). Al volver de una página
+ * de proyecto, el foco queda en su fila.
  */
 export function Projects(): ReactNode {
   const t = useT();
   const ordered = [...projectEntries].sort((a, b) => a.order - b.order);
   const list = useRef<HTMLUListElement>(null);
+  const sceneOn = useUiStore(selectSceneOn);
   useFocusVisitedRow(list);
+  useTapOutsideTurnsOff(sceneOn, turnProjectsOff);
+  useTurnOffWithoutScene(sceneOn);
 
   return (
     <ChapterSection index={3} labelledBy={TITLE_ID}>
@@ -63,7 +83,7 @@ export function Projects(): ReactNode {
         <p>{t('projects.lead')}</p>
         <ul ref={list} role="list" className={cx(shared.plainList, styles.rows)}>
           {ordered.map((project) => (
-            <ProjectRow key={project.slug} project={project} />
+            <ProjectRow key={project.slug} project={project} sceneOn={sceneOn} />
           ))}
         </ul>
       </ChapterPanel>

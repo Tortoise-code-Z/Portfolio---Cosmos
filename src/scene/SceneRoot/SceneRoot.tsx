@@ -6,6 +6,7 @@ import { watchReducedMotion } from '~/lib/device/reducedMotion/reducedMotion';
 import { LEVEL_SETTINGS, type RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
 import { smoothM } from '~/lib/scroll/smoothM/smoothM';
 import { sceneStore } from '~/stores/sceneStore/sceneStore';
+import { useUiStore } from '~/stores/uiStore/uiStore';
 
 import { BackgroundStars } from '../BackgroundStars/BackgroundStars';
 import { CameraRig } from '../CameraRig/CameraRig';
@@ -14,6 +15,7 @@ import {
   createStarLabelElements,
 } from '../ConstellationLabels/ConstellationLabels';
 import { Constellations } from '../Constellations/Constellations';
+import { plateLabelOf, plateSlugOf } from '../config/plateSlots/plateSlots';
 import { CAMERA_LENS, WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
 import { watchContextLoss } from '../contextLoss/contextLoss';
 import { startFrameLoop, type FrameLoop } from '../frameLoop/frameLoop';
@@ -21,11 +23,18 @@ import { Particles } from '../Particles/Particles';
 import { watchScenePause } from '../pause/pause';
 import { watchPointer } from '../pointer/pointer';
 import { followGravity } from '../math/gravity/gravity';
+import {
+  createPlateCycle,
+  createPlateStep,
+  stepPlates,
+  type PlateCycle,
+  type PlateStep,
+} from '../math/plateCycle/plateCycle';
 import { createSceneClock } from '../sceneClock/sceneClock';
-import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
+import { createSceneFrame, type SceneFrame } from '../sceneMaterials/sceneMaterials';
 import { useHotDegradation } from '../useHotDegradation/useHotDegradation';
 import { usePortrait } from '../usePortrait/usePortrait';
-import { useSceneShapes } from '../useSceneShapes/useSceneShapes';
+import { SCENE_PLATE_LABELS, SCENE_PLATES, useSceneShapes } from '../useSceneShapes/useSceneShapes';
 import { readVoidColour } from '../voidColour/voidColour';
 import styles from './SceneRoot.module.css';
 
@@ -63,6 +72,29 @@ export interface SceneRootProps {
   readonly skillLabels?: Readonly<Record<string, string>> | null;
 }
 
+/**
+ * La placa que se ilumina en este frame (docs/04-escena/constelaciones-y-placas.md → «Resaltado»): la del proyecto
+ * señalado en `uiStore` o la del ciclo automático (`stepPlates`), en `frame.plate` (de ahí, `uPlate`). Cuando cambia,
+ * el envoltorio lo marca con el slug de su proyecto (`data-plate`, para los e2e); sin placa, sin atributo.
+ */
+function followPlates(
+  frame: SceneFrame,
+  cycle: PlateCycle,
+  step: PlateStep,
+  scene: HTMLElement | null,
+): void {
+  step.m = frame.m;
+  step.delta = frame.delta;
+  step.reducedMotion = frame.reducedMotion;
+  step.pointed = plateLabelOf(SCENE_PLATES, useUiStore.getState().activeProject);
+  const plate = stepPlates(cycle, SCENE_PLATE_LABELS, step);
+  if (plate === frame.plate) return;
+  frame.plate = plate;
+  const slug = plateSlugOf(SCENE_PLATES, plate);
+  if (slug === null) scene?.removeAttribute('data-plate');
+  else scene?.setAttribute('data-plate', slug);
+}
+
 /** El DPR mínimo: nunca por debajo de 1 píxel por píxel CSS. */
 const MIN_DPR = 1;
 
@@ -82,9 +114,8 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * demás piezas por la prioridad de su `useFrame` (`CAMERA_RIG_PRIORITY`), no por su sitio en el JSX.
  *
  * Los frames los pide su propio bucle (`frameloop="never"` + `startFrameLoop`, ADR-027): antes de cada
- * `advance()` rellena el frame compartido (`m` suavizado, la carga de la detonación, la gravedad del cursor, reloj,
- * densidad de píxeles…; el ratón y si es
- * escritorio los escriben sus observadores, `watchPointer` y `watchMediaQuery`) y, si un frame lanza, para y pasa
+ * `advance()` rellena el frame compartido (`m` suavizado, la carga de la detonación, la gravedad del cursor, la placa
+ * iluminada, reloj, densidad de píxeles…; el ratón y si es escritorio los escriben sus observadores, `watchPointer` y `watchMediaQuery`) y, si un frame lanza, para y pasa
  * a sin WebGL. La `m` de la escena es suya: persigue a `mTarget` con un amortiguado (`M_SMOOTHING`, con el tiempo
  * real del frame) y arranca en él (sin repetir la explosión a mitad del viaje); `sceneStore` sigue con
  * `m = mTarget` para la interfaz (ADR-028). Con la página oculta o la misión rápida abierta, el bucle se pausa
@@ -100,6 +131,7 @@ export default function SceneRoot({
   skillLabels = null,
 }: SceneRootProps): ReactNode {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const sceneRef = useRef<HTMLDivElement>(null);
   const onFailRef = useRef(onFail);
   const onPaintedRef = useRef(onPainted);
   /** El renderer existe (`onCreated`): lo esperan los e2e para dar la escena por montada. */
@@ -113,6 +145,8 @@ export default function SceneRoot({
   const pausedRef = useRef(false);
   const [clock] = useState(createSceneClock);
   const [frame] = useState(createSceneFrame);
+  const [plateCycle] = useState(createPlateCycle);
+  const [plateStep] = useState(createPlateStep);
   const [labelElements] = useState(createStarLabelElements);
   const levelRef = useRef(level);
   const loopRef = useRef<FrameLoop | null>(null);
@@ -233,6 +267,7 @@ export default function SceneRoot({
         frame.aspect = state.size.width / Math.max(state.size.height, 1);
         frame.extras = LEVEL_SETTINGS[levelRef.current].extras;
         followGravity(frame.gravity, frame.pointer, !clock.reduced, clock.delta);
+        followPlates(frame, plateCycle, plateStep, sceneRef.current);
         state.advance(seconds);
       },
       onError: (error) => {
@@ -257,6 +292,7 @@ export default function SceneRoot({
 
   return (
     <div
+      ref={sceneRef}
       className={styles.scene}
       aria-hidden="true"
       data-ready={ready ? 'true' : undefined}
