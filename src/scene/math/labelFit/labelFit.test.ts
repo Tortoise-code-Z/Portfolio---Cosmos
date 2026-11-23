@@ -6,8 +6,10 @@ import {
 } from '../../config/constellationLayout/constellationLayout';
 import {
   createLabelBox,
+  createZoneCache,
   fitLabels,
   keepOutZones,
+  zonesFor,
   type KeepOutZone,
   type LabelBox,
 } from './labelFit';
@@ -130,5 +132,19 @@ describe('fitLabels', () => {
     if (second !== undefined) Object.assign(second, { top: 200, bottom: 222 });
     fitLabels(boxes, nothing);
     expect(boxes[1]?.visible).toBe(true);
+  });
+});
+
+describe('zonesFor', () => {
+  it('computes the zones of a canvas once, and again only when its size or layout changes', () => {
+    const cache = createZoneCache();
+    const first = zonesFor(cache, 1280, 720, true);
+    expect(first).toEqual(keepOutZones(1280, 720, true));
+    expect(zonesFor(cache, 1280, 720, true)).toBe(first);
+    const narrow = zonesFor(cache, 1280, 720, false);
+    expect(narrow).not.toBe(first);
+    expect(narrow).toEqual(keepOutZones(1280, 720, false));
+    expect(zonesFor(cache, 390, 720, false)).toEqual(keepOutZones(390, 720, false));
+    expect(zonesFor(cache, 390, 844, false)).toEqual(keepOutZones(390, 844, false));
   });
 });

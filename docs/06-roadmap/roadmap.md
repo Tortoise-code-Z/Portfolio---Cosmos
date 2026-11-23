@@ -121,6 +121,8 @@ no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierr
 *(Los pasos 4 y 5 esperan a la fase C, «Contenido y secciones nuevas», que va entre F4.3 y F4.4: ADR-034.)*
 
 4. **Tortuga:** placas por huecos, pins, ciclo automático, resaltado sincronizado con las filas.
+   *(En dos PR: F4.4a, las placas que se iluminan desde las filas con su ciclo automático (PR #114), y F4.4b, los
+   pins, con el balanceo de la tortuga compartido entre TypeScript y GLSL y en escalera si chocan.)*
 5. **Tierra:** día/noche, amanecer, luces de ciudad, atmósfera y Sol.
 
 Con la galaxia y la tortuga hechas (pasos 3 y 4), la ficha de **Cosmos** suma sus constelaciones: entró en C.5

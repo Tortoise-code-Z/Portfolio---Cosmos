@@ -95,6 +95,31 @@ vi.mock('../Constellations/Constellations', () => ({
     return null;
   },
 }));
+const pins = vi.hoisted(
+  (): {
+    frame: { frame: unknown; names: unknown; elements: unknown } | null;
+    layer: { names: unknown; elements: unknown; onOpen: (slug: string) => void } | null;
+  } => ({ frame: null, layer: null }),
+);
+vi.mock('../PlatePins/PlatePins', () => ({
+  createPinElements: () => new Map(),
+  PlatePinsFrame: function FakePinsFrame(props: {
+    readonly frame: unknown;
+    readonly names: unknown;
+    readonly elements: unknown;
+  }) {
+    pins.frame = props;
+    return null;
+  },
+  PlatePins: function FakePins(props: {
+    readonly names: unknown;
+    readonly elements: unknown;
+    readonly onOpen: (slug: string) => void;
+  }) {
+    pins.layer = props;
+    return null;
+  },
+}));
 vi.mock('../BackgroundStars/BackgroundStars', () => ({
   BackgroundStars: function FakeStars({ count }: { readonly count: number }) {
     seen.stars.push(count);
@@ -663,6 +688,33 @@ describe('SceneRoot', () => {
     unmount();
     expect(document.body.querySelector('[data-constellation-labels]')).toBeNull();
     expect(labels.size).toBe(0);
+  });
+
+  it('places the pins of the plates with the frame its camera writes in, and opens a project through its prop', () => {
+    const onOpenProject = vi.fn();
+    const names = { chessmate: 'Chessmate' };
+    render(
+      <SceneRoot
+        level="high"
+        onFail={vi.fn()}
+        projectNames={names}
+        onOpenProject={onOpenProject}
+      />,
+    );
+    expect(pins.frame?.frame).toBe(seen.cameraFrame);
+    expect(pins.frame?.names).toBe(names);
+    expect(pins.layer?.names).toBe(names);
+    // Los dos, sobre los mismos elementos: el lienzo los coloca y la capa los monta.
+    expect(pins.layer?.elements).toBe(pins.frame?.elements);
+    pins.layer?.onOpen('chessmate');
+    expect(onOpenProject).toHaveBeenCalledWith('chessmate');
+  });
+
+  it('outside the journey there are no pins, and without a way to open a project a pin opens nothing', () => {
+    render(<SceneRoot level="high" onFail={vi.fn()} />);
+    expect(pins.frame?.names).toBeNull();
+    expect(pins.layer?.names).toBeNull();
+    expect(() => pins.layer?.onOpen('chessmate')).not.toThrow();
   });
 
   it('outside the journey (no texts) there are no labels', () => {

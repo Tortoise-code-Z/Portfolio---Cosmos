@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
-import { CAMERA_KEYFRAMES } from '../../config/sceneConfig';
+import { CAMERA_KEYFRAMES, TURTLE_SWAY } from '../../config/sceneConfig';
 import { SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
 import { EARTH_TAG, PORTRAIT_FRAME, TURTLE_TAG } from '../../shapes/shapeContract/shapeContract';
 import constellationLinesFragment from '../constellations/constellationLines.frag.glsl?raw';
@@ -40,6 +40,17 @@ describe('glslHeader', () => {
     }
     expect(header).toContain(`#define PLATE_FIRST ${glslFloat(FIRST_PLATE_LABEL)}\n`);
     expect(header).toContain(`#define PLATE_LAST ${glslFloat(LAST_PLATE_LABEL)}\n`);
+  });
+
+  it('defines how the turtle sways, from TURTLE_SWAY, and the particles shader sways with those names', () => {
+    for (const [key, value] of Object.entries(TURTLE_SWAY)) {
+      expect(header).toContain(`#define TURTLE_SWAY_${constantName(key)} ${glslFloat(value)}\n`);
+    }
+    // La misma cuenta que `swayTurtlePoint` (math/platePins): girar sobre Y y después subir o bajar.
+    expect(particlesVertex).toContain(
+      'p = rotY(p, sin(uTime * TURTLE_SWAY_YAW_RATE) * TURTLE_SWAY_YAW * uMotion);\n' +
+        '  p.y += sin(uTime * TURTLE_SWAY_BOB_RATE) * TURTLE_SWAY_BOB * uMotion;',
+    );
   });
 
   it('defines the half height of the portrait and its fade at the bottom, from its frame', () => {

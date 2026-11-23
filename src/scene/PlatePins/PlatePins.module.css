@@ -1,0 +1,79 @@
+/*
+ * Pins de las placas (docs/03-diseno/componentes.md → «Pin de placa»; constelaciones-y-placas.md → «Pins»): una capa
+ * fija junto a las etiquetas de las estrellas (`--z-labels`), decorativa: sin selección y sin puntero, salvo los pins
+ * que la escena marca con `data-live` (el capítulo de Projects deja pasar el ratón). Cada pin lo coloca la escena en
+ * cada frame por la esquina de arriba a la izquierda de su caja (`transform`, opacidad, `visibility`, `data-hot` y
+ * `data-live`); hasta entonces, oculto. La etiqueta arriba y el tallo debajo, hasta el pie, en la placa. Su caja sigue
+ * `PLATE_PIN` (scene/config/plateSlots): lo comprueba su test.
+ */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-labels);
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.pin {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-star-label);
+  font-weight: var(--weight-mono);
+  line-height: 16px;
+  letter-spacing: var(--tracking-micro);
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.tag {
+  display: block;
+  padding: 4px 8px;
+  border: var(--border-width) solid var(--color-faint);
+  background-color: var(--color-veil-soft);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+/*
+ * El tallo: 4 px por debajo de la etiqueta, 2 px dentro de su borde izquierdo, hasta la placa. Cada piso que sube
+ * el pin (`--_pin-floor`, lo escribe la escena) lo alarga una etiqueta y su hueco (26 + 4).
+ */
+.stem {
+  position: absolute;
+  inset-block-start: calc(100% + 4px);
+  inset-inline-start: 2px;
+  inline-size: var(--border-width);
+  block-size: calc(46px + var(--_pin-floor, 0) * 30px);
+  background-image: var(--gradient-pin-stem);
+  opacity: 0.7;
+}
+
+.pin[data-hot] .tag {
+  border-color: var(--color-star);
+  color: var(--color-star);
+}
+
+.pin[data-live] {
+  pointer-events: auto;
+}
+
+/* Por debajo de md (900px), letra más pequeña, como las etiquetas de las estrellas. */
+@media (width < 900px) {
+  .pin {
+    font-size: var(--text-star-label-narrow);
+  }
+}
+
+/* Alto contraste: decorativos, las filas de Projects son la versión accesible. */
+@media (forced-colors: active) {
+  .layer {
+    display: none;
+  }
+}

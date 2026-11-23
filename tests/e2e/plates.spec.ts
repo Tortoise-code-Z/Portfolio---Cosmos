@@ -1,10 +1,12 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 
 import { projectEntries } from '../../src/content/projects/entries.ts';
+import { WIDE_LAYOUT_QUERY } from '../../src/scene/config/sceneConfig.ts';
 import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
 import {
   browserHasWebGL2,
   collectErrors,
+  hud,
   PARTICLES_PAINTED,
   settleScene,
   withoutWebGL,
@@ -16,8 +18,12 @@ import { test } from './support/test.ts';
  * «Interacciones», docs/04-escena/constelaciones-y-placas.md → «Resaltado»): el ratón, el Tab y el toque en una fila
  * iluminan la placa de su proyecto (y solo esa) y marcan la fila; sin nada señalado, las placas se iluminan por
  * turnos sin marcar ninguna fila; con movimiento reducido, sin turnos. La placa que pinta la escena la dice su
- * envoltorio (`data-plate`, el slug de su proyecto).
+ * envoltorio (`data-plate`, el slug de su proyecto). Los pins (F4.4b): el ratón encima señala su proyecto, un clic
+ * abre su ficha, en táctil el primer toque señala y el segundo abre, el ciclo los marca sin marcar filas y, a los
+ * tamaños de referencia, los que se ven no se pisan ni pisan la interfaz.
  */
+
+type Rect = readonly [left: number, top: number, right: number, bottom: number];
 
 const DESKTOP = { width: 1280, height: 720 } as const;
 
@@ -55,13 +61,79 @@ async function expectNothingPointed(page: Page, cycle: boolean): Promise<void> {
 }
 
 /** El viaje en `#projects` con la escena pintada y ya en la tortuga (alguna placa encendida por el ciclo). */
-async function openProjects(page: Page, cycle = true): Promise<void> {
-  await page.setViewportSize(DESKTOP);
-  await page.goto('/#projects', { waitUntil: 'networkidle' });
+async function openProjects(
+  page: Page,
+  cycle = true,
+  viewport: { readonly width: number; readonly height: number } = DESKTOP,
+  path = '/',
+): Promise<void> {
+  await page.setViewportSize(viewport);
+  await page.goto(`${path}#projects`, { waitUntil: 'networkidle' });
   await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
     timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
   });
   if (cycle) await expect(page.locator('[data-plate]')).toBeAttached();
+}
+
+const pinOf = (page: Page, slug: string): Locator =>
+  page.locator(`[data-plate-pins] [data-pin="${slug}"]`);
+
+/** Un pin que se ve: su etiqueta y su tallo (hasta el pie), y si está marcado. */
+interface ShownPin {
+  readonly slug: string;
+  readonly tag: Rect;
+  readonly stem: Rect;
+  readonly hot: boolean;
+}
+
+/** Los pins que se ven, por orden. */
+async function shownPins(page: Page): Promise<ShownPin[]> {
+  return page.evaluate(() => {
+    const rect = (el: Element): Rect => {
+      const { left, top, right, bottom } = el.getBoundingClientRect();
+      return [left, top, right, bottom];
+    };
+    return [...document.querySelectorAll<HTMLElement>('[data-plate-pins] [data-pin]')]
+      .filter((el) => el.style.visibility === 'visible' && Number(el.style.opacity) > 0)
+      .map((el) => ({
+        slug: el.dataset.pin ?? '',
+        tag: rect(el),
+        stem: rect(el.lastElementChild ?? el),
+        hot: el.hasAttribute('data-hot'),
+      }));
+  });
+}
+
+/**
+ * Lo que puede tardar la escena en quedarse quieta tras un salto de scroll: WebKit sin GPU en el CI va a ~3 fps
+ * (`constellations.spec.ts` → `LABELS_STILL_TIMEOUT_MS`).
+ */
+const PINS_STILL_TIMEOUT_MS = 15_000;
+
+/** Espera a que los pins visibles no se muevan entre dos lecturas (con movimiento reducido, la tortuga no se mece). */
+async function pinsStill(page: Page): Promise<void> {
+  let previous = '';
+  await expect
+    .poll(
+      async () => {
+        const now = JSON.stringify((await shownPins(page)).map(({ slug, tag }) => [slug, tag]));
+        const still = now === previous && now !== '[]';
+        previous = now;
+        return still;
+      },
+      { timeout: PINS_STILL_TIMEOUT_MS },
+    )
+    .toBe(true);
+}
+
+function overlaps(a: Rect, b: Rect): boolean {
+  return a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+}
+
+async function rectOf(locator: Locator): Promise<Rect | null> {
+  if (!(await locator.isVisible())) return null;
+  const box = await locator.boundingBox();
+  return box === null ? null : [box.x, box.y, box.x + box.width, box.y + box.height];
 }
 
 test.describe('the plates of the turtle', () => {
@@ -126,8 +198,44 @@ test.describe('the plates of the turtle', () => {
     }
   });
 
+  test('the cycle marks the pin of the lit plate, and no row', async ({ page }) => {
+    await openProjects(page);
+    await expect
+      .poll(async () => {
+        const [{ plate, rows }, pins] = await Promise.all([plates(page), shownPins(page)]);
+        return { rows, hot: pins.filter(({ hot }) => hot).map(({ slug }) => slug), plate };
+      })
+      .toEqual({ rows: [], hot: [expect.any(String)], plate: expect.any(String) });
+    const { plate } = await plates(page);
+    await expect(pinOf(page, plate ?? '')).toHaveAttribute('data-hot', '');
+  });
+
+  test('a mouse click on a pin opens its project page', async ({ page }) => {
+    const [first] = ordered;
+    if (first === undefined) throw new Error('No projects');
+    await openProjects(page);
+    await pinOf(page, first.slug).click();
+    await expect(page).toHaveURL(new RegExp(`/projects/${first.slug}$`));
+  });
+
   test.describe('with reduced motion', () => {
     test.use({ reducedMotion: 'reduce' });
+
+    test('the mouse over a pin lights its plate and marks its row and itself; leaving lets it go', async ({
+      page,
+    }) => {
+      await openProjects(page, false);
+      await pinsStill(page);
+      for (const { slug } of ordered) {
+        // `hover` comprueba que el pin recibe el puntero: ni `<main>` ni el capítulo se lo quitan.
+        await pinOf(page, slug).hover();
+        await expectPointed(page, slug);
+        await expect(pinOf(page, slug)).toHaveAttribute('data-hot', '');
+      }
+      await page.mouse.move(4, DESKTOP.height / 2);
+      await expectNothingPointed(page, false);
+      await expect(page.locator('[data-plate-pins] [data-hot]')).toHaveCount(0);
+    });
 
     test('no plate lights by itself; the mouse over a row still lights its plate', async ({
       page,
@@ -146,6 +254,19 @@ test.describe('the plates of the turtle', () => {
   test.describe('on a touch screen', () => {
     test.use({ hasTouch: true });
 
+    test('a first tap on a pin lights its plate and marks its row; a second opens its project', async ({
+      page,
+    }) => {
+      const [, second] = ordered;
+      if (second === undefined) throw new Error('Two projects needed');
+      await openProjects(page);
+      await pinOf(page, second.slug).tap();
+      await expectPointed(page, second.slug);
+      await expect(page).toHaveURL(/#projects$/);
+      await pinOf(page, second.slug).tap();
+      await expect(page).toHaveURL(new RegExp(`/projects/${second.slug}$`));
+    });
+
     test('a tap on a row lights its plate, another switches, a tap outside lets it go', async ({
       page,
     }) => {
@@ -160,6 +281,63 @@ test.describe('the plates of the turtle', () => {
       await expectNothingPointed(page, true);
     });
   });
+});
+
+test.describe('the pins of the plates, where they stand', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+    test.skip(!(await browserHasWebGL2(page)), 'This browser has no WebGL2 here');
+  });
+
+  for (const path of ['/', '/es']) {
+    for (const viewport of [
+      { width: 1280, height: 720 },
+      { width: 1440, height: 900 },
+      { width: 390, height: 844 },
+    ]) {
+      test(`${path} at ${String(viewport.width)}×${String(viewport.height)}, the pins shown never overlap each other, the interface or the edges`, async ({
+        page,
+      }) => {
+        await openProjects(page, false, viewport, path);
+        await pinsStill(page);
+        const pins = await shownPins(page);
+        const wide = await page.evaluate((query) => matchMedia(query).matches, WIDE_LAYOUT_QUERY);
+        // Cada proyecto con su pin, también en el móvil, escalonados (03-tortuga.md → «Aceptación» y «Móvil»).
+        expect(pins.map(({ slug }) => slug).sort()).toEqual(ordered.map(({ slug }) => slug).sort());
+        const canvas = await page.locator('canvas').boundingBox();
+        if (canvas === null) throw new Error('No canvas');
+        const zones = [
+          ['bar', await rectOf(page.getByRole('banner'))],
+          [
+            'rail',
+            await rectOf(page.getByRole('navigation', { name: /^(?:Chapters|Capítulos)$/ })),
+          ],
+          ['HUD', await rectOf(hud(page))],
+          ['panel', wide ? await rectOf(page.locator('#projects > *').first()) : null],
+        ] as const;
+        expect(zones[1][1], 'rail').not.toBeNull();
+        for (const [index, { slug, tag, stem }] of pins.entries()) {
+          expect(tag[0], `${slug}: left edge`).toBeGreaterThanOrEqual(0);
+          expect(tag[1], `${slug}: top edge`).toBeGreaterThanOrEqual(0);
+          expect(tag[2], `${slug}: right edge`).toBeLessThanOrEqual(canvas.width);
+          expect(stem[3], `${slug}: bottom edge`).toBeLessThanOrEqual(canvas.height);
+          for (const [name, zone] of zones) {
+            if (zone === null) continue;
+            expect(overlaps(tag, zone), `${slug} over the ${name}`).toBe(false);
+            expect(overlaps(stem, zone), `the stem of ${slug} over the ${name}`).toBe(false);
+          }
+          // Ni dos etiquetas se pisan ni un tallo cruza la etiqueta de otro.
+          for (const other of pins.slice(index + 1)) {
+            expect(overlaps(tag, other.tag), `${slug} over ${other.slug}`).toBe(false);
+            expect(overlaps(tag, other.stem), `${slug} over the stem of ${other.slug}`).toBe(false);
+            expect(overlaps(stem, other.tag), `the stem of ${slug} over ${other.slug}`).toBe(false);
+          }
+        }
+      });
+    }
+  }
 });
 
 test('without WebGL the rows light no plate and are not marked by the mouse', async ({ page }) => {

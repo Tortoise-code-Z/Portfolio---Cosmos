@@ -1,12 +1,13 @@
-import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useLocation } from 'react-router';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 
+import { projectEntries } from '~/content/projects/entries';
 import { skillGroups } from '~/content/skills';
 
 import { chooseInitialLevel, readBrowserSignals } from '~/lib/device/sceneLevel/sceneLevel';
 import { detectWebGL2 } from '~/lib/device/webgl2/webgl2';
 import { localize } from '~/lib/i18n/localize/localize';
-import { homePath } from '~/lib/i18n/paths/paths';
+import { homePath, projectPath } from '~/lib/i18n/paths/paths';
 import { useLocale, useT } from '~/lib/i18n/useT/useT';
 import {
   selectLanguageNoticeOpen,
@@ -57,14 +58,24 @@ function whenIdle(task: () => void): () => void {
   };
 }
 
+/** La página es el viaje (no una ficha ni la 404). */
+function useInJourney(): boolean {
+  const locale = useLocale();
+  const { pathname } = useLocation();
+  return (pathname.replace(/\/$/, '') || '/') === homePath(locale);
+}
+
+/** El nombre de cada proyecto, por slug, para los pins de las placas: solo en el viaje (si no, `null`, sin pins). */
+const PROJECT_NAMES: Readonly<Record<string, string>> = Object.fromEntries(
+  projectEntries.map(({ slug, name }) => [slug, name] as const),
+);
+
 /**
  * El texto de la etiqueta de cada estrella de las constelaciones, por `Skill.id`, en el idioma de la página: solo en
  * el viaje (en las fichas y la 404 no hay capítulo de Skills, así que tampoco etiquetas: `null`).
  */
-function useSkillLabels(): Readonly<Record<string, string>> | null {
+function useSkillLabels(inJourney: boolean): Readonly<Record<string, string>> | null {
   const locale = useLocale();
-  const { pathname } = useLocation();
-  const inJourney = (pathname.replace(/\/$/, '') || '/') === homePath(locale);
   return useMemo(
     () =>
       inJourney
@@ -84,13 +95,23 @@ function useSkillLabels(): Readonly<Record<string, string>> | null {
  * no pinta nada (solo la región del aviso, vacía); después, con el navegador libre:
  * - sin WebGL2, o con WebGL2 pintado por software (ADR-029) → modo sin WebGL, sin descargar Three.js;
  * - con WebGL2 en la tarjeta gráfica → elige el nivel y carga la escena en diferido, dentro de su
- *   `ErrorBoundary`, con los textos de las etiquetas de las constelaciones en el viaje.
+ *   `ErrorBoundary`, con los textos de las etiquetas de las constelaciones y los nombres de los pins en el viaje.
  * Cualquier fallo de la escena pasa a sin WebGL para el resto de la visita: clase `no-gl` en `<html>` y un
  * aviso, una vez por visita, que espera su turno si la sugerencia de idioma se está viendo.
  */
 export function SceneMount(): ReactNode {
   const level = useUiStore(selectSceneLevel);
-  const skillLabels = useSkillLabels();
+  const inJourney = useInJourney();
+  const skillLabels = useSkillLabels(inJourney);
+  const locale = useLocale();
+  const navigate = useNavigate();
+  // Un pin abre la ficha de su proyecto, en el idioma de la página (como «View project» de su fila).
+  const openProject = useCallback(
+    (slug: string) => {
+      void navigate(projectPath(locale, slug));
+    },
+    [navigate, locale],
+  );
 
   useEffect(
     () =>
@@ -132,6 +153,8 @@ export function SceneMount(): ReactNode {
               level={level}
               onFail={turnSceneOff}
               skillLabels={skillLabels}
+              projectNames={inJourney ? PROJECT_NAMES : null}
+              onOpenProject={openProject}
               onPainted={() => {
                 setPainted(true);
               }}

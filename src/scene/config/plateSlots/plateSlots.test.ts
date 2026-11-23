@@ -8,6 +8,7 @@ import {
   LAST_PLATE_LABEL,
   NO_PLATE,
   PLATE_LOOK,
+  PLATE_PIN,
   PLATE_SLOTS,
   plateLabelOf,
   plateSlugOf,
@@ -101,6 +102,22 @@ describe('plateLabelOf / plateSlugOf', () => {
 describe('PLATE_LOOK', () => {
   it('has the figures of the spec (constelaciones-y-placas.md, 03-tortuga.md)', () => {
     // Escritas aquí: con las de la config, cualquier cifra pasaría.
-    expect(PLATE_LOOK).toEqual({ turtleM: 3, presenceFade: 1.8, litFrom: 0.2, cycleSeconds: 2.6 });
+    expect(PLATE_LOOK).toEqual({
+      turtleM: 3,
+      presenceFade: 1.8,
+      litFrom: 0.2,
+      cycleSeconds: 2.6,
+      interactiveFrom: 0.6,
+    });
+  });
+});
+
+describe('PLATE_PIN', () => {
+  it('the tag is as tall as its line, its padding and its border; the stem of the spec is 46 px', () => {
+    const { tagHeightPx, lineHeightPx, padBlockPx, borderPx, stemPx, liftY } = PLATE_PIN;
+    expect(tagHeightPx).toBe(lineHeightPx + 2 * (padBlockPx + borderPx));
+    expect(stemPx).toBe(46);
+    expect(liftY).toBe(0.06);
+    expect(PLATE_PIN.floors).toBe(3);
   });
 });

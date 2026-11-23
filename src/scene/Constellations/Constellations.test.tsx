@@ -20,6 +20,8 @@ import { createScreenPoint, projectToScreen } from '../math/projection/projectio
 import { createSceneFrame, type SceneFrame } from '../sceneMaterials/sceneMaterials';
 import {
   Constellations,
+  createConstellationWork,
+  runConstellationsFrame,
   SKILLS,
   useConstellations,
   type ConstellationsProps,
@@ -302,6 +304,32 @@ describe('useConstellations', () => {
     frame.m = 3;
     paint();
     for (const id of all) expect(label(labels, id), id).not.toHaveAttribute('data-live');
+  });
+
+  it('a label with no measured width (no text yet) still stands right of its star, as narrow as nothing', () => {
+    const frame = galaxyFrame();
+    const { result, labels } = setup(frame);
+    const work = createConstellationWork(frame, labels, result.current);
+    runConstellationsFrame(
+      work,
+      frame,
+      labels,
+      { width: 1280, height: 720 },
+      { wide: [], narrow: [] },
+      null,
+    );
+    const html = label(labels, 'html');
+    expect(html.style.visibility).toBe('visible');
+    const point = createScreenPoint();
+    projectToScreen(
+      CONSTELLATION_STARS.html ?? [0, 0, 0],
+      frame.camera,
+      { width: 1280, height: 720, fov: frame.fov },
+      point,
+    );
+    expect(html.style.transform).toBe(
+      `translate(${String(Math.round(point.x + STAR_LABEL_BOX.offsetPx))}px, ${String(Math.round(point.y - STAR_LABEL_BOX.heightPx / 2))}px)`,
+    );
   });
 
   it('a canvas without a size places nothing (never a NaN position)', () => {

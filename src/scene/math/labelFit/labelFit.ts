@@ -79,6 +79,34 @@ export function keepOutZones(width: number, height: number, wide: boolean): Keep
   ];
 }
 
+/** Lo que tapa la interfaz, guardado con el tamaño y el encuadre con que se calculó. */
+export interface ZoneCache {
+  zones: readonly KeepOutZone[];
+  width: number;
+  height: number;
+  wide: boolean | null;
+}
+
+export function createZoneCache(): ZoneCache {
+  return { zones: [], width: Number.NaN, height: Number.NaN, wide: null };
+}
+
+/** Las zonas de `keepOutZones` para este lienzo: se rehacen solo si cambian su tamaño o el encuadre. */
+export function zonesFor(
+  cache: ZoneCache,
+  width: number,
+  height: number,
+  wide: boolean,
+): readonly KeepOutZone[] {
+  if (cache.width !== width || cache.height !== height || cache.wide !== wide) {
+    cache.zones = keepOutZones(width, height, wide);
+    cache.width = width;
+    cache.height = height;
+    cache.wide = wide;
+  }
+  return cache.zones;
+}
+
 /** ¿Pisa la caja el rectángulo? */
 export function overlapsRect(
   box: Readonly<Pick<LabelBox, 'left' | 'top' | 'right' | 'bottom'>>,

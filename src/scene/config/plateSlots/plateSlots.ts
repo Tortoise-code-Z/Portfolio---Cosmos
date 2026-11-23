@@ -38,6 +38,33 @@ export const PLATE_LOOK = {
   litFrom: 0.2,
   /** Sin nada señalado, una placa cada 2,6 s. */
   cycleSeconds: 2.6,
+  /** Por encima de esta presencia los pins reciben el puntero (`data-live`). */
+  interactiveFrom: 0.6,
+} as const;
+
+/**
+ * El pin de una placa (docs/03-diseno/componentes.md → «Pin de placa»), en píxeles CSS salvo `liftY` (unidades de la
+ * escena: el pie, un poco por encima del caparazón): el tallo de 46 px, un hueco de 4 y encima la etiqueta, que
+ * empieza 2 px a la izquierda del tallo. La etiqueta es mono de 11 px (10 por debajo de 900 px) en mayúsculas, con
+ * 0,6 em por letra más el espacio entre letras (`--tracking-micro`), 8 px de aire a los lados y 4 arriba y abajo, una
+ * línea de 16 y su borde. Si choca con otro pin, sube un piso (el tallo crece una etiqueta y su hueco), hasta
+ * `floors` pisos. El CSS de `scene/PlatePins` la sigue: lo comprueba su test.
+ */
+export const PLATE_PIN = {
+  liftY: 0.06,
+  stemPx: 46,
+  gapPx: 4,
+  tagLeftPx: 2,
+  fontPx: 11,
+  narrowFontPx: 10,
+  advanceEm: 0.6,
+  trackingEm: 0.1,
+  padInlinePx: 8,
+  padBlockPx: 4,
+  lineHeightPx: 16,
+  borderPx: 1,
+  tagHeightPx: 26,
+  floors: 3,
 } as const;
 
 /** Un proyecto en su placa. */
@@ -63,7 +90,9 @@ export function assignPlates(projects: readonly PlateProject[]): PlateAssignment
   });
 }
 
-/** La etiqueta de la placa de un proyecto, o `NO_PLATE` (sin proyecto o sin placa). Sin objetos nuevos: va por frame. */
+/**
+ * La etiqueta de la placa de un proyecto, o `NO_PLATE` (sin proyecto o sin placa). Sin objetos nuevos: va por frame.
+ */
 export function plateLabelOf(plates: readonly PlateAssignment[], slug: string | null): number {
   for (const plate of plates) if (plate.slug === slug) return plate.label;
   return NO_PLATE;

@@ -19,6 +19,13 @@ export const SHELL = { AX: 2.7, AY: 1.3, AZ: 2.15 } as const;
 export const HEX_SIZE = 0.95;
 
 /**
+ * Cómo se mece la tortuga entera al nadar (docs/04-escena/constelaciones-y-placas.md → «Pins»): gira sobre Y
+ * `sin(t · yawRate) · yaw` radianes y sube y baja `sin(t · bobRate) · bob`. Lo aplica el shader (cabecera
+ * `TURTLE_SWAY_*`) y, con la misma cuenta, los pins (`math/platePins`): un test los ata.
+ */
+export const TURTLE_SWAY = { yawRate: 0.25, yaw: 0.18, bobRate: 0.7, bob: 0.15 } as const;
+
+/**
  * Lente de la cámara (docs/04-escena/camara-y-encuadre.md → «Campo de visión»): 55° en vertical. Son las
  * props del `<Canvas>`: R3F las copia a la cámara, así que aquí no va nada más.
  */

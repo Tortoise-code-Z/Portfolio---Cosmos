@@ -22,12 +22,14 @@ import {
   followHot,
   type ConstellationLook,
 } from '../math/constellations/constellations';
+import { createWrittenLabel, writeLabel, type WritableLabel } from '../labelWriter/labelWriter';
 import {
   createLabelBox,
+  createZoneCache,
   fitLabels,
-  keepOutZones,
+  zonesFor,
   type LabelBox,
-  type KeepOutZone,
+  type ZoneCache,
 } from '../math/labelFit/labelFit';
 import {
   createScreenPoint,
@@ -54,6 +56,8 @@ export interface ConstellationsProps {
 /** Lo que monta una constelación: sus estrellas y sus líneas, cada una con sus uniforms. */
 export interface ConstellationMeshes {
   readonly group: SkillGroupId;
+  /** Sus skills (ids), en el orden del panel. */
+  readonly skills: readonly string[];
   readonly stars: { readonly geometry: BufferGeometry; readonly material: ShaderMaterial };
   readonly lines: { readonly geometry: BufferGeometry; readonly material: ShaderMaterial };
   readonly starUniforms: ConstellationUniforms;
@@ -78,6 +82,7 @@ function createMeshes(): ConstellationMeshes[] {
     const lineUniforms = createConstellationUniforms(true);
     return {
       group: group.id,
+      skills: group.skills.map(({ id }) => id),
       stars: {
         geometry: geometryOf(group.skills.map(({ id }) => star(id))),
         material: createConstellationStarsMaterial(starUniforms),
@@ -110,65 +115,21 @@ export function labelWidths(texts: Readonly<Record<string, string>> | null): Lab
   };
 }
 
-/** Lo último escrito en una etiqueta, y en qué elemento: solo se reescribe lo que cambia. */
-interface WrittenLabel {
-  /**
-   * El elemento en que se escribió. Si en un frame es otro (la capa se desmontó al ir a una ficha y nació de nuevo
-   * al volver), lo escrito no vale: se olvida y se escribe entero. No depende de pintar un frame mientras no está
-   * (con la misión rápida abierta a la ida y a la vuelta, la escena está en pausa todo ese rato).
-   */
-  element: HTMLElement | null;
-  x: number;
-  y: number;
-  opacity: number;
-  visible: boolean;
-  hot: boolean;
-  /** Responde al puntero, ratón o toque (`data-live`): visible y con el capítulo a más de `interactiveFrom`. */
-  live: boolean;
-}
-
-/** Lo escrito de una etiqueta al crearse: «nada escrito», en ningún elemento todavía. */
-function createWrittenLabel(): WrittenLabel {
-  return {
-    element: null,
-    x: Number.NaN,
-    y: Number.NaN,
-    opacity: -1,
-    visible: false,
-    hot: false,
-    live: false,
-  };
-}
-
-/** «Nada escrito» en `element`: así nace un elemento (su CSS lo oculta); lo mismo que `createWrittenLabel`. */
-function forgetWritten(written: WrittenLabel, element: HTMLElement | null): void {
-  written.element = element;
-  written.x = Number.NaN;
-  written.y = Number.NaN;
-  written.opacity = -1;
-  written.visible = false;
-  written.hot = false;
-  written.live = false;
-}
-
 /** Una etiqueta durante la visita: su skill, su caja en este frame y lo último escrito. */
-interface LabelSlot {
+interface LabelSlot extends WritableLabel {
   readonly id: string;
-  /** El índice de su grupo en `meshes`. */
-  readonly group: number;
+  /** Su grupo (el mismo objeto que en `work.groups`). */
+  readonly group: GroupSlot;
   readonly position: ScenePoint;
-  readonly box: LabelBox;
-  readonly written: WrittenLabel;
 }
 
-/** Un grupo durante la visita: cuánto está encendido y la opacidad de sus etiquetas en este frame. */
+/** Un grupo durante la visita: su constelación, cuánto está encendido y la opacidad de sus etiquetas en este frame. */
 interface GroupSlot {
+  readonly id: SkillGroupId;
+  readonly mesh: ConstellationMeshes;
   hot: number;
   labelOpacity: number;
 }
-
-/** Un grupo de sobra si `meshes` y `work.groups` no cuadraran (no pasa: salen los dos de `skillGroups`). */
-const IDLE_GROUP: GroupSlot = { hot: 0, labelOpacity: 0 };
 
 /** Lo que dura toda la visita (cero objetos nuevos por frame, ADR-004). */
 export interface ConstellationWork {
@@ -179,11 +140,8 @@ export interface ConstellationWork {
   readonly look: ConstellationLook;
   readonly point: ScreenPoint;
   readonly viewport: { width: number; height: number; fov: number };
-  /** Lo que tapa la interfaz, y el tamaño y el encuadre con que se calculó (se rehace solo si cambian). */
-  zones: readonly KeepOutZone[];
-  zonesWidth: number;
-  zonesHeight: number;
-  zonesWide: boolean | null;
+  /** Lo que tapa la interfaz, para el tamaño y el encuadre del lienzo (se rehace solo si cambian). */
+  readonly zones: ZoneCache;
   /** Alguna etiqueta podía verse en el frame anterior (hay que ocultarlas al irse el capítulo). */
   shown: boolean;
   /** Lo que el `useFrame` le pasa a `stepConstellations`, rellenado en cada frame (no un objeto nuevo). */
@@ -193,23 +151,31 @@ export interface ConstellationWork {
 export function createConstellationWork(
   frame: Readonly<SceneFrame>,
   labelElements: StarLabelElements,
+  meshes: readonly ConstellationMeshes[],
 ): ConstellationWork {
-  const labels = SKILLS.map((skill) => ({
-    ...skill,
-    box: createLabelBox(),
-    written: createWrittenLabel(),
-  }));
+  const groups: GroupSlot[] = [];
+  const labels: LabelSlot[] = [];
+  for (const mesh of meshes) {
+    const group: GroupSlot = { id: mesh.group, mesh, hot: 0, labelOpacity: 0 };
+    groups.push(group);
+    for (const id of mesh.skills) {
+      labels.push({
+        id,
+        group,
+        position: star(id),
+        box: createLabelBox(),
+        written: createWrittenLabel(),
+      });
+    }
+  }
   return {
-    groups: skillGroups.map(() => ({ hot: 0, labelOpacity: 0 })),
+    groups,
     labels,
     boxes: labels.map(({ box }) => box),
     look: createConstellationLook(),
     point: createScreenPoint(),
     viewport: { width: 1, height: 1, fov: 55 },
-    zones: [],
-    zonesWidth: Number.NaN,
-    zonesHeight: Number.NaN,
-    zonesWide: null,
+    zones: createZoneCache(),
     shown: false,
     step: {
       frame,
@@ -234,17 +200,11 @@ export interface ConstellationStep {
 }
 
 /** Un frame: lo encendido de cada grupo y sus uniforms; después, las etiquetas. */
-export function stepConstellations(
-  meshes: readonly ConstellationMeshes[],
-  work: ConstellationWork,
-  step: ConstellationStep,
-): void {
+export function stepConstellations(work: ConstellationWork, step: ConstellationStep): void {
   const { frame, active } = step;
   const presence = chapterPresence(frame.m);
-  let index = 0;
-  for (const mesh of meshes) {
-    const group = work.groups[index] ?? IDLE_GROUP;
-    index += 1;
+  for (const group of work.groups) {
+    const { mesh } = group;
     group.hot = followHot(group.hot, mesh.group === active, frame.delta, frame.reducedMotion);
     const look = constellationLook(presence, group.hot, work.look);
     mesh.starUniforms.uSize.value = look.starPx;
@@ -256,21 +216,14 @@ export function stepConstellations(
   // Sin capítulo, y con las etiquetas ya ocultas, nada que colocar.
   if (presence === 0 && !work.shown) return;
   work.shown = presence > 0;
-  placeLabels(meshes, work, step, presence);
+  placeLabels(work, step, presence);
 }
 
 function placeLabels(
-  meshes: readonly ConstellationMeshes[],
   work: ConstellationWork,
   { frame, width, height, active, widths, labels }: ConstellationStep,
   presence: number,
 ): void {
-  if (work.zonesWidth !== width || work.zonesHeight !== height || work.zonesWide !== frame.wide) {
-    work.zones = keepOutZones(width, height, frame.wide);
-    work.zonesWidth = width;
-    work.zonesHeight = height;
-    work.zonesWide = frame.wide;
-  }
   const { viewport, point } = work;
   viewport.width = width;
   viewport.height = height;
@@ -294,60 +247,21 @@ function placeLabels(
       presence > 0 &&
       labels.has(slot.id);
   }
-  fitLabels(work.boxes, work.zones);
+  fitLabels(work.boxes, zonesFor(work.zones, width, height, frame.wide));
   const interactive = presence > CONSTELLATION_LOOK.interactiveFrom;
   for (const slot of work.labels) {
-    const element = labels.get(slot.id);
-    // Sin elemento (una ficha: la capa se desmonta), nada que escribir, y no se retiene el que ya no está.
-    if (element === undefined) {
-      slot.written.element = null;
-      continue;
-    }
-    // Uno nuevo (nacido al volver, oculto por su CSS): se escribe entero.
-    if (slot.written.element !== element) forgetWritten(slot.written, element);
-    const opacity = work.groups[slot.group]?.labelOpacity ?? 0;
-    writeLabel(element, slot, opacity, meshes[slot.group]?.group === active, interactive);
-  }
-}
-
-function writeLabel(
-  element: HTMLElement,
-  { box, written }: LabelSlot,
-  opacity: number,
-  hot: boolean,
-  interactive: boolean,
-): void {
-  if (written.visible !== box.visible) {
-    written.visible = box.visible;
-    element.style.visibility = box.visible ? 'visible' : 'hidden';
-  }
-  const live = box.visible && interactive;
-  if (written.live !== live) {
-    written.live = live;
-    element.toggleAttribute('data-live', live);
-  }
-  if (!box.visible) return;
-  const x = Math.round(box.left);
-  const y = Math.round(box.top);
-  if (written.x !== x || written.y !== y) {
-    written.x = x;
-    written.y = y;
-    element.style.transform = `translate(${String(x)}px, ${String(y)}px)`;
-  }
-  const rounded = Math.round(opacity * 100) / 100;
-  if (written.opacity !== rounded) {
-    written.opacity = rounded;
-    element.style.opacity = String(rounded);
-  }
-  if (written.hot !== hot) {
-    written.hot = hot;
-    element.toggleAttribute('data-hot', hot);
+    writeLabel(
+      labels.get(slot.id),
+      slot,
+      slot.group.labelOpacity,
+      slot.group.id === active,
+      interactive,
+    );
   }
 }
 
 /** Rellena el paso del frame en `work.step` (sin crear nada) y lo da. */
 export function runConstellationsFrame(
-  meshes: readonly ConstellationMeshes[],
   work: ConstellationWork,
   frame: Readonly<SceneFrame>,
   labels: StarLabelElements,
@@ -362,7 +276,7 @@ export function runConstellationsFrame(
   step.height = size.height;
   step.widths = widths;
   step.active = active;
-  stepConstellations(meshes, work, step);
+  stepConstellations(work, step);
 }
 
 /**
@@ -382,7 +296,7 @@ export function useConstellations({
 }: ConstellationsProps): readonly ConstellationMeshes[] {
   const meshes = useMemo(() => createMeshes(), []);
   const widths = useMemo(() => labelWidths(texts), [texts]);
-  const [work] = useState(() => createConstellationWork(frame, labels));
+  const [work] = useState(() => createConstellationWork(frame, labels, meshes));
 
   useEffect(
     () => () => {
@@ -398,7 +312,6 @@ export function useConstellations({
 
   useFrame((state: RootState) => {
     runConstellationsFrame(
-      meshes,
       work,
       frame,
       labels,

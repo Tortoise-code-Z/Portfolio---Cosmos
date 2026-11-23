@@ -1,4 +1,5 @@
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
+import { TURTLE_SWAY } from '../../config/sceneConfig';
 import { hexToRgb, SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
 import {
   EARTH_TAG,
@@ -48,6 +49,7 @@ export function glslHeader(): string {
     `#define TURTLE_FLIPPERS ${glslFloat(TURTLE_FLIPPERS)}`,
     `#define PLATE_FIRST ${glslFloat(FIRST_PLATE_LABEL)}`,
     `#define PLATE_LAST ${glslFloat(LAST_PLATE_LABEL)}`,
+    ...defines('TURTLE_SWAY', TURTLE_SWAY),
     ...defines('EARTH', EARTH_TAG),
     `#define PORTRAIT_HALF_H ${glslFloat(Number(PORTRAIT_FRAME.halfHeight.toFixed(4)))}`,
     `#define PORTRAIT_FADE_H ${glslFloat(Number(PORTRAIT_FRAME.fadeHeight.toFixed(4)))}`,

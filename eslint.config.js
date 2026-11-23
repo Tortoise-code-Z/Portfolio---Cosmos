@@ -36,6 +36,7 @@ const IMPURE_SCENE_MODULES = [
   'CameraRig',
   'Constellations',
   'ConstellationLabels',
+  'PlatePins',
   'Particles',
   'BackgroundStars',
   'sceneMaterials',

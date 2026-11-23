@@ -20,6 +20,7 @@ import { CAMERA_LENS, WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
 import { watchContextLoss } from '../contextLoss/contextLoss';
 import { startFrameLoop, type FrameLoop } from '../frameLoop/frameLoop';
 import { Particles } from '../Particles/Particles';
+import { createPinElements, PlatePins, PlatePinsFrame } from '../PlatePins/PlatePins';
 import { watchScenePause } from '../pause/pause';
 import { watchPointer } from '../pointer/pointer';
 import { followGravity } from '../math/gravity/gravity';
@@ -70,7 +71,17 @@ export interface SceneRootProps {
    * etiquetas.
    */
   readonly skillLabels?: Readonly<Record<string, string>> | null;
+  /**
+   * El nombre de cada proyecto, por slug, para los pins de las placas (F4.4b). `null` (u omitido) fuera del viaje:
+   * sin pins.
+   */
+  readonly projectNames?: Readonly<Record<string, string>> | null;
+  /** Un pin pide abrir la ficha de su proyecto (`SceneMount` navega, en el idioma de la página). */
+  readonly onOpenProject?: (slug: string) => void;
 }
+
+/** Sin `onOpenProject`, un pin no abre nada. */
+const OPEN_NOTHING = (): void => undefined;
 
 /**
  * La placa que se ilumina en este frame (docs/04-escena/constelaciones-y-placas.md → «Resaltado»): la del proyecto
@@ -110,13 +121,14 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * con Three.js y React Three Fiber, después de la primera pintura: el JS inicial no la incluye. Fija detrás del
  * contenido, decorativa (`aria-hidden`) y sin puntero. Pide las formas al montar (`useSceneShapes`: worker y,
  * si falla, reintento) y las pinta (`Particles`), con las estrellas de fondo y las constelaciones (con sus etiquetas
- * en una capa del DOM aparte, `ConstellationLabels`); la cámara la lleva `CameraRig`, que se mueve antes que las
- * demás piezas por la prioridad de su `useFrame` (`CAMERA_RIG_PRIORITY`), no por su sitio en el JSX.
+ * en una capa del DOM aparte, `ConstellationLabels`) y los pins de las placas (`PlatePins`); la cámara la lleva
+ * `CameraRig`, que se mueve antes que las demás piezas por la prioridad de su `useFrame` (`CAMERA_RIG_PRIORITY`), no
+ * por su sitio en el JSX.
  *
  * Los frames los pide su propio bucle (`frameloop="never"` + `startFrameLoop`, ADR-027): antes de cada
  * `advance()` rellena el frame compartido (`m` suavizado, la carga de la detonación, la gravedad del cursor, la placa
- * iluminada, reloj, densidad de píxeles…; el ratón y si es escritorio los escriben sus observadores, `watchPointer` y `watchMediaQuery`) y, si un frame lanza, para y pasa
- * a sin WebGL. La `m` de la escena es suya: persigue a `mTarget` con un amortiguado (`M_SMOOTHING`, con el tiempo
+ * iluminada, reloj, densidad de píxeles…; el ratón y si es escritorio los escriben sus observadores, `watchPointer`
+ * y `watchMediaQuery`) y, si un frame lanza, para y pasa a sin WebGL. La `m` de la escena es suya: persigue a `mTarget` con un amortiguado (`M_SMOOTHING`, con el tiempo
  * real del frame) y arranca en él (sin repetir la explosión a mitad del viaje); `sceneStore` sigue con
  * `m = mTarget` para la interfaz (ADR-028). Con la página oculta o la misión rápida abierta, el bucle se pausa
  * (`watchScenePause`; `data-paused` para los e2e). Si los fps se quedan cortos, baja un nivel
@@ -129,6 +141,8 @@ export default function SceneRoot({
   onFail,
   onPainted,
   skillLabels = null,
+  projectNames = null,
+  onOpenProject = OPEN_NOTHING,
 }: SceneRootProps): ReactNode {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -148,6 +162,7 @@ export default function SceneRoot({
   const [plateCycle] = useState(createPlateCycle);
   const [plateStep] = useState(createPlateStep);
   const [labelElements] = useState(createStarLabelElements);
+  const [pinElements] = useState(createPinElements);
   const levelRef = useRef(level);
   const loopRef = useRef<FrameLoop | null>(null);
   const stopVoidRef = useRef<(() => void) | null>(null);
@@ -326,8 +341,10 @@ export default function SceneRoot({
         )}
         <BackgroundStars count={LEVEL_SETTINGS[level].stars} frame={frame} />
         <Constellations frame={frame} texts={skillLabels} labels={labelElements} />
+        <PlatePinsFrame frame={frame} names={projectNames} elements={pinElements} />
       </Canvas>
       <ConstellationLabels texts={skillLabels} elements={labelElements} />
+      <PlatePins names={projectNames} elements={pinElements} onOpen={onOpenProject} />
     </div>
   );
 }

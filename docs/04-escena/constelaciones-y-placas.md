@@ -148,12 +148,38 @@ la parte superior del caparazón.
 - Los huecos sin proyecto son celdas normales del caparazón (pueden tener árboles).
 - Con 3 proyectos (v1): Chessmate en el centro, AstroHub detrás y Cosmos delante, hacia la cabeza.
 
-### Pins
+### Pins (F4.4b)
 
-- Anclados en el centro de la placa, sobre la superficie: `y = AY · √(1 − (x/AX)² − (z/AZ)²) + 0,06`, con el mismo
-  balanceo y giro que aplica el shader (la misma función en TypeScript y GLSL; un test compara ambas).
-- Proyección 3D→2D en cada frame, aplicada por `transform` a elementos DOM (sin estado de React).
-- Visibles con el peso del capítulo 3; interactivos solo con peso > 0,6.
+- Anclados en el centro de la placa, sobre la superficie: `y = AY · √(1 − (x/AX)² − (z/AZ)²) + 0,06`
+  (`math/platePins` → `plateAnchor`), con el mismo balanceo y giro que aplica el shader: las cifras viven en
+  `TURTLE_SWAY` (`sceneConfig`) y llegan al GLSL por la cabecera; `swayTurtlePoint` hace la misma cuenta y un test
+  la compara con la del shader. Con movimiento reducido, quietos. La gravedad del cursor mueve las partículas en
+  pantalla, no los pins: con el ratón encima, el pin se separa un poco de su placa (aceptado, como el prototipo).
+- Elementos del DOM (`scene/PlatePins`), uno por proyecto con placa, en el orden de la asignación (el destacado
+  primero), en una capa propia montada en `body` (`--z-labels`, como las etiquetas de las estrellas). Decorativos
+  (`aria-hidden`): su función está en las filas. Solo en el viaje: `SceneMount` pasa los nombres (y cómo abrir una
+  ficha, en el idioma de la página); en las fichas y la 404, sin pins.
+- En cada frame (`PlatePinsFrame`, después de la cámara): el ancla mecida se proyecta con la pose de la cámara
+  (`math/projection`) y el pin se planta con el pie en ella (`placePinBox`: la etiqueta arriba, el tallo hasta la
+  placa). Después, `fitPins`, de derecha a izquierda en pantalla: el que pisa lo que tapa la interfaz (las mismas
+  zonas que las etiquetas de las estrellas), el borde o un pin ya visible —su etiqueta con otra, o su tallo con otra
+  etiqueta— sube un piso (el tallo crece una etiqueta y su hueco: 46 → 76 → 106 px, `PLATE_PIN.floors`); si en
+  ninguno cabe, se oculta. De derecha a izquierda porque la etiqueta sale hacia la derecha del tallo: el de la
+  izquierda sube por encima de la etiqueta del de la derecha sin que su tallo la cruce. En el móvil quedan en
+  escalera. Mientras se lee una transmisión (`sceneStore.interlude`: Mission control, con la tortuga aún detrás de su
+  velo), ninguno: sus etiquetas quedarían tras el texto. Se escribe solo lo que cambia (`scene/labelWriter`, el
+  mismo que usan las etiquetas): `transform`, opacidad (la presencia del capítulo 3), `visibility`, `data-hot` (su
+  placa encendida: el proyecto señalado o el ciclo), `data-live` y el piso (`--_pin-floor`).
+- Interactivos (`data-live`) con presencia > 0,6 (`PLATE_LOOK.interactiveFrom`): el ratón encima señala su proyecto
+  (salir lo suelta), un clic abre su ficha; en táctil, el primer toque señala y el segundo abre (si su proyecto ya
+  estaba señalado al bajar el dedo).
+- La caja (`PLATE_PIN`, `config/plateSlots`): tallo de 46 px (más 30 por piso: `--_pin-floor`), hueco de 4 y la
+  etiqueta encima (mono de 11 px, 10 por
+  debajo de 900 px, en mayúsculas con `--tracking-micro`, 8 px de aire a los lados, 4 arriba y abajo, línea de 16 y
+  borde), 2 px a la izquierda del tallo. El CSS la sigue: lo comprueba su test.
+- A 1280×720, 1440×900 y 390×844 se ven los tres (en el móvil, en escalera); el e2e (`plates.spec.ts`) lo comprueba
+  con la página de verdad en EN y ES, y que ninguna etiqueta pisa otra ni el tallo de otro, ni ellas ni sus tallos
+  pisan la barra, el raíl, el HUD, el panel o el borde.
 
 ### Resaltado
 

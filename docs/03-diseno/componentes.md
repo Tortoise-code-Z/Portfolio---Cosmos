@@ -185,8 +185,15 @@
   alternativa pulsable, con el mismo efecto y su área completa, es el grupo del panel; y un área mayor chocaría con
   `STAR_LABEL_BOX` y con el no-solapamiento (`labelFit`).
 
-### Pin de placa (`PlatePin`)
-- Tallo vertical de 46 px (degradado ámbar a transparente) + etiqueta con borde y velo. *Hot*: borde y texto ámbar.
+### Pin de placa (`PlatePins`)
+- Tallo vertical de 46 px (`--gradient-pin-stem`, al 70 %) + etiqueta con borde (`--color-faint`) y velo
+  (`--color-veil-soft`), en mono de 11 px (10 por debajo de 900 px) en mayúsculas con `--tracking-micro`. *Hot* (su
+  placa encendida, también por el ciclo): borde y texto ámbar. La coloca la escena en cada frame (`PLATE_PIN`); si
+  choca con otro pin, sube un piso: el tallo crece 30 px (`--_pin-floor`).
+- Con el capítulo a más de 0,6 de presencia reciben el puntero (`data-live`): el ratón encima señala su proyecto
+  (marca su fila e ilumina su placa), un clic abre su ficha; en táctil, el primer toque señala y el segundo abre.
+- Excepción al área táctil de 44 × 44 px, como la etiqueta de estrella: es un atajo decorativo; la alternativa
+  pulsable, con el mismo efecto y su área completa, es la fila del proyecto. Con alto contraste, la capa se oculta.
 
 ### Grupo de habilidades (`SkillGroup`)
 - Bloque con borde izquierdo de 1 px; título mono en `--color-dim` y skills en texto normal. *Hot*: borde y
