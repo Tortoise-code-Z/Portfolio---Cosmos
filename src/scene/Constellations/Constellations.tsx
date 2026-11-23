@@ -15,8 +15,8 @@ import {
   starLabelWidth,
 } from '../config/constellationLayout/constellationLayout';
 import type { ScenePoint } from '../config/sceneConfig';
+import { chapterPresence } from '../math/chapterPresence/chapterPresence';
 import {
-  chapterPresence,
   constellationLook,
   createConstellationLook,
   followHot,
@@ -202,7 +202,7 @@ export interface ConstellationStep {
 /** Un frame: lo encendido de cada grupo y sus uniforms; después, las etiquetas. */
 export function stepConstellations(work: ConstellationWork, step: ConstellationStep): void {
   const { frame, active } = step;
-  const presence = chapterPresence(frame.m);
+  const presence = chapterPresence(frame.m, CONSTELLATION_LOOK.chapter);
   for (const group of work.groups) {
     const { mesh } = group;
     group.hot = followHot(group.hot, mesh.group === active, frame.delta, frame.reducedMotion);

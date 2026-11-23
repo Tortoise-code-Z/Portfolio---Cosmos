@@ -661,18 +661,37 @@ describe('SceneRoot', () => {
     setActiveProject('chessmate');
     frames.tick(3750);
     expect(scene?.getAttribute('data-plate')).toBe('chessmate');
-    // Un proyecto sin placa (o desconocido) no para el ciclo.
+    // Un proyecto señalado sin placa (más de 7) también para el ciclo: ninguna encendida.
     setActiveProject('unknown');
     frames.tick(3800);
-    expect(frame.plate).toBe(21);
+    expect(frame.plate).toBe(0);
+    expect(scene?.hasAttribute('data-plate')).toBe(false);
     releaseActiveProject('unknown');
+    frames.tick(3850);
+    expect(frame.plate).toBe(21);
     // Lejos de la tortuga, ninguna: sin atributo.
     act(() => {
       setScrollTarget(0);
     });
-    for (let t = 3850; t <= 8000; t += 50) frames.tick(t);
+    for (let t = 3900; t <= 8000; t += 50) frames.tick(t);
     expect(frame.plate).toBe(0);
     expect(scene?.hasAttribute('data-plate')).toBe(false);
+  });
+
+  it('with reduced motion there is no cycle: only the pointed project lights its plate', () => {
+    stubMatchMedia([REDUCED_MOTION]);
+    const frames = manualFrames();
+    setScrollTarget(3);
+    const { container } = render(<SceneRoot level="high" onFail={vi.fn()} />);
+    const scene = container.firstElementChild;
+    const frame = seen.cameraFrame as { plate: number };
+    for (let t = 1000; t <= 5000; t += 50) frames.tick(t);
+    expect(frame.plate).toBe(0);
+    expect(scene?.hasAttribute('data-plate')).toBe(false);
+    setActiveProject('astrohub');
+    frames.tick(5050);
+    expect(frame.plate).toBe(21);
+    expect(scene?.getAttribute('data-plate')).toBe('astrohub');
   });
 
   it('paints the constellations with the frame its camera writes in, and their labels in their own layer', () => {

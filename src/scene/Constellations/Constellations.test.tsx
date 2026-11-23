@@ -15,6 +15,7 @@ import {
   CONSTELLATION_STARS,
   STAR_LABEL_BOX,
 } from '../config/constellationLayout/constellationLayout';
+import { CHAPTER_PRESENCE_FADE } from '../config/sceneConfig';
 import { cameraFov, cameraPose, createParallax } from '../math/camera/camera';
 import { createScreenPoint, projectToScreen } from '../math/projection/projection';
 import { createSceneFrame, type SceneFrame } from '../sceneMaterials/sceneMaterials';
@@ -290,7 +291,7 @@ describe('useConstellations', () => {
     const { labels } = setup(frame);
     const all = Object.keys(TEXTS);
     // La `m` con esa presencia del capítulo 2 (la cámara se queda en la pose de m = 2).
-    const at = (presence: number): number => 2 + (1 - presence) / CONSTELLATION_LOOK.presenceFade;
+    const at = (presence: number): number => 2 + (1 - presence) / CHAPTER_PRESENCE_FADE;
     frame.m = at(CONSTELLATION_LOOK.interactiveFrom - 0.05);
     paint();
     expect(shownLabels(labels)).toHaveLength(all.length);

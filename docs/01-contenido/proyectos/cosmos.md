@@ -81,7 +81,8 @@ En el contenido, en este orden.
 
 Con la escena (F3.7), «Works without WebGL and with reduced motion» sustituye a la de F2, «Readable without
 JavaScript and with reduced motion» (ES: «Legible sin JavaScript y con movimiento reducido»). Las placas de
-proyecto no salen todavía como funcionalidad: hoy son decorativas (su luz al volver de una ficha es de F5).
+proyecto se encienden desde las filas y por turnos (F4.4a) y tienen sus pins (F4.4b); no salen todavía como
+funcionalidad: lo harán con su interacción completa (su luz al volver de una ficha, F5).
 
 ## Stack
 

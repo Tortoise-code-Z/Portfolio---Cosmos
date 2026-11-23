@@ -1,21 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  chapterPresence,
-  constellationLook,
-  createConstellationLook,
-  followHot,
-} from './constellations';
-
-describe('chapterPresence', () => {
-  it('is 1 at the galaxy and fades out by 0.56 on either side', () => {
-    expect(chapterPresence(2)).toBe(1);
-    expect(chapterPresence(2.25)).toBeCloseTo(1 - 0.25 * 1.8, 10);
-    expect(chapterPresence(1.75)).toBeCloseTo(1 - 0.25 * 1.8, 10);
-    expect(chapterPresence(1.44)).toBe(0);
-    expect(chapterPresence(3)).toBe(0);
-    expect(chapterPresence(0)).toBe(0);
-  });
-});
+import { constellationLook, createConstellationLook, followHot } from './constellations';
 
 describe('followHot', () => {
   it('lights up and goes out smoothly at rate 8', () => {

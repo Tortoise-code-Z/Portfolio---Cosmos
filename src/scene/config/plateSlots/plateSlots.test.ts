@@ -91,7 +91,9 @@ describe('plateLabelOf / plateSlugOf', () => {
   });
 
   it('no project, an unknown one or a plate without a project: none', () => {
-    expect(NO_PLATE).toBeLessThan(FIRST_PLATE_LABEL);
+    // El shader compara `abs(tag − uPlate) < 0,5`: «ninguna» tiene que quedar al menos a 1 de cualquier placa.
+    expect(Number.isInteger(NO_PLATE)).toBe(true);
+    expect(NO_PLATE).toBeLessThanOrEqual(FIRST_PLATE_LABEL - 1);
     expect(plateLabelOf(plates, null)).toBe(NO_PLATE);
     expect(plateLabelOf(plates, 'nope')).toBe(NO_PLATE);
     expect(plateSlugOf(plates, NO_PLATE)).toBeNull();
@@ -103,8 +105,7 @@ describe('PLATE_LOOK', () => {
   it('has the figures of the spec (constelaciones-y-placas.md, 03-tortuga.md)', () => {
     // Escritas aquí: con las de la config, cualquier cifra pasaría.
     expect(PLATE_LOOK).toEqual({
-      turtleM: 3,
-      presenceFade: 1.8,
+      chapter: 3,
       litFrom: 0.2,
       cycleSeconds: 2.6,
       interactiveFrom: 0.6,

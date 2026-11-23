@@ -52,7 +52,7 @@ No hay pantalla de carga ni porcentajes: el contenido nunca espera a la escena.
 | Interfaz: fundidos de opacidad, en 150 ms (`--dur-fade-*`) | Interfaz: el resto de transiciones (color, desplazamiento) pasa a 0 ms (`--dur-fast/base/slow/flight`) |
 | Morph de formas y cámara ligados al scroll (lo controla el usuario) | Temblor, destello y vibración del hero |
 | Iluminación de constelaciones y placas | Giro autónomo de nebulosa, galaxia y Tierra; nado de la tortuga; haz de barrido, fallos de señal y parpadeo del retrato (se ve encendido y quieto) |
-| Detonación (sin destello ni temblor) | Gravedad del cursor y paralaje de la cámara; ciclo automático de placas |
+| Detonación (sin destello ni temblor) | Gravedad del cursor y paralaje de la cámara; ciclo automático de placas y pulso de la placa encendida |
 | Nombre del hero (`wdth`, espaciado) y halo, ligados a la carga y al scroll (ADR-030) | Scroll suave en saltos (pasa a instantáneo) y vuelo de cámara a proyectos |
 | Transmisiones: su color, la cuadrícula, las líneas de barrido y el brillo del título, quietos; todo el texto a la vista | Transmisiones: el barrido de entrada, el teletipo (no se arma) y el parpadeo del cursor |
 

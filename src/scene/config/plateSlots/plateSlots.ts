@@ -30,11 +30,9 @@ export const NO_PLATE = 0;
 
 /** El resaltado de las placas (docs/04-escena/constelaciones-y-placas.md → «Resaltado»). */
 export const PLATE_LOOK = {
-  /** La `m` de la tortuga (capítulo 3). */
-  turtleM: 3,
-  /** Presencia del capítulo 3, con la misma rampa que la del 2: 1 en la tortuga y 0 a ±0,56 de ella. */
-  presenceFade: 1.8,
-  /** Por debajo de esta presencia no se ilumina ninguna placa (el prototipo). */
+  /** Su capítulo (la tortuga): su presencia, `math/chapterPresence`. */
+  chapter: 3,
+  /** A esta presencia o menos, ninguna placa encendida (el prototipo). */
   litFrom: 0.2,
   /** Sin nada señalado, una placa cada 2,6 s. */
   cycleSeconds: 2.6,

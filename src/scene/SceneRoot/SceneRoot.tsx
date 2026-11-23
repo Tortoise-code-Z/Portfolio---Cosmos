@@ -97,7 +97,9 @@ function followPlates(
   step.m = frame.m;
   step.delta = frame.delta;
   step.reducedMotion = frame.reducedMotion;
-  step.pointed = plateLabelOf(SCENE_PLATES, useUiStore.getState().activeProject);
+  const { activeProject } = useUiStore.getState();
+  step.pointing = activeProject !== null;
+  step.pointed = plateLabelOf(SCENE_PLATES, activeProject);
   const plate = stepPlates(cycle, SCENE_PLATE_LABELS, step);
   if (plate === frame.plate) return;
   frame.plate = plate;
@@ -125,16 +127,16 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * `CameraRig`, que se mueve antes que las demás piezas por la prioridad de su `useFrame` (`CAMERA_RIG_PRIORITY`), no
  * por su sitio en el JSX.
  *
- * Los frames los pide su propio bucle (`frameloop="never"` + `startFrameLoop`, ADR-027): antes de cada
- * `advance()` rellena el frame compartido (`m` suavizado, la carga de la detonación, la gravedad del cursor, la placa
- * iluminada, reloj, densidad de píxeles…; el ratón y si es escritorio los escriben sus observadores, `watchPointer`
- * y `watchMediaQuery`) y, si un frame lanza, para y pasa a sin WebGL. La `m` de la escena es suya: persigue a `mTarget` con un amortiguado (`M_SMOOTHING`, con el tiempo
- * real del frame) y arranca en él (sin repetir la explosión a mitad del viaje); `sceneStore` sigue con
- * `m = mTarget` para la interfaz (ADR-028). Con la página oculta o la misión rápida abierta, el bucle se pausa
- * (`watchScenePause`; `data-paused` para los e2e). Si los fps se quedan cortos, baja un nivel
- * (`useHotDegradation`: mide en cada frame y descarta la ventana en curso al pausar). El lienzo es opaco, del
- * color del espacio, y sin gestión de color ni mapeo de tonos (`linear`, `flat`): los shaders suman la luz tal
- * cual, como el prototipo (particulas-y-shaders.md → «Colores»).
+ * Los frames los pide su propio bucle (`frameloop="never"` + `startFrameLoop`, ADR-027): antes de cada `advance()`
+ * rellena el frame compartido (`m` suavizado, la carga de la detonación, la gravedad del cursor, la placa iluminada,
+ * reloj, densidad de píxeles…; el ratón y si es escritorio los escriben sus observadores, `watchPointer` y
+ * `watchMediaQuery`) y, si un frame lanza, para y pasa a sin WebGL. La `m` de la escena es suya: persigue a `mTarget`
+ * con un amortiguado (`M_SMOOTHING`, con el tiempo real del frame) y arranca en él (sin repetir la explosión a mitad
+ * del viaje); `sceneStore` sigue con `m = mTarget` para la interfaz (ADR-028). Con la página oculta o la misión rápida
+ * abierta, el bucle se pausa (`watchScenePause`; `data-paused` para los e2e). Si los fps se quedan cortos, baja un
+ * nivel (`useHotDegradation`: mide en cada frame y descarta la ventana en curso al pausar). El lienzo es opaco, del
+ * color del espacio, y sin gestión de color ni mapeo de tonos (`linear`, `flat`): los shaders suman la luz tal cual,
+ * como el prototipo (particulas-y-shaders.md → «Colores»).
  */
 export default function SceneRoot({
   level,

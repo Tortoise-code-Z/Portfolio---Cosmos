@@ -220,12 +220,19 @@
 ### Fila de proyecto (`ProjectRow`)
 - Borde izquierdo de 1 px; nombre en display (`--text-h3`), año alineado a la derecha en mono, metadatos en mono
   (con «Featured» en turquesa), resumen y acciones. *Hot*: borde ámbar y degradado ámbar muy tenue de fondo, que entra con un
-  fundido de opacidad (`--dur-fade-base`) en su propia capa. Es *hot* con el ratón encima o el foco en uno de sus
-  enlaces y, con la escena, cuando su proyecto es el señalado (`data-hot`, también desde su pin).
+  fundido de opacidad (`--dur-fade-base`) en su propia capa. Es *hot* con el ratón encima (solo con `hover: hover`:
+  en táctil el `:hover` se queda pegado tras el toque) o el foco en uno de sus enlaces y, con la escena, cuando su
+  proyecto es el señalado (`data-hot`, también desde su pin). El ámbar dice «aquí está el ratón o el foco, o este es
+  el proyecto señalado»: solo el señalado enciende la placa, así que con el foco en una fila y el ratón en otra
+  pueden verse dos filas ámbar y una sola placa (aceptado). Con alto contraste, la señalada se pinta con
+  `Highlight`. Su zona de puntero llega a la mitad del hueco entre filas: al pasar de una a otra no asoma la placa
+  del ciclo.
 - **Con la escena encendida** (F4.4a) ilumina la placa de su proyecto (`uiStore.activeProject`): el ratón (entrar
   señala, salir suelta), el foco del teclado en uno de sus enlaces (`:focus-visible`; irse a otra ventana no suelta)
-  y un toque; soltar apaga solo si sigue siendo el señalado. Un toque limpio fuera (un `click`) apaga; deslizar, no.
-  Al ir a una ficha o al apagarse la escena, se apaga. Sin escena no señala nada. El ciclo automático de las placas
+  y un toque (`pointGestures`, los mismos gestos que un grupo de Skills); soltar apaga solo si sigue siendo el
+  señalado. Un toque limpio fuera (un `click`) apaga; deslizar, no. Al volver de una ficha con el teclado, el foco
+  que se deja en su fila ya la señala (es `:focus-visible`); con el ratón, no (desde F5, siempre). Al ir a una ficha
+  o al apagarse la escena, se apaga. Sin escena no señala nada. El ciclo automático de las placas
   no la marca. Cada fila elige solo si ella está señalada.
 
 ## Contacto

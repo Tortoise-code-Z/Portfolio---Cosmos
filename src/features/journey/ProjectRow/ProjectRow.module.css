@@ -27,19 +27,49 @@
 }
 
 /*
- * «Hot»: puntero encima o foco en uno de sus enlaces y, con la escena, su proyecto señalado (`data-hot`: también
- * desde un pin de la escena; desde F4.4, su placa se ilumina). El ciclo automático de las placas no la marca.
+ * La zona de puntero de la fila llega a la mitad del hueco que la separa de la siguiente (`gap` de la lista,
+ * `Projects.module.css`): al pasar el ratón de una fila a otra no hay un instante sin ninguna, en el que la escena
+ * volvería a enseñar la placa del ciclo.
  */
-.row:hover,
+.row::after {
+  position: absolute;
+  inset-block: calc(var(--space-1) / -2);
+  inset-inline: 0;
+  z-index: -1;
+  content: '';
+}
+
+/*
+ * «Hot» (docs/03-diseno/componentes.md → «Fila de proyecto»): el foco en uno de sus enlaces, el ratón encima y, con la
+ * escena, su proyecto señalado (`data-hot`: también desde su pin). Solo el señalado enciende la placa; el ciclo
+ * automático de las placas no marca filas. El `:hover`, solo donde se puede pasar por encima: en táctil se queda
+ * pegado tras el toque y la fila seguiría ámbar después de «tocar fuera».
+ */
 .row:focus-within,
 .row[data-hot] {
   border-color: var(--color-star);
 }
 
-.row:hover::before,
 .row:focus-within::before,
 .row[data-hot]::before {
   opacity: 1;
+}
+
+@media (hover: hover) {
+  .row:hover {
+    border-color: var(--color-star);
+  }
+
+  .row:hover::before {
+    opacity: 1;
+  }
+}
+
+/* Alto contraste: el sistema iguala el color del borde y quita el degradado; la señalada se pinta con `Highlight`. */
+@media (forced-colors: active) {
+  .row[data-hot] {
+    border-color: Highlight;
+  }
 }
 
 .top {

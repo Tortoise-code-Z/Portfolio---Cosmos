@@ -1,11 +1,4 @@
-import {
-  useLayoutEffect,
-  useRef,
-  type FocusEvent,
-  type PointerEvent,
-  type ReactNode,
-  type RefObject,
-} from 'react';
+import { useLayoutEffect, useRef, type ReactNode, type RefObject } from 'react';
 
 import { skillGroups } from '~/content/skills';
 import type { SkillGroup } from '~/content/types';
@@ -24,6 +17,7 @@ import { ChapterPanel } from '../ChapterPanel/ChapterPanel';
 import { ChapterSection } from '../ChapterSection/ChapterSection';
 import { Eyebrow } from '../Eyebrow/Eyebrow';
 import shared from '../shared.module.css';
+import { pointGestures } from '../pointGestures/pointGestures';
 import { useTapOutsideTurnsOff } from '../useTapOutsideTurnsOff/useTapOutsideTurnsOff';
 import styles from './Skills.module.css';
 
@@ -92,7 +86,6 @@ function SkillGroupItem({ group, sceneOn }: SkillGroupItemProps): ReactNode {
 
   return (
     // El teclado lo enciende con el foco (`onFocus`, solo `:focus-visible`); el `click` es el camino del toque.
-    // eslint-disable-next-line jsx-a11y-x/no-noninteractive-element-interactions, jsx-a11y-x/click-events-have-key-events
     <li
       className={styles.group}
       data-group={id}
@@ -100,23 +93,7 @@ function SkillGroupItem({ group, sceneOn }: SkillGroupItemProps): ReactNode {
       // eslint-disable-next-line jsx-a11y-x/no-noninteractive-tabindex -- enfocable para encender la constelación con teclado
       tabIndex={sceneOn ? 0 : undefined}
       aria-labelledby={sceneOn ? titleId : undefined}
-      onPointerEnter={(event: PointerEvent) => {
-        if (event.pointerType === 'mouse') light();
-      }}
-      onPointerLeave={(event: PointerEvent) => {
-        if (event.pointerType === 'mouse') release();
-      }}
-      // Solo el foco del teclado enciende: el del puntero ya lo cubren `pointerenter` y `click`, y el que devuelve el
-      // navegador al volver a la pestaña no es un gesto (el navegador recuerda la modalidad: `:focus-visible`).
-      onFocus={(event: FocusEvent<HTMLLIElement>) => {
-        if (event.currentTarget.matches(':focus-visible')) light();
-      }}
-      // Irse a otra ventana o pestaña no es soltar: el foco sigue en el grupo.
-      onBlur={(event: FocusEvent<HTMLLIElement>) => {
-        if (!document.hasFocus()) return;
-        if (!event.currentTarget.contains(event.relatedTarget)) release();
-      }}
-      onClick={light}
+      {...pointGestures(light, release)}
     >
       <h3 id={titleId} className={cx(shared.label, styles.groupTitle)}>
         {localize(locale, group.title)}

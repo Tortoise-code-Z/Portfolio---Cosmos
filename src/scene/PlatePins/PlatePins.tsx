@@ -22,7 +22,7 @@ import { PLATE_LOOK, PLATE_PIN, PLATE_SLOTS } from '../config/plateSlots/plateSl
 import type { ScenePoint } from '../config/sceneConfig';
 import { createWrittenLabel, writeLabel, type WritableLabel } from '../labelWriter/labelWriter';
 import { createZoneCache, zonesFor, type ZoneCache } from '../math/labelFit/labelFit';
-import { turtlePresence } from '../math/plateCycle/plateCycle';
+import { chapterPresence } from '../math/chapterPresence/chapterPresence';
 import {
   createPinBox,
   fitPins,
@@ -125,11 +125,11 @@ export function createPinWork(): PinWork {
 /**
  * Un frame de los pins (docs/04-escena/constelaciones-y-placas.md → «Pins»): cada ancla se mece con la tortuga, se
  * proyecta con la pose de la cámara de este frame (la deja `CameraRig`, que va antes) y el pin se planta con el pie
- * en ella; el que choca sube un piso y, si no cabe en ninguno, se oculta (`fitPins`, contra lo que tapa la interfaz y entre ellos). Se ven con la
- * presencia del capítulo 3, reciben el puntero por encima de `interactiveFrom` y se marcan (`data-hot`) con su placa
- * encendida (`frame.plate`: el proyecto señalado o el ciclo). Mientras se lee una transmisión (`transmission`: Mission
- * control, con la tortuga aún detrás de su velo), ninguno: sus etiquetas quedarían tras el texto. Solo se escribe lo
- * que cambia.
+ * en ella; el que choca sube un piso y, si no cabe en ninguno, se oculta (`fitPins`, de derecha a izquierda, contra
+ * lo que tapa la interfaz y entre ellos). Se ven con la presencia del capítulo 3, reciben el puntero por encima de
+ * `interactiveFrom` y se marcan (`data-hot`) con su placa encendida (`frame.plate`: el proyecto señalado o el
+ * ciclo). Mientras se lee una transmisión (`transmission`: Mission control, con la tortuga aún detrás de su velo),
+ * ninguno: sus etiquetas quedarían tras el texto. Solo se escribe lo que cambia.
  */
 export function stepPlatePins(
   work: PinWork,
@@ -139,7 +139,7 @@ export function stepPlatePins(
   widths: PinWidths,
   transmission = false,
 ): void {
-  const presence = transmission ? 0 : turtlePresence(frame.m);
+  const presence = transmission ? 0 : chapterPresence(frame.m, PLATE_LOOK.chapter);
   // Sin capítulo, y con los pins ya ocultos, nada que colocar.
   if (presence === 0 && !work.shown) return;
   work.shown = presence > 0;

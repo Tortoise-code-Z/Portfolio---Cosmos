@@ -41,7 +41,9 @@ cosmos-portfolio/
 │  │  │                           que salta a un capítulo), BlinkCursor (el cursor del teletipo),
 │  │  │                           `chapterDom` (el contrato con el DOM que lee la
 │  │  │                           navegación y el mapeo de scroll), `useBigBang` y `BigBangFlash` (los efectos del Big Bang en el
-│  │  │                           DOM, ADR-030) y `shared.module.css` (piezas de texto comunes)
+│  │  │                           DOM, ADR-030), `pointGestures` y `useTapOutsideTurnsOff` (los gestos con que
+│  │  │                           un grupo de Skills o una fila de Projects encienden la escena, y tocar fuera)
+│  │  │                           y `shared.module.css` (piezas de texto comunes)
 │  │  ├─ navigation/            ← TopBar, ChapterRail, LanguageSwitch, SkipLink, goToChapter (salto con
 │  │  │                           ancla en la URL), AvailabilityChip, QuickMissionDialog y
 │  │  │                           QuickMissionContent, `quickMission.ts` (suelto: ancla `#quick` e id del
@@ -65,15 +67,20 @@ cosmos-portfolio/
 │  │                              `SceneFrame`), frameLoop (el bucle de frames, ADR-027), sceneClock (el reloj de
 │  │                              animación), voidColour (el fondo del lienzo), CameraRig y pointer (la cámara
 │  │                              y el ratón), pause (cuándo pausar el bucle: pestaña oculta, misión rápida),
-│  │                              Constellations (las constelaciones y la colocación de sus etiquetas) y
-│  │                              ConstellationLabels (la capa del DOM de las etiquetas, en `body`)
+│  │                              Constellations (las constelaciones y la colocación de sus etiquetas),
+│  │                              ConstellationLabels (la capa del DOM de las etiquetas, en `body`), PlatePins
+│  │                              (los pins de las placas: su capa en `body` y su colocación) y labelWriter
+│  │                              (lo que se escribe de una etiqueta colocada, de las estrellas o de un pin)
 │  │  ├─ shaders/               ← los `.glsl` (particles, stars, constellations), glslHeader (etiquetas y colores desde TS) y
 │  │  │                           stripGlslComments (el plugin de vite.config.ts)
 │  │  ├─ math/                  ← código puro: camera (pose por `m`, campo de visión, paralaje) · gravity (la
 │  │  │                           gravedad del cursor) · projection (de la escena a la pantalla) ·
-│  │  │                           constellations (presencia y encendido) · labelFit (qué etiquetas caben)
+│  │  │                           chapterPresence (cuánto está un capítulo) · constellations (encendido y
+│  │  │                           aspecto) · labelFit (qué etiquetas caben) · plateCycle (qué placa se ilumina)
+│  │  │                           · platePins (ancla, balanceo, caja y pisos de los pins)
 │  │  ├─ config/                ← lo compartido: sceneConfig (semilla, semiejes del caparazón, cámara),
-│  │  │                           plateSlots (huecos de las placas, assignPlates), scenePalette (los colores) y
+│  │  │                           plateSlots (huecos de las placas, assignPlates, plateLabelOf/plateSlugOf,
+│  │  │                           NO_PLATE, PLATE_LOOK y PLATE_PIN), scenePalette (los colores) y
 │  │  │                           constellationLayout (estrellas y líneas de las skills, caja de su etiqueta)
 │  │  ├─ shapes/                ← código puro: prng, noise, sampling, hexGrid, un generador por forma
 │  │  │                           (nebula, galaxy, turtle, earth, portrait), shapeContract, generateShapes y
@@ -243,7 +250,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
-| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); grupo de skills encendido (`activeSkillGroup`, desde F4.3b: lo lee la escena en cada frame con `getState()`; lo escriben el panel y las etiquetas desde F4.3c: `setActiveSkillGroup` enciende y `releaseActiveSkillGroup` apaga solo si sigue encendido; `selectSceneOn` dice si hay escena); página de proyecto a la vista (`projectPageOpen`: la escribe la ficha al montarse y al irse; hasta F5, la escena se pausa con ella); proyecto señalado (`activeProject`, su slug, desde F4.4a: lo escriben las filas del capítulo 3 —ratón, foco del teclado en sus enlaces, toque— y, desde F4.4b, los pins (ratón y toque); `setActiveProject` señala y `releaseActiveProject` suelta solo si sigue señalado; la escena lo lee en cada frame con `getState()` e ilumina su placa, y la fila lo marca con su selector) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto y, hasta F5, en la ficha); desde F5, la placa visitada |
+| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); grupo de skills encendido (`activeSkillGroup`, desde F4.3b: lo lee la escena en cada frame con `getState()`; lo escriben el panel y las etiquetas desde F4.3c: `setActiveSkillGroup` enciende y `releaseActiveSkillGroup` apaga solo si sigue encendido; `selectSceneOn` dice si hay escena); página de proyecto a la vista (`projectPageOpen`: la escribe la ficha al montarse y al irse; hasta F5, la escena se pausa con ella); proyecto señalado (`activeProject`, su slug, desde F4.4a: lo escriben las filas del capítulo 3 —ratón, foco del teclado en sus enlaces, toque— y, desde F4.4b, los pins (ratón y toque); `setActiveProject` señala y `releaseActiveProject` suelta solo si sigue señalado; la escena lo lee en cada frame con `getState()` e ilumina su placa, y la fila lo marca con su selector) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto y, hasta F5, en la ficha); desde F4.3, la escena lee en cada frame, con `getState()`, `activeSkillGroup` (las constelaciones) y, desde F4.4, `activeProject` (las placas y los pins); desde F5, la placa visitada |
 | `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028; `setScrollTarget` no deja pasar lo que no sea un número finito), el interludio que se lee (`interlude`, fase C: lo escribe el viaje con `setReadingInterlude` en la pantalla y la cola del interludio), la carga de la detonación (`charge`, desde F4.1: la escribe el bucle del botón del hero en cada frame mientras carga o se descarga, ADR-030) y, más adelante en F4, peso de capítulos (el ratón no: lo escribe `scene/pointer` en el `SceneFrame`) | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget` y `charge` y deja su `m` suavizada y la carga en el `SceneFrame` que leen los `useFrame`; los efectos del Big Bang del hero (`useBigBang`, ADR-030) por suscripción, en su propio bucle y **sin re-render**; el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen la parada activa (`selectActiveStop`: el interludio mientras se lee, o el capítulo `round(m)`), y el HUD la lee para esconderse en una transmisión (un interludio o el epílogo, `isTransmissionStop`); las fotos fijas del modo sin WebGL eligen `selectActiveChapter` (solo se repintan al cambiar) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
@@ -300,13 +307,15 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   ADR-027). Sin WebGL: clase `no-gl` en `<html>`, el lienzo se desmonta y un aviso, una vez por visita. `SceneRoot`
   marca su envoltorio con `data-ready` cuando existe el renderer, con `data-level` (su nivel), con `data-shapes`
   (`worker` | `main`) cuando tiene las formas, con `data-particles="painted"` tras su primer frame con partículas y
-  con `data-paused="true"` mientras el bucle está en pausa (`scene/pause`): lo esperan los e2e. Entonces
+  con `data-paused="true"` mientras el bucle está en pausa (`scene/pause`) y con `data-plate` (el slug del proyecto
+  cuya placa se ilumina, F4.4): lo esperan los e2e. Entonces
   `SceneMount` pone `scene-on` en `<html>` (el punto CSS del hero se funde).
 - `SceneRoot` monta el `<Canvas>` fijo detrás del contenido (`--z-scene`), `aria-hidden`, sin puntero (R3F pone
   `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. Pinta con su propio
   bucle (`frameloop="never"` + `scene/frameLoop`, ADR-027) las partículas (`Particles`), las estrellas de fondo
   (`BackgroundStars`) y las constelaciones (`Constellations`), con sus etiquetas en una capa del DOM aparte, montada
-  en `body` (`ConstellationLabels`, `--z-labels`); la cámara la mueve `CameraRig` (`docs/04-escena/camara-y-encuadre.md`), con el ratón de
+  en `body` (`ConstellationLabels`, `--z-labels`), y los pins de las placas (`PlatePins`, en otra capa igual); la
+  placa iluminada (`math/plateCycle`) va en `SceneFrame.plate` y de ahí a `uPlate`; la cámara la mueve `CameraRig` (`docs/04-escena/camara-y-encuadre.md`), con el ratón de
   `scene/pointer` y si es escritorio de `watchMediaQuery`; con el mismo ratón, la gravedad del cursor
   (`math/gravity`). Al montar pide las formas al worker; si falla, las genera
   una vez en el hilo principal a nivel Bajo, y si eso también falla, Apagado (`docs/04-escena/rendimiento.md` →

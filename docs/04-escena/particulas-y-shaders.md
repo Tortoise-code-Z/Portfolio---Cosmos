@@ -94,7 +94,7 @@ void main() {
 - Solo se evalúan **dos formas** por vértice (la actual y la siguiente).
 - Animaciones propias de cada forma dentro de `shape()`: giro lento (nebulosa, galaxia, Tierra), aletas,
   balanceo y estela de la tortuga, iluminación de la Tierra. Las oscilaciones (aletas, balanceo, cabeceo,
-  estela) van multiplicadas por `uMotion`; los giros no: se paran porque `uTime` se congela con movimiento
+  estela, el pulso de la placa encendida) van multiplicadas por `uMotion`; los giros no: se paran porque `uTime` se congela con movimiento
   reducido.
 
 ### Gravedad del cursor

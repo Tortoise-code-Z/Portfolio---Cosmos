@@ -1,4 +1,10 @@
-import type { BrowserContext, Locator, Page } from '@playwright/test';
+import {
+  expect,
+  type BrowserContext,
+  type Locator,
+  type Page,
+  type TestInfo,
+} from '@playwright/test';
 
 import { projectEntries } from '../../../src/content/projects/entries.ts';
 import type { ProjectEntry } from '../../../src/content/types.ts';
@@ -44,6 +50,19 @@ export const PARTICLES_PAINTED = '[data-particles="painted"]:has(canvas)';
 /** ¿Tiene este navegador WebGL2? (en el CI, Firefox o WebKit sin GPU pueden no tenerlo). */
 export async function browserHasWebGL2(page: Page): Promise<boolean> {
   return page.evaluate(() => document.createElement('canvas').getContext('webgl2') !== null);
+}
+
+/**
+ * Salta el test si este navegador no tiene WebGL2 aquí. Mira en `about:blank`, sin cargar el sitio (la página se
+ * queda ahí: cada test va después adonde necesite). Chromium siempre lo tiene (SwiftShader sin GPU): si le faltara,
+ * el test falla en vez de saltarse en silencio.
+ */
+export async function skipWithoutWebGL2(page: Page, testInfo: TestInfo): Promise<void> {
+  await page.goto('about:blank');
+  const hasWebGL2 = await browserHasWebGL2(page);
+  if (testInfo.project.name === 'chromium')
+    expect(hasWebGL2, 'Chromium must have WebGL2').toBe(true);
+  testInfo.skip(!hasWebGL2, 'This browser has no WebGL2 here');
 }
 
 /**
