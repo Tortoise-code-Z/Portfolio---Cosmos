@@ -210,6 +210,31 @@ escena)
 - PageSpeed trae una categoría nueva, «Navegación agéntica» (en desarrollo): 2/2 en las dos páginas.
 - `npm audit` (completo y con `--omit=dev`): 0 vulnerabilidades.
 
+**Cierre de la fase C · 2026-11-23 · Lighthouse 13.6.0** (build de `main` en `4570576`; la misma versión y las
+mismas páginas que en F3; sin PageSpeed hasta F6)
+
+| Medida | Página | Performance | Accessibility | Best Practices | SEO | LCP | CLS | TBT |
+|---|---|---|---|---|---|---|---|---|
+| Móvil simulado, build local (contenedor Linux, sin GPU) | `/` | 98 | 100 | 100 | 100 | 0,8 s | 0 | 160 ms |
+| Lo mismo | `/es` | 99 | 100 | 100 | 100 | 0,8 s | 0 | 94 ms |
+| Lo mismo | `/projects/chessmate` | 95 | 100 | 100 | 100 | 2,8 s | 0 | 69 ms |
+| Lo mismo | `/es/projects/astrohub` | 95 | 100 | 100 | 100 | 2,9 s | 0 | 15 ms |
+| Lo mismo | `/projects/cosmos` | 100 | 100 | 100 | 100 | 0,8 s | 0 | 16 ms |
+| Lo mismo | `/404` | 100 | 100 | 100 | 54 | 0,8 s | 0 | 0 ms |
+
+- Chrome for Testing 153 sin cabeza y sin GPU: la escena se apaga sin descargar Three.js ni las fotos fijas (ninguna
+  de las 18 peticiones de `/` es de la escena). Mide el modo sin WebGL, como en F3.
+- Mediana de cada medida en tres pasadas por página. La primera tras arrancar `npm run preview` (`/`, 90, TBT
+  396 ms) no se apunta.
+- Frente a F3, la home pierde un punto (99 → 98) y su TBT sube de 90 a 160 ms con las secciones de la fase C (Mission
+  log, Mission control y Crew file; 570 elementos en el DOM de `/`). Lejos del mínimo del brief (Performance ≥ 85).
+  Las fichas de Chessmate y AstroHub, como en F3: la LCP (la portada) algo por encima de 2,5 s en local.
+- La 404 da SEO 54 a propósito, como en F3: `noindex` y sin meta description.
+- `npm audit --omit=dev`: 0 vulnerabilidades. El completo da 10 moderadas, todas de herramientas de lint (nada llega
+  al build): `minimatch` 10.2.6 (GHSA-g3hv-75wg-m249) a través de `eslint` 10.12.0, `typescript-eslint` 8.71.1 y
+  `eslint-plugin-jsx-a11y-x` 0.2.0. `npm audit fix` no lo arregla y `--force` propone bajar
+  `eslint-plugin-jsx-a11y-x` a 0.1.1: no se aplica; queda en `STATE.md`.
+
 ## Definición de «hecho» (por tarea)
 
 1. `npm run check` en verde y build correcto (un commit de solo docs, ADR-033: solo `npm run check`); `npm run visual` (Docker) si cambia algo visible y, si es a
