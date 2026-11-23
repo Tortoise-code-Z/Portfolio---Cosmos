@@ -48,6 +48,8 @@ const DOCUMENTED_ROLES: Readonly<Partial<Record<ScenePaletteName, string>>> = {
   earthClouds: '#f2f7ff',
   earthAtmosphere: '#599eff',
   earthDawn: '#ff7326',
+  sunCore: '#ffb070',
+  sunGlow: '#ff8a3d',
   portraitGlow: '#6dff9f',
   portraitHot: '#d5ffe4',
   portraitDeep: '#21804d',

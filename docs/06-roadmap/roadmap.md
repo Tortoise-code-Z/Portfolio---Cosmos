@@ -125,6 +125,9 @@ no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierr
    pins, con el balanceo de la tortuga compartido entre TypeScript y GLSL y en escalera si chocan. Hecho: F4.4a
    (PR #114) y F4.4b (PR #115).)*
 5. **Tierra:** día/noche, amanecer, luces de ciudad, atmósfera y Sol.
+   *(Hecho en F4.5: la Tierra traía de F3 el día y la noche, el amanecer, las luces de ciudad y la atmósfera; F4.5
+   suma el Sol, un brillo que mira a la cámara sobre el limbo superior izquierdo (`scene/Sun`), del que sale la luz
+   de la Tierra (`SUN_DIR`), y la gravedad del cursor a la mitad sobre la Tierra. Pesó 447 B de sus 3 KB.)*
 
 Con la galaxia y la tortuga hechas (pasos 3 y 4), la ficha de **Cosmos** suma sus constelaciones: entró en C.5
 como «Skill constellations that light up with the mouse, keyboard or touch»; las placas, cuando tengan interacción

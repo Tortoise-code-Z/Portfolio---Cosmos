@@ -7,6 +7,8 @@ import particlesFragment from '../particles/particles.frag.glsl?raw';
 import particlesVertex from '../particles/particles.vert.glsl?raw';
 import starsFragment from '../stars/stars.frag.glsl?raw';
 import starsVertex from '../stars/stars.vert.glsl?raw';
+import sunFragment from '../sun/sun.frag.glsl?raw';
+import sunVertex from '../sun/sun.vert.glsl?raw';
 import { stripGlslComments } from './stripGlslComments';
 
 const SHADERS = {
@@ -17,6 +19,8 @@ const SHADERS = {
   constellationsVertex,
   constellationStarsFragment,
   constellationLinesFragment,
+  sunVertex,
+  sunFragment,
 };
 
 /** Las líneas con código de verdad, sin comentarios a mano: lo que no puede cambiar. */
