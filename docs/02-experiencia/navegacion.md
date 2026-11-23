@@ -35,7 +35,7 @@
 | Logo `TORTOISE_CODE` | Vuelve al inicio (y al hero), con el foco en el nombre |
 | Chip «Open to work» | Desde md (900 px) y solo si el perfil dice que busco trabajo; enlaza a `#contact` con el mismo salto que Contact |
 | Projects · Contact | Saltan a su capítulo como el raíl, con el foco en su título (ocultos en móvil: el raíl los sustituye) |
-| CV | Solo si existe el PDF del idioma activo |
+| CV | Solo si hay PDF para el idioma activo (en los dos, el inglés). Se descarga, como los demás enlaces al CV; en español, su nombre accesible es «CV (PDF, en inglés)» (contiene el texto visible) |
 | EN / ES | Cambia de idioma conservando el capítulo activo; el idioma actual no navega |
 | Quick mission | Abre el modo misión rápida. Por debajo de 520 px enseña «Quick» / «Rápida» (el nombre accesible sigue siendo el completo) |
 
@@ -80,7 +80,7 @@ shell», arriba, y los enlaces del pie (GitHub, LinkedIn y el email).
 - Botón siempre visible en la barra. Abre un `<dialog>` modal a pantalla completa con **todo el contenido** en
   una página limpia: sobre mí, proyectos (con enlace a su página, demo y código), experiencia (las prácticas:
   puesto, empresa, lugar, periodo y lo que hizo), cómo trabajo (la frase y los cinco pasos de Mission control),
-  habilidades, formación, disponibilidad (abierto a trabajar, incorporación
+  habilidades, formación (con los idiomas, con su etiqueta), disponibilidad (abierto a trabajar, incorporación
   inmediata, modalidad, reubicación, ubicación y permiso de trabajo) y contacto (con su botón de copiar el email). El contenido solo se monta al abrir: el HTML
   pre-renderizado no repite el texto del viaje.
 - Foco al botón «Close quick mission» al abrir; `Esc` y ese botón cierran y devuelven el foco al botón de apertura

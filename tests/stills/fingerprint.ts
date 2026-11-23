@@ -43,8 +43,11 @@ export const STILLS_SOURCES = [
   'tests/stills/stills.spec.ts',
 ] as const;
 
-/** Lo que no cambia las fotos: los tests. */
-const NOT_A_SOURCE = /\.test\.tsx?$/;
+/**
+ * Lo que no cambia las fotos: los tests y sus ayudas dentro de una carpeta de la lista (`mapM/chapterSteps.ts`, que la
+ * web no usa: tocarla pediría `npm run stills` sin que cambiara ninguna foto).
+ */
+const NOT_A_SOURCE = /\.test\.tsx?$|\/mapM\/chapterSteps\.ts$/;
 /**
  * Solo el código, los shaders, los estilos y las imágenes del retrato: un archivo suelto que no sigue git (un `.orig` de un merge, una nota)
  * cambiaría la huella en un equipo y no en el CI.

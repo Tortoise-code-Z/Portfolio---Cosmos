@@ -1,6 +1,14 @@
 import { expect, type Page } from '@playwright/test';
 
-import { collectErrors, hud, settleScene, withoutWebGL } from './support/helpers.ts';
+import {
+  brokenWords,
+  collectErrors,
+  hud,
+  lineClips,
+  settleScene,
+  TELETYPE_WRITTEN,
+  withoutWebGL,
+} from './support/helpers.ts';
 import { test } from './support/test.ts';
 
 /**
@@ -12,25 +20,6 @@ import { test } from './support/test.ts';
 
 const transmission = (page: Page) => page.locator('[data-interlude="mission-log"]');
 const rail = (page: Page) => page.getByRole('navigation', { name: /^(?:Chapters|Capítulos)$/ });
-
-/** Una línea del teletipo ya escrita: el recorte se abre más allá de la caja, para no cortar su brillo. */
-const WRITTEN = 'inset(-24px)';
-
-/** El `clip-path` calculado de cada línea del teletipo (`none` sin armar, o `WRITTEN` si ya se ha escrito). */
-const lineClips = (page: Page): Promise<string[]> =>
-  transmission(page)
-    .locator('[data-line]')
-    .evaluateAll((lines) => lines.map((line) => getComputedStyle(line).clipPath));
-
-/** Lo que se sale de su caja sin dar scroll (lo corta `overflow: hidden`): `scrollWidth` frente a `clientWidth`. */
-const overflowing = (page: Page, selector: string): Promise<string[]> =>
-  transmission(page)
-    .locator(selector)
-    .evaluateAll((elements) =>
-      elements
-        .filter((element) => element.scrollWidth > element.clientWidth)
-        .map((element) => element.textContent.slice(0, 40)),
-    );
 
 test.describe('the Mission log', () => {
   test('/#mission-log lands on it: its title under the bar, the rail on its diamond and the clock stopped at the nebula', async ({
@@ -151,16 +140,38 @@ test.describe('the Mission log', () => {
     );
   });
 
-  test('390 px with text at 200 %: the title and the manifest wrap instead of being cut', async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/#mission-log', { waitUntil: 'networkidle' });
-    await page.evaluate(() => {
-      document.documentElement.style.fontSize = '200%';
+  for (const width of [360, 390]) {
+    for (const path of ['/', '/es']) {
+      test(`${path} at ${String(width)} px with text at 200 %: nothing of the Mission log is cut`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width, height: 800 });
+        await page.goto(`${path}#mission-log`, { waitUntil: 'networkidle' });
+        await page.evaluate(() => {
+          document.documentElement.style.fontSize = '200%';
+        });
+        // Lo que se sale de su caja sin dar scroll (lo corta `overflow: hidden`): `scrollWidth` frente a `clientWidth`.
+        const cut = await transmission(page)
+          .locator('h2, h3, li, dd, dt, p, a, figcaption, blockquote')
+          .evaluateAll((elements) =>
+            elements
+              .filter((element) => element.scrollWidth > element.clientWidth)
+              .map((element) => element.textContent.slice(0, 40)),
+          );
+        expect(cut).toEqual([]);
+      });
+    }
+  }
+
+  for (const path of ['/', '/es']) {
+    test(`${path} at 1024×768 (between md and lg): no word of the manifest or the log is split in two`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1024, height: 768 });
+      await page.goto(`${path}#mission-log`, { waitUntil: 'networkidle' });
+      expect(await brokenWords(transmission(page))).toEqual([]);
     });
-    expect(await overflowing(page, 'h2, li')).toEqual([]);
-  });
+  }
 
   test('844×390 (a phone on its side): the teletype switches on and writes every line, however tall it is', async ({
     page,
@@ -186,7 +197,7 @@ test.describe('the Mission log', () => {
           .last()
           .evaluate((line) => getComputedStyle(line).clipPath),
       )
-      .toBe(WRITTEN);
+      .toBe(TELETYPE_WRITTEN);
   });
 
   test('390 px: no sideways scroll, and «Skip» is a 44 px target', async ({ page }) => {
@@ -209,7 +220,7 @@ test.describe('the Mission log', () => {
     // Hidratada (la escena ha dicho si pinta): sin armar no es «aún no ha llegado el JavaScript».
     await settleScene(page);
     await expect(transmission(page)).not.toHaveAttribute('data-armed');
-    expect(new Set(await lineClips(page))).toEqual(new Set(['none']));
+    expect(new Set(await lineClips(transmission(page)))).toEqual(new Set(['none']));
     await expect(transmission(page).getByText('End of transmission')).toBeVisible();
     await expect(transmission(page).locator('[class*="cursor"]')).toHaveCSS(
       'animation-name',
@@ -233,7 +244,7 @@ test.describe('the Mission log', () => {
           .last()
           .evaluate((line) => getComputedStyle(line).clipPath),
       )
-      .toBe(WRITTEN);
+      .toBe(TELETYPE_WRITTEN);
   });
 
   test('without WebGL it reads whole, over the still photo of the nebula', async ({ page }) => {
@@ -245,7 +256,9 @@ test.describe('the Mission log', () => {
     // Sin WebGL el teletipo sigue (es CSS): al acabar, ninguna línea tapada.
     await expect
       .poll(async () =>
-        (await lineClips(page)).every((clip) => clip === 'none' || clip === WRITTEN),
+        (await lineClips(transmission(page))).every(
+          (clip) => clip === 'none' || clip === TELETYPE_WRITTEN,
+        ),
       )
       .toBe(true);
     await expect(page.locator('[data-scene-stills] img[data-still-chapter="1"]')).toHaveAttribute(

@@ -127,7 +127,6 @@ export interface Education {
 
 export interface Profile {
   readonly name: string;
-  readonly fullName: string;
   readonly alias: string;
   readonly role: Localized;
   /** Línea corta para SEO y tarjetas. */

@@ -1,4 +1,4 @@
-import type { BrowserContext, Page } from '@playwright/test';
+import type { BrowserContext, Locator, Page } from '@playwright/test';
 
 import { projectEntries } from '../../../src/content/projects/entries.ts';
 import type { ProjectEntry } from '../../../src/content/types.ts';
@@ -162,3 +162,33 @@ export async function forceLowScene(target: Page | BrowserContext): Promise<void
     });
   }, LOW_MEMORY_GB);
 }
+
+/** Una línea del teletipo de las transmisiones ya escrita: el recorte se abre más allá de la caja (no corta su brillo). */
+export const TELETYPE_WRITTEN = 'inset(-24px)';
+
+/** El `clip-path` calculado de cada línea del teletipo de una transmisión (`none` sin armar, o `TELETYPE_WRITTEN`). */
+export const lineClips = (section: Locator): Promise<string[]> =>
+  section
+    .locator('[data-line]')
+    .evaluateAll((lines) => lines.map((line) => getComputedStyle(line).clipPath));
+
+/**
+ * Las palabras partidas por la mitad (`overflow-wrap: anywhere` las corta cuando no caben en su caja): cada palabra de
+ * cada texto visible de la sección, medida con un `Range`; partida, da más de un rectángulo (uno por renglón). Un guion
+ * es un corte legítimo: las palabras se separan por espacios y por guiones.
+ */
+export const brokenWords = (section: Locator): Promise<string[]> =>
+  section.evaluate((root) => {
+    const broken: string[] = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+      const text = node.textContent ?? '';
+      for (const match of text.matchAll(/[^\s\-‑–—·/]+/gu)) {
+        const range = document.createRange();
+        range.setStart(node, match.index);
+        range.setEnd(node, match.index + match[0].length);
+        if (range.getClientRects().length > 1) broken.push(match[0]);
+      }
+    }
+    return broken;
+  });

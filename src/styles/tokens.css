@@ -65,9 +65,10 @@
 
   /*
    * ── Color · transmisiones (interludios y epílogo, ADR-034) ─────────
-   * Un canal por sección (design-system.md → «Transmisiones»). El color, el atenuado y el brillante cumplen AA sobre
-   * el fondo de su canal (lo comprueba styles.test.ts); el velo es ese fondo casi opaco, para que la forma del
-   * capítulo de antes se vea atenuada detrás. Rejilla, líneas y brillo: decoración.
+   * Un canal por sección (design-system.md → «Transmisiones»). El velo es el fondo del canal casi opaco: detrás se ve
+   * atenuada la escena (en los interludios, la forma del capítulo de antes; el epílogo, abierto, no lo lleva y su
+   * retrato se ve entero). El color, el atenuado y el brillante cumplen AA sobre el velo encima de una escena blanca,
+   * el peor caso (lo comprueba styles.test.ts). Rejilla, líneas y brillo: decoración.
    */
   --color-channel-amber: #ffb547;
   --color-channel-amber-dim: #b98636;
@@ -94,7 +95,7 @@
   --color-channel-green-line: rgb(109 255 159 / 0.3);
   --color-channel-green-glow: rgb(109 255 159 / 0.45);
   --color-channel-scanline: rgb(0 0 0 / 0.22);
-  /* Cuadrícula doble de plano (120 px y 24 px) del canal ámbar, y la banda de luz del barrido de entrada. */
+  /* Cuadrícula doble de plano (120 px y 24 px) de cada canal, y la banda de luz del barrido de entrada. */
   --gradient-channel-amber-grid:
     repeating-linear-gradient(
       to right,
@@ -311,8 +312,13 @@
   /* La onda del pie: ancho máximo y grosor del trazo (en unidades del SVG). */
   --wave-max-w: 360px;
   --wave-stroke: 1.5;
-  /* Mission log: columna mínima de la ficha, círculo del número, columna de la etiqueta (ARREGLADO en 10 letras). */
+  /*
+   * Mission log: columna mínima de la ficha (también la del Crew file en una columna), círculo del número de una
+   * entrada del registro y columna de su etiqueta (ARREGLADO en 10 letras).
+   */
   --record-col-min: 150px;
+  --log-number-size: 2.2em;
+  --log-tag-w: 10ch;
   /*
    * Crew file: el visor del retrato. Alto en móvil y tableta (un hueco en la columna, del alto del retrato en pantalla:
    * ~58 % del ancho entre los aspectos 0,55 y 1,25, algo más en un móvil, ~68 %, y ~72 % del alto en una pantalla
@@ -351,15 +357,14 @@
       var(--border-width) no-repeat,
     linear-gradient(currentcolor, currentcolor) bottom right / var(--border-width)
       var(--visor-corner) no-repeat;
-  --log-number-size: 2.2em;
-  --log-tag-w: 10ch;
   /* Cursor de bloque del teletipo de las transmisiones (`BlinkCursor`) y cuántas veces parpadea (< 5 s: WCAG 2.2.2). */
   --cursor-w: 0.6em;
   --cursor-h: 1em;
   --blink-count: 4;
   /*
    * Mission control: el tamaño de la letra del «T-0» (un tercio del ancho; como mucho 13 rem, y nunca más del 40 % del
-   * ancho, para que las tres letras, 1,8 em, quepan en una línea también con la letra al 200 %), la columna mínima de
+   * ancho ni de su columna —`MissionControl.module.css`—, para que las tres letras, 1,8 em, quepan en una línea también
+   * con la letra al 200 %), la columna mínima de
    * la telemetría, el alto de la cota «no code yet» y del bucle del esquema, y la punta de sus flechas.
    */
   --countdown-size: min(clamp(5rem, 33vw, 13rem), 40vw);

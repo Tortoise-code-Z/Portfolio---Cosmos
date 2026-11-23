@@ -117,8 +117,8 @@ cosmos-portfolio/
 │  │                               (las saca `npm run stills`; ADR-029)
 │  └─ assets/portrait/          ← las dos imágenes del retrato (forma 5): la foto y el paquete de profundidad
 │                                  (las escribe scripts/portrait/; las descarga el worker con `?url`)
-├─ public/                      ← favicon.svg, apple-touch-icon.png, og/, cv/ (robots.txt y sitemap.xml
-│                                  se generan en el build)
+├─ public/                      ← favicon.svg y el CV (Victor_Perez_CV.pdf); apple-touch-icon.png y og/, en F6
+│                                  (robots.txt y sitemap.xml se generan en el build)
 ├─ tests/
 │  ├─ e2e/                      ← Playwright: recorridos (support/: ayudas y el `test` de los specs, que en
 │  │                              los tres motores arranca la escena en Bajo)
@@ -131,8 +131,9 @@ cosmos-portfolio/
 │                                 docs (ADR-033): docsOnly.ts, con su test, y la orden docs-only.ts. Y el
 │                                 contador de las cifras de Mission control (ADR-035): siteTelemetry.ts, con su
 │                                 test, un plugin de Vite (y de Vitest) que sirve `virtual:site-telemetry`. Y
-                                 portrait/: los Python que sacan de una foto las imágenes del retrato (fuera del
-                                 build; su README)
+│                                 eslintDoors.test.ts, que prueba las puertas de ESLint del detalle de las fichas
+│                                 (ADR-036). Y portrait/: los Python que sacan de una foto las imágenes del
+│                                 retrato (fuera del build; su README)
 ├─ docs/                        ← esta documentación
 ├─ .github/workflows/ci.yml
 └─ (configs) react-router.config.ts · vite.config.ts · vitest.config.ts · playwright.config.ts · playwright.visual.config.ts · playwright.stills.config.ts ·

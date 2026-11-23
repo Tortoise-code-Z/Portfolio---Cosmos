@@ -14,6 +14,7 @@ export const es: UiTexts = {
   'nav.projects': 'Proyectos',
   'nav.contact': 'Contacto',
   'nav.cv': 'CV',
+  'nav.cvInEnglish': 'CV (PDF, en inglés)',
   'nav.quick': 'Modo misión rápida',
   'nav.quickShort': 'Rápida',
   'nav.language': 'Idioma',

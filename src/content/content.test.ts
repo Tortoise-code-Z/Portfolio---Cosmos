@@ -3,6 +3,7 @@
 // funciones `find…` están probadas con casos rotos en `validate.test.ts`; lo que se comprueba aquí en línea
 // (capítulos, idiomas, galerías de las fichas, qué proyectos tienen imágenes) es una lista escrita a mano a propósito.
 
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -56,6 +57,36 @@ import {
  * import.meta.url)`: Vite reescribe ese patrón como la URL de un asset.
  */
 const PUBLIC_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public');
+
+/**
+ * El CV que se revisó contra el sitio (public/Victor_Perez_CV.pdf, al cerrar la fase C) y lo que dice, tal cual. Al copiar
+ * un CV nuevo, su huella cambia y el test pide revisar esta tabla contra él (y el sitio, si algo cambió).
+ */
+const CV_PDF_SHA256 = '824d8c63b5846e39c65d30cdb67aa63b44ea6d314eea3b46e8b243839b3ef9da';
+const CV_FACTS = {
+  email: 'victorperez@tortoisecode.dev',
+  github: 'https://github.com/Tortoise-code-Z',
+  linkedin: 'https://www.linkedin.com/in/v%C3%ADctor-p%C3%A9rez-developer',
+  city: 'Killarney',
+  workPermit: 'EU citizen – full right to work in Ireland',
+  availableNow: true,
+  modes: ['remote', 'hybrid', 'onsite'],
+  relocation: true,
+  role: 'Software Developer Intern',
+  company: 'Studios Demanzon',
+  where: 'Remote · Tenerife, Spain',
+  when: 'Jul 2026 – Oct 2026',
+  course: 'Advanced Course in Web Programming (Full-Stack)',
+  school: 'Master.D',
+  courseWhen: 'Jan 2023 – Oct 2024',
+  courseHours: 975,
+  grade: 'Distinction',
+  reactCourse: 'React + TypeScript Course',
+  reactSchool: 'Hola Mundo',
+  reactWhen: '2025',
+  reactHours: 13,
+  languages: ['Spanish', 'English'],
+} as const;
 
 /** Una captura de la galería como la escribe su ficha: archivo (sin extensión), alt EN y alt ES. */
 type ExpectedImage = readonly [file: string, en: string, es: string];
@@ -198,7 +229,7 @@ describe('contenido', () => {
     expect(new Set(anchors).size).toBe(anchors.length);
   });
 
-  it('la misión: el registro son las seis viñetas del CV y cada módulo apunta a entradas que existen', () => {
+  it('la misión: el registro tiene seis entradas (una por viñeta del CV) y el manifiesto las cubre todas', () => {
     expect(experience.log).toHaveLength(6);
     const numbers = experience.log.map((_, index) => index + 1);
     const referenced = new Set(experience.modules.flatMap((module) => module.entries));
@@ -270,6 +301,41 @@ describe('contenido', () => {
       expect(cv).toMatch(/^\/[\w.-]+\.pdf$/);
       expect(readFileSync(join(PUBLIC_DIR, cv)).subarray(0, 5).toString()).toBe('%PDF-');
     }
+  });
+
+  // El sitio no contradice el CV (fase C): los datos que repite, comparados con lo que dice el PDF revisado. Si el PDF
+  // cambia (un CV nuevo copiado a public/), falla la huella: se revisa CV_FACTS contra el PDF nuevo y se pone su hash.
+  it('el sitio dice lo mismo que el CV en los datos que repite, y el PDF es el que se revisó (sha256)', () => {
+    const pdf = readFileSync(join(PUBLIC_DIR, profile.cv.en ?? ''));
+    expect(
+      createHash('sha256').update(pdf).digest('hex'),
+      'CV nuevo: revisa CV_FACTS contra el PDF y actualiza CV_PDF_SHA256',
+    ).toBe(CV_PDF_SHA256);
+    const [course, reactCourse] = profile.education;
+    expect({
+      email: profile.contact.email,
+      github: profile.contact.github,
+      linkedin: profile.contact.linkedin,
+      city: profile.location.city,
+      workPermit: profile.availability.workPermit.en,
+      availableNow: profile.availability.availableNow,
+      modes: profile.availability.modes,
+      relocation: profile.availability.openToRelocation,
+      role: experience.role.en,
+      company: experience.company,
+      where: experience.location.en,
+      when: experience.period.en,
+      course: course?.title.en,
+      school: course?.school,
+      courseWhen: course?.period.en,
+      courseHours: course?.hours,
+      grade: course?.grade?.en,
+      reactCourse: reactCourse?.title.en,
+      reactSchool: reactCourse?.school,
+      reactWhen: reactCourse?.period.en,
+      reactHours: reactCourse?.hours,
+      languages: profile.languages.map((language) => language.en),
+    }).toEqual(CV_FACTS);
   });
 
   it('formación con ids únicos y horas enteras positivas', () => {

@@ -24,7 +24,8 @@ const toContact = onChapterLinkClick(4);
 /**
  * Barra superior fija (docs/02-experiencia/navegacion.md → «Barra superior»; componentes.md): logo,
  * chip «Open to work» (desde md), Projects y Contact (ocultos en móvil: el raíl los sustituye), CV si
- * existe el PDF del idioma, EN / ES y el botón del modo misión rápida. Los enlaces son de verdad
+ * hay PDF para el idioma (en los dos, el inglés: se descarga y, en español, su nombre lo dice), EN / ES y el botón
+ * del modo misión rápida. Los enlaces son de verdad
  * (`/#projects`): sin JavaScript también llevan a su sitio; en el viaje hacen el mismo salto que el
  * raíl, con el foco en el título. «Quick mission» es un botón que abre un diálogo; por debajo de sm
  * (520 px) enseña una forma corta («Quick»), contenida en su nombre accesible. En una página de
@@ -39,6 +40,9 @@ export function TopBar({ pathFor }: TopBarProps): ReactNode {
   const t = useT();
   const locale = useLocale();
   const cv = profile.cv[locale];
+  // El PDF que se ofrece en este idioma puede ser el inglés (desde C.1, en los dos): su idioma y, si no es el de la
+  // página, su nombre accesible lo dicen, como los otros enlaces al CV («Descargar CV (PDF, en inglés)»).
+  const cvLocale = cv !== null && cv === profile.cv.en ? 'en' : locale;
 
   return (
     <header className={styles.bar}>
@@ -54,7 +58,14 @@ export function TopBar({ pathFor }: TopBarProps): ReactNode {
           {t('nav.contact')}
         </Link>
         {cv !== null && (
-          <a href={cv} className={cx(styles.link, styles.cv)}>
+          <a
+            href={cv}
+            className={cx(styles.link, styles.cv)}
+            download
+            hrefLang={cvLocale}
+            type="application/pdf"
+            aria-label={cvLocale === locale ? undefined : t('nav.cvInEnglish')}
+          >
             {t('nav.cv')}
           </a>
         )}

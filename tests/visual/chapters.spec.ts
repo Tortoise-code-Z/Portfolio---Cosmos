@@ -11,7 +11,8 @@ import { forceLowScene, PARTICLES_PAINTED, withoutWebGL } from '../e2e/support/h
 /**
  * Un estado por capítulo (docs/05-tecnico/calidad.md → «Regresión visual»): se entra por su ancla, así que la
  * escena arranca en su `m` exacto (ADR-028), y se espera a que haya partículas pintadas (en el epílogo, también el
- * retrato) y a que lleguen las fuentes. Siempre en nivel Bajo (ver `beforeEach`). El año de la firma del sitio va
+ * retrato) y a que lleguen las fuentes. Siempre en nivel Bajo (ver `beforeEach`) y, como todas las capturas, con
+ * movimiento reducido (`playwright.visual.config.ts`: el epílogo, sin teletipo). El año de la firma del sitio va
  * tapado (`data-site-year`).
  */
 /**
@@ -37,8 +38,6 @@ for (const index of CHAPTER_INDICES) {
   const name = `chapter-${String(index)}-${anchor ?? 'start'}`;
 
   test(`chapter ${String(index)} (${anchor ?? 'start'}) looks as it should`, async ({ page }) => {
-    // El epílogo se pinta como una transmisión: con movimiento reducido, como los interludios (sin teletipo).
-    if (index === EPILOGUE) await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(anchor === null ? '/' : `/#${anchor}`);
     await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-level', 'low', {
       timeout: SCENE_TIMEOUT_MS,
@@ -60,14 +59,13 @@ for (const index of CHAPTER_INDICES) {
 }
 
 /**
- * Los interludios (fase C): la pantalla de la transmisión, entrando por su ancla, con movimiento reducido (sin barrido,
- * teletipo ni cursor que parpadee: la foto es estable). Detrás, la forma del capítulo de antes, atenuada. Las cifras de
+ * Los interludios (fase C): la pantalla de la transmisión, entrando por su ancla. Como todas las capturas, con
+ * movimiento reducido (`playwright.visual.config.ts`): sin barrido, teletipo ni cursor que parpadee. Detrás, la forma del capítulo de antes, atenuada. Las cifras de
  * la telemetría de Mission control y su mes (`data-telemetry`) cambian con cada test o ADR nuevo y cada mes: van
  * tapadas (las comprueba su e2e, `mission-control.spec.ts`).
  */
 for (const interlude of INTERLUDES) {
   test(`interlude ${interlude.id} looks as it should`, async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(`/#${interlude.anchor}`);
     await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-level', 'low', {
       timeout: SCENE_TIMEOUT_MS,

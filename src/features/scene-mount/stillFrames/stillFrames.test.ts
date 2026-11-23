@@ -6,9 +6,10 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
+import { CHAPTER_INDICES } from '~/content/chapters';
 import { LEVEL_SETTINGS } from '~/lib/device/sceneLevel/sceneLevel';
 
-import { DESKTOP_STILL_QUERY, STILL_FRAMES, stillFileName } from './stillFrames';
+import { DESKTOP_STILL_QUERY, STILL_CHAPTERS, STILL_FRAMES, stillFileName } from './stillFrames';
 
 /** El CSS que encaja las fotos: sus cifras tienen que ser las de `STILL_FRAMES` (las de la cámara, camera.test.ts). */
 const css = readFileSync(
@@ -103,6 +104,13 @@ describe('STILL_FRAMES', () => {
     for (const frame of Object.values(STILL_FRAMES)) {
       expect(frame.deviceScaleFactor).toBe(LEVEL_SETTINGS[frame.level].maxDpr);
     }
+  });
+});
+
+describe('STILL_CHAPTERS', () => {
+  // Un capítulo nuevo sin foto quedaría sin fondo en el modo sin WebGL (`stillOf` da null) sin que nada fallara.
+  it('has a photo for every chapter but the singularity (the hero has its CSS dot)', () => {
+    expect(STILL_CHAPTERS).toEqual(CHAPTER_INDICES.slice(1));
   });
 });
 

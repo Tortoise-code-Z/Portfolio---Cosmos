@@ -62,8 +62,8 @@ rótulo.
   cambio a la Tierra pasa a la cola del interludio, al salir (`JOURNEY_SEGMENTS`). En la pantalla, el reloj se para
   (`m` = 3): el HUD se esconde y el pie lo dice. Las placas no reciben el puntero (la pantalla lo recoge); la cola, sí
   lo deja pasar.
-- El raíl crece a siete paradas: la reserva de las etiquetas de las estrellas (`STAR_LABEL_KEEP_OUT`, media altura
-  del raíl) pasa a 154 px.
+- El raíl creció a siete paradas en C.4 (la reserva de las etiquetas de las estrellas, `STAR_LABEL_KEEP_OUT`, media
+  altura del raíl, pasó a 154 px); desde C.6, con el Crew file, son ocho y 176 px.
 
 ## Interacciones
 
@@ -74,12 +74,13 @@ rótulo.
 
 ## Layout
 
-- **Escritorio (≥ 900 px):** dos columnas en el cuerpo (`--_body-columns`): a la izquierda el aviso, «T-0» y la frase;
+- **Escritorio ancho (≥ 1280 px, lg, como el Crew file):** dos columnas en el cuerpo (`--_body-columns`): a la izquierda el aviso, «T-0» y la frase;
   a la derecha, la telemetría; abajo, el esquema en horizontal (cinco cajas con conectores; la cota encima y el bucle
   debajo, en las columnas de sus pasos) y «Touchdown». En el DOM la telemetría va después del esquema (el orden de
   lectura de móvil); en escritorio se coloca arriba a la derecha.
-- **Móvil:** «T-0», la frase, el esquema en vertical (conectores ▼; entre Build y Audit, la nota del bucle en su
-  sitio) y la telemetría en 2 × 2.
+- **Móvil y tableta (hasta 1279 px):** «T-0», la frase, el esquema en vertical (conectores ▼; entre Build y Audit, la
+  nota del bucle en su sitio) y la telemetría en 2 × 2. Entre 900 y 1279 px, cinco cajas en fila dejaban ~10 letras y
+  partían «CONSTRUCCIÓN» o «LANZAMIENTO».
 
 ## Accesibilidad y movimiento reducido
 

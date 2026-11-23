@@ -2,7 +2,8 @@
 
 My personal portfolio, built as a story. As you scroll, time moves forward: tens of thousands of particles
 morph from a **singularity** into a **nebula**, a **galaxy**, a **cosmic turtle** that carries my projects on its
-shell, and finally **Earth**. Each stage of the universe is a section of the site.
+shell and **Earth**, and in the epilogue they rebuild **my portrait**. Each stage of the universe is a section of
+the site.
 
 The goal was a site that is visually striking and still easy to use: all the content lives in the HTML and reads
 without WebGL or JavaScript, and a **quick-mission mode** shows everything on one page.
@@ -176,7 +177,7 @@ Portfolio---Cosmos/
 │
 ├── docs/              ← vision, content, experience, design, scene and technical docs (in Spanish)
 ├── public/            ← static files (CV, favicon)
-├── scripts/           ← build-time telemetry and the Docker runners
+├── scripts/           ← build-time telemetry, the Docker runners and the portrait pipeline (Python)
 ├── src/
 │   ├── content/       ← typed data: texts, projects, skills, chapters
 │   ├── lib/           ← pure helpers

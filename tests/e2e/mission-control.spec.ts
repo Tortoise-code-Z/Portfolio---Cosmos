@@ -4,7 +4,15 @@ import { expect, type Page } from '@playwright/test';
 
 import { collectTelemetry, monthOf } from '../../scripts/siteTelemetry.ts';
 import { formatMonth } from '../../src/lib/i18n/format/format.ts';
-import { collectErrors, hud, settleScene, withoutWebGL } from './support/helpers.ts';
+import {
+  brokenWords,
+  collectErrors,
+  hud,
+  lineClips,
+  settleScene,
+  TELETYPE_WRITTEN,
+  withoutWebGL,
+} from './support/helpers.ts';
 import { test } from './support/test.ts';
 
 /**
@@ -20,14 +28,22 @@ const rail = (page: Page) => page.getByRole('navigation', { name: /^(?:Chapters|
 /** La raíz del repo: la misma que lee el build (vite.config.ts), no la carpeta desde la que se lanza el e2e. */
 const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 
-/** Una línea del teletipo ya escrita: el recorte se abre más allá de la caja, para no cortar su brillo. */
-const WRITTEN = 'inset(-24px)';
-
-/** El `clip-path` calculado de cada línea del teletipo (`none` sin armar, o `WRITTEN` si ya se ha escrito). */
-const lineClips = (page: Page): Promise<string[]> =>
+/** Partida, una cifra o el «T-0» ocupa más de un renglón: su alto pasa de su interlineado. */
+const onSeveralLines = (page: Page): Promise<(string | null)[]> =>
   transmission(page)
-    .locator('[data-line]')
-    .evaluateAll((lines) => lines.map((line) => getComputedStyle(line).clipPath));
+    .locator('dd, h2 [aria-hidden] > *')
+    .evaluateAll((elements) =>
+      elements
+        .filter((element) => {
+          const style = getComputedStyle(element);
+          const lineHeight =
+            style.lineHeight === 'normal'
+              ? Number.parseFloat(style.fontSize) * 1.2
+              : Number.parseFloat(style.lineHeight);
+          return element.getBoundingClientRect().height > lineHeight * 1.5;
+        })
+        .map((element) => element.textContent),
+    );
 
 test.describe('Mission control', () => {
   // Que la tortuga se quede quieta en su pantalla lo fija `content.test.ts` (JOURNEY_SEGMENTS) y `journey.test.tsx`
@@ -210,24 +226,30 @@ test.describe('Mission control', () => {
               .map((element) => element.textContent.slice(0, 40)),
           );
         expect(cut).toEqual([]);
-        // Partida, una cifra o el «T-0» ocupa más de un renglón: su alto pasa de su interlineado.
-        const broken = await transmission(page)
-          .locator('dd, h2 [aria-hidden] > *')
-          .evaluateAll((elements) =>
-            elements
-              .filter((element) => {
-                const style = getComputedStyle(element);
-                const lineHeight =
-                  style.lineHeight === 'normal'
-                    ? Number.parseFloat(style.fontSize) * 1.2
-                    : Number.parseFloat(style.lineHeight);
-                return element.getBoundingClientRect().height > lineHeight * 1.5;
-              })
-              .map((element) => element.textContent),
-          );
-        expect(broken).toEqual([]);
+        expect(await onSeveralLines(page)).toEqual([]);
       });
     }
+  }
+
+  for (const path of ['/', '/es']) {
+    test(`${path} at 1280×800 with text at 200 %: the «T-0» and each figure stay on one line`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await page.goto(`${path}#mission-control`, { waitUntil: 'networkidle' });
+      await page.evaluate(() => {
+        document.documentElement.style.fontSize = '200%';
+      });
+      expect(await onSeveralLines(page)).toEqual([]);
+    });
+
+    test(`${path} at 1024×768 (between md and lg): no word of the sequence or the telemetry is split in two`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1024, height: 768 });
+      await page.goto(`${path}#mission-control`, { waitUntil: 'networkidle' });
+      expect(await brokenWords(transmission(page))).toEqual([]);
+    });
   }
 
   test('with reduced motion nothing is held back: every line is there, no sweep and no teletype', async ({
@@ -237,7 +259,7 @@ test.describe('Mission control', () => {
     await page.goto('/#mission-control', { waitUntil: 'networkidle' });
     await settleScene(page);
     await expect(transmission(page)).not.toHaveAttribute('data-armed');
-    expect(new Set(await lineClips(page))).toEqual(new Set(['none']));
+    expect(new Set(await lineClips(transmission(page)))).toEqual(new Set(['none']));
     await expect(transmission(page).locator('[class*="cursor"]')).toHaveCSS(
       'animation-name',
       'none',
@@ -253,7 +275,9 @@ test.describe('Mission control', () => {
     await transmission(page).scrollIntoViewIfNeeded();
     await expect(transmission(page)).toHaveAttribute('data-on', '');
     await expect
-      .poll(async () => (await lineClips(page)).every((clip) => clip === WRITTEN))
+      .poll(async () =>
+        (await lineClips(transmission(page))).every((clip) => clip === TELETYPE_WRITTEN),
+      )
       .toBe(true);
     // Encendida, si se pide movimiento reducido el cursor deja de parpadear (su guarda de CSS).
     const cursor = transmission(page).locator('[class*="cursor"]');
@@ -269,7 +293,9 @@ test.describe('Mission control', () => {
     await expect(region.getByText('Co-pilot: Claude Code with skills I wrote')).toBeVisible();
     await expect
       .poll(async () =>
-        (await lineClips(page)).every((clip) => clip === 'none' || clip === WRITTEN),
+        (await lineClips(transmission(page))).every(
+          (clip) => clip === 'none' || clip === TELETYPE_WRITTEN,
+        ),
       )
       .toBe(true);
     await expect(page.locator('[data-scene-stills] img[data-still-chapter="3"]')).toHaveAttribute(

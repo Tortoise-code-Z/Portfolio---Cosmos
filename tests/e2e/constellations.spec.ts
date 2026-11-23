@@ -99,16 +99,27 @@ async function openSkills(page: Page, viewport: Viewport = DESKTOP, path = '/'):
   await labelsStill(page);
 }
 
+/**
+ * Lo que puede tardar la escena en quedarse quieta tras un salto de scroll. La `m` suavizada avanza como mucho un
+ * 34 % de lo que le falta por frame (`M_SMOOTHING.rate` × `MAX_STEP_S`) y para a 1e-4: un cuarto de pantalla pide
+ * ~20 frames. WebKit sin GPU en el CI va a ~3 fps con la página entera (`journey.spec.ts` → `DETONATE_TIMEOUT_MS`):
+ * ~7 s, más que los 5 s de `expect`. Solo espera lo que haga falta.
+ */
+const LABELS_STILL_TIMEOUT_MS = 15_000;
+
 /** Espera a que las etiquetas visibles no se muevan entre dos lecturas (la `m` de la escena llega suavizada). */
 async function labelsStill(page: Page): Promise<void> {
   let previous = '';
   await expect
-    .poll(async () => {
-      const now = JSON.stringify(await shownLabels(page));
-      const still = now === previous;
-      previous = now;
-      return still;
-    })
+    .poll(
+      async () => {
+        const now = JSON.stringify(await shownLabels(page));
+        const still = now === previous;
+        previous = now;
+        return still;
+      },
+      { timeout: LABELS_STILL_TIMEOUT_MS },
+    )
     .toBe(true);
 }
 
@@ -316,7 +327,10 @@ test.describe('the constellations of Skills', () => {
 
   test('while the galaxy comes in and goes out, no chapter takes the mouse from a live label', async ({
     page,
+    browserName,
   }) => {
+    // Cada paso espera a que la escena se quede quieta (`labelsStill`): en WebKit sin GPU, varios segundos por paso.
+    test.slow(browserName === 'webkit', 'WebKit without a GPU paints few frames per second in CI');
     await openSkills(page);
     const viewportHeight = DESKTOP.height;
     const { top, bottom } = await page.evaluate(() => {

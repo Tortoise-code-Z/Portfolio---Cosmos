@@ -50,9 +50,11 @@ Metáfora: en mitad del viaje llega una transmisión, el registro de la primera 
 
 ## Layout
 
-- **Escritorio:** pantalla completa; arriba el título y la ficha; abajo, el manifiesto a la izquierda (3 × 2) y el
-  registro a la derecha.
-- **Móvil:** todo en una columna: título, ficha, manifiesto (2 × 3), registro. «Skip» arriba, a 44 px.
+- **Escritorio ancho (≥ 1280 px, lg, como el Crew file):** pantalla completa; arriba el título y la ficha; abajo, el
+  manifiesto a la izquierda (3 × 2) y el registro a la derecha.
+- **Móvil y tableta (hasta 1279 px):** todo en una columna: título, ficha, manifiesto (2 × 3), registro. «Skip»
+  arriba, a 44 px. Entre 900 y 1279 px, el manifiesto en 3 columnas dentro de 5/12 del cuerpo dejaba ~9 letras por
+  caja y partía «TypeScript».
 
 ## Accesibilidad y movimiento reducido
 

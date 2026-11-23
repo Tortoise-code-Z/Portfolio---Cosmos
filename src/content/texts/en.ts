@@ -12,6 +12,7 @@ export const en = {
   'nav.projects': 'Projects',
   'nav.contact': 'Contact',
   'nav.cv': 'CV',
+  'nav.cvInEnglish': 'CV (PDF, in English)',
   'nav.quick': 'Quick mission',
   'nav.quickShort': 'Quick',
   'nav.language': 'Language',

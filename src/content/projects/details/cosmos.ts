@@ -24,8 +24,8 @@ export const cosmos: ProjectDetail = {
   },
   features: [
     {
-      en: 'Scroll-driven particle morphing across five scenes',
-      es: 'Morph de partículas guiado por el scroll en cinco escenas',
+      en: 'Scroll-driven particle morphing across six scenes',
+      es: 'Morph de partículas guiado por el scroll en seis escenas',
     },
     {
       en: 'Skill constellations that light up with the mouse, keyboard or touch',
@@ -34,6 +34,10 @@ export const cosmos: ProjectDetail = {
     {
       en: 'Two interludes as incoming transmissions: a mission log and how I work',
       es: 'Dos interludios como transmisiones entrantes: un registro de misión y cómo trabajo',
+    },
+    {
+      en: 'An epilogue, the Crew file: the same particles rebuild my portrait',
+      es: 'Un epílogo, la ficha de tripulación: las mismas partículas reconstruyen mi retrato',
     },
     { en: 'Bilingual site (English / Spanish)', es: 'Web bilingüe (inglés / español)' },
     {

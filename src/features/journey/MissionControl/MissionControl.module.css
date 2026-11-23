@@ -1,15 +1,19 @@
 /*
- * Mission control (docs/02-experiencia/capitulos/interludio-2-mission-control.md → «Layout»). Móvil: «T-0», la frase,
- * el esquema en vertical y la telemetría en 2 × 2. Escritorio: arriba, «T-0» y la frase a la izquierda y la telemetría
+ * Mission control (docs/02-experiencia/capitulos/interludio-2-mission-control.md → «Layout»). Móvil y tableta: «T-0»,
+ * la frase, el esquema en vertical y la telemetría en 2 × 2. Desde lg (1280 px): arriba, «T-0» y la frase a la izquierda y la telemetría
  * a la derecha; abajo, el esquema en horizontal. Los colores salen del canal (`--_ch*`, Transmission.module.css).
  */
 
-/* El «T-0» enorme: el brillante del canal en líneas de barrido y con su halo. Decorativo (`titleDisplay`). */
+/*
+ * El «T-0» enorme: el brillante del canal en líneas de barrido y con su halo. Decorativo (`titleDisplay`). Nunca más
+ * ancho que su columna: las tres letras (1,8 em de la mono) caben en el título (`cqi`: el título es su contenedor),
+ * también en escritorio con la letra al 200 %.
+ */
 .countdown {
   display: block;
   color: transparent;
   font-family: var(--font-mono);
-  font-size: var(--countdown-size);
+  font-size: min(var(--countdown-size), 100cqi / 1.8);
   font-weight: var(--weight-mono-strong);
   line-height: var(--leading-hero);
   background: var(--gradient-channel-blue-countdown);
@@ -222,11 +226,12 @@
   color: var(--_ch-bright);
 }
 
-/* ── Escritorio ───────────────────────────────────────────────────────────── */
+/* ── Escritorio ancho (lg) ─────────────────────────────────────────────────── */
 
-@media (width >= 900px) {
+@media (width >= 1280px) {
   /*
-   * Dos columnas en el cuerpo de la transmisión: la telemetría arriba a la derecha (filas 1–3, junto al aviso, el
+   * Desde lg, como el Crew file (entre md y lg, 900–1279 px, cinco cajas en fila partían «CONSTRUCCIÓN» o
+   * «LANZAMIENTO»: ahí va el esquema en vertical de móvil). Dos columnas en el cuerpo de la transmisión: la telemetría arriba a la derecha (filas 1–3, junto al aviso, el
    * «T-0» y la frase, que caen solos en la izquierda) y el esquema y «Touchdown» a todo el ancho.
    */
   .missionControl {

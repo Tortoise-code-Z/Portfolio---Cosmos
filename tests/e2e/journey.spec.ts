@@ -381,15 +381,14 @@ test.describe('the journey (home)', () => {
     page,
   }) => {
     const CV = '/Victor_Perez_CV.pdf';
-    for (const [path, download] of [
-      ['/', 'Download CV (PDF)'],
-      ['/es', 'Descargar CV (PDF, en inglés)'],
+    for (const [path, download, bar] of [
+      ['/', 'Download CV (PDF)', 'CV'],
+      ['/es', 'Descargar CV (PDF, en inglés)', 'CV (PDF, en inglés)'],
     ] as const) {
       await page.goto(path);
-      await expect(page.getByRole('banner').getByRole('link', { name: 'CV' })).toHaveAttribute(
-        'href',
-        CV,
-      );
+      const barLink = page.getByRole('banner').getByRole('link', { name: bar, exact: true });
+      await expect(barLink).toHaveAttribute('href', CV);
+      await expect(barLink).toHaveAttribute('download');
       for (const region of ['contact', 'crew-file']) {
         const link = page.locator(`#${region}`).getByRole('link', { name: download });
         await expect(link).toHaveAttribute('href', CV);

@@ -4,7 +4,6 @@ import type { Profile } from './types';
 
 export const profile: Profile = {
   name: 'Víctor Pérez',
-  fullName: 'Víctor David Pérez Alarcón',
   alias: 'Tortoise_code',
   role: { en: 'Frontend Developer', es: 'Desarrollador Frontend' },
   headline: {
