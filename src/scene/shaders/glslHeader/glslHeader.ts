@@ -10,8 +10,9 @@ import {
 
 /**
  * Cabecera común de los shaders (docs/04-escena/particulas-y-shaders.md → «Etiquetas y colores»): las etiquetas
- * de `aR` y los colores de la paleta salen de TypeScript, la misma fuente que los generadores. Así el GLSL no
- * escribe ningún número de etiqueta ni color a mano y no puede quedarse atrás si cambian.
+ * de `aR`, el balanceo de la tortuga (`TURTLE_SWAY_*`, la misma cuenta que los pins), las medidas del retrato y los
+ * colores de la paleta salen de TypeScript, la misma fuente que los generadores y los pins. Así el GLSL no escribe
+ * ningún número de etiqueta, color o balanceo a mano y no puede quedarse atrás si cambian.
  */
 
 /** Un número como literal `float` de GLSL (siempre con punto: `20` → `20.0`). */

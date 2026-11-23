@@ -105,7 +105,7 @@ desactivado. Versión 0.2.0, auditoría de cierre y etiqueta `v0.2.0` sobre el �
 no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierre corregida en el PR #80 y etiqueta
 `v0.2.0` sobre `6b46c7d` el 2026-10-31: **F3 cerrada**.)*
 
-## F4 · Capítulos (uno por PR, salvo la galaxia, en tres; en este orden)
+## F4 · Capítulos (uno por PR, salvo la galaxia, en tres, y la tortuga, en dos; en este orden)
 
 1. **Singularidad:** mantén para detonar (puntero y teclado), destello, temblor, nombre con `wdth`, autoscroll.
    *(Hecho en F4.1, PR #82: la carga llega a la escena y los efectos del DOM tienen su propio bucle con la misma `m`
@@ -123,7 +123,7 @@ no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierr
 4. **Tortuga:** placas por huecos, pins, ciclo automático, resaltado sincronizado con las filas.
    *(En dos PR: F4.4a, las placas que se iluminan desde las filas con su ciclo automático (PR #114), y F4.4b, los
    pins, con el balanceo de la tortuga compartido entre TypeScript y GLSL y en escalera si chocan. Hecho: F4.4a
-   (PR #114) y F4.4b (PR #115).)*
+   (PR #114) y F4.4b (PR #115); la auditoría de F4.4a, corregida en el PR #116, y la de F4.4b, en el PR siguiente.)*
 5. **Tierra:** día/noche, amanecer, luces de ciudad, atmósfera y Sol.
 
 Con la galaxia y la tortuga hechas (pasos 3 y 4), la ficha de **Cosmos** suma sus constelaciones: entró en C.5

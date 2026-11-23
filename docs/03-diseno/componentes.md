@@ -190,8 +190,19 @@
   (`--color-veil-soft`), en mono de 11 px (10 por debajo de 900 px) en mayúsculas con `--tracking-micro`. *Hot* (su
   placa encendida, también por el ciclo): borde y texto ámbar. La coloca la escena en cada frame (`PLATE_PIN`); si
   choca con otro pin, sube un piso: el tallo crece 30 px (`--_pin-floor`).
-- Con el capítulo a más de 0,6 de presencia reciben el puntero (`data-live`): el ratón encima señala su proyecto
-  (marca su fila e ilumina su placa), un clic abre su ficha; en táctil, el primer toque señala y el segundo abre.
+- Con el capítulo a más de 0,6 de presencia reciben el puntero (`data-live`), solo en la etiqueta (el tallo, una
+  línea de 1 px, no: cruzarlo encendería y apagaría la placa a destellos): el ratón encima señala su proyecto (marca
+  su fila e ilumina su placa), un clic abre su ficha; en táctil, el primer toque señala y el segundo abre. Al abrir,
+  el proyecto sigue señalado mientras llega la ficha, como con «View project». Un gesto que no acaba en su pin
+  (deslizar, soltar en otro) no cuenta: el clic siguiente solo señala. Encendido al ritmo de la fila (`--dur-base`).
+- No es un enlace: Ctrl/Cmd+clic o el botón central no abren otra pestaña (se acepta: es un atajo decorativo, sin
+  foco, y la fila tiene el enlace completo).
+- No salen hasta que la tortuga está pintada (entrando por `/#projects`, mientras llegan las formas), ni mientras se
+  lee Mission control.
+- En el móvil, al bajar por Projects el panel sube sobre la tortuga: los pins que quedan bajo su franja de arriba
+  (transparente) se ven a medias pero no se pueden tocar (el toque lo recoge el panel), como las etiquetas de las
+  estrellas en Skills. Se acepta: en ese momento se leen las filas. En la posición de referencia (al entrar por el
+  ancla) no pisan el panel (lo comprueba el e2e).
 - Excepción al área táctil de 44 × 44 px, como la etiqueta de estrella: es un atajo decorativo; la alternativa
   pulsable, con el mismo efecto y su área completa, es la fila del proyecto. Con alto contraste, la capa se oculta.
 
@@ -203,8 +214,8 @@
   se pinta con `Highlight` (borde y título): el sistema iguala los demás colores.
 - **Con la escena encendida** (F4.3c) enciende su constelación: es enfocable (`tabindex="0"`, nombrado por su
   título con `aria-labelledby`) y lo encienden el ratón (entrar enciende, salir suelta), el foco del teclado
-  (`:focus-visible`: ni el foco del puntero ni el que devuelve el navegador al volver a la pestaña; irse a otra
-  ventana tampoco suelta) y un toque; soltar
+  (`:focus-visible`: no el foco del puntero; el que devuelve el navegador al volver a la pestaña, solo si era del
+  teclado, porque el navegador recuerda la modalidad; irse a otra ventana tampoco suelta) y un toque; soltar
   apaga solo si sigue siendo el encendido (manda el último gesto). Un toque limpio fuera (un `click`) apaga;
   deslizar o salir del capítulo, no. Una etiqueta de la escena con el ratón encima también lo marca. Al ir a una
   ficha o al apagarse la escena, se apaga; si la escena se apaga con el foco en un grupo, el foco pasa al título del
@@ -225,8 +236,8 @@
   proyecto es el señalado (`data-hot`, también desde su pin). El ámbar dice «aquí está el ratón o el foco, o este es
   el proyecto señalado»: solo el señalado enciende la placa, así que con el foco en una fila y el ratón en otra
   pueden verse dos filas ámbar y una sola placa (aceptado). Con alto contraste, la señalada se pinta con
-  `Highlight`. Su zona de puntero llega a la mitad del hueco entre filas: al pasar de una a otra no asoma la placa
-  del ciclo.
+  `Highlight`. Su zona de puntero llega a la mitad del hueco entre filas (lo lee de la lista, `--_rows-gap`) y cubre
+  su borde: al pasar de una a otra, o al bajar por la línea del borde, no asoma la placa del ciclo.
 - **Con la escena encendida** (F4.4a) ilumina la placa de su proyecto (`uiStore.activeProject`): el ratón (entrar
   señala, salir suelta), el foco del teclado en uno de sus enlaces (`:focus-visible`; irse a otra ventana no suelta)
   y un toque (`pointGestures`, los mismos gestos que un grupo de Skills); soltar apaga solo si sigue siendo el
@@ -338,8 +349,9 @@
 
 ## Accesibilidad común
 
-- Área táctil mínima 44 × 44 px en todo lo pulsable (aunque el dibujo sea menor). Dos excepciones escritas: la
-  etiqueta de estrella (ver «Etiqueta de estrella»), con el panel de Skills como alternativa, y las paradas del raíl en
+- Área táctil mínima 44 × 44 px en todo lo pulsable (aunque el dibujo sea menor). Tres excepciones escritas: la
+  etiqueta de estrella (ver «Etiqueta de estrella»), con el panel de Skills como alternativa; el pin de placa (ver
+  «Pin de placa»), con la fila del proyecto como alternativa; y las paradas del raíl en
   una ventana baja (un móvil apaisado), que encogen hasta `--rail-stop-min` (24 px, el mínimo de WCAG 2.5.8) para que
   quepan las ocho bajo la barra (ver «Raíl»; ADR-034, nota de C.6a).
 - Ningún estado se comunica solo con color: el activo del raíl también cambia de tamaño y `aria-current`.

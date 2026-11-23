@@ -6,6 +6,24 @@ import type { LabelBox } from '../math/labelFit/labelFit';
  * (cero objetos nuevos por frame, ADR-004).
  */
 
+/** Las etiquetas montadas de una capa (las de las estrellas o los pins), por su id: la escena las coloca en cada frame. */
+export type LabelElements = Map<string, HTMLElement>;
+
+/**
+ * Apunta una etiqueta montada y devuelve cómo quitarla (la limpieza del `ref` de React 19). Sin elemento, nada.
+ */
+export function registerLabel(
+  elements: LabelElements,
+  id: string,
+  element: HTMLElement | null,
+): (() => void) | undefined {
+  if (element === null) return undefined;
+  elements.set(id, element);
+  return () => {
+    elements.delete(id);
+  };
+}
+
 /** Lo último escrito en una etiqueta, y en qué elemento: solo se reescribe lo que cambia. */
 export interface WrittenLabel {
   /**
@@ -47,7 +65,7 @@ export function createWrittenLabel(): WrittenLabel {
   };
 }
 
-/** Una etiqueta colocada: su caja de este frame (la decide `fitLabels`) y lo último escrito. */
+/** Una etiqueta colocada: su caja de este frame (la deciden `fitLabels` o `fitPins`) y lo último escrito. */
 export interface WritableLabel {
   readonly box: LabelBox;
   readonly written: WrittenLabel;

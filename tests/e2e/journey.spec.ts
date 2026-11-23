@@ -3,10 +3,10 @@ import { expect, type Page } from '@playwright/test';
 import { test } from './support/test.ts';
 
 import {
-  browserHasWebGL2,
   collectErrors,
   PARTICLES_PAINTED,
   settleScene,
+  skipWithoutWebGL2,
   withoutWebGL,
 } from './support/helpers.ts';
 
@@ -509,16 +509,6 @@ test.describe('the Big Bang', () => {
       );
   }
 
-  /**
-   * Los de la escena se saltan sin WebGL2 (en el CI, Firefox o WebKit sin GPU pueden no tenerlo), como los de
-   * `scene.spec.ts`; Chromium siempre lo tiene (SwiftShader), así que ahí nunca se saltan en silencio.
-   */
-  async function skipWithoutWebGL2(page: Page, browserName: string): Promise<void> {
-    const hasWebGL2 = await browserHasWebGL2(page);
-    if (browserName === 'chromium') expect(hasWebGL2, 'Chromium must have WebGL2').toBe(true);
-    test.skip(!hasWebGL2, 'This browser has no WebGL2 here');
-  }
-
   /** Mantiene `Espacio` en el botón hasta que detona y suelta. */
   async function holdUntilDetonated(page: Page, during?: () => Promise<void>): Promise<void> {
     const button = page.getByRole('button', { name: 'Hold to detonate' });
@@ -579,10 +569,9 @@ test.describe('the Big Bang', () => {
 
   test('with the scene: the canvas shakes while it charges and detonating flashes', async ({
     page,
-    browserName,
-  }) => {
+  }, testInfo) => {
+    await skipWithoutWebGL2(page, testInfo);
     await page.goto('/', { waitUntil: 'networkidle' });
-    await skipWithoutWebGL2(page, browserName);
     await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({ timeout: 15_000 });
     await settleScene(page);
     const peaks = await recordPeaks(page);
@@ -602,10 +591,9 @@ test.describe('the Big Bang', () => {
 
   test('with the scene: starting to go down flashes once, and stopped there the flash goes out', async ({
     page,
-    browserName,
-  }) => {
+  }, testInfo) => {
+    await skipWithoutWebGL2(page, testInfo);
     await page.goto('/', { waitUntil: 'networkidle' });
-    await skipWithoutWebGL2(page, browserName);
     await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({ timeout: 15_000 });
     await settleScene(page);
     const peaks = await recordPeaks(page);
@@ -630,11 +618,10 @@ test.describe('the Big Bang', () => {
 
   test('with reduced motion: no flash and no shake, but the name still squeezes', async ({
     page,
-    browserName,
-  }) => {
+  }, testInfo) => {
+    await skipWithoutWebGL2(page, testInfo);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/', { waitUntil: 'networkidle' });
-    await skipWithoutWebGL2(page, browserName);
     await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({ timeout: 15_000 });
     await settleScene(page);
     const peaks = await recordPeaks(page);

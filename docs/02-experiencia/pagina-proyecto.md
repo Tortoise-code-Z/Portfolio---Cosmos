@@ -91,4 +91,5 @@ Las secciones sin datos (por ejemplo, `tryIt: null`) **no se pintan**. Cada secc
 3. La galería se usa por completo con teclado y anuncia la imagen activa (e2e `project-images.spec.ts` con las
    capturas reales). Las imágenes no mueven la página al llegar (CLS < 0,1).
 4. Volver a la home deja el scroll en el capítulo de proyectos con el foco en la fila del proyecto visitado
-   (`navegacion.md` → «Volver desde una página de proyecto»); desde F5, además, con la placa iluminada.
+   (`navegacion.md` → «Volver desde una página de proyecto»), con la placa iluminada si se vuelve con el teclado;
+   desde F5, también con el ratón.

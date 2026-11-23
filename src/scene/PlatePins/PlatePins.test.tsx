@@ -5,16 +5,17 @@ import { fileURLToPath } from 'node:url';
 import { fireEvent, render, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { setReadingInterlude } from '~/stores/sceneStore/sceneStore';
 import { selectActiveProject, setActiveProject, useUiStore } from '~/stores/uiStore/uiStore';
 
 import { PLATE_PIN } from '../config/plateSlots/plateSlots';
 import { cameraFov, cameraPose, createParallax } from '../math/camera/camera';
+import { keepOutZones, overlapsRect, type KeepOutZone } from '../math/labelFit/labelFit';
 import {
   createPinBox,
   pinTagWidth,
   placePinBox,
   swayTurtlePoint,
+  type PinBox,
 } from '../math/platePins/platePins';
 import { createScreenPoint, projectToScreen } from '../math/projection/projection';
 import { createSceneFrame, type SceneFrame } from '../sceneMaterials/sceneMaterials';
@@ -53,6 +54,8 @@ function rule(selector: string): string {
 }
 
 const NAMES = { chessmate: 'Chessmate', astrohub: 'AstroHub', cosmos: 'Cosmos' };
+/** Los pins que la interfaz tapa a 900×720 (una ventana de escritorio estrecha), y qué parte los tapa. */
+const HIDDEN_AT_900: Readonly<Record<string, string>> = { astrohub: 'panel', cosmos: 'rail' };
 const SIZE = { width: 1280, height: 720 };
 
 afterEach(() => {
@@ -70,6 +73,8 @@ function turtleFrame(m = 3, wide = true): SceneFrame {
   frame.m = m;
   frame.wide = wide;
   frame.time = 4.2;
+  // Las partículas ya pintadas: antes, los pins no tienen tortuga sobre la que estar.
+  frame.painted = true;
   frame.aspect = SIZE.width / SIZE.height;
   frame.fov = cameraFov(frame.aspect);
   cameraPose(m, wide, createParallax(), frame.camera);
@@ -133,6 +138,34 @@ describe('PlatePins (the layer)', () => {
     expect(onOpen).toHaveBeenCalledExactlyOnceWith('chessmate');
   });
 
+  it('a click that opens keeps its project pointed while the project page arrives (the tap-outside capture let it go)', () => {
+    const onOpen = vi.fn();
+    const elements = mountPins(onOpen);
+    // Projects apaga lo señalado en la captura de cada `click` del documento (useTapOutsideTurnsOff).
+    const turnOff = (): void => {
+      setActiveProject(null);
+    };
+    document.addEventListener('click', turnOff, { capture: true });
+    try {
+      const astrohub = pin(elements, 'astrohub');
+      fireEvent.pointerEnter(astrohub, { pointerType: 'mouse' });
+      fireEvent.pointerDown(astrohub, { pointerType: 'mouse' });
+      fireEvent.click(astrohub);
+      expect(onOpen).toHaveBeenCalledExactlyOnceWith('astrohub');
+      expect(pointed()).toBe('astrohub');
+      // Igual con el segundo toque en táctil.
+      const cosmos = pin(elements, 'cosmos');
+      fireEvent.pointerDown(cosmos, { pointerType: 'touch' });
+      fireEvent.click(cosmos);
+      fireEvent.pointerDown(cosmos, { pointerType: 'touch' });
+      fireEvent.click(cosmos);
+      expect(onOpen).toHaveBeenLastCalledWith('cosmos');
+      expect(pointed()).toBe('cosmos');
+    } finally {
+      document.removeEventListener('click', turnOff, { capture: true });
+    }
+  });
+
   it('on touch, the first tap points at its project and the second opens it', () => {
     const onOpen = vi.fn();
     const elements = mountPins(onOpen);
@@ -148,6 +181,23 @@ describe('PlatePins (the layer)', () => {
     expect(onOpen).not.toHaveBeenCalled();
     tap();
     expect(onOpen).toHaveBeenCalledExactlyOnceWith('astrohub');
+  });
+
+  it('a gesture that does not end on its own pin does not count: the next click elsewhere only points', () => {
+    const onOpen = vi.fn();
+    const elements = mountPins(onOpen);
+    const astrohub = pin(elements, 'astrohub');
+    const cosmos = pin(elements, 'cosmos');
+    // El ratón baja en AstroHub y el gesto se cancela (deslizar): un `click` después en Cosmos solo señala.
+    fireEvent.pointerDown(astrohub, { pointerType: 'mouse' });
+    fireEvent.pointerCancel(astrohub, { pointerType: 'mouse' });
+    fireEvent.click(cosmos);
+    expect(pointed()).toBe('cosmos');
+    // Baja en AstroHub y el `click` llega a Cosmos (el pin se movió bajo el dedo): solo señala.
+    fireEvent.pointerDown(astrohub, { pointerType: 'mouse' });
+    fireEvent.click(cosmos);
+    expect(pointed()).toBe('cosmos');
+    expect(onOpen).not.toHaveBeenCalled();
   });
 
   it('on touch, a pin whose plate the cycle lit, or another one pointed, takes a first tap to point', () => {
@@ -178,7 +228,21 @@ describe('PlatePins (the layer)', () => {
     expect(rule('.stem')).toContain(`inset-block-start: calc(100% + ${String(gapPx)}px);`);
     expect(rule('.stem')).toContain(`inset-inline-start: ${String(tagLeftPx)}px;`);
     expect(rule('.pin[data-live]')).toContain('pointer-events: auto;');
+    // Solo la etiqueta recibe el puntero: el tallo (1 px) no, o cruzarlo encendería y apagaría la placa.
+    expect(rule('.stem')).toContain('pointer-events: none;');
     expect(rule('.pin[data-hot] .tag')).toContain('color: var(--color-star);');
+    // Las medidas en que se apoya `pinTagWidth`: la mono (0,6 em por letra), en una línea, y el borde de `borderPx`.
+    expect(rule('.pin')).toContain('font-family: var(--font-mono);');
+    expect(rule('.pin')).toContain('white-space: nowrap;');
+    // El tallo: el degradado ámbar al 70 % (componentes.md → «Pin de placa»).
+    expect(rule('.stem')).toContain('background-image: var(--gradient-pin-stem);');
+    expect(rule('.stem')).toContain('opacity: 0.7;');
+    // Se enciende al ritmo de la fila (movimiento.md: `--dur-base`).
+    expect(rule('.tag')).toContain('color var(--dur-base) var(--ease-out)');
+    expect(rule('.tag')).toContain('border-color var(--dur-base) var(--ease-out);');
+    // Sin selección, también en Safari (sin autoprefijador: la pareja a mano).
+    expect(rule('.layer')).toContain('-webkit-user-select: none;');
+    expect(rule('.layer')).toMatch(/\n\s+user-select: none;/);
     expect(css).toMatch(
       /@media \(width < 900px\) \{\s+\.pin \{\s+font-size: var\(--text-star-label-narrow\);/,
     );
@@ -195,6 +259,7 @@ describe('PlatePins (the layer)', () => {
     expect(value('--text-star-label')).toBe(PLATE_PIN.fontPx);
     expect(value('--text-star-label-narrow')).toBe(PLATE_PIN.narrowFontPx);
     expect(value('--tracking-micro')).toBe(PLATE_PIN.trackingEm);
+    expect(value('--border-width')).toBe(PLATE_PIN.borderPx);
   });
 });
 
@@ -276,21 +341,69 @@ describe('stepPlatePins', () => {
     const elements = mountPins();
     const work = createPinWork();
     stepPlatePins(work, frame, elements, phone, pinWidths(NAMES));
-    const floors = PINS.map(({ slug }) =>
-      pin(elements, slug).style.getPropertyValue('--_pin-floor'),
-    );
     expect(PINS.every(({ slug }) => pin(elements, slug).style.visibility === 'visible')).toBe(true);
-    // Una escalera: cada uno en su piso, el de más a la derecha en el de abajo.
-    expect([...floors].sort()).toEqual(['0', '1', '2']);
+    // Una escalera: de derecha a izquierda en pantalla, pisos 0, 1 y 2 (el de más a la derecha, abajo).
+    const rightToLeft = [...work.pins].sort((a, b) => b.place.x - a.place.x);
+    expect(
+      rightToLeft.map(({ slug }) => pin(elements, slug).style.getPropertyValue('--_pin-floor')),
+    ).toEqual(['0', '1', '2']);
     const cosmos = pin(elements, 'cosmos');
     cosmos.style.removeProperty('--_pin-floor');
     stepPlatePins(work, frame, elements, phone, pinWidths(NAMES));
     expect(cosmos.style.getPropertyValue('--_pin-floor')).toBe('');
   });
 
+  it('on a phone, coming back from a project page (the layer born again), each pin is written whole: floor, mark, place', () => {
+    const phone = { width: 390, height: 844 };
+    const frame = turtleFrame(3, false);
+    frame.aspect = phone.width / phone.height;
+    frame.fov = cameraFov(frame.aspect);
+    cameraPose(3, false, createParallax(), frame.camera);
+    frame.reducedMotion = true;
+    frame.plate = 22;
+    const elements = createPinElements();
+    const first = render(<PlatePins names={NAMES} elements={elements} onOpen={vi.fn()} />);
+    const work = createPinWork();
+    stepPlatePins(work, frame, elements, phone, pinWidths(NAMES));
+    const written = (): string[][] =>
+      PINS.map(({ slug }) => {
+        const element = pin(elements, slug);
+        return [
+          element.style.getPropertyValue('--_pin-floor'),
+          String(element.hasAttribute('data-hot')),
+          String(element.hasAttribute('data-live')),
+          element.style.transform,
+          element.style.visibility,
+        ];
+      });
+    const before = written();
+    expect(before.map(([floor]) => floor).sort()).toEqual(['0', '1', '2']);
+    expect(before[2]?.[1]).toBe('true');
+    const old = pin(elements, 'cosmos');
+    // Ir a una ficha desmonta la capa; al volver nace de nuevo (sin nada escrito) con el mismo registro.
+    first.unmount();
+    render(<PlatePins names={NAMES} elements={elements} onOpen={vi.fn()} />);
+    expect(pin(elements, 'cosmos')).not.toBe(old);
+    stepPlatePins(work, frame, elements, phone, pinWidths(NAMES));
+    expect(written()).toEqual(before);
+  });
+
+  it('before the particles are painted (the shapes still on their way), none: no names over the void', () => {
+    const frame = turtleFrame();
+    frame.painted = false;
+    const { elements, work } = step(frame);
+    expect(PINS.map(({ slug }) => pin(elements, slug).style.visibility)).toEqual(['', '', '']);
+    expect(work.shown).toBe(false);
+    frame.painted = true;
+    stepPlatePins(work, frame, elements, SIZE, pinWidths(NAMES));
+    expect(pin(elements, 'cosmos').style.visibility).toBe('visible');
+  });
+
   it('while a transmission is read (Mission control, the turtle behind its veil), they hide', () => {
     const { elements, work } = step(turtleFrame());
-    stepPlatePins(work, turtleFrame(), elements, SIZE, pinWidths(NAMES), true);
+    const reading = turtleFrame();
+    reading.transmission = true;
+    stepPlatePins(work, reading, elements, SIZE, pinWidths(NAMES));
     expect(PINS.map(({ slug }) => pin(elements, slug).style.visibility)).toEqual([
       'hidden',
       'hidden',
@@ -303,7 +416,7 @@ describe('stepPlatePins', () => {
     expect(pin(elements, 'chessmate').style.transform).toBe('');
   });
 
-  it('a pin that covers the interface hides (here, the panel of a narrow desktop window)', () => {
+  it('a pin that covers the interface hides (here, the panel and the rail of a narrow desktop window)', () => {
     const frame = turtleFrame();
     const narrow = { width: 900, height: 720 };
     frame.aspect = narrow.width / narrow.height;
@@ -312,8 +425,37 @@ describe('stepPlatePins', () => {
     const elements = mountPins();
     const work = createPinWork();
     stepPlatePins(work, frame, elements, narrow, pinWidths(NAMES));
-    const shown = PINS.filter(({ slug }) => pin(elements, slug).style.visibility === 'visible');
-    expect(shown.length).toBeLessThan(PINS.length);
+    const zones = keepOutZones(narrow.width, narrow.height, true);
+    const zone = (name: string): KeepOutZone => {
+      const found = zones.find((candidate) => candidate.name === name);
+      if (found === undefined) throw new Error(`No zone ${name}`);
+      return found;
+    };
+    const onTheGround = (slot: (typeof work.pins)[number]): PinBox => {
+      const point = createScreenPoint();
+      point.x = slot.place.x;
+      point.y = slot.place.y;
+      const box = createPinBox();
+      placePinBox(point, slot.place.width, box);
+      return box;
+    };
+    const hidden = work.pins.filter(({ box }) => !box.visible);
+    expect(Object.fromEntries(hidden.map(({ slug }) => [slug, HIDDEN_AT_900[slug]]))).toEqual(
+      HIDDEN_AT_900,
+    );
+    // Cada uno, por la pieza que ya pisa en su piso de abajo; el que se ve no pisa ninguna.
+    for (const slot of hidden) {
+      const box = onTheGround(slot);
+      const { rect } = zone(HIDDEN_AT_900[slot.slug] ?? '');
+      expect(overlapsRect(box.tag, rect) || overlapsRect(box.stem, rect), slot.slug).toBe(true);
+      expect(pin(elements, slot.slug).style.visibility).not.toBe('visible');
+    }
+    for (const slot of work.pins.filter(({ box }) => box.visible)) {
+      for (const { name, rect } of zones) {
+        expect(overlapsRect(slot.place.tag, rect), `${slot.slug} over ${name}`).toBe(false);
+        expect(overlapsRect(slot.place.stem, rect), `${slot.slug} over ${name}`).toBe(false);
+      }
+    }
   });
 
   it('narrow layouts measure the tags with the smaller letter', () => {
@@ -332,9 +474,9 @@ describe('PlatePinsFrame', () => {
     expect(result.current).toBeNull();
     frameCallbacks.at(-1)?.({ size: SIZE });
     expect(pin(elements, 'chessmate').style.visibility).toBe('visible');
-    setReadingInterlude('mission-control');
+    // Lo lee del frame (lo copia el bucle de `SceneRoot` desde `sceneStore.interlude`), no del store.
+    frame.transmission = true;
     frameCallbacks.at(-1)?.({ size: SIZE });
     expect(pin(elements, 'chessmate').style.visibility).toBe('hidden');
-    setReadingInterlude(null);
   });
 });

@@ -5,28 +5,14 @@ import { skillGroups } from '~/content/skills';
 import type { SkillGroupId } from '~/content/types';
 import { releaseActiveSkillGroup, setActiveSkillGroup } from '~/stores/uiStore/uiStore';
 
+import { registerLabel, type LabelElements } from '../labelWriter/labelWriter';
 import styles from './ConstellationLabels.module.css';
 
 /** Las etiquetas montadas, por `Skill.id`: la escena las coloca en cada frame (`scene/Constellations`). */
-export type StarLabelElements = Map<string, HTMLElement>;
+export type StarLabelElements = LabelElements;
 
 export function createStarLabelElements(): StarLabelElements {
   return new Map();
-}
-
-/**
- * Apunta una etiqueta montada y devuelve cómo quitarla (la limpieza del `ref` de React 19). Sin elemento, nada.
- */
-export function registerLabel(
-  elements: StarLabelElements,
-  id: string,
-  element: HTMLElement | null,
-): (() => void) | undefined {
-  if (element === null) return undefined;
-  elements.set(id, element);
-  return () => {
-    elements.delete(id);
-  };
 }
 
 /** El grupo de la etiqueta (`data-group`), si es uno de verdad. */

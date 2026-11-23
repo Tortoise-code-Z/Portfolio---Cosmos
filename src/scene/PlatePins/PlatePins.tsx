@@ -9,7 +9,6 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 
-import { sceneStore } from '~/stores/sceneStore/sceneStore';
 import {
   releaseActiveProject,
   selectActiveProject,
@@ -17,10 +16,15 @@ import {
   useUiStore,
 } from '~/stores/uiStore/uiStore';
 
-import { registerLabel } from '../ConstellationLabels/ConstellationLabels';
 import { PLATE_LOOK, PLATE_PIN, PLATE_SLOTS } from '../config/plateSlots/plateSlots';
 import type { ScenePoint } from '../config/sceneConfig';
-import { createWrittenLabel, writeLabel, type WritableLabel } from '../labelWriter/labelWriter';
+import {
+  createWrittenLabel,
+  registerLabel,
+  writeLabel,
+  type LabelElements,
+  type WritableLabel,
+} from '../labelWriter/labelWriter';
 import { createZoneCache, zonesFor, type ZoneCache } from '../math/labelFit/labelFit';
 import { chapterPresence } from '../math/chapterPresence/chapterPresence';
 import {
@@ -37,12 +41,12 @@ import {
   projectToScreen,
   type ScreenPoint,
 } from '../math/projection/projection';
-import type { SceneFrame } from '../sceneMaterials/sceneMaterials';
+import { motionOf, type SceneFrame } from '../sceneMaterials/sceneMaterials';
 import { SCENE_PLATES } from '../useSceneShapes/useSceneShapes';
 import styles from './PlatePins.module.css';
 
 /** Los pins montados, por slug del proyecto: la escena los coloca en cada frame (`PlatePinsFrame`). */
-export type PinElements = Map<string, HTMLElement>;
+export type PinElements = LabelElements;
 
 export function createPinElements(): PinElements {
   return new Map();
@@ -86,9 +90,7 @@ export function pinWidths(names: Readonly<Record<string, string>> | null): PinWi
 /** Lo que dura toda la visita (cero objetos nuevos por frame, ADR-004). */
 export interface PinWork {
   readonly pins: readonly PinSlot[];
-  /** Lo que ocupan, en el orden de `pins`, para `fitPins`. */
-  readonly places: readonly PinBox[];
-  /** Los mismos `places`, de derecha a izquierda, para `fitPins` (se reutiliza). */
+  /** Lo que ocupan, para `fitPins`, que lo reordena en sitio de derecha a izquierda en cada frame. */
   readonly order: PinBox[];
   readonly at: [number, number, number];
   readonly point: ScreenPoint;
@@ -112,8 +114,7 @@ export function createPinWork(): PinWork {
   });
   return {
     pins,
-    places: pins.map(({ place }) => place),
-    order: [],
+    order: pins.map(({ place }) => place),
     at: [0, 0, 0],
     point: createScreenPoint(),
     viewport: { width: 1, height: 1, fov: 55 },
@@ -128,8 +129,9 @@ export function createPinWork(): PinWork {
  * en ella; el que choca sube un piso y, si no cabe en ninguno, se oculta (`fitPins`, de derecha a izquierda, contra
  * lo que tapa la interfaz y entre ellos). Se ven con la presencia del capítulo 3, reciben el puntero por encima de
  * `interactiveFrom` y se marcan (`data-hot`) con su placa encendida (`frame.plate`: el proyecto señalado o el
- * ciclo). Mientras se lee una transmisión (`transmission`: Mission control, con la tortuga aún detrás de su velo),
- * ninguno: sus etiquetas quedarían tras el texto. Solo se escribe lo que cambia.
+ * ciclo). Ninguno mientras se lee una transmisión (`frame.transmission`: Mission control, con la tortuga aún detrás de
+ * su velo; sus etiquetas quedarían tras el texto) ni antes de que las partículas se pinten (`frame.painted`: entrando
+ * por `/#projects`, mientras llegan las formas, flotarían sobre el vacío). Solo se escribe lo que cambia.
  */
 export function stepPlatePins(
   work: PinWork,
@@ -137,9 +139,9 @@ export function stepPlatePins(
   elements: PinElements,
   size: Readonly<{ width: number; height: number }>,
   widths: PinWidths,
-  transmission = false,
 ): void {
-  const presence = transmission ? 0 : chapterPresence(frame.m, PLATE_LOOK.chapter);
+  const presence =
+    frame.transmission || !frame.painted ? 0 : chapterPresence(frame.m, PLATE_LOOK.chapter);
   // Sin capítulo, y con los pins ya ocultos, nada que colocar.
   if (presence === 0 && !work.shown) return;
   work.shown = presence > 0;
@@ -148,7 +150,7 @@ export function stepPlatePins(
   viewport.height = size.height;
   viewport.fov = frame.fov;
   const sizes = frame.wide ? widths.wide : widths.narrow;
-  const motion = frame.reducedMotion ? 0 : 1;
+  const motion = motionOf(frame);
   let index = 0;
   for (const pin of work.pins) {
     swayTurtlePoint(pin.base, frame.time, motion, at);
@@ -163,7 +165,7 @@ export function stepPlatePins(
       presence > 0 &&
       elements.has(pin.slug);
   }
-  fitPins(work.places, zonesFor(work.zones, size.width, size.height, frame.wide), work.order);
+  fitPins(work.order, zonesFor(work.zones, size.width, size.height, frame.wide));
   const interactive = presence > PLATE_LOOK.interactiveFrom;
   for (const pin of work.pins) {
     const element = elements.get(pin.slug);
@@ -194,14 +196,7 @@ export function PlatePinsFrame({ frame, names, elements }: PlatePinsFrameProps):
   const widths = useMemo(() => pinWidths(names), [names]);
   const [work] = useState(createPinWork);
   useFrame((state: RootState) => {
-    stepPlatePins(
-      work,
-      frame,
-      elements,
-      state.size,
-      widths,
-      sceneStore.getState().interlude !== null,
-    );
+    stepPlatePins(work, frame, elements, state.size, widths);
   });
   return null;
 }
@@ -214,21 +209,30 @@ export interface PlatePinsProps {
   readonly onOpen: (slug: string) => void;
 }
 
-/** El gesto del puntero que acaba en `click`: de qué tipo y si su proyecto ya estaba señalado al empezar. */
+/**
+ * El gesto del puntero que acaba en `click`: en qué pin empezó, de qué tipo y si su proyecto ya estaba señalado al
+ * empezar. Sin pin (`null`): ningún gesto en curso.
+ */
 interface PinGesture {
+  slug: string | null;
   mouse: boolean;
   wasPointed: boolean;
 }
+
+const NO_GESTURE: Readonly<PinGesture> = { slug: null, mouse: false, wasPointed: false };
 
 /**
  * Los pins de las placas (F4.4b; docs/02-experiencia/capitulos/03-tortuga.md → «Interacciones»): elementos del DOM en
  * una capa propia montada en `body`, como las etiquetas de las estrellas, en el orden de la asignación. Decorativos
  * (`aria-hidden`): su función está en las filas. Los que la escena marca con `data-live` reciben el puntero: el ratón
  * encima señala su proyecto (salir lo suelta) y un clic abre su ficha; en táctil, el primer toque señala y el segundo
- * abre. «Primer» se decide al bajar el dedo: el toque limpio fuera de Projects apaga antes del `click`.
+ * abre. «Primer» se decide al bajar el dedo: el toque limpio fuera de Projects apaga antes del `click`. Al abrir, su
+ * proyecto queda señalado mientras llega la ficha (como «View project» en la fila). Un gesto que no acaba en su pin
+ * (deslizar, soltar en otro) no cuenta: el `click` siguiente sin el suyo solo señala. No es un enlace: Ctrl/Cmd+clic
+ * o el botón central no abren otra pestaña (la fila tiene el enlace completo).
  */
 export function PlatePins({ names, elements, onOpen }: PlatePinsProps): ReactNode {
-  const gesture = useRef<PinGesture>({ mouse: false, wasPointed: false });
+  const gesture = useRef<PinGesture>({ ...NO_GESTURE });
   if (names === null) return null;
   const slugOf = (event: { currentTarget: HTMLElement }): string =>
     event.currentTarget.dataset.pin ?? '';
@@ -250,17 +254,23 @@ export function PlatePins({ names, elements, onOpen }: PlatePinsProps): ReactNod
             if (event.pointerType === 'mouse') releaseActiveProject(slugOf(event));
           }}
           onPointerDown={(event: PointerEvent<HTMLElement>) => {
+            const pin = slugOf(event);
             gesture.current = {
+              slug: pin,
               mouse: event.pointerType === 'mouse',
-              wasPointed: selectActiveProject(useUiStore.getState()) === slugOf(event),
+              wasPointed: selectActiveProject(useUiStore.getState()) === pin,
             };
+          }}
+          onPointerCancel={() => {
+            gesture.current = { ...NO_GESTURE };
           }}
           onClick={(event: MouseEvent<HTMLElement>) => {
             const pin = slugOf(event);
-            const { mouse, wasPointed } = gesture.current;
-            gesture.current = { mouse: false, wasPointed: false };
-            if (mouse || wasPointed) onOpen(pin);
-            else setActiveProject(pin);
+            const { slug, mouse, wasPointed } = gesture.current;
+            gesture.current = { ...NO_GESTURE };
+            // Siempre señalado (la captura de «tocar fuera» lo acaba de soltar); y abre si el gesto era suyo.
+            setActiveProject(pin);
+            if (slug === pin && (mouse || wasPointed)) onOpen(pin);
           }}
         >
           <span className={styles.tag}>{names[slug] ?? ''}</span>

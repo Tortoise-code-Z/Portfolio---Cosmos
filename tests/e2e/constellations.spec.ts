@@ -9,11 +9,14 @@ import { CONTEXT_RESTORE_TIMEOUT_MS } from '../../src/scene/contextLoss/contextL
 import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
 import {
   collectErrors,
-  hud,
+  expectInterface,
+  interfaceRects,
+  overlaps,
   PARTICLES_PAINTED,
   settleScene,
   skipWithoutWebGL2,
   withoutWebGL,
+  type Rect,
 } from './support/helpers.ts';
 import { test } from './support/test.ts';
 
@@ -25,20 +28,12 @@ import { test } from './support/test.ts';
  * la interfaz real.
  */
 
-type Rect = readonly [left: number, top: number, right: number, bottom: number];
-
 interface Viewport {
   readonly width: number;
   readonly height: number;
 }
 
 const DESKTOP: Viewport = { width: 1280, height: 720 };
-
-/**
- * Desde aquí se ve el HUD (`CosmicHud.module.css`: sin HUD por debajo de `sm`, 520 px). Se comprueba en los dos
- * sentidos (`expectInterface`): si el corte del CSS cambia entre los anchos probados, el test falla.
- */
-const HUD_FROM_PX = 520;
 
 /** El grupo del panel (su `<li>`). */
 const panelGroup = (page: Page, id: SkillGroupId): Locator =>
@@ -141,50 +136,9 @@ async function liveLabelsTakenByAChapter(page: Page): Promise<string[]> {
   });
 }
 
-function overlaps(a: Rect, b: Rect): boolean {
-  return a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
-}
-
-async function rectOf(locator: Locator): Promise<Rect | null> {
-  if (!(await locator.isVisible())) return null;
-  const box = await locator.boundingBox();
-  return box === null ? null : [box.x, box.y, box.x + box.width, box.y + box.height];
-}
-
-/** La interfaz por encima de la escena (cada pieza, `null` si no se ve). */
-interface InterfaceRects {
-  readonly bar: Rect | null;
-  readonly rail: Rect | null;
-  readonly hud: Rect | null;
-  /** El panel de Skills. */
-  readonly panel: Rect | null;
-}
-
-async function interfaceRects(page: Page): Promise<InterfaceRects> {
-  return {
-    bar: await rectOf(page.getByRole('banner')),
-    rail: await rectOf(page.getByRole('navigation', { name: /^(?:Chapters|Capítulos)$/ })),
-    hud: await rectOf(hud(page)),
-    panel: await rectOf(page.locator('#skills > *').first()),
-  };
-}
-
 /** ¿Usa la página la disposición de escritorio? La misma consulta que la escena (`WIDE_LAYOUT_QUERY`). */
 async function isWide(page: Page): Promise<boolean> {
   return page.evaluate((query) => matchMedia(query).matches, WIDE_LAYOUT_QUERY);
-}
-
-/**
- * La interfaz que se debe ver a este ancho, sin `null`: la barra, el raíl y el panel siempre, y el HUD desde
- * `HUD_FROM_PX` y solo desde ahí (su localizador ya se encuentra a 768, 1280 y 1440 px: por debajo, `null` es que está
- * oculto). Si un texto o el orden de la página cambian y una pieza deja de encontrarse, el test falla en vez de
- * saltarse su comprobación.
- */
-function expectInterface(ui: InterfaceRects, width: number): void {
-  expect(ui.bar, 'bar').not.toBeNull();
-  expect(ui.rail, 'rail').not.toBeNull();
-  expect(ui.panel, 'Skills panel').not.toBeNull();
-  expect(ui.hud === null, 'HUD hidden').toBe(width < HUD_FROM_PX);
 }
 
 /** El lienzo de la escena (sin la barra de scroll), al que se refieren las zonas de `STAR_LABEL_KEEP_OUT`. */
@@ -389,7 +343,7 @@ test.describe('the constellations of Skills', () => {
           expect(labels).toHaveLength(skillGroups.flatMap((group) => group.skills).length);
         }
         const canvas = await canvasSize(page);
-        const ui = await interfaceRects(page);
+        const ui = await interfaceRects(page, 'skills');
         expectInterface(ui, viewport.width);
         const zones = [
           ['bar', ui.bar],
@@ -426,7 +380,7 @@ test.describe('the constellations of Skills', () => {
       }) => {
         await openSkills(page, viewport, path);
         const canvas = await canvasSize(page);
-        const ui = await interfaceRects(page);
+        const ui = await interfaceRects(page, 'skills');
         expectInterface(ui, viewport.width);
         const keep = (await isWide(page)) ? STAR_LABEL_KEEP_OUT.wide : STAR_LABEL_KEEP_OUT.narrow;
         const { bar, rail, hud: hudRect, panel } = ui;

@@ -26,8 +26,8 @@ const PURE_SCENE = 'src/scene/{shapes,math,config,worker}/**';
  * Los módulos de la escena que el código puro no puede importar por ruta relativa (así se colarían Three, React o
  * los stores en el worker sin pasar por los nombres de arriba): los que usan Three, React o un store, y
  * `contextLoss` (vive con el lienzo). Los demás de `scene/` sí puede importarlos (hoy `pointer`, `frameLoop`,
- * `sceneClock`, `fpsMeter` y `shaders`: DOM o cálculo sin dependencias; `math/camera` y `math/gravity` usan el tipo
- * de `pointer`).
+ * `sceneClock`, `fpsMeter`, `shaders` y `labelWriter`: DOM o cálculo sin dependencias; `math/camera` y `math/gravity`
+ * usan el tipo de `pointer`).
  * **Un módulo nuevo de `scene/` con Three, React o un store se añade aquí** (arquitectura.md → «Capas» y «Carga
  * de la escena»).
  */

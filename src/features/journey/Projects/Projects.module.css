@@ -1,6 +1,11 @@
-/* Capítulo 3 · Proyectos: lista de filas. */
+/*
+ * Capítulo 3 · Proyectos: lista de filas. Su hueco va en una variable privada que lee la fila
+ * (`ProjectRow.module.css` → `.row::after`, su zona de puntero hasta la mitad del hueco).
+ */
 .rows {
+  --_rows-gap: var(--space-1);
+
   display: grid;
-  gap: var(--space-1);
+  gap: var(--_rows-gap);
   margin-block-start: var(--space-2);
 }

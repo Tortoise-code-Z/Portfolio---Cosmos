@@ -48,7 +48,10 @@ function focusFromKeyboard(fromKeyboard: boolean): void {
   // eslint-disable-next-line @typescript-eslint/unbound-method -- el original, para llamarlo con su `this` (`call`)
   const matches = Element.prototype.matches;
   vi.spyOn(Element.prototype, 'matches').mockImplementation(function (this: Element, selector) {
-    return selector === ':focus-visible' ? fromKeyboard : matches.call(this, selector);
+    // Como en un navegador: solo casa el que tiene el foco (un `<li>` que nunca lo recibe, no).
+    return selector === ':focus-visible'
+      ? fromKeyboard && this === document.activeElement
+      : matches.call(this, selector);
   });
 }
 
@@ -195,7 +198,9 @@ describe('Skills', () => {
       renderAt('/');
       fireEvent.pointerEnter(groupItem('ai'), { pointerType: 'mouse' });
       expect(lit()).toBe('ai');
-      fireEvent.focus(groupItem('tools'));
+      act(() => {
+        groupItem('tools').focus();
+      });
       expect(lit()).toBe('tools');
       fireEvent.pointerLeave(groupItem('ai'), { pointerType: 'mouse' });
       expect(lit()).toBe('tools');
@@ -227,7 +232,9 @@ describe('Skills', () => {
       focusFromKeyboard(true);
       renderAt('/');
       const web = groupItem('web');
-      fireEvent.focus(web);
+      act(() => {
+        web.focus();
+      });
       fireEvent.blur(web, { relatedTarget: within(web).getByRole('heading', { level: 3 }) });
       expect(lit()).toBe('web');
     });

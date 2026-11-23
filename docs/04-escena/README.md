@@ -86,7 +86,7 @@ src/scene/
   math/    camera/ (pose por m, FOV de móvil, paralaje; F3.4) · gravity/ (la gravedad del cursor; F4.2) ·
            projection/ (de la escena a la pantalla; F4.3a) · chapterPresence/ (cuánto está un capítulo) ·
            constellations/ (encendido y aspecto) · labelFit/ (qué etiquetas caben; F4.3b) ·
-           plateCycle/ (qué placa se ilumina; F4.4a) · platePins/ (ancla, balanceo, caja y pisos; F4.4b) · easing.ts
+           plateCycle/ (qué placa se ilumina; F4.4a) · platePins/ (ancla, balanceo, caja y pisos; F4.4b)
   config/  sceneConfig.ts · plateSlots/ (F3.2) · scenePalette/ (F3.3) · constellationLayout/ (F4.3a)
                              (niveles: lib/device/sceneLevel)
                              (cada archivo con test, en su carpeta: ADR-018)

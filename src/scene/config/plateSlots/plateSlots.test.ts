@@ -121,4 +121,24 @@ describe('PLATE_PIN', () => {
     expect(liftY).toBe(0.06);
     expect(PLATE_PIN.floors).toBe(3);
   });
+
+  it('has the figures of the spec (componentes.md → «Pin de placa», constelaciones-y-placas.md → «Pins»)', () => {
+    // Escritas aquí: con las de la config, una cifra que cambiara a la vez en la config y en el CSS pasaría.
+    expect(PLATE_PIN).toEqual({
+      liftY: 0.06,
+      stemPx: 46,
+      gapPx: 4,
+      tagLeftPx: 2,
+      fontPx: 11,
+      narrowFontPx: 10,
+      advanceEm: 0.6,
+      trackingEm: 0.1,
+      padInlinePx: 8,
+      padBlockPx: 4,
+      lineHeightPx: 16,
+      borderPx: 1,
+      tagHeightPx: 26,
+      floors: 3,
+    });
+  });
 });

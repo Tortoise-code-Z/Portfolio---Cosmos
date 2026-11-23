@@ -1,15 +1,18 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 
 import { projectEntries } from '../../src/content/projects/entries.ts';
-import { WIDE_LAYOUT_QUERY } from '../../src/scene/config/sceneConfig.ts';
 import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
 import {
   collectErrors,
-  hud,
+  expectInterface,
+  interfaceRects,
+  overlaps,
   PARTICLES_PAINTED,
+  SCENE_READY,
   settleScene,
   skipWithoutWebGL2,
   withoutWebGL,
+  type Rect,
 } from './support/helpers.ts';
 import { test } from './support/test.ts';
 
@@ -23,9 +26,10 @@ import { test } from './support/test.ts';
  * tamaños de referencia, los que se ven no se pisan ni pisan la interfaz.
  */
 
-type Rect = readonly [left: number, top: number, right: number, bottom: number];
-
 const DESKTOP = { width: 1280, height: 720 } as const;
+
+/** El worker de las formas (`scene.spec.ts`). */
+const SHAPES_WORKER = /\/assets\/shapes\.worker-[^/]+\.js$/;
 
 /** En orden de lectura, como las filas. */
 const ordered = [...projectEntries].sort((a, b) => a.order - b.order);
@@ -125,16 +129,6 @@ async function pinsStill(page: Page): Promise<void> {
     .toBe(true);
 }
 
-function overlaps(a: Rect, b: Rect): boolean {
-  return a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
-}
-
-async function rectOf(locator: Locator): Promise<Rect | null> {
-  if (!(await locator.isVisible())) return null;
-  const box = await locator.boundingBox();
-  return box === null ? null : [box.x, box.y, box.x + box.width, box.y + box.height];
-}
-
 test.describe('the plates of the turtle', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     await skipWithoutWebGL2(page, testInfo);
@@ -148,33 +142,98 @@ test.describe('the plates of the turtle', () => {
     const errors = collectErrors(page);
     await openProjects(page);
     const seen = new Set<string>();
+    const marked = new Set<string>();
     await expect
       .poll(
         async () => {
-          const [{ plate, rows }, pins] = await Promise.all([plates(page), shownPins(page)]);
+          // La placa, las filas y los pins en una sola lectura: los escribe el mismo frame.
+          const { plate, rows, hot, shown } = await page.evaluate(() => {
+            const pins = [
+              ...document.querySelectorAll<HTMLElement>('[data-plate-pins] [data-pin]'),
+            ].filter((el) => el.style.visibility === 'visible' && Number(el.style.opacity) > 0);
+            return {
+              plate: document.querySelector('[data-plate]')?.getAttribute('data-plate') ?? null,
+              rows: [...document.querySelectorAll('#projects li[data-hot]')].map(
+                (el) => el.getAttribute('data-project') ?? '',
+              ),
+              hot: pins.filter((el) => el.hasAttribute('data-hot')).map((el) => el.dataset.pin),
+              shown: pins.map((el) => el.dataset.pin),
+            };
+          });
           expect(rows).toEqual([]);
           if (plate !== null) {
             seen.add(plate);
-            // Un pin marcado, el de la placa encendida (si se ve: puede leerse entre dos frames).
-            const hot = pins.filter(({ hot: isHot }) => isHot).map(({ slug }) => slug);
-            expect(hot.filter((slug) => slug !== plate)).toEqual([]);
+            // El pin marcado es el de la placa encendida, y solo ese (si se ve).
+            expect(hot).toEqual(shown.includes(plate) ? [plate] : []);
+            if (hot.length > 0) marked.add(plate);
           }
           return seen.size;
         },
         { timeout: CYCLE_TIMEOUT_MS },
       )
       .toBeGreaterThan(1);
+    expect(marked.size).toBeGreaterThan(0);
     expect(errors).toEqual([]);
   });
 
-  test('a row pointed while the cycle lights another plate lights its own and stops the cycle', async ({
+  test('entering straight into Projects, the pins wait for the turtle: none over the void while the shapes arrive', async ({
     page,
   }) => {
+    // El worker de las formas no llega hasta que el test lo suelta: el lienzo y su bucle ya están, la tortuga no.
+    let release = (): void => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route(SHAPES_WORKER, async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.setViewportSize(DESKTOP);
+    await page.goto('/#projects');
+    await expect(page.locator(SCENE_READY)).toBeAttached();
+    // Unos frames del bucle sin formas (pide sus frames con requestAnimationFrame, como estos).
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) => {
+          let left = 5;
+          const next = (): void => {
+            left -= 1;
+            if (left === 0) resolve();
+            else requestAnimationFrame(next);
+          };
+          requestAnimationFrame(next);
+        }),
+    );
+    await expect(page.locator(PARTICLES_PAINTED)).toHaveCount(0);
+    expect(await shownPins(page)).toEqual([]);
+    expect(await page.locator('[data-plate-pins] [data-live]').count()).toBe(0);
+    release();
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
+      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+    });
+    await expect.poll(async () => (await shownPins(page)).length).toBe(ordered.length);
+  });
+
+  test('while Mission control is read (the turtle still behind its veil), no pin shows', async ({
+    page,
+  }) => {
+    await page.setViewportSize(DESKTOP);
+    await page.goto('/#mission-control', { waitUntil: 'networkidle' });
+    await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
+      timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
+    });
+    // Primero, que la escena está en la tortuga detrás del velo: el ciclo enciende sus placas.
+    await expect(page.locator('[data-plate]')).toBeAttached({ timeout: CYCLE_TIMEOUT_MS });
+    expect(await shownPins(page)).toEqual([]);
+    expect(await page.locator('[data-plate-pins] [data-live]').count()).toBe(0);
+  });
+
+  test('a row pointed while the cycle lights another plate lights its own', async ({ page }) => {
     await openProjects(page);
     const { plate: cycling } = await plates(page);
     const other = ordered.find(({ slug }) => slug !== cycling);
     if (other === undefined) throw new Error('Two projects needed');
-    // Con un proyecto señalado el ciclo se para: la placa solo puede ser la de la fila.
+    // Que además el ciclo se pare no se ve desde fuera (`plateCycle.test.ts`): aquí, que manda la fila.
     await row(page, other.slug).hover();
     await expectPointed(page, other.slug);
   });
@@ -209,13 +268,26 @@ test.describe('the plates of the turtle', () => {
       }).observe(scene, { attributes: true, attributeFilter: ['data-plate'] });
     });
     // De píxel en píxel por el hueco entre las dos filas, ida y vuelta.
+    // Dos frames de la página por píxel: con pocos fps (WebKit sin GPU) también se pinta cada paso, y un hueco sin
+    // fila se vería.
+    const twoFrames = (): Promise<void> =>
+      page.evaluate(
+        () =>
+          new Promise<void>((resolve) => {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                resolve();
+              });
+            });
+          }),
+      );
     for (let y = a.y + a.height - 4; y <= b.y + 4; y += 1) {
       await page.mouse.move(x, y);
-      await page.waitForTimeout(20);
+      await twoFrames();
     }
     for (let y = b.y + 4; y >= a.y + a.height - 4; y -= 1) {
       await page.mouse.move(x, y);
-      await page.waitForTimeout(20);
+      await twoFrames();
     }
     await expectPointed(page, first.slug);
     expect(
@@ -305,6 +377,8 @@ test.describe('the plates of the turtle', () => {
       // El borde llega con su transición: se espera a que se distinga del de una fila sin señalar.
       const off = await border(second.slug);
       await expect.poll(() => border(first.slug)).not.toBe(off);
+      // Los pins, decorativos, no se ven: la fila es la versión accesible.
+      await expect(page.locator('[data-plate-pins]')).toBeHidden();
     });
 
     test.describe('on a touch screen', () => {
@@ -360,21 +434,20 @@ test.describe('the pins of the plates, where they stand', () => {
         await openProjects(page, false, viewport, path);
         await pinsStill(page);
         const pins = await shownPins(page);
-        const wide = await page.evaluate((query) => matchMedia(query).matches, WIDE_LAYOUT_QUERY);
         // Cada proyecto con su pin, también en el móvil, escalonados (03-tortuga.md → «Aceptación» y «Móvil»).
         expect(pins.map(({ slug }) => slug).sort()).toEqual(ordered.map(({ slug }) => slug).sort());
         const canvas = await page.locator('canvas').boundingBox();
         if (canvas === null) throw new Error('No canvas');
+        // Todas las piezas, también el panel en el móvil (en la posición de referencia, al entrar por su ancla: al
+        // bajar, el panel sube sobre la tortuga y tapa los pins, como las etiquetas de las estrellas; componentes.md).
+        const ui = await interfaceRects(page, 'projects');
+        expectInterface(ui, viewport.width);
         const zones = [
-          ['bar', await rectOf(page.getByRole('banner'))],
-          [
-            'rail',
-            await rectOf(page.getByRole('navigation', { name: /^(?:Chapters|Capítulos)$/ })),
-          ],
-          ['HUD', await rectOf(hud(page))],
-          ['panel', wide ? await rectOf(page.locator('#projects > *').first()) : null],
+          ['bar', ui.bar],
+          ['rail', ui.rail],
+          ['HUD', ui.hud],
+          ['panel', ui.panel],
         ] as const;
-        expect(zones[1][1], 'rail').not.toBeNull();
         for (const [index, { slug, tag, stem }] of pins.entries()) {
           expect(tag[0], `${slug}: left edge`).toBeGreaterThanOrEqual(0);
           expect(tag[1], `${slug}: top edge`).toBeGreaterThanOrEqual(0);

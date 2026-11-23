@@ -108,6 +108,11 @@ function followPlates(
   else scene?.setAttribute('data-plate', slug);
 }
 
+/** Las partículas ya están pintadas: lo que se coloca sobre las formas (los pins) deja de esperar. */
+function markPainted(frame: SceneFrame): void {
+  frame.painted = true;
+}
+
 /** El DPR mínimo: nunca por debajo de 1 píxel por píxel CSS. */
 const MIN_DPR = 1;
 
@@ -128,8 +133,8 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * por su sitio en el JSX.
  *
  * Los frames los pide su propio bucle (`frameloop="never"` + `startFrameLoop`, ADR-027): antes de cada `advance()`
- * rellena el frame compartido (`m` suavizado, la carga de la detonación, la gravedad del cursor, la placa iluminada,
- * reloj, densidad de píxeles…; el ratón y si es escritorio los escriben sus observadores, `watchPointer` y
+ * rellena el frame compartido (`m` suavizado, la carga de la detonación, si se lee una transmisión, la gravedad del
+ * cursor, la placa iluminada, reloj, densidad de píxeles…; el ratón y si es escritorio los escriben sus observadores, `watchPointer` y
  * `watchMediaQuery`) y, si un frame lanza, para y pasa a sin WebGL. La `m` de la escena es suya: persigue a `mTarget`
  * con un amortiguado (`M_SMOOTHING`, con el tiempo real del frame) y arranca en él (sin repetir la explosión a mitad
  * del viaje); `sceneStore` sigue con `m = mTarget` para la interfaz (ADR-028). Con la página oculta o la misión rápida
@@ -270,13 +275,14 @@ export default function SceneRoot({
         clock.tick(seconds);
         degradation.sample(seconds);
         const state = get();
-        const { mTarget, charge } = sceneStore.getState();
+        const { mTarget, charge, interlude } = sceneStore.getState();
         frame.m =
           first || !Number.isFinite(frame.m)
             ? mTarget
             : smoothM(frame.m, mTarget, clock.delta, clock.reduced);
         first = false;
         frame.charge = charge;
+        frame.transmission = interlude !== null;
         frame.time = clock.time;
         frame.delta = clock.delta;
         frame.reducedMotion = clock.reduced;
@@ -303,6 +309,7 @@ export default function SceneRoot({
   }
 
   function onFirstFrame(): void {
+    markPainted(frame);
     setPainted(true);
     onPaintedRef.current?.();
   }

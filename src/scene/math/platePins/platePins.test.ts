@@ -14,7 +14,7 @@ import {
   type PinBox,
 } from './platePins';
 
-/** El balanceo del shader de F3 escrito a mano, con sus cifras (las de la especificación, no las de la config). */
+/** El balanceo del shader de F3 escrito a mano, con sus cifras (las del prototipo, no las de la config). */
 function swayLikeTheShader(
   [x, y, z]: readonly [number, number, number],
   t: number,
@@ -75,8 +75,12 @@ describe('the pin box', () => {
   it('the tag is as wide as its letters (0.6 em plus 0.1 em of tracking), its padding and its border', () => {
     expect(pinTagWidth('Cosmos', 11)).toBeCloseTo(6 * 11 * 0.7 + 18, 10);
     expect(pinTagWidth('Cosmos', 10)).toBeCloseTo(6 * 10 * 0.7 + 18, 10);
-    // En NFC, una «é» es una letra.
-    expect(pinTagWidth('Café', 11)).toBe(pinTagWidth('Café', 11));
+    // En NFC, una «é» es una letra, también escrita como «e» y su tilde aparte (NFD): las dos, 4 letras.
+    const nfd = 'Cafe\u0301';
+    const nfc = 'Caf\u00e9';
+    expect(nfd).not.toBe(nfc);
+    expect(pinTagWidth(nfd, 11)).toBe(pinTagWidth(nfc, 11));
+    expect(pinTagWidth(nfc, 11)).toBeCloseTo(4 * 11 * 0.7 + 18, 10);
   });
 
   it('stands on the plate: its foot on the point, the tag 50 px above, starting 2 px left of the stem', () => {
@@ -111,14 +115,24 @@ describe('fitPins', () => {
   const floorsOf = (pins: readonly PinBox[]): (number | false)[] =>
     pins.map(({ floor, tag }) => (tag.visible ? floor : false));
 
-  it('pins apart all show on the ground floor; the order array is reused', () => {
+  it('pins apart all show on the ground floor; the array is sorted in place, right to left, and stays so', () => {
     const pins = [pinAt(100, 300), pinAt(300, 300)];
-    const order: PinBox[] = [];
-    fitPins(pins, [], order);
+    const order = [...pins];
+    fitPins(order, []);
     expect(floorsOf(pins)).toEqual([0, 0]);
     expect(order).toEqual([pins[1], pins[0]]);
-    fitPins(pins, [], order);
-    expect(order).toHaveLength(2);
+    fitPins(order, []);
+    expect(order).toEqual([pins[1], pins[0]]);
+  });
+
+  it('sorting is stable (pins on the same x keep their order) and puts a pin with no number last', () => {
+    const a = pinAt(200, 300);
+    const b = pinAt(200, 500);
+    const lost = pinAt(Number.NaN, 300);
+    const right = pinAt(600, 300);
+    const order = [lost, a, b, right];
+    fitPins(order, []);
+    expect(order).toEqual([right, a, b, lost]);
   });
 
   it('when two tags meet, the left pin goes up a floor (its stem grows a tag and its gap), whatever their order', () => {
@@ -126,7 +140,7 @@ describe('fitPins', () => {
       [pinAt(240, 305), pinAt(200, 300)],
       [pinAt(200, 300), pinAt(240, 305)],
     ]) {
-      fitPins(pins, [], []);
+      fitPins([...pins], []);
       const left = pins.find(({ x }) => x === 200);
       expect(left?.floor).toBe(1);
       expect(left?.tag.visible).toBe(true);
@@ -138,14 +152,14 @@ describe('fitPins', () => {
 
   it('three that meet stand as a staircase, the rightmost on the ground', () => {
     const pins = [pinAt(230, 300), pinAt(200, 300), pinAt(260, 300)];
-    fitPins(pins, [], []);
+    fitPins([...pins], []);
     expect(floorsOf(pins)).toEqual([1, 2, 0]);
   });
 
   it('a stem may not cross another tag: two feet almost in line cannot share the space', () => {
     // El de la izquierda está 1 px a la izquierda: su tallo cruzaría la etiqueta del otro en cualquier piso.
     const pins = [pinAt(201, 300), pinAt(200, 300)];
-    fitPins(pins, [], []);
+    fitPins([...pins], []);
     expect(floorsOf(pins)).toEqual([0, false]);
   });
 
@@ -157,32 +171,32 @@ describe('fitPins', () => {
       pinAt(170, 300),
       pinAt(600, 300),
     ];
-    fitPins(pins, [], []);
+    fitPins([...pins], []);
     expect(floorsOf(pins)).toEqual([0, 1, 2, false, 0]);
   });
 
   it('a pin over what the interface covers climbs to clear it, or hides; unwanted ones hide', () => {
     const panel: KeepOutZone = { name: 'panel', rect: [0, 200, 1000, 230] };
     const climbs = [pinAt(200, 340)];
-    fitPins(climbs, [panel], []);
+    fitPins([...climbs], [panel]);
     // En el piso de abajo la etiqueta (264–290) y el tallo (294–340) no tocan la zona: se queda.
     expect(floorsOf(climbs)).toEqual([0]);
     // Una zona que la etiqueta pisa y el tallo no: sube un piso. Una que pisaría el tallo en cualquier piso: se oculta.
     const corner: KeepOutZone = { name: 'HUD', rect: [220, 225, 300, 250] };
     const over = [pinAt(200, 290)];
-    fitPins(over, [corner], []);
+    fitPins([...over], [corner]);
     expect(floorsOf(over)).toEqual([1]);
     const under = [pinAt(200, 290)];
-    fitPins(under, [panel], []);
+    fitPins([...under], [panel]);
     expect(floorsOf(under)).toEqual([false]);
     const bar: KeepOutZone = { name: 'top bar', rect: [-Infinity, -Infinity, Infinity, 120] };
     const low = [pinAt(200, 180)];
-    fitPins(low, [bar], []);
+    fitPins([...low], [bar]);
     expect(floorsOf(low)).toEqual([false]);
     const unwanted = pinAt(500, 500);
     unwanted.tag.wanted = false;
     unwanted.tag.visible = true;
-    fitPins([unwanted], [], []);
+    fitPins([unwanted], []);
     expect(unwanted.tag.visible).toBe(false);
   });
 });

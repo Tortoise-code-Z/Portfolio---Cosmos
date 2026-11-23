@@ -10,8 +10,8 @@
 export const SCENE_SEED = 0x7a4f_1c2b;
 
 /**
- * Semiejes del caparazón de la tortuga (forma 3), cabeza hacia +X. Los usan el generador y, en F4.4, los
- * pins que se anclan sobre las placas.
+ * Semiejes del caparazón de la tortuga (forma 3), cabeza hacia +X. Los usan el generador y los pins, que se anclan
+ * sobre las placas (`math/platePins`).
  */
 export const SHELL = { AX: 2.7, AY: 1.3, AZ: 2.15 } as const;
 

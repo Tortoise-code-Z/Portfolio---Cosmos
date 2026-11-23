@@ -13,9 +13,14 @@ export interface PointGestureHandlers {
  * Los gestos que encienden y sueltan lo de un elemento del panel (docs/03-diseno/componentes.md → «Grupo de
  * habilidades» y «Fila de proyecto»): el ratón (solo `mouse`: entrar enciende, salir suelta), el foco del teclado y el
  * toque (`click`). Solo el foco del teclado enciende (`:focus-visible` en lo que lo recibe, el propio elemento o uno de
- * sus enlaces): el del puntero ya lo cubren `pointerenter` y `click`, y el que devuelve el navegador al volver a la
- * pestaña no es un gesto (recuerda la modalidad). El foco que se mueve dentro del elemento no suelta, ni irse a otra
- * ventana o pestaña (el foco sigue ahí). Lo comparten Skills y Projects.
+ * sus enlaces): el del puntero ya lo cubren `pointerenter` y `click`. El que devuelve el navegador al volver a la
+ * pestaña enciende solo si era del teclado (el navegador recuerda la modalidad: el foco del teclado sigue ahí). El foco
+ * que se mueve dentro del elemento no suelta, ni irse a otra ventana o pestaña (el foco sigue ahí). Lo comparten Skills
+ * y Projects.
+ *
+ * Se reparten con `{...pointGestures(…)}`: jsx-a11y ya no ve los manejadores en el elemento (por eso Skills y
+ * ProjectRow no llevan `eslint-disable`). Aceptado: son `<li>` con su alternativa de teclado en los enlaces y el foco;
+ * un manejador nuevo en esos `<li>` hay que revisarlo a mano.
  */
 export function pointGestures(point: () => void, release: () => void): PointGestureHandlers {
   return {

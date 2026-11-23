@@ -154,7 +154,8 @@ la parte superior del caparazón.
 - Anclados en el centro de la placa, sobre la superficie: `y = AY · √(1 − (x/AX)² − (z/AZ)²) + 0,06`
   (`math/platePins` → `plateAnchor`), con el mismo balanceo y giro que aplica el shader: las cifras viven en
   `TURTLE_SWAY` (`sceneConfig`) y llegan al GLSL por la cabecera; `swayTurtlePoint` hace la misma cuenta y un test
-  la compara con la del shader. Con movimiento reducido, quietos. La gravedad del cursor mueve las partículas en
+  la compara con la del shader (también el cuerpo de su `rotY`). Con movimiento reducido, quietos (`motionOf`, el
+  mismo `uMotion` del shader). La gravedad del cursor mueve las partículas en
   pantalla, no los pins: con el ratón encima, el pin se separa un poco de su placa (aceptado, como el prototipo).
 - Elementos del DOM (`scene/PlatePins`), uno por proyecto con placa, en el orden de la asignación (el destacado
   primero), en una capa propia montada en `body` (`--z-labels`, como las etiquetas de las estrellas). Decorativos
@@ -163,17 +164,25 @@ la parte superior del caparazón.
 - En cada frame (`PlatePinsFrame`, después de la cámara): el ancla mecida se proyecta con la pose de la cámara
   (`math/projection`) y el pin se planta con el pie en ella (`placePinBox`: la etiqueta arriba, el tallo hasta la
   placa). Después, `fitPins`, de derecha a izquierda en pantalla: el que pisa lo que tapa la interfaz (las mismas
-  zonas que las etiquetas de las estrellas), el borde o un pin ya visible —su etiqueta con otra, o su tallo con otra
-  etiqueta— sube un piso (el tallo crece una etiqueta y su hueco: 46 → 76 → 106 px, `PLATE_PIN.floors`); si en
+  zonas que las etiquetas de las estrellas), el borde o un pin ya visible —su etiqueta con otra, su etiqueta con el
+  tallo de otro o su tallo con otra etiqueta— sube un piso (el tallo crece una etiqueta y su hueco: 46 → 76 → 106 px, `PLATE_PIN.floors`); si en
   ninguno cabe, se oculta. De derecha a izquierda porque la etiqueta sale hacia la derecha del tallo: el de la
-  izquierda sube por encima de la etiqueta del de la derecha sin que su tallo la cruce. En el móvil quedan en
-  escalera. Mientras se lee una transmisión (`sceneStore.interlude`: Mission control, con la tortuga aún detrás de su
-  velo), ninguno: sus etiquetas quedarían tras el texto. Se escribe solo lo que cambia (`scene/labelWriter`, el
+  izquierda sube por encima de la etiqueta del de la derecha sin que su tallo la cruce; el orden se rehace en sitio
+  con una inserción (cero objetos nuevos por frame). En el móvil quedan en escalera. El piso se decide en cada frame
+  desde el de abajo, sin histéresis: si el balanceo o el paralaje llevan dos etiquetas justo al umbral de choque, el
+  tallo salta 30 px y vuelve (se acepta: es raro y lento; se mira en un móvil real, F6). Mientras se lee una
+  transmisión (`SceneFrame.transmission`, que el bucle copia de `sceneStore.interlude`: Mission control, con la
+  tortuga aún detrás de su velo), ninguno: sus etiquetas quedarían tras el texto. Tampoco antes de que las partículas
+  se pinten (`SceneFrame.painted`): entrando por `/#projects`, mientras llegan las formas, flotarían sobre el vacío. Se escribe solo lo que cambia (`scene/labelWriter`, el
   mismo que usan las etiquetas): `transform`, opacidad (la presencia del capítulo 3), `visibility`, `data-hot` (su
   placa encendida: el proyecto señalado o el ciclo), `data-live` y el piso (`--_pin-floor`).
-- Interactivos (`data-live`) con presencia > 0,6 (`PLATE_LOOK.interactiveFrom`): el ratón encima señala su proyecto
-  (salir lo suelta), un clic abre su ficha; en táctil, el primer toque señala y el segundo abre (si su proyecto ya
-  estaba señalado al bajar el dedo).
+- Interactivos (`data-live`) con presencia > 0,6 (`PLATE_LOOK.interactiveFrom`), solo la etiqueta (el tallo no
+  recibe el puntero): el ratón encima señala su proyecto (salir lo suelta), un clic abre su ficha; en táctil, el
+  primer toque señala y el segundo abre (si su proyecto ya estaba señalado al bajar el dedo). Al abrir queda
+  señalado mientras llega la ficha. Un gesto cuenta solo si acaba en el pin donde empezó.
+- Fuera del reposo siguen a la tortuga en reposo, no a la que se deforma: parado a medio camino (m ≈ 2,8) o al saltar
+  con el raíl de la tortuga a Contacto (la `m` suavizada recorre 3 → 3,56 en ~0,24 s), se ven sobre una tortuga a
+  medio formar o mientras las placas viajan a la Tierra. Se acepta: es breve y es la rampa única de la presencia.
 - La caja (`PLATE_PIN`, `config/plateSlots`): tallo de 46 px (más 30 por piso: `--_pin-floor`), hueco de 4 y la
   etiqueta encima (mono de 11 px, 10 por
   debajo de 900 px, en mayúsculas con `--tracking-micro`, 8 px de aire a los lados, 4 arriba y abajo, línea de 16 y

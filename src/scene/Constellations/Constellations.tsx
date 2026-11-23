@@ -118,6 +118,8 @@ export function labelWidths(texts: Readonly<Record<string, string>> | null): Lab
 /** Una etiqueta durante la visita: su skill, su caja en este frame y lo último escrito. */
 interface LabelSlot extends WritableLabel {
   readonly id: string;
+  /** Su sitio en `SKILLS`, el orden de los anchos de `labelWidths`. */
+  readonly index: number;
   /** Su grupo (el mismo objeto que en `work.groups`). */
   readonly group: GroupSlot;
   readonly position: ScenePoint;
@@ -161,6 +163,7 @@ export function createConstellationWork(
     for (const id of mesh.skills) {
       labels.push({
         id,
+        index: SKILLS.findIndex((skill) => skill.id === id),
         group,
         position: star(id),
         box: createLabelBox(),
@@ -230,13 +233,11 @@ function placeLabels(
   viewport.fov = frame.fov;
   const sizes = frame.wide ? widths.wide : widths.narrow;
   const half = STAR_LABEL_BOX.heightPx / 2;
-  let index = 0;
   for (const slot of work.labels) {
     const { box } = slot;
     projectToScreen(slot.position, frame.camera, viewport, point);
     box.left = point.x + STAR_LABEL_BOX.offsetPx;
-    box.right = box.left + (sizes[index] ?? 0);
-    index += 1;
+    box.right = box.left + (sizes[slot.index] ?? 0);
     box.top = point.y - half;
     box.bottom = point.y + half;
     // Una proyección que no da un número (un lienzo sin tamaño) no se coloca: nunca `translate(NaNpx, …)`.
