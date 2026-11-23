@@ -36,7 +36,10 @@ export function swayTurtlePoint(
   const yaw = Math.sin(time * TURTLE_SWAY.yawRate) * TURTLE_SWAY.yaw * motion;
   const c = Math.cos(yaw);
   const s = Math.sin(yaw);
-  const [x, y, z] = base;
+  // Por índice, sin desestructurar: corre en cada frame (el iterador del array crearía objetos).
+  const x = base[0];
+  const y = base[1];
+  const z = base[2];
   out[0] = c * x + s * z;
   out[1] = y + Math.sin(time * TURTLE_SWAY.bobRate) * TURTLE_SWAY.bob * motion;
   out[2] = -s * x + c * z;
@@ -129,26 +132,39 @@ function clearOf(
   return true;
 }
 
-/** De derecha a izquierda en pantalla (el orden estable de `sort` deja como estaban los que comparten `x`). */
-function rightToLeft(a: Readonly<PinBox>, b: Readonly<PinBox>): number {
-  return b.x - a.x;
+/** La `x` con que se ordena: una que no es un número (un lienzo sin tamaño) va al final, a la izquierda. */
+function sortX(pin: Readonly<PinBox>): number {
+  return Number.isNaN(pin.x) ? Number.NEGATIVE_INFINITY : pin.x;
+}
+
+/**
+ * Ordena `order` de derecha a izquierda en pantalla, en sitio y sin crear nada: una inserción (son 3–7 pins, casi en el
+ * mismo orden de un frame a otro), estable (los que comparten `x` se quedan como estaban). No `Array.prototype.sort`:
+ * reserva memoria en cada llamada.
+ */
+function sortRightToLeft(order: PinBox[]): void {
+  for (let i = 1; i < order.length; i += 1) {
+    const pin = order[i];
+    if (pin === undefined) continue;
+    const x = sortX(pin);
+    let j = i - 1;
+    for (let other = order[j]; other !== undefined && sortX(other) < x; other = order[j]) {
+      order[j + 1] = other;
+      j -= 1;
+    }
+    order[j + 1] = pin;
+  }
 }
 
 /**
  * Decide qué pins se ven y en qué piso (como `fitLabels` con las etiquetas de las estrellas): de derecha a izquierda
  * en pantalla, el que pisa lo que tapa la interfaz, el borde o un pin ya visible sube un piso, y otro, hasta `floors`;
  * si aun así choca, se oculta. De derecha a izquierda porque la etiqueta sale hacia la derecha de su tallo: el pin de
- * la izquierda sube por encima de la etiqueta del de la derecha sin que su tallo la cruce. `order` es un array que se
- * reutiliza (los mismos pins, en ese orden). Corre en cada frame y no crea nada (ADR-004).
+ * la izquierda sube por encima de la etiqueta del de la derecha sin que su tallo la cruce. `order` son los pins (el
+ * mismo array toda la visita): se reordena en sitio. Corre en cada frame y no crea nada (ADR-004).
  */
-export function fitPins(
-  pins: readonly PinBox[],
-  zones: readonly KeepOutZone[],
-  order: PinBox[],
-): void {
-  order.length = 0;
-  for (const pin of pins) order.push(pin);
-  order.sort(rightToLeft);
+export function fitPins(order: PinBox[], zones: readonly KeepOutZone[]): void {
+  sortRightToLeft(order);
   for (const pin of order) {
     pin.tag.visible = false;
     if (!pin.tag.wanted) continue;

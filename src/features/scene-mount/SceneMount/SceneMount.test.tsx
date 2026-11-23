@@ -170,13 +170,20 @@ describe('SceneMount', () => {
     expect(scene.skillLabels?.vms).toBe('Virtual machines');
   });
 
-  it('outside the journey (a project page), no labels and no pins', async () => {
-    renderMount('/projects/chessmate');
-    await idle();
-    await screen.findByTestId('scene');
-    expect(scene.skillLabels).toBeNull();
-    expect(scene.projectNames).toBeNull();
-  });
+  for (const [where, path] of [
+    ['a project page', '/projects/chessmate'],
+    ['a 404', '/nowhere'],
+    ['the Spanish 404', '/es/404'],
+    ['a home path in capitals (a 404)', '/ES'],
+  ] as const) {
+    it(`outside the journey (${where}), no labels and no pins`, async () => {
+      renderMount(path);
+      await idle();
+      await screen.findByTestId('scene');
+      expect(scene.skillLabels).toBeNull();
+      expect(scene.projectNames).toBeNull();
+    });
+  }
 
   it('in the journey, hands the pins the name of every project; a pin opens its project page in the page language', async () => {
     const router = createMemoryRouter(

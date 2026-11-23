@@ -117,8 +117,9 @@ shell», arriba, y los enlaces del pie (GitHub, LinkedIn y el email).
 ## Volver desde una página de proyecto
 
 - «Back to the shell» y «Projects» de la barra van al capítulo de la tortuga (`/#projects`); el botón Atrás del
-  navegador, a la entrada anterior (el viaje donde estabas, otra ficha o `/#quick`). Al volver al viaje, la placa
-  del proyecto que visitaste se ilumina (desde F5).
+  navegador, a la entrada anterior (el viaje donde estabas, otra ficha o `/#quick`). Al volver al viaje con el
+  teclado, la placa del proyecto que visitaste ya se ilumina (el foco que se deja en su fila es `:focus-visible` y la
+  señala); con el ratón, desde F5.
 - Sin escena (desde F2.7): el foco queda en «View project» de la fila de ese proyecto, que se resalta como al
   pasar el puntero. Con Atrás, la posición de scroll del viaje la restaura React Router (`<ScrollRestoration />`)
   y el foco no la mueve; con «Back to the shell» o «Projects» de la barra (`/#projects`), el foco lleva la fila a

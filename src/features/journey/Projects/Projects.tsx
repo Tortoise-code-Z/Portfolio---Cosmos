@@ -32,7 +32,9 @@ const PROJECTS_HASH = `#${CHAPTER_ANCHORS[3] ?? 'projects'}`;
  * no lo mueve) y para los enlaces a `#projects` («Back to the shell», «Projects» de la barra). Si se
  * vuelve a otro sitio (el logo, `#contact`), no se toca el foco. Con la escena, si se vuelve con el teclado ese foco
  * es `:focus-visible` y ya señala el proyecto: se ilumina su placa (es «el foco del teclado señala», tal cual); con el
- * ratón, no. Desde F5, siempre (la placa visitada).
+ * ratón, no. Desde F5, siempre (la placa visitada). En desarrollo (`npm run dev`, con el `<StrictMode>` de React
+ * Router) no se ilumina: el efecto corre dos veces, la limpieza de `useNothingPointedWithoutScene` suelta lo señalado y
+ * la segunda vez ya no hay proyecto visitado. En el build (y en los e2e), sí: aceptado, solo pasa en desarrollo.
  */
 function useFocusVisitedRow(list: RefObject<HTMLUListElement | null>): void {
   const navigationType = useNavigationType();

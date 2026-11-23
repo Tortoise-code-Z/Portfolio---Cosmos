@@ -128,6 +128,14 @@ const label = (labels: StarLabelElements, id: string): HTMLElement => {
 };
 
 describe('useConstellations', () => {
+  it('each label is measured with its own width (its place in SKILLS), not by its position in the work list', () => {
+    const { result, labels } = setup(galaxyFrame());
+    // Las mallas al revés: el orden de las etiquetas de la visita cambia, el ancho de cada una no.
+    const work = createConstellationWork(galaxyFrame(), labels, [...result.current].reverse());
+    expect(work.labels.map(({ id }) => id)).not.toEqual(SKILLS.map(({ id }) => id));
+    for (const slot of work.labels) expect(SKILLS[slot.index]?.id).toBe(slot.id);
+  });
+
   it('one constellation per group: its stars and, per line, the two stars it joins', () => {
     const { result } = setup(galaxyFrame());
     expect(result.current.map(({ group }) => group)).toEqual(skillGroups.map(({ id }) => id));

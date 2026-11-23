@@ -30,8 +30,10 @@ export interface SceneState {
    */
   readonly charge: number;
   /**
-   * El interludio en cuyo tramo se lee (su pantalla o su cola), o `null`: lo escribe el scroll con `m`. La escena no
-   * lo necesita (en un interludio, `m` se queda en la forma del capítulo anterior); el raíl, sí.
+   * El interludio en cuyo tramo se lee (su pantalla o su cola), o `null`: lo escribe el scroll con `m`. Lo lee el raíl
+   * y, a través del frame (`SceneFrame.transmission`, que copia el bucle de `SceneRoot`), los pins de las placas: se
+   * ocultan mientras se lee Mission control. Las formas no lo necesitan (en un interludio, `m` se queda en la del
+   * capítulo anterior).
    */
   readonly interlude: InterludeId | null;
 }

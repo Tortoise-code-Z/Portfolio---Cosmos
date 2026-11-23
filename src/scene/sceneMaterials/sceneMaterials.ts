@@ -35,7 +35,7 @@ export interface ParticleUniforms {
   readonly uCharge: IUniform<number>;
   /** Densidad de píxeles del lienzo. */
   readonly uPR: IUniform<number>;
-  /** Etiqueta de la placa iluminada (0 = ninguna). F4.4: hoy 0. */
+  /** Etiqueta de la placa iluminada (0 = ninguna): `SceneFrame.plate`. */
   readonly uPlate: IUniform<number>;
   /**
    * Gravedad del cursor, de 0 a 1 (0 en táctil, sin ratón dentro o con movimiento reducido), más suave sobre la
@@ -160,6 +160,16 @@ export interface SceneFrame {
    * automático (`scene/math/plateCycle`). La escribe el bucle.
    */
   plate: number;
+  /**
+   * Se lee una transmisión (Mission control, con la tortuga aún detrás de su velo): `sceneStore.interlude`, que el
+   * bucle copia aquí como `mTarget` y `charge` (los `useFrame` leen el frame, no el store: ADR-027).
+   */
+  transmission: boolean;
+  /**
+   * Las partículas ya se han pintado (el primer frame con formas, `Particles` → `onFirstFrame`): antes, lo que se
+   * coloca sobre una forma (los pins) no tiene dónde.
+   */
+  painted: boolean;
 }
 
 export function createSceneFrame(): SceneFrame {
@@ -178,7 +188,17 @@ export function createSceneFrame(): SceneFrame {
     camera: createCameraPose(),
     fov: 55,
     plate: NO_PLATE,
+    transmission: false,
+    painted: false,
   };
+}
+
+/**
+ * Cuánto se mueve lo que oscila solo (`uMotion`): 1, o 0 con movimiento reducido. Lo comparten el shader y lo que la
+ * escena coloca siguiendo sus oscilaciones (los pins con el balanceo de la tortuga), para que no se separen.
+ */
+export function motionOf(frame: Readonly<SceneFrame>): number {
+  return frame.reducedMotion ? 0 : 1;
 }
 
 /**
@@ -201,7 +221,7 @@ export function updateParticleUniforms(
   uniforms.uTime.value = frame.time;
   uniforms.uPR.value = frame.pixelRatio;
   uniforms.uAspect.value = frame.aspect;
-  uniforms.uMotion.value = frame.reducedMotion ? 0 : 1;
+  uniforms.uMotion.value = motionOf(frame);
   uniforms.uExtras.value = frame.extras ? 1 : 0;
   uniforms.uGrav.value =
     frame.gravity.strength *

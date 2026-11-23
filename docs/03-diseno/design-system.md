@@ -116,7 +116,7 @@ Las fuentes se autoalojan con `@font-face` propios en `src/styles/fonts.css` (fa
 | `--text-label` | `0.75rem` (12 px) | 1.4 | Mono 400–500, mayúsculas, `letter-spacing: var(--tracking-label)` |
 | `--text-micro` | `0.6875rem` (11 px) | 1.3 | Mono 400, mayúsculas, `letter-spacing: var(--tracking-micro)` |
 | `--text-nano` | `0.625rem` (10 px) | 1.15 | Mono 400, mayúsculas, `letter-spacing: var(--tracking-label)` (escena del raíl) |
-| `--text-star-label` · `--text-star-label-narrow` | `11px` · `10px` (en px a propósito: adorno del lienzo, no crece con la letra del navegador) | 16 px | Mono 400, sin mayúsculas ni espaciado: etiquetas de las estrellas (escritorio · por debajo de 900 px) |
+| `--text-star-label` · `--text-star-label-narrow` | `11px` · `10px` (en px a propósito: adorno del lienzo, no crece con la letra del navegador) | 16 px | Mono 400. Dos usos: las etiquetas de las estrellas, sin mayúsculas ni espaciado, y los pins de las placas, en mayúsculas con `--tracking-micro` (escritorio · por debajo de 900 px) |
 
 El email de contacto tiene su propio tamaño y ajustes: `--text-email` `clamp(1.05rem, 2.3vw, 1.5rem)`
 (interlineado `--leading-email` 1.2), `--weight-email` 700 y `--wdth-email` 112 %.
@@ -215,8 +215,9 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
   Mission control, un halo más ancho (`--glow-channel-blue-countdown`, un `drop-shadow` de 14 px).
   Las etiquetas de las estrellas llevan un halo oscuro (`--halo-star-label`, dos sombras de `--color-void`) para
   leerse sobre el núcleo de la galaxia: es contraste, no brillo.
-- Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, pins, botones de
-  contorno y avisos. La barra lleva además un velo (`--color-veil-chrome`) para no depender de lo que pase por debajo.
+- Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, botones de
+  contorno y avisos. Los pins de las placas no: se mueven en cada frame sobre el lienzo y el desenfoque costaría,
+  sobre todo en móvil; llevan solo velo (`--color-veil-soft`). La barra lleva además un velo (`--color-veil-chrome`) para no depender de lo que pase por debajo.
 - Deshabilitado: `--opacity-disabled` (0,4). Apagado sin estar deshabilitado (texto de los capítulos inactivos del
   raíl): `--opacity-muted` (0,7), que mantiene AA sobre `--color-void` (8,7:1 con `--color-ink`, 4,7:1 con
   `--color-dim`). Área táctil mínima: `--target-min` (44 px).

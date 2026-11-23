@@ -23,6 +23,7 @@ import {
   createStarUniforms,
   createSunMaterial,
   createSunUniforms,
+  motionOf,
   POINTER_AWAY,
   updateParticleUniforms,
   updateStarUniforms,
@@ -45,6 +46,8 @@ const frame: Readonly<SceneFrame> = {
   camera: { position: { x: 0, y: 12.9, z: 14.2 }, target: { x: 0, y: 0, z: 0 } },
   fov: 55,
   plate: 21,
+  transmission: false,
+  painted: true,
 };
 
 describe('particle uniforms', () => {
@@ -139,7 +142,19 @@ describe('createSceneFrame', () => {
       camera: { position: { x: 0, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } },
       fov: 55,
       plate: 0,
+      transmission: false,
+      painted: false,
     });
+  });
+});
+
+describe('motionOf', () => {
+  it('1 with motion, 0 with reduced motion: the uMotion of the shader', () => {
+    expect(motionOf(frame)).toBe(1);
+    expect(motionOf({ ...frame, reducedMotion: true })).toBe(0);
+    const uniforms = createParticleUniforms();
+    updateParticleUniforms(uniforms, { ...frame, reducedMotion: true });
+    expect(uniforms.uMotion.value).toBe(motionOf({ ...frame, reducedMotion: true }));
   });
 });
 

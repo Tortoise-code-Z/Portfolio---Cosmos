@@ -27,14 +27,15 @@
 }
 
 /*
- * La zona de puntero de la fila llega a la mitad del hueco que la separa de la siguiente (`gap` de la lista,
- * `Projects.module.css`): al pasar el ratón de una fila a otra no hay un instante sin ninguna, en el que la escena
- * volvería a enseñar la placa del ciclo.
+ * La zona de puntero de la fila llega a la mitad del hueco que la separa de la siguiente (`--_rows-gap`, el `gap` de
+ * la lista en `Projects.module.css`; sin lista, nada) y cubre también su borde izquierdo: al pasar el ratón de una
+ * fila a otra, o al bajar por la línea del borde, no hay un instante sin ninguna, en el que la escena volvería a
+ * enseñar la placa del ciclo.
  */
 .row::after {
   position: absolute;
-  inset-block: calc(var(--space-1) / -2);
-  inset-inline: 0;
+  inset-block: calc(var(--_rows-gap, 0px) / -2);
+  inset-inline: calc(-1 * var(--border-width)) 0;
   z-index: -1;
   content: '';
 }

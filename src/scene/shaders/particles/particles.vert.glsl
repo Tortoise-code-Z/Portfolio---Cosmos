@@ -1,7 +1,7 @@
 // Partículas de la escena (docs/04-escena/particulas-y-shaders.md). Un vértice por partícula: se evalúan solo
-// la forma actual y la siguiente (`m`) y se mezclan. Las etiquetas (TURTLE_*, EARTH_*, PLATE_*), las medidas del
-// retrato (PORTRAIT_*) y los colores (COLOR_*) llegan en la cabecera que genera `scene/shaders/glslHeader` desde
-// TypeScript.
+// la forma actual y la siguiente (`m`) y se mezclan. Las etiquetas (TURTLE_*, EARTH_*, PLATE_*), el balanceo de la
+// tortuga (también TURTLE_*), las medidas del retrato (PORTRAIT_*) y los colores (COLOR_*) llegan en la cabecera que
+// genera `scene/shaders/glslHeader` desde TypeScript.
 // Tres.js añade `position`, las matrices, `cameraPosition` y la precisión (ShaderMaterial).
 
 attribute vec3 pGal;

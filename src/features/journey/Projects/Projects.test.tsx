@@ -41,7 +41,10 @@ function focusFromKeyboard(fromKeyboard: boolean): void {
   // eslint-disable-next-line @typescript-eslint/unbound-method -- el original, para llamarlo con su `this` (`call`)
   const matches = Element.prototype.matches;
   vi.spyOn(Element.prototype, 'matches').mockImplementation(function (this: Element, selector) {
-    return selector === ':focus-visible' ? fromKeyboard : matches.call(this, selector);
+    // Como en un navegador: solo casa el que tiene el foco (un `<li>` que nunca lo recibe, no).
+    return selector === ':focus-visible'
+      ? fromKeyboard && this === document.activeElement
+      : matches.call(this, selector);
   });
 }
 
@@ -269,6 +272,27 @@ describe('Projects', () => {
       ]);
     });
 
+    it('its pointer area reaches half the gap of the list (the gap it reads from there) and covers its own border', () => {
+      const css = rowCss();
+      const list = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'Projects.module.css'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '');
+      expect(list).toMatch(
+        /\.rows \{[^}]*--_rows-gap: var\(--space-1\);[^}]*gap: var\(--_rows-gap\);/,
+      );
+      expect(rowRules(css)).toEqual(
+        expect.arrayContaining([
+          {
+            selectors: ['.row::after'],
+            body: expect.stringMatching(
+              /inset-block: calc\(var\(--_rows-gap, 0px\) \/ -2\);\s+inset-inline: calc\(-1 \* var\(--border-width\)\) 0;/,
+            ) as string,
+          },
+        ]),
+      );
+    });
+
     it('in Windows high contrast, the pointed row is painted with Highlight (the system evens out its colours)', () => {
       expect(rowRules(media(rowCss(), '(forced-colors: active)'))).toEqual([
         {
@@ -337,7 +361,7 @@ describe('Projects', () => {
       expect(pointed()).toBeNull();
     });
 
-    it('only the keyboard focus points: the pointer focus, or the one given back on returning to the tab, does not', () => {
+    it("only the keyboard focus points: the pointer focus does not (nor the one given back on returning to the tab, unless it was the keyboard's)", () => {
       setSceneLevel('high');
       focusFromKeyboard(false);
       renderAt('/');
@@ -365,7 +389,9 @@ describe('Projects', () => {
       focusFromKeyboard(true);
       renderAt('/');
       fireEvent.pointerEnter(rowOf(first.name), { pointerType: 'mouse' });
-      fireEvent.focus(linkOf(rowOf(second.name)));
+      act(() => {
+        linkOf(rowOf(second.name)).focus();
+      });
       expect(pointed()).toBe(second.slug);
       fireEvent.pointerLeave(rowOf(first.name), { pointerType: 'mouse' });
       expect(pointed()).toBe(second.slug);

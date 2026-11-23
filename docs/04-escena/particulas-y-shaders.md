@@ -31,7 +31,7 @@ la dirección de `position` escalada a casi cero.
 | `uGrav` | float | intensidad de la gravedad del cursor (0–1; 0 en táctil, sin ratón dentro o con movimiento reducido): es lo que la apaga. Sobre la Tierra, a la mitad (`EARTH_GRAVITY`, F4.5) |
 | `uAspect` | float | relación de aspecto |
 | `uMouse` | vec2 | dónde tira la gravedad, en NDC (el ratón o, al apagarse, el último punto donde estuvo) |
-| `uMotion` | float | 1 normal · 0 movimiento reducido (anula oscilaciones autónomas) |
+| `uMotion` | float | 1 normal · 0 movimiento reducido (anula oscilaciones autónomas): `motionOf(frame)` de `sceneMaterials`, la misma que usan los pins con el balanceo |
 | `uExtras` | float | 1 · 0 en Bajo: esconde la estela de la tortuga (alfa 0) y apaga las luces de ciudad |
 | `uPor` | float | 0 hasta que el retrato está en la geometría (`pPor`; la forma 5 pinta la Tierra); entonces sube a 1 en 0,6 s (`PORTRAIT_FADE_IN_S`, de golpe con movimiento reducido) y la Tierra pasa a retrato |
 
@@ -51,8 +51,9 @@ Ninguna etiqueta ni color se escribe a mano en el GLSL. `scene/shaders/glslHeade
 antepone a cada shader de vértices:
 - `#define TURTLE_<PARTE>` y `EARTH_<CAPA>` desde `TURTLE_TAG` y `EARTH_TAG` (`shapes/shapeContract`, el mismo
   contrato que escribe el generador), `TURTLE_FLIPPERS`, el rango de placas `PLATE_FIRST`..`PLATE_LAST` (20..26,
-  `config/plateSlots`), la mitad del alto del retrato, `PORTRAIT_HALF_H`, y lo que mide su fundido de abajo,
-  `PORTRAIT_FADE_H` (`PORTRAIT_FRAME`).
+  `config/plateSlots`), el balanceo de la tortuga `TURTLE_SWAY_*` (`TURTLE_SWAY` de `sceneConfig`, la misma cuenta que
+  los pins), la mitad del alto del retrato, `PORTRAIT_HALF_H`, y lo que mide su fundido de abajo, `PORTRAIT_FADE_H`
+  (`PORTRAIT_FRAME`).
 - `const vec3 COLOR_<NOMBRE>` desde `config/scenePalette`, que tiene todos los colores principales del design
   system, cada uno en su papel (lo comprueba su test con la tabla), y los matices del prototipo que la tabla no
   lista (los ojos de la tortuga son `COLOR_TURTLE_EYES` × 2: más brillantes que el blanco).

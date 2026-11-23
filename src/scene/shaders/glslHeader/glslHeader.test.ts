@@ -49,7 +49,16 @@ describe('glslHeader', () => {
     for (const [key, value] of Object.entries(TURTLE_SWAY)) {
       expect(header).toContain(`#define TURTLE_SWAY_${constantName(key)} ${glslFloat(value)}\n`);
     }
-    // La misma cuenta que `swayTurtlePoint` (math/platePins): girar sobre Y y después subir o bajar.
+    // La misma cuenta que `swayTurtlePoint` (math/platePins): girar sobre Y y después subir o bajar. El giro, con
+    // los signos de `swayTurtlePoint` (`out[0] = c·x + s·z`, `out[2] = −s·x + c·z`): con otro, la tortuga giraría al
+    // revés que sus pins.
+    expect(particlesVertex).toContain(
+      'vec3 rotY(vec3 p, float a) {\n' +
+        '  float c = cos(a);\n' +
+        '  float s = sin(a);\n' +
+        '  return vec3(c * p.x + s * p.z, p.y, -s * p.x + c * p.z);\n' +
+        '}',
+    );
     expect(particlesVertex).toContain(
       'p = rotY(p, sin(uTime * TURTLE_SWAY_YAW_RATE) * TURTLE_SWAY_YAW * uMotion);\n' +
         '  p.y += sin(uTime * TURTLE_SWAY_BOB_RATE) * TURTLE_SWAY_BOB * uMotion;',

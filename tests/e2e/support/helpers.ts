@@ -60,7 +60,8 @@ export async function browserHasWebGL2(page: Page): Promise<boolean> {
 export async function skipWithoutWebGL2(page: Page, testInfo: TestInfo): Promise<void> {
   await page.goto('about:blank');
   const hasWebGL2 = await browserHasWebGL2(page);
-  if (testInfo.project.name === 'chromium')
+  // Por el motor, no por el nombre del proyecto de Playwright (que puede cambiar o repetirse).
+  if (page.context().browser()?.browserType().name() === 'chromium')
     expect(hasWebGL2, 'Chromium must have WebGL2').toBe(true);
   testInfo.skip(!hasWebGL2, 'This browser has no WebGL2 here');
 }
@@ -211,3 +212,54 @@ export const brokenWords = (section: Locator): Promise<string[]> =>
     }
     return broken;
   });
+
+/** Un rectángulo en pantalla: izquierda, arriba, derecha y abajo, en píxeles CSS. */
+export type Rect = readonly [left: number, top: number, right: number, bottom: number];
+
+export function overlaps(a: Rect, b: Rect): boolean {
+  return a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+}
+
+/** Lo que ocupa un elemento en pantalla, o `null` si no se ve. */
+export async function rectOf(locator: Locator): Promise<Rect | null> {
+  if (!(await locator.isVisible())) return null;
+  const box = await locator.boundingBox();
+  return box === null ? null : [box.x, box.y, box.x + box.width, box.y + box.height];
+}
+
+/**
+ * Desde aquí se ve el HUD (`CosmicHud.module.css`: sin HUD por debajo de `sm`, 520 px). Se comprueba en los dos
+ * sentidos (`expectInterface`): si el corte del CSS cambia entre los anchos probados, el test falla.
+ */
+export const HUD_FROM_PX = 520;
+
+/** La interfaz por encima de la escena en un capítulo (cada pieza, `null` si no se ve). */
+export interface InterfaceRects {
+  readonly bar: Rect | null;
+  readonly rail: Rect | null;
+  readonly hud: Rect | null;
+  /** El panel del capítulo. */
+  readonly panel: Rect | null;
+}
+
+/** La barra, el raíl, el HUD y el panel del capítulo cuya sección es `#<chapter>` (`skills`, `projects`…). */
+export async function interfaceRects(page: Page, chapter: string): Promise<InterfaceRects> {
+  return {
+    bar: await rectOf(page.getByRole('banner')),
+    rail: await rectOf(page.getByRole('navigation', { name: /^(?:Chapters|Capítulos)$/ })),
+    hud: await rectOf(hud(page)),
+    panel: await rectOf(page.locator(`#${chapter} > *`).first()),
+  };
+}
+
+/**
+ * La interfaz que se debe ver a este ancho, sin `null`: la barra, el raíl y el panel siempre, y el HUD desde
+ * `HUD_FROM_PX` y solo desde ahí (por debajo, `null` es que está oculto). Si un texto o el orden de la página cambian y
+ * una pieza deja de encontrarse, el test falla en vez de saltarse su comprobación.
+ */
+export function expectInterface(ui: InterfaceRects, width: number): void {
+  expect(ui.bar, 'bar').not.toBeNull();
+  expect(ui.rail, 'rail').not.toBeNull();
+  expect(ui.panel, 'panel').not.toBeNull();
+  expect(ui.hud === null, 'HUD hidden').toBe(width < HUD_FROM_PX);
+}

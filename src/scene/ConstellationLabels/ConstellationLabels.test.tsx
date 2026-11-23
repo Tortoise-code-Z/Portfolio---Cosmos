@@ -10,7 +10,8 @@ import { selectActiveSkillGroup, setActiveSkillGroup, useUiStore } from '~/store
 
 import { STAR_LABEL_BOX } from '../config/constellationLayout/constellationLayout';
 import { WIDE_LAYOUT_QUERY } from '../config/sceneConfig';
-import { ConstellationLabels, createStarLabelElements, registerLabel } from './ConstellationLabels';
+import { registerLabel } from '../labelWriter/labelWriter';
+import { ConstellationLabels, createStarLabelElements } from './ConstellationLabels';
 
 /** Su CSS, del disco (con jsdom, `new URL` no lleva a rutas `file:`). */
 const css = readFileSync(
@@ -105,7 +106,8 @@ describe('ConstellationLabels', () => {
 
   it('readable over the bright core (a dark halo), not selectable, hidden in high contrast, no layer of its own', () => {
     expect(rule('.label')).toContain('text-shadow: var(--halo-star-label);');
-    expect(rule('.layer')).toContain('user-select: none;');
+    expect(rule('.layer')).toContain('-webkit-user-select: none;');
+    expect(rule('.layer')).toMatch(/\n\s+user-select: none;/);
     expect(css).toMatch(/@media \(forced-colors: active\) \{\s+\.layer \{\s+display: none;/);
     expect(css).not.toContain('will-change');
   });

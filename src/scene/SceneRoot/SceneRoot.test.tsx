@@ -8,7 +8,12 @@ import type { Color } from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BIG_BANG_VARS } from '~/lib/bigBang/bigBang';
-import { sceneStore, setCharge, setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import {
+  sceneStore,
+  setCharge,
+  setReadingInterlude,
+  setScrollTarget,
+} from '~/stores/sceneStore/sceneStore';
 import {
   closeQuickMission,
   openQuickMission,
@@ -412,6 +417,9 @@ describe('SceneRoot', () => {
       fov: 55,
       // Lejos de la tortuga, ninguna placa.
       plate: 0,
+      // Sin transmisión que leer; y las partículas, pintadas (lo que se coloca sobre ellas ya tiene dónde).
+      transmission: false,
+      painted: true,
     });
     // La cámara y el Sol leen el mismo frame.
     expect(seen.cameraFrame).toBe(seen.frame);
@@ -419,6 +427,13 @@ describe('SceneRoot', () => {
     expect(advance).toHaveBeenCalledTimes(2);
     // R3F avanza con los segundos del bucle (sus `useFrame` leen el reloj del frame compartido).
     expect(advance).toHaveBeenLastCalledWith(1);
+    // Leyendo Mission control, el frame lo dice (los pins lo leen de ahí, no del store).
+    setReadingInterlude('mission-control');
+    frames.tick(3000);
+    expect((seen.frame as { transmission: boolean }).transmission).toBe(true);
+    setReadingInterlude(null);
+    frames.tick(4000);
+    expect((seen.frame as { transmission: boolean }).transmission).toBe(false);
   });
 
   it('its m starts at the scroll target and then follows it smoothly; the store keeps the target for the interface', () => {
@@ -853,6 +868,8 @@ describe('SceneRoot', () => {
     // 10 s a 10 fps: con medidor, bajaría a los 8 s.
     for (let t = 0; t <= 10_000; t += 100) frames.tick(t);
     expect(lowerTo).not.toHaveBeenCalled();
+    // Y el frame lo dice: lo que va sobre las formas (los pins) espera.
+    expect((seen.cameraFrame as { painted: boolean }).painted).toBe(false);
   });
 
   it('asks for the shapes of its level, marks where they came from and gives up without them', () => {
