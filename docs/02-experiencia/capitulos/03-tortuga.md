@@ -43,14 +43,15 @@ escena. Metáfora: según el mito, una tortuga carga con el mundo; la tuya carga
 
 - **Escritorio:** filas a la izquierda; tortuga a la derecha, con la cabeza hacia la derecha y la estela
   pasando por detrás del panel. La cabeza no puede quedar bajo el raíl.
-- **Móvil:** escena primero con la tortuga entera y los pins; después las filas.
+- **Móvil:** escena primero con la tortuga entera y los pins; después las filas. Si los pins chocan, suben en
+  escalera (el tallo crece) hasta que caben (`constelaciones-y-placas.md` → «Pins»).
 
 ## Accesibilidad y movimiento reducido
 
 - Las filas son una lista (`<ul role="list">`, ver `estados-y-accesibilidad.md`) con enlaces reales; los pins son decorativos (`aria-hidden`) y su función
-  existe en las filas.
-- Movimiento reducido: la tortuga queda quieta (sin nado ni balanceo), sin ciclo automático de placas; la
-  iluminación por hover sigue funcionando sin pulso.
+  existe en las filas. Con alto contraste (`forced-colors`), los pins se ocultan.
+- Movimiento reducido: la tortuga queda quieta (sin nado ni balanceo) y sus pins también, sin ciclo automático de
+  placas; la iluminación por hover sigue funcionando sin pulso.
 
 ## Aceptación
 

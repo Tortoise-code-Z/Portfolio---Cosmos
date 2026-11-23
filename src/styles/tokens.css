@@ -28,6 +28,8 @@
     transparent 100%
   );
   --gradient-row-hot: linear-gradient(to right, rgb(255 196 107 / 0.08), transparent 80%);
+  /* El tallo del pin de una placa: ámbar en la placa, que se apaga hacia la etiqueta (componentes.md). */
+  --gradient-pin-stem: linear-gradient(to top, var(--color-star), transparent);
   --gradient-panel-mobile: linear-gradient(
     to bottom,
     transparent 0,

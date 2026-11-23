@@ -22,11 +22,16 @@ interface FakeScene {
   levels: string[];
   /** Los textos de las etiquetas de las constelaciones con que se montó (`undefined`: aún no). */
   skillLabels: Readonly<Record<string, string>> | null | undefined;
+  /** Los nombres de los pins con que se montó (`undefined`: aún no) y cómo abre un proyecto. */
+  projectNames: Readonly<Record<string, string>> | null | undefined;
+  onOpenProject: ((slug: string) => void) | null;
 }
 const scene = vi.hoisted((): FakeScene => ({
   behaviour: 'render',
   levels: [],
   skillLabels: undefined,
+  projectNames: undefined,
+  onOpenProject: null,
 }));
 
 // La escena de verdad necesita WebGL: aquí se sustituye por un componente que dice con qué nivel se montó.
@@ -36,14 +41,20 @@ vi.mock('~/scene/SceneRoot/SceneRoot', () => ({
     onFail,
     onPainted,
     skillLabels,
+    projectNames,
+    onOpenProject,
   }: {
     readonly level: RenderLevel;
     readonly onFail: (reason: string) => void;
     readonly onPainted: () => void;
     readonly skillLabels: Readonly<Record<string, string>> | null;
+    readonly projectNames: Readonly<Record<string, string>> | null;
+    readonly onOpenProject: (slug: string) => void;
   }): ReactNode {
     if (scene.behaviour === 'throw') throw new Error('WebGL context could not be created');
     scene.skillLabels = skillLabels;
+    scene.projectNames = projectNames;
+    scene.onOpenProject = onOpenProject;
     useEffect(() => {
       scene.levels.push(level);
       if (scene.behaviour === 'fail') onFail('shader-error');
@@ -93,6 +104,8 @@ afterEach(() => {
   scene.behaviour = 'render';
   scene.levels = [];
   scene.skillLabels = undefined;
+  scene.projectNames = undefined;
+  scene.onOpenProject = null;
 });
 
 describe('SceneMount', () => {
@@ -157,11 +170,43 @@ describe('SceneMount', () => {
     expect(scene.skillLabels?.vms).toBe('Virtual machines');
   });
 
-  it('outside the journey (a project page), no labels', async () => {
+  it('outside the journey (a project page), no labels and no pins', async () => {
     renderMount('/projects/chessmate');
     await idle();
     await screen.findByTestId('scene');
     expect(scene.skillLabels).toBeNull();
+    expect(scene.projectNames).toBeNull();
+  });
+
+  it('in the journey, hands the pins the name of every project; a pin opens its project page in the page language', async () => {
+    const router = createMemoryRouter(
+      [
+        {
+          path: '*',
+          element: (
+            <>
+              <p>The page</p>
+              <SceneMount />
+            </>
+          ),
+        },
+      ],
+      { initialEntries: ['/es'] },
+    );
+    render(<RouterProvider router={router} />);
+    await idle();
+    await screen.findByTestId('scene');
+    expect(scene.projectNames).toEqual({
+      chessmate: 'Chessmate',
+      astrohub: 'AstroHub',
+      cosmos: 'Cosmos',
+    });
+    await act(async () => {
+      scene.onOpenProject?.('astrohub');
+      await Promise.resolve();
+    });
+    expect(router.state.location.pathname).toBe('/es/projects/astrohub');
+    expect(scene.projectNames).toBeNull();
   });
 
   it('marks the page while the scene paints particles (the hero dot hands over), and not after a failure', async () => {

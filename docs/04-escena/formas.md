@@ -20,7 +20,8 @@
 - **Ruido** (`shapes/noise`): suma de senos anidados (`n3`) y `fbm` de 3 octavas (pesos 1 · 0,5 · 0,25,
   frecuencias × 1 · 2,03 · 4,1), los del prototipo. **No** necesita ser idéntico en GLSL: la tierra y las
   placas viajan ya calculadas en `aR` y el shader no las recalcula; el GLSL de F3.3 tiene su propio `n3` para
-  colorear. La paridad TS/GLSL queda para lo que sí la necesita (la posición de los pins, F4.4).
+  colorear. La paridad TS/GLSL queda para lo que sí la necesita: el balanceo de la tortuga, que mueve los pins (F4.4b:
+  `TURTLE_SWAY` llega al shader por la cabecera y `math/platePins` hace la misma cuenta; un test los ata).
 - **Muestreo** (`shapes/sampling`): dirección uniforme en la esfera (escrita en un vector reutilizado) y
   `boundedGauss`, la campana del prototipo: suma de 4 uniformes centrada, **acotada en [−1, 1]** y con
   desviación típica ≈ 0,29 (no 1). Todas las escalas «gaussianas» de este documento son con esta campana: el

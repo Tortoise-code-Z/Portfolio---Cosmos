@@ -39,7 +39,9 @@ la dirección de `position` escalada a casi cero.
 el punto y lo hace vibrar; con movimiento reducido, `uTime` se congela y la vibración no se mueve (`scene/sceneClock`).
 `uGrav` y `uMouse` los conecta F4.2 (la gravedad del cursor, abajo). `uPlate` lo conecta F4.4a: la placa del proyecto
 señalado o la del ciclo automático (`SceneFrame.plate`, `constelaciones-y-placas.md` → «Resaltado»); el pulso de la
-placa encendida va por `uMotion` (quieto con movimiento reducido). Todos los uniforms se ponen al día en el `useFrame` desde un `SceneFrame`
+placa encendida va por `uMotion` (quieto con movimiento reducido). El balanceo de la tortuga (giro y vaivén) usa las
+cifras de `TURTLE_SWAY` (`sceneConfig`), que llegan por la cabecera (`TURTLE_SWAY_*`): los pins hacen la misma cuenta
+(F4.4b). Todos los uniforms se ponen al día en el `useFrame` desde un `SceneFrame`
 compartido que rellena el bucle antes de cada frame: ningún objeto nuevo por frame.
 
 ## Etiquetas y colores

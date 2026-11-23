@@ -134,8 +134,9 @@ void turtle(out vec3 P, out vec3 C, out float S, out float A) {
     p.y += sin(uTime + aR.x * 20.0) * 0.08 * uMotion;
     fade = smoothstep(0.0, 0.6, d1) * (1.0 - smoothstep(4.0, 7.0, d1)) * uExtras;
   }
-  p = rotY(p, sin(uTime * 0.25) * 0.18 * uMotion);
-  p.y += sin(uTime * 0.7) * 0.15 * uMotion;
+  // El balanceo, con las cifras de la cabecera (sceneConfig): los pins (math/platePins) hacen la misma cuenta.
+  p = rotY(p, sin(uTime * TURTLE_SWAY_YAW_RATE) * TURTLE_SWAY_YAW * uMotion);
+  p.y += sin(uTime * TURTLE_SWAY_BOB_RATE) * TURTLE_SWAY_BOB * uMotion;
 
   vec3 c = COLOR_TURTLE_SHELL;
   float s = 1.3 + aR.w * 0.8;
