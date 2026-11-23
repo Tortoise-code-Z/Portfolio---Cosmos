@@ -77,6 +77,7 @@ Reglas:
 | Constelaciones | estrellas `#fff0d7` con halo `#ffc88c`, líneas `#ffd9a0` |
 | Tortuga | caparazón `#1a998a`, bordes `#ffa847`, placas `#f2b861` (iluminada `#ffedc7`), bosque `#52f26b`, cuerpo `#38c7a3`, estela `#73bfff` |
 | Tierra | océano `#1247d9`, tierras `#47b852` / `#c79e5c`, nubes `#f2f7ff`, atmósfera `#599eff`, amanecer `#ff7326` |
+| Sol (sobre la Tierra) | núcleo `#ffb070` con halo `#ff8a3d` |
 | Retrato (epílogo) | el verde del canal `#6dff9f`, con brillo `#d5ffe4`, sobre un verde hondo `#21804d` |
 
 ## Tipografía

@@ -42,6 +42,9 @@ export const SCENE_PALETTE = {
   earthDawn: '#ff7326',
   earthRim: '#ff8033',
   earthCity: '#ffb859',
+  // Sol (sobre la Tierra): su núcleo y su halo (el brillo del prototipo teñido de #ffb070)
+  sunCore: '#ffb070',
+  sunGlow: '#ff8a3d',
   // Retrato: el verde del canal del epílogo (`--color-channel-green` y `-bright`) sobre un fondo más hondo
   portraitDeep: '#21804d',
   portraitGlow: '#6dff9f',

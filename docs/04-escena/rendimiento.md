@@ -44,8 +44,10 @@
   pisos y la escritura compartida con las etiquetas) pesó 1 729 B: **256 460 B**; F4.4 entera, 2 120 B de sus 2,5 KB. La corrección de la auditoría de F4.4a (el
   ciclo que para también con un proyecto sin placa, una sola rampa de presencia) pesó 21 B, del margen: **256 481 B**.
   La de F4.4b (los pins que esperan a la tortuga y leen la transmisión del frame, el orden por inserción, el gesto
-  que recuerda su pin y el clic que deja señalado) pesó 149 B, del margen: **256 630 B**. Quedan 3 370 B: F4.5 ≤ 3 KB
-  y ~0,37 KB de margen. Los generadores no
+  que recuerda su pin y el clic que deja señalado) pesó 149 B, del margen: **256 630 B**. **F4.5** (el Sol: su
+  cuadrado, sus dos shaders, sus uniforms y la luz de la Tierra que sale de él; y la gravedad más suave sobre la
+  Tierra) pesó 444 B de sus 3 KB: **257 074 B**. Quedan 2 926 B de margen (para la corrección de la auditoría de
+  F4.5, la de cierre de F4 y, después, las Naves, C.7). Los generadores no
   cuentan ahí: van en el worker (≤ 10 KB; con el retrato, 6 042 B) y, para el reintento, en su propio chunk (≤ 10 KB;
   el retrato no va en él). Las imágenes del retrato (~150 KB: 152 529 B sin metadatos) las pide el worker, no la página.
 

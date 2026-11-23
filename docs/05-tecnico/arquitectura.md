@@ -69,9 +69,10 @@ cosmos-portfolio/
 │  │                              y el ratón), pause (cuándo pausar el bucle: pestaña oculta, misión rápida),
 │  │                              Constellations (las constelaciones y la colocación de sus etiquetas),
 │  │                              ConstellationLabels (la capa del DOM de las etiquetas, en `body`), PlatePins
-│  │                              (los pins de las placas: su capa en `body` y su colocación) y labelWriter
-│  │                              (lo que se escribe de una etiqueta colocada, de las estrellas o de un pin)
-│  │  ├─ shaders/               ← los `.glsl` (particles, stars, constellations), glslHeader (etiquetas y colores desde TS) y
+│  │                              (los pins de las placas: su capa en `body` y su colocación), labelWriter
+│  │                              (lo que se escribe de una etiqueta colocada, de las estrellas o de un pin) y Sun
+│  │                              (el Sol sobre la Tierra, F4.5)
+│  │  ├─ shaders/               ← los `.glsl` (particles, stars, constellations, sun), glslHeader (etiquetas y colores desde TS) y
 │  │  │                           stripGlslComments (el plugin de vite.config.ts)
 │  │  ├─ math/                  ← código puro: camera (pose por `m`, campo de visión, paralaje) · gravity (la
 │  │  │                           gravedad del cursor) · projection (de la escena a la pantalla) ·
@@ -314,10 +315,11 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   `pointer-events: auto` en línea a su envoltorio: se anula) y con el DPR máximo del nivel. Pinta con su propio
   bucle (`frameloop="never"` + `scene/frameLoop`, ADR-027) las partículas (`Particles`), las estrellas de fondo
   (`BackgroundStars`) y las constelaciones (`Constellations`), con sus etiquetas en una capa del DOM aparte, montada
-  en `body` (`ConstellationLabels`, `--z-labels`), y los pins de las placas (`PlatePins`, en otra capa igual); la
+  en `body` (`ConstellationLabels`, `--z-labels`), los pins de las placas (`PlatePins`, en otra capa igual) y el Sol
+  sobre la Tierra (`Sun`); la
   placa iluminada (`math/plateCycle`) va en `SceneFrame.plate` y de ahí a `uPlate`; la cámara la mueve `CameraRig` (`docs/04-escena/camara-y-encuadre.md`), con el ratón de
   `scene/pointer` y si es escritorio de `watchMediaQuery`; con el mismo ratón, la gravedad del cursor
-  (`math/gravity`). Al montar pide las formas al worker; si falla, las genera
+  (`math/gravity`; a la mitad sobre la Tierra, `EARTH_GRAVITY`). Al montar pide las formas al worker; si falla, las genera
   una vez en el hilo principal a nivel Bajo, y si eso también falla, Apagado (`docs/04-escena/rendimiento.md` →
   «Worker de las formas»). Si después pinta por debajo de los fps del presupuesto, baja un nivel
   (`useHotDegradation`: rendimiento.md → «Degradación en caliente»).

@@ -1,7 +1,7 @@
 import { AdditiveBlending } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { PORTRAIT_FADE_IN_S } from '../config/sceneConfig';
+import { EARTH_GRAVITY, PORTRAIT_FADE_IN_S, SUN } from '../config/sceneConfig';
 import constellationLinesFragment from '../shaders/constellations/constellationLines.frag.glsl?raw';
 import constellationsVertex from '../shaders/constellations/constellations.vert.glsl?raw';
 import constellationStarsFragment from '../shaders/constellations/constellationStars.frag.glsl?raw';
@@ -10,6 +10,8 @@ import particlesFragment from '../shaders/particles/particles.frag.glsl?raw';
 import particlesVertex from '../shaders/particles/particles.vert.glsl?raw';
 import starsFragment from '../shaders/stars/stars.frag.glsl?raw';
 import starsVertex from '../shaders/stars/stars.vert.glsl?raw';
+import sunFragment from '../shaders/sun/sun.frag.glsl?raw';
+import sunVertex from '../shaders/sun/sun.vert.glsl?raw';
 import {
   createConstellationLinesMaterial,
   createConstellationStarsMaterial,
@@ -19,10 +21,13 @@ import {
   createSceneFrame,
   createStarsMaterial,
   createStarUniforms,
+  createSunMaterial,
+  createSunUniforms,
   motionOf,
   POINTER_AWAY,
   updateParticleUniforms,
   updateStarUniforms,
+  updateSunUniforms,
   type SceneFrame,
 } from './sceneMaterials';
 
@@ -98,6 +103,20 @@ describe('particle uniforms', () => {
     expect(uniforms.uPor.value).toBe(1);
   });
 
+  it('the cursor gravity is softer over the Earth (EARTH_GRAVITY), and whole away from it', () => {
+    const uniforms = createParticleUniforms();
+    const at = (m: number): number => {
+      updateParticleUniforms(uniforms, { ...frame, m });
+      return uniforms.uGrav.value;
+    };
+    expect(at(EARTH_GRAVITY.chapter)).toBeCloseTo(0.7 * EARTH_GRAVITY.scale);
+    // Entre la tortuga y la Tierra, a medias; en la tortuga y en el retrato (su giro con el ratón), entera.
+    expect(at(EARTH_GRAVITY.chapter - 0.25)).toBeGreaterThan(0.7 * EARTH_GRAVITY.scale);
+    expect(at(EARTH_GRAVITY.chapter - 0.25)).toBeLessThan(0.7);
+    expect(at(EARTH_GRAVITY.chapter - 1)).toBe(0.7);
+    expect(at(EARTH_GRAVITY.chapter + 1)).toBe(0.7);
+  });
+
   it('reduced motion and the low level turn their uniforms off', () => {
     const uniforms = createParticleUniforms();
     updateParticleUniforms(uniforms, { ...frame, reducedMotion: true, extras: false });
@@ -166,6 +185,38 @@ describe('star uniforms', () => {
   });
 });
 
+describe('sun uniforms', () => {
+  it('start hidden, at its size', () => {
+    expect(createSunUniforms()).toEqual({ uSize: { value: SUN.size }, uOpacity: { value: 0 } });
+  });
+
+  it('shows with the presence of its chapter: whole on the Earth, nothing on the turtle or the portrait', () => {
+    const uniforms = createSunUniforms();
+    const opacityAt = (m: number): number => {
+      updateSunUniforms(uniforms, { ...frame, m });
+      return uniforms.uOpacity.value;
+    };
+    expect(opacityAt(SUN.chapter)).toBe(SUN.opacity);
+    expect(opacityAt(SUN.chapter - 0.25)).toBeGreaterThan(0);
+    expect(opacityAt(SUN.chapter - 0.25)).toBeLessThan(SUN.opacity);
+    expect(opacityAt(SUN.chapter - 1)).toBe(0);
+    expect(opacityAt(SUN.chapter + 1)).toBe(0);
+  });
+
+  it('pulses with the scene clock, within ± SUN.pulse; still at its size with reduced motion', () => {
+    const uniforms = createSunUniforms();
+    const sizeAt = (time: number, reducedMotion = false): number => {
+      updateSunUniforms(uniforms, { ...frame, time, reducedMotion });
+      return uniforms.uSize.value;
+    };
+    const quarter = Math.PI / 2 / SUN.pulseRate;
+    expect(sizeAt(0)).toBe(SUN.size);
+    expect(sizeAt(quarter)).toBeCloseTo(SUN.size + SUN.pulse);
+    expect(sizeAt(3 * quarter)).toBeCloseTo(SUN.size - SUN.pulse);
+    expect(sizeAt(quarter, true)).toBe(SUN.size);
+  });
+});
+
 describe('materials', () => {
   for (const [name, material, uniforms, vertex, fragment] of [
     [
@@ -190,6 +241,7 @@ describe('materials', () => {
       constellationsVertex,
       constellationLinesFragment,
     ],
+    ['sun', createSunMaterial, createSunUniforms, sunVertex, sunFragment],
   ] as const) {
     it(`${name}: additive light, no depth, its own shaders with the header first and the uniforms shared`, () => {
       const own = uniforms();

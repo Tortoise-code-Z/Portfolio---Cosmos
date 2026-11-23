@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
-import { CAMERA_KEYFRAMES, TURTLE_SWAY } from '../../config/sceneConfig';
+import { CAMERA_KEYFRAMES, SUN, TURTLE_SWAY } from '../../config/sceneConfig';
 import { SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
 import { EARTH_TAG, PORTRAIT_FRAME, TURTLE_TAG } from '../../shapes/shapeContract/shapeContract';
 import constellationLinesFragment from '../constellations/constellationLines.frag.glsl?raw';
@@ -11,19 +11,22 @@ import particlesFragment from '../particles/particles.frag.glsl?raw';
 import particlesVertex from '../particles/particles.vert.glsl?raw';
 import starsFragment from '../stars/stars.frag.glsl?raw';
 import starsVertex from '../stars/stars.vert.glsl?raw';
-import { constantName, glslFloat, glslHeader } from './glslHeader';
+import sunFragment from '../sun/sun.frag.glsl?raw';
+import sunVertex from '../sun/sun.vert.glsl?raw';
+import { constantName, glslFloat, glslHeader, sunDirection } from './glslHeader';
 
 const header = glslHeader();
 /** La cabecera solo se antepone a los vertex shaders (`sceneMaterials`). */
-const VERTEX_SHADERS = { particlesVertex, starsVertex, constellationsVertex };
+const VERTEX_SHADERS = { particlesVertex, starsVertex, constellationsVertex, sunVertex };
 const FRAGMENT_SHADERS = {
   particlesFragment,
   starsFragment,
   constellationStarsFragment,
   constellationLinesFragment,
+  sunFragment,
 };
 const SHADERS = { ...VERTEX_SHADERS, ...FRAGMENT_SHADERS };
-const HEADER_NAME = /\b(?:TURTLE|EARTH|PLATE|PORTRAIT|COLOR)_\w+/g;
+const HEADER_NAME = /\b(?:TURTLE|EARTH|PLATE|PORTRAIT|COLOR|SUN)_\w+/g;
 
 /** Los nombres que define la cabecera (`#define X …` y `const vec3 X = …`). */
 const defined = new Set(
@@ -60,6 +63,21 @@ describe('glslHeader', () => {
       'p = rotY(p, sin(uTime * TURTLE_SWAY_YAW_RATE) * TURTLE_SWAY_YAW * uMotion);\n' +
         '  p.y += sin(uTime * TURTLE_SWAY_BOB_RATE) * TURTLE_SWAY_BOB * uMotion;',
     );
+  });
+
+  it('the Earth is lit from the Sun the visitor sees: SUN_DIR points from the Earth (the origin) to SUN.position', () => {
+    const [x, y, z] = sunDirection();
+    expect(Math.hypot(x, y, z)).toBeCloseTo(1);
+    const length = Math.hypot(...SUN.position);
+    expect([x, y, z].map((c) => Number(c.toFixed(6)))).toEqual(
+      SUN.position.map((c) => Number((c / length).toFixed(6))),
+    );
+    expect(header).toContain(
+      `#define SUN_DIR vec3(${[x, y, z].map((c) => glslFloat(Number(c.toFixed(4)))).join(', ')})\n`,
+    );
+    // La luz de la Tierra es esa, no una dirección escrita a mano en el shader.
+    expect(particlesVertex).toContain('float lam = dot(n, SUN_DIR);');
+    expect(particlesVertex).not.toMatch(/normalize\(vec3\(-?\d/);
   });
 
   it('the lit plate pulses only with motion: its sin(uTime * 5.0) goes through uMotion', () => {

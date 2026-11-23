@@ -33,6 +33,7 @@ import {
 } from '../math/plateCycle/plateCycle';
 import { createSceneClock } from '../sceneClock/sceneClock';
 import { createSceneFrame, type SceneFrame } from '../sceneMaterials/sceneMaterials';
+import { Sun } from '../Sun/Sun';
 import { useHotDegradation } from '../useHotDegradation/useHotDegradation';
 import { usePortrait } from '../usePortrait/usePortrait';
 import { SCENE_PLATE_LABELS, SCENE_PLATES, useSceneShapes } from '../useSceneShapes/useSceneShapes';
@@ -127,8 +128,8 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * Raíz de la escena (docs/05-tecnico/arquitectura.md → «Carga de la escena»). Llega en su propio chunk,
  * con Three.js y React Three Fiber, después de la primera pintura: el JS inicial no la incluye. Fija detrás del
  * contenido, decorativa (`aria-hidden`) y sin puntero. Pide las formas al montar (`useSceneShapes`: worker y,
- * si falla, reintento) y las pinta (`Particles`), con las estrellas de fondo y las constelaciones (con sus etiquetas
- * en una capa del DOM aparte, `ConstellationLabels`) y los pins de las placas (`PlatePins`); la cámara la lleva
+ * si falla, reintento) y las pinta (`Particles`), con las estrellas de fondo, las constelaciones (con sus etiquetas
+ * en una capa del DOM aparte, `ConstellationLabels`), los pins de las placas (`PlatePins`) y el Sol (`Sun`); la cámara la lleva
  * `CameraRig`, que se mueve antes que las demás piezas por la prioridad de su `useFrame` (`CAMERA_RIG_PRIORITY`), no
  * por su sitio en el JSX.
  *
@@ -350,6 +351,7 @@ export default function SceneRoot({
         )}
         <BackgroundStars count={LEVEL_SETTINGS[level].stars} frame={frame} />
         <Constellations frame={frame} texts={skillLabels} labels={labelElements} />
+        <Sun frame={frame} />
         <PlatePinsFrame frame={frame} names={projectNames} elements={pinElements} />
       </Canvas>
       <ConstellationLabels texts={skillLabels} elements={labelElements} />

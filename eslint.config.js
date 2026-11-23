@@ -39,6 +39,7 @@ const IMPURE_SCENE_MODULES = [
   'PlatePins',
   'Particles',
   'BackgroundStars',
+  'Sun',
   'sceneMaterials',
   'particleGeometry',
   'useSceneShapes',

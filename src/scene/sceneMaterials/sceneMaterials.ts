@@ -1,10 +1,12 @@
 import { AdditiveBlending, ShaderMaterial, Vector2, type IUniform } from 'three';
 
+import { lerp } from '~/lib/math/lerp/lerp';
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
 
 import { NO_PLATE } from '../config/plateSlots/plateSlots';
-import { PORTRAIT_FADE_IN_S } from '../config/sceneConfig';
+import { EARTH_GRAVITY, PORTRAIT_FADE_IN_S, SUN } from '../config/sceneConfig';
 import { createCameraPose, type CameraPose } from '../math/camera/camera';
+import { chapterPresence } from '../math/chapterPresence/chapterPresence';
 import { createGravity, type Gravity } from '../math/gravity/gravity';
 import { createScenePointer, type ScenePointer } from '../pointer/pointer';
 import constellationLinesFragment from '../shaders/constellations/constellationLines.frag.glsl?raw';
@@ -15,6 +17,8 @@ import particlesFragment from '../shaders/particles/particles.frag.glsl?raw';
 import particlesVertex from '../shaders/particles/particles.vert.glsl?raw';
 import starsFragment from '../shaders/stars/stars.frag.glsl?raw';
 import starsVertex from '../shaders/stars/stars.vert.glsl?raw';
+import sunFragment from '../shaders/sun/sun.frag.glsl?raw';
+import sunVertex from '../shaders/sun/sun.vert.glsl?raw';
 
 /**
  * Materiales de la escena (docs/04-escena/particulas-y-shaders.md → «Uniforms» y «Material»): los shaders con
@@ -33,7 +37,10 @@ export interface ParticleUniforms {
   readonly uPR: IUniform<number>;
   /** Etiqueta de la placa iluminada (0 = ninguna): `SceneFrame.plate`. */
   readonly uPlate: IUniform<number>;
-  /** Gravedad del cursor, de 0 a 1 (0 en táctil, sin ratón dentro o con movimiento reducido). */
+  /**
+   * Gravedad del cursor, de 0 a 1 (0 en táctil, sin ratón dentro o con movimiento reducido), más suave sobre la
+   * Tierra (`EARTH_GRAVITY`).
+   */
   readonly uGrav: IUniform<number>;
   readonly uAspect: IUniform<number>;
   /** Dónde tira la gravedad, en NDC (el ratón o, al apagarse, el último punto donde estuvo). */
@@ -64,6 +71,13 @@ export interface ConstellationUniforms {
   readonly uOpacity: IUniform<number>;
   /** 0 en las estrellas · 1 en las líneas (su color). */
   readonly uLine: IUniform<number>;
+}
+
+/** Los del Sol (F4.5): su lado y su opacidad, que pone `updateSunUniforms`. */
+export interface SunUniforms {
+  /** Lado del cuadrado, en unidades de la escena. */
+  readonly uSize: IUniform<number>;
+  readonly uOpacity: IUniform<number>;
 }
 
 /**
@@ -99,6 +113,10 @@ export function createConstellationUniforms(line: boolean): ConstellationUniform
     uOpacity: { value: 0 },
     uLine: { value: line ? 1 : 0 },
   };
+}
+
+export function createSunUniforms(): SunUniforms {
+  return { uSize: { value: SUN.size }, uOpacity: { value: 0 } };
 }
 
 export function createStarUniforms(): StarUniforms {
@@ -205,7 +223,9 @@ export function updateParticleUniforms(
   uniforms.uAspect.value = frame.aspect;
   uniforms.uMotion.value = motionOf(frame);
   uniforms.uExtras.value = frame.extras ? 1 : 0;
-  uniforms.uGrav.value = frame.gravity.strength;
+  uniforms.uGrav.value =
+    frame.gravity.strength *
+    lerp(1, EARTH_GRAVITY.scale, chapterPresence(frame.m, EARTH_GRAVITY.chapter));
   uniforms.uMouse.value.set(frame.gravity.x, frame.gravity.y);
 }
 
@@ -213,6 +233,17 @@ export function updateStarUniforms(uniforms: StarUniforms, frame: Readonly<Scene
   uniforms.uTime.value = frame.time;
   uniforms.uPR.value = frame.pixelRatio;
   uniforms.uVisible.value = smoothstep(STARS_VISIBLE_FROM, STARS_VISIBLE_AT, frame.m);
+}
+
+/**
+ * El Sol (docs/04-escena/particulas-y-shaders.md → «Sol»): aparece con la presencia de su capítulo, hasta
+ * `SUN.opacity`, y late con el reloj de la escena; con movimiento reducido, quieto en su tamaño.
+ */
+export function updateSunUniforms(uniforms: SunUniforms, frame: Readonly<SceneFrame>): void {
+  uniforms.uOpacity.value = chapterPresence(frame.m, SUN.chapter) * SUN.opacity;
+  uniforms.uSize.value = frame.reducedMotion
+    ? SUN.size
+    : SUN.size + Math.sin(frame.time * SUN.pulseRate) * SUN.pulse;
 }
 
 /**
@@ -261,5 +292,15 @@ export function createConstellationLinesMaterial(uniforms: ConstellationUniforms
     uniforms: { ...uniforms },
     vertexShader: glslHeader() + constellationsVertex,
     fragmentShader: constellationLinesFragment,
+  });
+}
+
+/** El material del Sol: un brillo que mira a la cámara, del lado de `uSize`. */
+export function createSunMaterial(uniforms: SunUniforms): ShaderMaterial {
+  return new ShaderMaterial({
+    ...ADDITIVE,
+    uniforms: { ...uniforms },
+    vertexShader: glslHeader() + sunVertex,
+    fragmentShader: sunFragment,
   });
 }

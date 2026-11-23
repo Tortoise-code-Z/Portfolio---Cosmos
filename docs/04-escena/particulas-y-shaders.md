@@ -1,6 +1,6 @@
 # Partículas y shaders
 
-> Código: `src/scene/Particles/` y `src/scene/BackgroundStars/` (montan; `useParticles` y `useBackgroundStars` se
+> Código: `src/scene/Particles/`, `src/scene/BackgroundStars/` y `src/scene/Sun/` (montan; `useParticles` y `useBackgroundStars` se
 > prueban sin WebGL), `scene/particleGeometry` (atributos),
 > `scene/sceneMaterials` (uniforms y materiales), `scene/shaders/` (los `.glsl`, importados con `?raw`, que
 > llegan sin comentarios por el plugin `cosmos:glsl-without-comments` de `vite.config.ts`, y `glslHeader`). Los frames los pide `SceneRoot` con su propio bucle (`rendimiento.md` → «Robustez», ADR-027).
@@ -28,7 +28,7 @@ la dirección de `position` escalada a casi cero.
 | `uCharge` | float | carga de la detonación (0–1) |
 | `uPR` | float | pixel ratio efectivo |
 | `uPlate` | float | etiqueta de la placa iluminada (0 = ninguna) |
-| `uGrav` | float | intensidad de la gravedad del cursor (0–1; 0 en táctil, sin ratón dentro o con movimiento reducido): es lo que la apaga |
+| `uGrav` | float | intensidad de la gravedad del cursor (0–1; 0 en táctil, sin ratón dentro o con movimiento reducido): es lo que la apaga. Sobre la Tierra, a la mitad (`EARTH_GRAVITY`, F4.5) |
 | `uAspect` | float | relación de aspecto |
 | `uMouse` | vec2 | dónde tira la gravedad, en NDC (el ratón o, al apagarse, el último punto donde estuvo) |
 | `uMotion` | float | 1 normal · 0 movimiento reducido (anula oscilaciones autónomas): `motionOf(frame)` de `sceneMaterials`, la misma que usan los pins con el balanceo |
@@ -42,7 +42,8 @@ señalado o la del ciclo automático (`SceneFrame.plate`, `constelaciones-y-plac
 placa encendida va por `uMotion` (quieto con movimiento reducido). El balanceo de la tortuga (giro y vaivén) usa las
 cifras de `TURTLE_SWAY` (`sceneConfig`), que llegan por la cabecera (`TURTLE_SWAY_*`): los pins hacen la misma cuenta
 (F4.4b). Todos los uniforms se ponen al día en el `useFrame` desde un `SceneFrame`
-compartido que rellena el bucle antes de cada frame: ningún objeto nuevo por frame.
+compartido que rellena el bucle antes de cada frame: ningún objeto nuevo por frame. F4.5 suaviza `uGrav` sobre la Tierra
+(«Gravedad del cursor»).
 
 ## Etiquetas y colores
 
@@ -111,8 +112,11 @@ en el último punto donde estuvo; con movimiento reducido, 0 de golpe. El ratón
 barra de scroll). Con frames de 0,1 s (el tope del reloj: ≤ 10 fps, un frame atascado o el primero tras una pausa),
 `dt · 10` llega a 1 y entra o se apaga de golpe: aceptado, a esos fps todo va a saltos. El punto no se acota a ±1
 (arrastrando fuera de la ventana sale de la pantalla y la caída lo apaga), y si el ratón sale por un sitio y vuelve
-por otro antes de apagarse, lo que queda del remolino salta al punto nuevo: aceptado, como un movimiento rápido. La misma intensidad en todos los capítulos; F4.3 deja quietas las constelaciones y F4.5 suaviza
-la Tierra (sus capítulos).
+por otro antes de apagarse, lo que queda del remolino salta al punto nuevo: aceptado, como un movimiento rápido. La misma intensidad en todos los capítulos salvo la Tierra: desde F4.5, `uGrav` se
+multiplica por `lerp(1; 0,5; presencia del capítulo 4)` (`EARTH_GRAVITY` en `sceneConfig`; `chapterPresence`), así que
+sobre la Tierra el remolino y el brillo extra van a la mitad, y entre la tortuga y la Tierra se suaviza poco a poco. En
+el retrato (m = 5) la presencia ya es 0: su giro con el ratón, que también lee `uGrav`, no cambia. Las constelaciones
+(F4.3) y el Sol (F4.5) no son partículas: la gravedad no los mueve.
 
 ### Colores
 
@@ -149,7 +153,10 @@ shader le suma:
 
 ### Iluminación de la Tierra
 
-Luz direccional fija `L = normalize(-0.72, 0.30, -0.45)` (la dirección del Sol). Día/noche con `smoothstep` del
+Luz direccional fija, desde el Sol que se ve: `SUN_DIR`, la posición del Sol (`SUN.position`) normalizada, que llega
+por la cabecera (la Tierra está en el origen; un test los ata). Hasta F4.5 era la del prototipo,
+`normalize(-0.72, 0.30, -0.45)`, de la izquierda y casi de lado; con el Sol en su sitio, el lado de día mira arriba a
+la izquierda y el amanecer cruza en diagonal. Día/noche con `smoothstep` del
 producto escalar, franja naranja del amanecer con `exp(-(lam · 4,5)²)`, luces de ciudad en tierra nocturna y
 atmósfera con efecto Fresnel según la dirección de la cámara.
 
@@ -175,6 +182,35 @@ Desde F4.3b, aparte de las partículas: puntos y líneas con sus propios shaders
 un vertex shader para los dos y uno de fragmentos para cada uno), la misma cabecera de colores
 (`constellationStar`, `constellationGlow`, `constellationLine`) y el mismo material aditivo. Las estrellas miden lo
 mismo en pantalla a cualquier distancia (`gl_PointSize = uSize · uPR`). Detalle en `constelaciones-y-placas.md`.
+
+## Sol
+
+Desde F4.5 (`scene/Sun`), sobre la Tierra: un cuadrado de dos triángulos con sus shaders (`scene/shaders/sun/`) y el
+mismo material aditivo. El shader de vértices lo abre en el espacio de la vista desde su centro, con el lado de
+`uSize` en unidades de la escena, así que mira siempre a la cámara y crece y mengua con ella como la Tierra. No es un
+punto porque el tamaño de un punto tiene tope (`ALIASED_POINT_SIZE_RANGE`) y en un móvil lo recortaría. El de
+fragmentos dibuja el degradado del prototipo, sin textura: núcleo `sunCore` (`#ffb070`, el tinte del prototipo)
+que pasa al halo `sunGlow` (`#ff8a3d`) y se apaga hasta el borde, con el mismo perfil de alfa que las estrellas de
+las constelaciones.
+
+- **Dónde:** `SUN.position` = (−1,4; 2,9; −1), lado 3,5: arriba a la izquierda de la Tierra y casi a su altura, sobre
+  el limbo. La luz de la Tierra sale de ahí (`SUN_DIR`, «Iluminación de la Tierra»). Por qué ahí:
+  - el prototipo lo ponía en (−2,6; 3; −5) con lado 9: con el encuadre de F3.6c su halo cruzaba el borde derecho del
+    panel y el de la barra de arriba, y los dibujaba (`04-tierra.md` → «Layout»);
+  - a la izquierda de la Tierra y a su altura (luz de lado de verdad) cae sobre el panel: a 1280×720 el borde se
+    marcaba con un escalón de 56 a 74 de brillo;
+  - detrás de la Tierra ilumina su cara de atrás, que se ve a través (las partículas suman luz, sin profundidad), y
+    parece de día por todas partes.
+  Medido a 1440×900 (sin escalón al cruzar el borde del panel) y a 1280×720 (un escalón de ~6 de 255, que no se ve).
+  Entre 900 y ~1100 px de ancho la Tierra ya pasa por detrás del panel (`camara-y-encuadre.md`) y el halo también:
+  aceptado.
+- **Cuándo:** `uOpacity` = presencia del capítulo 4 · 0,95 (`chapterPresence`, la rampa de las placas): entero en la
+  Tierra y apagado antes de llegar al retrato. Con opacidad 0 no se pinta (`material.visible`): un cuadrado tan
+  grande costaría píxeles en cada frame aunque no se viera.
+- **Latido:** el lado va `3,5 ± 0,15 · sin(t · 0,8)` con el reloj de la escena (el 4–5 % del prototipo); con
+  movimiento reducido, quieto en 3,5.
+- En todos los niveles (son dos triángulos). Las cuentas, en `updateSunUniforms` (`sceneMaterials`); las cifras, en
+  `SUN` (`sceneConfig`).
 
 ## Mejoras respecto al prototipo
 

@@ -57,11 +57,13 @@ const seen = vi.hoisted(
     stars: number[];
     cameraFrame: unknown;
     constellations: { frame: unknown; texts: unknown; labels: unknown } | null;
+    sunFrames: unknown[];
   } => ({
     frame: null,
     stars: [],
     cameraFrame: null,
     constellations: null,
+    sunFrames: [],
   }),
 );
 vi.mock('../CameraRig/CameraRig', () => ({
@@ -122,6 +124,12 @@ vi.mock('../PlatePins/PlatePins', () => ({
     readonly onOpen: (slug: string) => void;
   }) {
     pins.layer = props;
+    return null;
+  },
+}));
+vi.mock('../Sun/Sun', () => ({
+  Sun: function FakeSun({ frame }: { readonly frame: unknown }) {
+    seen.sunFrames.push(frame);
     return null;
   },
 }));
@@ -236,6 +244,7 @@ afterEach(() => {
   seen.stars = [];
   seen.cameraFrame = null;
   seen.constellations = null;
+  seen.sunFrames = [];
   vi.unstubAllGlobals();
   sceneStore.setState(sceneStore.getInitialState(), true);
   useUiStore.setState(useUiStore.getInitialState(), true);
@@ -412,8 +421,9 @@ describe('SceneRoot', () => {
       transmission: false,
       painted: true,
     });
-    // La cámara lee el mismo frame.
+    // La cámara y el Sol leen el mismo frame.
     expect(seen.cameraFrame).toBe(seen.frame);
+    expect(seen.sunFrames.at(-1)).toBe(seen.frame);
     expect(advance).toHaveBeenCalledTimes(2);
     // R3F avanza con los segundos del bucle (sus `useFrame` leen el reloj del frame compartido).
     expect(advance).toHaveBeenLastCalledWith(1);
