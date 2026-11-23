@@ -44,6 +44,13 @@ export interface UiState {
    * y al irse.
    */
   readonly projectPageOpen: boolean;
+  /**
+   * El proyecto señalado (su slug), o ninguno (docs/02-experiencia/capitulos/03-tortuga.md → «Interacciones»). Lo
+   * escriben las filas del capítulo 3 (ratón, foco, toque) y, desde F4.4b, los pins de la escena; la escena lo lee en
+   * cada frame con `getState()`, sin re-render, e ilumina su placa (mientras hay uno, el ciclo automático se para); la
+   * fila lo marca con su selector.
+   */
+  readonly activeProject: string | null;
 }
 
 export const useUiStore = create<UiState>()(() => ({
@@ -53,6 +60,7 @@ export const useUiStore = create<UiState>()(() => ({
   languageNoticeOpen: false,
   activeSkillGroup: null,
   projectPageOpen: false,
+  activeProject: null,
 }));
 
 function setQuickMissionOpen(quickMissionOpen: boolean): void {
@@ -156,4 +164,20 @@ export function releaseActiveSkillGroup(id: SkillGroupId): void {
 
 export function selectActiveSkillGroup({ activeSkillGroup }: UiState): SkillGroupId | null {
   return activeSkillGroup;
+}
+
+/** Señala un proyecto (o ninguno, con `null`): manda el último gesto, venga de la fila o del pin. */
+export function setActiveProject(activeProject: string | null): void {
+  if (useUiStore.getState().activeProject === activeProject) return;
+  useUiStore.setState({ activeProject });
+}
+
+/** Suelta un proyecto (al salir el ratón o el foco): solo si sigue siendo el señalado (manda el último gesto). */
+export function releaseActiveProject(slug: string): void {
+  if (useUiStore.getState().activeProject !== slug) return;
+  useUiStore.setState({ activeProject: null });
+}
+
+export function selectActiveProject({ activeProject }: UiState): string | null {
+  return activeProject;
 }

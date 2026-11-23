@@ -144,9 +144,10 @@ void turtle(out vec3 P, out vec3 C, out float S, out float A) {
     c = COLOR_TURTLE_EDGE;
   } else if (plate) {
     c = COLOR_TURTLE_PLATE * 1.05;
-    // Dentro de la rama de placas: uPlate = 0 («ninguna») nunca casa con una etiqueta de placa (20..26).
+    // Dentro de la rama de placas: uPlate = 0 («ninguna») nunca casa con una etiqueta de placa (20..26). El pulso,
+    // solo con movimiento.
     if (abs(tag - uPlate) < 0.5) {
-      c = COLOR_TURTLE_PLATE_LIT * (2.0 + 0.6 * sin(uTime * 5.0));
+      c = COLOR_TURTLE_PLATE_LIT * (2.0 + 0.6 * sin(uTime * 5.0) * uMotion);
       s += 0.7;
     }
   } else if (isTag(tag, TURTLE_FOREST)) {

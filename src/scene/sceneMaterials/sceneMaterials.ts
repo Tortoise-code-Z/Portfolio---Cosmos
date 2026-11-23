@@ -2,6 +2,7 @@ import { AdditiveBlending, ShaderMaterial, Vector2, type IUniform } from 'three'
 
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
 
+import { NO_PLATE } from '../config/plateSlots/plateSlots';
 import { PORTRAIT_FADE_IN_S } from '../config/sceneConfig';
 import { createCameraPose, type CameraPose } from '../math/camera/camera';
 import { createGravity, type Gravity } from '../math/gravity/gravity';
@@ -81,7 +82,7 @@ export function createParticleUniforms(): ParticleUniforms {
     uTime: { value: 0 },
     uCharge: { value: 0 },
     uPR: { value: 1 },
-    uPlate: { value: 0 },
+    uPlate: { value: NO_PLATE },
     uGrav: { value: 0 },
     uAspect: { value: 1 },
     uMouse: { value: new Vector2(POINTER_AWAY, POINTER_AWAY) },
@@ -136,6 +137,11 @@ export interface SceneFrame {
    */
   readonly camera: CameraPose;
   fov: number;
+  /**
+   * La placa del caparazón que se ilumina (`uPlate`; 20..26) o ninguna (0): la del proyecto señalado o la del ciclo
+   * automático (`scene/math/plateCycle`). La escribe el bucle.
+   */
+  plate: number;
 }
 
 export function createSceneFrame(): SceneFrame {
@@ -153,6 +159,7 @@ export function createSceneFrame(): SceneFrame {
     gravity: createGravity(),
     camera: createCameraPose(),
     fov: 55,
+    plate: NO_PLATE,
   };
 }
 
@@ -172,6 +179,7 @@ export function updateParticleUniforms(
       ? 1
       : Math.min(1, uniforms.uPor.value + frame.delta / PORTRAIT_FADE_IN_S);
   uniforms.uCharge.value = frame.charge;
+  uniforms.uPlate.value = frame.plate;
   uniforms.uTime.value = frame.time;
   uniforms.uPR.value = frame.pixelRatio;
   uniforms.uAspect.value = frame.aspect;

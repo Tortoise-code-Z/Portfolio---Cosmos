@@ -157,6 +157,13 @@ la parte superior del caparazón.
 
 ### Resaltado
 
-- `uPlate` = etiqueta del proyecto activo (hover/foco en fila o pin; si no, ciclo automático cada 2,6 s).
-- En el shader la placa activa pasa a blanco cálido ×2 con pulso `sin(t · 5)` (sin pulso con movimiento reducido)
-  y tamaño +0,7.
+- `uPlate` = etiqueta de la placa del proyecto señalado (`uiStore.activeProject`: ratón, foco del teclado o toque en
+  su fila y, desde F4.4b, en su pin); si no hay ninguno, la del ciclo automático, que va por turnos cada 2,6 s en el
+  orden de la asignación (el destacado primero). Mientras hay uno señalado el ciclo se para y, al soltarlo, vuelve a
+  contar desde cero en la placa en la que estaba. Sin ciclo con movimiento reducido. Con la presencia del capítulo 3
+  (`clamp(1 − |m − 3| · 1,8, 0, 1)`, la misma rampa que la del 2) a 0,2 o menos, ninguna. Las cifras viven en
+  `PLATE_LOOK` (`config/plateSlots`) y la cuenta en `scene/math/plateCycle`; el bucle de `SceneRoot` la deja en
+  `SceneFrame.plate` y marca su envoltorio con el slug del proyecto (`data-plate`, para los e2e).
+- El ciclo solo enciende la placa (y, desde F4.4b, su pin): la fila se marca (`data-hot`) solo con un gesto.
+- En el shader la placa activa pasa a blanco cálido ×2 con pulso `sin(t · 5)` (sin pulso con movimiento reducido:
+  va por `uMotion`) y tamaño +0,7.

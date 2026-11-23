@@ -39,6 +39,7 @@ const frame: Readonly<SceneFrame> = {
   gravity: { strength: 0.7, x: 0.25, y: -0.5 },
   camera: { position: { x: 0, y: 12.9, z: 14.2 }, target: { x: 0, y: 0, z: 0 } },
   fov: 55,
+  plate: 21,
 };
 
 describe('particle uniforms', () => {
@@ -58,6 +59,7 @@ describe('particle uniforms', () => {
     expect(uniforms).toEqual(before);
     expect(uniforms.uM.value).toBe(2.5);
     expect(uniforms.uCharge.value).toBe(0.4);
+    expect(uniforms.uPlate.value).toBe(21);
     expect(uniforms.uTime.value).toBe(12);
     expect(uniforms.uPR.value).toBe(2);
     expect(uniforms.uAspect.value).toBe(1.6);
@@ -102,7 +104,7 @@ describe('particle uniforms', () => {
 });
 
 describe('createSceneFrame', () => {
-  it('starts at the singularity, uncharged, with motion and extras, narrow and with no mouse', () => {
+  it('starts at the singularity, uncharged, with motion and extras, narrow, with no mouse and no lit plate', () => {
     expect(createSceneFrame()).toEqual({
       m: 0,
       charge: 0,
@@ -117,6 +119,7 @@ describe('createSceneFrame', () => {
       gravity: { strength: 0, x: 0, y: 0 },
       camera: { position: { x: 0, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } },
       fov: 55,
+      plate: 0,
     });
   });
 });

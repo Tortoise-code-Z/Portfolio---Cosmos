@@ -6,7 +6,11 @@ import {
   assignPlates,
   FIRST_PLATE_LABEL,
   LAST_PLATE_LABEL,
+  NO_PLATE,
+  PLATE_LOOK,
   PLATE_SLOTS,
+  plateLabelOf,
+  plateSlugOf,
   type PlateProject,
 } from './plateSlots';
 
@@ -70,5 +74,33 @@ describe('assignPlates', () => {
     const projects = [project('b', 2), project('a', 1, true)];
     assignPlates(projects);
     expect(projects.map(({ slug }) => slug)).toEqual(['b', 'a']);
+  });
+});
+
+describe('plateLabelOf / plateSlugOf', () => {
+  const plates = assignPlates(projectEntries);
+
+  it('go from a project to its plate and back', () => {
+    expect(plateLabelOf(plates, 'astrohub')).toBe(21);
+    expect(plateSlugOf(plates, 21)).toBe('astrohub');
+    for (const { slug, label } of plates) {
+      expect(plateSlugOf(plates, plateLabelOf(plates, slug))).toBe(slug);
+      expect(plateLabelOf(plates, plateSlugOf(plates, label))).toBe(label);
+    }
+  });
+
+  it('no project, an unknown one or a plate without a project: none', () => {
+    expect(NO_PLATE).toBeLessThan(FIRST_PLATE_LABEL);
+    expect(plateLabelOf(plates, null)).toBe(NO_PLATE);
+    expect(plateLabelOf(plates, 'nope')).toBe(NO_PLATE);
+    expect(plateSlugOf(plates, NO_PLATE)).toBeNull();
+    expect(plateSlugOf(plates, LAST_PLATE_LABEL)).toBeNull();
+  });
+});
+
+describe('PLATE_LOOK', () => {
+  it('has the figures of the spec (constelaciones-y-placas.md, 03-tortuga.md)', () => {
+    // Escritas aquí: con las de la config, cualquier cifra pasaría.
+    expect(PLATE_LOOK).toEqual({ turtleM: 3, presenceFade: 1.8, litFrom: 0.2, cycleSeconds: 2.6 });
   });
 });

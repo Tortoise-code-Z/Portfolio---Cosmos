@@ -9,7 +9,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BIG_BANG_VARS } from '~/lib/bigBang/bigBang';
 import { sceneStore, setCharge, setScrollTarget } from '~/stores/sceneStore/sceneStore';
-import { closeQuickMission, openQuickMission, useUiStore } from '~/stores/uiStore/uiStore';
+import {
+  closeQuickMission,
+  openQuickMission,
+  releaseActiveProject,
+  setActiveProject,
+  useUiStore,
+} from '~/stores/uiStore/uiStore';
 
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../contextLoss/contextLoss';
 import { MAX_STEP_S } from '../sceneClock/sceneClock';
@@ -32,6 +38,11 @@ function rule(css: string, selector: string): string {
 // Las formas tienen sus propios tests (worker, reintento): aquí solo se mira cómo las usa SceneRoot.
 vi.mock('../useSceneShapes/useSceneShapes', () => ({
   useSceneShapes: vi.fn(() => ({ shapes: null, lowerTo: () => Promise.resolve('kept') })),
+  SCENE_PLATES: [
+    { slug: 'chessmate', label: 20 },
+    { slug: 'astrohub', label: 21 },
+  ],
+  SCENE_PLATE_LABELS: [20, 21],
 }));
 
 /** Las piezas de Three necesitan WebGL: aquí solo se mira qué reciben (y las partículas «pintan» al montar). */
@@ -365,6 +376,8 @@ describe('SceneRoot', () => {
       // La pose y el campo de visión los escribe la cámara (aquí, simulada).
       camera: { position: { x: 0, y: 0, z: 0 }, target: { x: 0, y: 0, z: 0 } },
       fov: 55,
+      // Lejos de la tortuga, ninguna placa.
+      plate: 0,
     });
     // La cámara lee el mismo frame.
     expect(seen.cameraFrame).toBe(seen.frame);
@@ -605,6 +618,36 @@ describe('SceneRoot', () => {
     media.change(REDUCED_MOTION, true);
     frames.tick(2100);
     expect(frame.gravity.strength).toBe(0);
+  });
+
+  it('each frame lights a plate: the cycle at the turtle, the pointed project over it, none far away (data-plate)', () => {
+    stubMatchMedia([]);
+    const frames = manualFrames();
+    setScrollTarget(3);
+    const { container } = render(<SceneRoot level="high" onFail={vi.fn()} />);
+    const scene = container.firstElementChild;
+    const frame = seen.cameraFrame as { plate: number };
+    frames.tick(1000);
+    expect(frame.plate).toBe(20);
+    expect(scene?.getAttribute('data-plate')).toBe('chessmate');
+    for (let t = 1050; t <= 3700; t += 50) frames.tick(t);
+    expect(frame.plate).toBe(21);
+    expect(scene?.getAttribute('data-plate')).toBe('astrohub');
+    setActiveProject('chessmate');
+    frames.tick(3750);
+    expect(scene?.getAttribute('data-plate')).toBe('chessmate');
+    // Un proyecto sin placa (o desconocido) no para el ciclo.
+    setActiveProject('unknown');
+    frames.tick(3800);
+    expect(frame.plate).toBe(21);
+    releaseActiveProject('unknown');
+    // Lejos de la tortuga, ninguna: sin atributo.
+    act(() => {
+      setScrollTarget(0);
+    });
+    for (let t = 3850; t <= 8000; t += 50) frames.tick(t);
+    expect(frame.plate).toBe(0);
+    expect(scene?.hasAttribute('data-plate')).toBe(false);
   });
 
   it('paints the constellations with the frame its camera writes in, and their labels in their own layer', () => {

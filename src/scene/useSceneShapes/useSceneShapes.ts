@@ -4,7 +4,7 @@ import { projectEntries } from '~/content/projects/entries';
 import { LEVEL_SETTINGS, type RenderLevel } from '~/lib/device/sceneLevel/sceneLevel';
 import { lowerSceneLevel } from '~/stores/uiStore/uiStore';
 
-import { assignPlates } from '../config/plateSlots/plateSlots';
+import { assignPlates, type PlateAssignment } from '../config/plateSlots/plateSlots';
 import { SCENE_SEED } from '../config/sceneConfig';
 import type { ShapeRequest, ShapeSet } from '../shapes/shapeContract/shapeContract';
 import { loadShapes } from '../worker/loadShapes/loadShapes';
@@ -24,10 +24,19 @@ export interface SceneShapes {
   readonly source: ShapesSource;
 }
 
-/** Las placas con proyecto (las mismas en toda la visita: el contenido es estático). */
-const PLATES = assignPlates(projectEntries).map(({ label }) => label);
+/**
+ * Las placas con proyecto (las mismas en toda la visita: el contenido es estático): qué proyecto va en cada una y sus
+ * etiquetas, en el orden de la asignación (el destacado primero). Las formas las llevan en el caparazón; `SceneRoot`
+ * ilumina la del proyecto señalado o la del ciclo automático.
+ */
+export const SCENE_PLATES: readonly PlateAssignment[] = assignPlates(projectEntries);
+export const SCENE_PLATE_LABELS: readonly number[] = SCENE_PLATES.map(({ label }) => label);
 
-const requestFor = (count: number): ShapeRequest => ({ count, seed: SCENE_SEED, plates: PLATES });
+const requestFor = (count: number): ShapeRequest => ({
+  count,
+  seed: SCENE_SEED,
+  plates: SCENE_PLATE_LABELS,
+});
 
 export interface ObtainShapesOptions {
   readonly signal: AbortSignal;

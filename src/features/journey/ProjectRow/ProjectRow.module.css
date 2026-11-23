@@ -26,14 +26,19 @@
   transition: opacity var(--dur-fade-base) var(--ease-out);
 }
 
-/* «Hot» sin escena: puntero encima o foco en uno de sus enlaces. La placa se ilumina en F4. */
+/*
+ * «Hot»: puntero encima o foco en uno de sus enlaces y, con la escena, su proyecto señalado (`data-hot`: también
+ * desde un pin de la escena; desde F4.4, su placa se ilumina). El ciclo automático de las placas no la marca.
+ */
 .row:hover,
-.row:focus-within {
+.row:focus-within,
+.row[data-hot] {
   border-color: var(--color-star);
 }
 
 .row:hover::before,
-.row:focus-within::before {
+.row:focus-within::before,
+.row[data-hot]::before {
   opacity: 1;
 }
 
