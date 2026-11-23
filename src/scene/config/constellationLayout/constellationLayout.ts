@@ -203,8 +203,8 @@ export const CONSTELLATION_LOOK = {
   // En reposo, 0,8 (y con su halo, `--halo-star-label`): `--color-dim` a 0,6 daba 3,7 : 1 sobre el vacío.
   labelOpacity: { rest: 0.8, hot: 1 },
   hotRate: 8,
-  /** Presencia del capítulo 2: `clamp(1 − |m − 2| · fade, 0, 1)`. */
-  presenceFade: 1.8,
+  /** Su capítulo (la galaxia): su presencia, `math/chapterPresence`. */
+  chapter: 2,
   /** Desde aquí las etiquetas responden al puntero, ratón o toque (F4.3c). */
   interactiveFrom: 0.6,
 } as const;

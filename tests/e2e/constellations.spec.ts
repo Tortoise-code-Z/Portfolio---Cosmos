@@ -8,11 +8,11 @@ import { WIDE_LAYOUT_QUERY } from '../../src/scene/config/sceneConfig.ts';
 import { CONTEXT_RESTORE_TIMEOUT_MS } from '../../src/scene/contextLoss/contextLoss.ts';
 import { SHAPES_WORKER_TIMEOUT_MS } from '../../src/scene/worker/loadShapes/loadShapes.ts';
 import {
-  browserHasWebGL2,
   collectErrors,
   hud,
   PARTICLES_PAINTED,
   settleScene,
+  skipWithoutWebGL2,
   withoutWebGL,
 } from './support/helpers.ts';
 import { test } from './support/test.ts';
@@ -195,12 +195,8 @@ async function canvasSize(page: Page): Promise<Viewport> {
 }
 
 test.describe('the constellations of Skills', () => {
-  test.beforeEach(async ({ page, browserName }) => {
-    await page.goto('/');
-    const hasWebGL2 = await browserHasWebGL2(page);
-    // Chromium siempre lo tiene (SwiftShader sin GPU): si faltara, estos tests no deben saltarse en silencio.
-    if (browserName === 'chromium') expect(hasWebGL2, 'Chromium must have WebGL2').toBe(true);
-    test.skip(!hasWebGL2, 'This browser has no WebGL2 here');
+  test.beforeEach(async ({ page }, testInfo) => {
+    await skipWithoutWebGL2(page, testInfo);
   });
 
   test('the mouse over a group of the panel lights its constellation, and only it; leaving turns it off', async ({

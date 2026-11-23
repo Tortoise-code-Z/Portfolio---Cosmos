@@ -1,18 +1,12 @@
-import { clamp } from '~/lib/math/clamp/clamp';
 import { damp } from '~/lib/math/damp/damp';
 
 import { CONSTELLATION_LOOK } from '../../config/constellationLayout/constellationLayout';
 
 /**
  * Las cuentas de las constelaciones en cada frame (docs/04-escena/constelaciones-y-placas.md → «Estados»): cuánto
- * está presente el capítulo 2 y cuánto está encendido cada grupo, y de ahí el tamaño y la opacidad de sus
- * estrellas, líneas y etiquetas. Puras: `scene/Constellations` las aplica.
+ * está encendido cada grupo y, con la presencia del capítulo 2 (`math/chapterPresence`), el tamaño y la opacidad de
+ * sus estrellas, líneas y etiquetas. Puras: `scene/Constellations` las aplica.
  */
-
-/** Presencia del capítulo 2 con la `m` de la escena: 1 en la galaxia y 0 a ±0,56 de ella. */
-export function chapterPresence(m: number): number {
-  return clamp(1 - Math.abs(m - 2) * CONSTELLATION_LOOK.presenceFade, 0, 1);
-}
 
 /**
  * Lo encendido de un grupo (0–1) tras `dt` segundos, hacia `on`: con el suavizado del ritmo `hotRate` o, con

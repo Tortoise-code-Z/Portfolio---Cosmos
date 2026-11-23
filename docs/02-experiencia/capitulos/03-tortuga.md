@@ -51,7 +51,8 @@ escena. Metáfora: según el mito, una tortuga carga con el mundo; la tuya carga
 - Las filas son una lista (`<ul role="list">`, ver `estados-y-accesibilidad.md`) con enlaces reales; los pins son decorativos (`aria-hidden`) y su función
   existe en las filas. Con alto contraste (`forced-colors`), los pins se ocultan.
 - Movimiento reducido: la tortuga queda quieta (sin nado ni balanceo) y sus pins también, sin ciclo automático de
-  placas; la iluminación por hover sigue funcionando sin pulso.
+  placas; al señalar una fila o un pin (ratón, foco o toque) su placa se ilumina, sin pulso.
+- Alto contraste: la fila señalada se pinta con `Highlight` (el sistema iguala el ámbar).
 
 ## Aceptación
 

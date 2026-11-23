@@ -1,4 +1,4 @@
-import type { FocusEvent, PointerEvent, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import type { ProjectEntry } from '~/content/types';
 import { localize } from '~/lib/i18n/localize/localize';
@@ -14,6 +14,7 @@ import {
 import { ActionLink } from '~/ui/ActionLink/ActionLink';
 import { VisuallyHidden } from '~/ui/VisuallyHidden/VisuallyHidden';
 
+import { pointGestures } from '../pointGestures/pointGestures';
 import shared from '../shared.module.css';
 import styles from './ProjectRow.module.css';
 
@@ -55,28 +56,11 @@ export function ProjectRow({ project, sceneOn }: ProjectRowProps): ReactNode {
 
   return (
     // El teclado señala con el foco de sus enlaces (`onFocus`, que sube desde ellos); el `click` es el camino del toque.
-    // eslint-disable-next-line jsx-a11y-x/no-noninteractive-element-interactions, jsx-a11y-x/click-events-have-key-events
     <li
       className={styles.row}
       data-project={slug}
       data-hot={hot ? '' : undefined}
-      onPointerEnter={(event: PointerEvent) => {
-        if (event.pointerType === 'mouse') point();
-      }}
-      onPointerLeave={(event: PointerEvent) => {
-        if (event.pointerType === 'mouse') release();
-      }}
-      // Solo el foco del teclado señala: el del puntero ya lo cubren `pointerenter` y `click`, y el que devuelve el
-      // navegador al volver a la pestaña no es un gesto (el navegador recuerda la modalidad: `:focus-visible`).
-      onFocus={(event: FocusEvent<HTMLLIElement>) => {
-        if (event.target.matches(':focus-visible')) point();
-      }}
-      // Irse a otra ventana o pestaña no es soltar: el foco sigue en la fila.
-      onBlur={(event: FocusEvent<HTMLLIElement>) => {
-        if (!document.hasFocus()) return;
-        if (!event.currentTarget.contains(event.relatedTarget)) release();
-      }}
-      onClick={point}
+      {...pointGestures(point, release)}
     >
       <div className={styles.top}>
         <h3 className={styles.name}>{project.name}</h3>

@@ -30,7 +30,9 @@ const PROJECTS_HASH = `#${CHAPTER_ANCHORS[3] ?? 'projects'}`;
  * proyecto»), el foco queda en «View project» de la fila de ese proyecto, que se resalta como «hot»
  * (`:focus-within`). Vale para el botón Atrás del navegador (el scroll lo restaura React Router: el foco
  * no lo mueve) y para los enlaces a `#projects` («Back to the shell», «Projects» de la barra). Si se
- * vuelve a otro sitio (el logo, `#contact`), no se toca el foco. Desde F5, además, se ilumina la placa.
+ * vuelve a otro sitio (el logo, `#contact`), no se toca el foco. Con la escena, si se vuelve con el teclado ese foco
+ * es `:focus-visible` y ya señala el proyecto: se ilumina su placa (es «el foco del teclado señala», tal cual); con el
+ * ratón, no. Desde F5, siempre (la placa visitada).
  */
 function useFocusVisitedRow(list: RefObject<HTMLUListElement | null>): void {
   const navigationType = useNavigationType();
@@ -54,7 +56,7 @@ function turnProjectsOff(): void {
 }
 
 /** Sin viaje o sin escena, nada señalado: al desmontarse el viaje (ir a una ficha) o apagarse la escena. */
-function useTurnOffWithoutScene(sceneOn: boolean): void {
+function useNothingPointedWithoutScene(sceneOn: boolean): void {
   useEffect(() => (sceneOn ? turnProjectsOff : undefined), [sceneOn]);
 }
 
@@ -71,7 +73,7 @@ export function Projects(): ReactNode {
   const sceneOn = useUiStore(selectSceneOn);
   useFocusVisitedRow(list);
   useTapOutsideTurnsOff(sceneOn, turnProjectsOff);
-  useTurnOffWithoutScene(sceneOn);
+  useNothingPointedWithoutScene(sceneOn);
 
   return (
     <ChapterSection index={3} labelledBy={TITLE_ID}>

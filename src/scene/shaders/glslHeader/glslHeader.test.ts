@@ -53,6 +53,12 @@ describe('glslHeader', () => {
     );
   });
 
+  it('the lit plate pulses only with motion: its sin(uTime * 5.0) goes through uMotion', () => {
+    expect(particlesVertex).toContain(
+      'COLOR_TURTLE_PLATE_LIT * (2.0 + 0.6 * sin(uTime * 5.0) * uMotion)',
+    );
+  });
+
   it('defines the half height of the portrait and its fade at the bottom, from its frame', () => {
     const value = /#define PORTRAIT_HALF_H (\S+)\n/.exec(header)?.[1];
     expect(Number(value)).toBeCloseTo(PORTRAIT_FRAME.halfHeight, 4);

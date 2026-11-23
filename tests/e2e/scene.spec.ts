@@ -18,6 +18,7 @@ import {
   presentWebGLAsRenderer,
   SCENE_READY,
   settleScene,
+  skipWithoutWebGL2,
   withoutWebGL,
 } from './support/helpers.ts';
 import { SWIFTSHADER_RENDERER } from './support/renderers.ts';
@@ -280,12 +281,9 @@ function generatorRequests(page: Page): string[] {
 }
 
 test.describe('the scene with WebGL', () => {
-  test.beforeEach(async ({ page, browserName }) => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    await skipWithoutWebGL2(page, testInfo);
     await page.goto('/');
-    const hasWebGL2 = await browserHasWebGL2(page);
-    // Chromium siempre lo tiene (SwiftShader sin GPU): si faltara, estos tests no deben saltarse en silencio.
-    if (browserName === 'chromium') expect(hasWebGL2, 'Chromium must have WebGL2').toBe(true);
-    test.skip(!hasWebGL2, 'This browser has no WebGL2 here');
   });
 
   test('arrives in its own chunks, which no HTML asks for, and mounts its renderer', async ({

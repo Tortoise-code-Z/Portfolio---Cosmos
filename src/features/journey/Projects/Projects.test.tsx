@@ -177,6 +177,28 @@ describe('Projects', () => {
       expect(useUiStore.getState().visitedProject).toBeNull();
     });
 
+    it('back with the keyboard and the scene on, that focus points at its project (its plate lights); with the mouse, not', async () => {
+      setSceneLevel('high');
+      focusFromKeyboard(true);
+      const router = renderJourney();
+      setVisitedProject('astrohub');
+      await act(() => router.navigate('/#projects'));
+      expect(viewLink('AstroHub')).toHaveFocus();
+      expect(pointed()).toBe('astrohub');
+      vi.restoreAllMocks();
+    });
+
+    it('back with the mouse (the focus the code gives is not :focus-visible), nothing is pointed', async () => {
+      setSceneLevel('high');
+      focusFromKeyboard(false);
+      const router = renderJourney();
+      setVisitedProject('astrohub');
+      await act(() => router.navigate('/#projects'));
+      expect(viewLink('AstroHub')).toHaveFocus();
+      expect(pointed()).toBeNull();
+      vi.restoreAllMocks();
+    });
+
     it('with no project seen, nothing happens', async () => {
       const router = renderJourney();
       await act(() => router.navigate('/#projects'));
@@ -193,17 +215,67 @@ describe('Projects', () => {
       useUiStore.setState(useUiStore.getInitialState(), true);
     });
 
-    it('amber means pointed: with the scene, `data-hot` paints the row like hover and focus (CSS)', () => {
-      const css = readFileSync(
+    /** Las reglas de un bloque del CSS de la fila: sus selectores (en cualquier orden) y su cuerpo. */
+    function rowRules(block: string): { selectors: string[]; body: string }[] {
+      return [...block.matchAll(/(^|\n)\s*([^{}@/]+?)\s*\{([^{}]*)\}/g)].map((match) => ({
+        selectors: (match[2] ?? '')
+          .split(',')
+          .map((selector) => selector.trim())
+          .sort(),
+        body: match[3] ?? '',
+      }));
+    }
+
+    /** El CSS de la fila, sin comentarios. */
+    const rowCss = (): string =>
+      readFileSync(
         join(dirname(fileURLToPath(import.meta.url)), '../ProjectRow/ProjectRow.module.css'),
         'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '');
+
+    /** El cuerpo de un `@media` del CSS de la fila (hasta su llave de cierre, en la primera columna). */
+    function media(css: string, query: string): string {
+      const start = css.indexOf(`@media ${query} {`);
+      if (start === -1) throw new Error(`No @media ${query}`);
+      return css.slice(start, css.indexOf('\n}', start));
+    }
+
+    it('amber is the focus in one of its links, the mouse over it or, with the scene, its pointed project (CSS)', () => {
+      const css = rowCss();
+      const top = css.replace(/@media[^{]+\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '');
+      expect(rowRules(top)).toEqual(
+        expect.arrayContaining([
+          {
+            selectors: ['.row:focus-within', '.row[data-hot]'],
+            body: expect.stringContaining('border-color: var(--color-star);') as string,
+          },
+          {
+            selectors: ['.row:focus-within::before', '.row[data-hot]::before'],
+            body: expect.stringContaining('opacity: 1;') as string,
+          },
+        ]),
       );
-      expect(css).toMatch(
-        /\.row:focus-within,\s*\.row\[data-hot\] \{\s*border-color: var\(--color-star\);/,
-      );
-      expect(css).toMatch(
-        /\.row:focus-within::before,\s*\.row\[data-hot\]::before \{\s*opacity: 1;/,
-      );
+      // El `:hover`, solo donde se puede pasar por encima: en táctil se queda pegado tras el toque.
+      expect(top).not.toContain(':hover');
+      expect(rowRules(media(css, '(hover: hover)'))).toEqual([
+        {
+          selectors: ['.row:hover'],
+          body: expect.stringContaining('border-color: var(--color-star);') as string,
+        },
+        {
+          selectors: ['.row:hover::before'],
+          body: expect.stringContaining('opacity: 1;') as string,
+        },
+      ]);
+    });
+
+    it('in Windows high contrast, the pointed row is painted with Highlight (the system evens out its colours)', () => {
+      expect(rowRules(media(rowCss(), '(forced-colors: active)'))).toEqual([
+        {
+          selectors: ['.row[data-hot]'],
+          body: expect.stringContaining('border-color: Highlight;') as string,
+        },
+      ]);
     });
 
     it('without the scene, a row points at nothing', () => {
@@ -245,9 +317,14 @@ describe('Projects', () => {
         links[0]?.focus();
       });
       expect(pointed()).toBe(first.slug);
+      // Ni un instante de «suelto» al pasar de un enlace a otro de la misma fila.
+      const listener = vi.fn();
+      const unsubscribe = useUiStore.subscribe(listener);
       act(() => {
         links.at(-1)?.focus();
       });
+      unsubscribe();
+      expect(listener).not.toHaveBeenCalled();
       expect(pointed()).toBe(first.slug);
       act(() => {
         linkOf(rowOf(second.name)).focus();
@@ -319,6 +396,7 @@ describe('Projects', () => {
       setSceneLevel('high');
       const unmount = renderAt('/');
       fireEvent.click(rowOf(first.name));
+      expect(pointed()).toBe(first.slug);
       unmount();
       expect(pointed()).toBeNull();
 

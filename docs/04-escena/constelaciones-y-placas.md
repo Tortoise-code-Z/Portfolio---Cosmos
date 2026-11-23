@@ -78,7 +78,8 @@ pisarían el panel o la barra); en la foto fija de la galaxia se ve bien.
 | Reposo | 22 px, opacidad 0,65 · peso | opacidad 0,22 · peso | `--color-dim`, opacidad 0,8 · peso, con halo oscuro |
 | Grupo activo | 34 px (×1,55: 0,9 → 1,4), opacidad 1 · peso | opacidad 0,9 · peso | `--color-star` (`data-hot`), opacidad 1 · peso |
 
-«Peso» = presencia del capítulo 2: `clamp(1 − |m − 2| · 1,8, 0, 1)`. La transición entre estados se suaviza a
+«Peso» = presencia del capítulo 2: `clamp(1 − |m − 2| · 1,8, 0, 1)` (`math/chapterPresence`: la misma rampa para
+las placas y los pins del 3; el 1,8 es `CHAPTER_PRESENCE_FADE`, `sceneConfig`). La transición entre estados se suaviza a
 ritmo `dt · 8`; con movimiento reducido es instantánea. El grupo activo es `uiStore.activeSkillGroup` (lo escriben
 el panel y las etiquetas, F4.3c; la escena lo lee en cada frame, sin re-render). Las cifras viven en
 `CONSTELLATION_LOOK` (`scene/config/constellationLayout`) y las cuentas en `scene/math/constellations`.
@@ -185,9 +186,10 @@ la parte superior del caparazón.
 
 - `uPlate` = etiqueta de la placa del proyecto señalado (`uiStore.activeProject`: ratón, foco del teclado o toque en
   su fila y, desde F4.4b, en su pin); si no hay ninguno, la del ciclo automático, que va por turnos cada 2,6 s en el
-  orden de la asignación (el destacado primero). Mientras hay uno señalado el ciclo se para y, al soltarlo, vuelve a
-  contar desde cero en la placa en la que estaba. Sin ciclo con movimiento reducido. Con la presencia del capítulo 3
-  (`clamp(1 − |m − 3| · 1,8, 0, 1)`, la misma rampa que la del 2) a 0,2 o menos, ninguna. Las cifras viven en
+  orden de la asignación (el destacado primero). Mientras hay uno señalado (aunque no tenga placa: con más de 7
+  proyectos), el ciclo se para y, al soltarlo, vuelve a contar desde cero en la placa en la que estaba; uno sin placa
+  no enciende ninguna. Sin ciclo con movimiento reducido. Con la presencia del capítulo 3
+  (`math/chapterPresence`, la misma rampa que la del 2) a 0,2 o menos, ninguna. Las cifras viven en
   `PLATE_LOOK` (`config/plateSlots`) y la cuenta en `scene/math/plateCycle`; el bucle de `SceneRoot` la deja en
   `SceneFrame.plate` y marca su envoltorio con el slug del proyecto (`data-plate`, para los e2e).
 - El ciclo solo enciende la placa (y, desde F4.4b, su pin): la fila se marca (`data-hot`) solo con un gesto.

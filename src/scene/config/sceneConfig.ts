@@ -26,6 +26,13 @@ export const HEX_SIZE = 0.95;
 export const TURTLE_SWAY = { yawRate: 0.25, yaw: 0.18, bobRate: 0.7, bob: 0.15 } as const;
 
 /**
+ * Cómo aparece y se va lo que la escena pinta por capítulo (`math/chapterPresence`): presencia
+ * `clamp(1 − |m − capítulo| · fade, 0, 1)`, 1 en el capítulo y 0 a ±0,56. Una sola rampa para las constelaciones,
+ * las placas y los pins.
+ */
+export const CHAPTER_PRESENCE_FADE = 1.8;
+
+/**
  * Lente de la cámara (docs/04-escena/camara-y-encuadre.md → «Campo de visión»): 55° en vertical. Son las
  * props del `<Canvas>`: R3F las copia a la cámara, así que aquí no va nada más.
  */
