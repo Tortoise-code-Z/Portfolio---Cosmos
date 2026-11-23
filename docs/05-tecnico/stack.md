@@ -65,8 +65,8 @@ comentarios), Tailwind (decidido CSS Modules).
 
 | Paquete | Versión | Motivo |
 |---|---|---|
-| `eslint` · `@eslint/js` | **10.12.0** · 10.0.1 | Linter (ESLint 9 quedó sin soporte; ADR-014). `@eslint/js` no publica parches al ritmo de `eslint`: 10.0.1 es su última |
-| `typescript-eslint` | 8.71.1 | Reglas de TypeScript con información de tipos |
+| `eslint` · `@eslint/js` | **10.15.0** · 10.0.1 | Linter (ESLint 9 quedó sin soporte; ADR-014). `@eslint/js` no publica parches al ritmo de `eslint`: 10.0.1 es su última |
+| `typescript-eslint` | 8.73.0 | Reglas de TypeScript con información de tipos |
 | `eslint-plugin-react-hooks` | 7.1.1 | Reglas de hooks |
 | `eslint-plugin-jsx-a11y-x` | 0.2.0 | Reglas de accesibilidad en JSX. Fork mantenido (es-tooling) del original, que no soporta ESLint 10 ni se publica desde 2024 (ADR-014) |
 | `globals` | 17.13.0 | Globales de navegador y Node para la config plana |
@@ -93,8 +93,9 @@ comentarios), Tailwind (decidido CSS Modules).
 
 | Tema | Situación | Acción |
 |---|---|---|
-| TypeScript 7 | `typescript-eslint` 8.71 exige TS < 6.1 | Quedarse en 6.0.3; revisar en cada actualización trimestral |
+| TypeScript 7 | `typescript-eslint` 8.73 exige TS < 6.1 | Quedarse en 6.0.3; revisar en cada actualización trimestral |
 | Accesibilidad en ESLint | Se usa el fork `eslint-plugin-jsx-a11y-x` (menos adopción que el original) | Revisar en cada actualización trimestral; si el fork se abandona, ADR nuevo |
+| `minimatch` en `eslint-plugin-jsx-a11y-x` | El plugin (0.2.0, su última versión) pide `minimatch` ^10.2.5, con un aviso moderado de `npm audit` (GHSA-g3hv-75wg-m249: un patrón glob hecho a propósito dispara el tiempo de cálculo; aquí solo lo usa ESLint con los patrones del repo). `overrides` en `package.json` le da `minimatch` 11.0.9, el mismo que `eslint` y `typescript-eslint` (el plugin solo importa la función `minimatch`, igual en la 11) | Quitar el `override` cuando el plugin publique una versión con `minimatch` 11; si `npm run lint` o `eslintDoors.test.ts` fallan por él, también |
 | React 19.4 | `@react-three/fiber` 9.8 declara React < 19.4 | No subir React por encima de 19.3.x sin subir Fiber |
 | Node 26 LTS (28-10-2026) | Todas las piezas declaran soporte para Node ≥ 22/24 | ADR de migración tras la v1 |
 | `@playwright/test` ↔ imagen Docker | La imagen debe ser **la misma versión** (`mcr.microsoft.com/playwright:v1.64.0-noble`); la usan los e2e del CI (ADR-024) y la regresión visual (ADR-010) | Subirlas siempre juntas: `package.json`, el lock y cada `image:` de `ci.yml` (`npm run visual` la lee de `package.json`), y rehacer las capturas (`npm run visual:update`): otro Chromium pinta distinto |

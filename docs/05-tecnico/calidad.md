@@ -234,7 +234,9 @@ mismas páginas que en F3; sin PageSpeed hasta F6)
 - `npm audit --omit=dev`: 0 vulnerabilidades. El completo da 10 moderadas, todas de herramientas de lint (nada llega
   al build): `minimatch` 10.2.6 (GHSA-g3hv-75wg-m249) a través de `eslint` 10.12.0, `typescript-eslint` 8.71.1 y
   `eslint-plugin-jsx-a11y-x` 0.2.0. `npm audit fix` no lo arregla y `--force` propone bajar
-  `eslint-plugin-jsx-a11y-x` a 0.1.1: no se aplica; queda en `STATE.md`.
+  `eslint-plugin-jsx-a11y-x` a 0.1.1: no se aplica. Resuelto el mismo día en `chore/deps-2026-11`: `eslint` 10.15.0,
+  `typescript-eslint` 8.73.0 y `minimatch` 11.0.9 para el plugin (`overrides`; `stack.md` → «Conflictos»): 0
+  vulnerabilidades en los dos.
 
 ## Definición de «hecho» (por tarea)
 
