@@ -3,52 +3,44 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **Fase C cerrada** (`main` en `d408f01` antes de este cierre; sin versión: `v0.3.0` al acabar
-F4.5) · siguiente: **F4.4 · Tortuga** (placas por huecos, pins, ciclo automático, resaltado con las filas).
+**Dónde estamos:** **F4.4 · Tortuga hecha** (placas, ciclo y pins; `main` en `f82a745` antes de este cierre) y su
+primera auditoría corregida; **AUD-F4-4B en la Mesa** · siguiente: decidir y corregir AUD-F4-4B y **F4.5 · Tierra**
+(cierra F4: `v0.3.0`).
 
-_Última actualización: 2026-11-23 (**CIERRE DE SESIÓN · 42**) · Lighthouse del cierre de C, AUD-C-CIERRE corregida
-entera, fase C cerrada y las dependencias de lint sin avisos de `npm audit`._
+_Última actualización: 2026-11-23 (**CIERRE DE SESIÓN · 43**) · F4.4 en dos PR (placas encendidas y pins), AUD-F4-4A
+corregida entera, AUD-F4-4B lanzada._
 
-**Hecho esta sesión** (vivas S42 en `_claude/cadena/hecho/2026-11-23/decisiones-vivas-S42.md`):
-1. **Lighthouse 13.6.0 del cierre de C** (`d45db5d`; `calidad.md` → «Cierre de la fase C»): las 6 páginas de F3 en
-   móvil simulado, mediana de 3 pasadas: `/` 98 (TBT 160 ms, antes 90: las secciones de la fase C), `/es` 99,
-   `/projects/cosmos` 100, Chessmate y AstroHub 95, la 404 100 (SEO 54, a propósito). PageSpeed, en F6.
-2. **AUD-C-CIERRE corregida entera** (PR #112, `54204f0`; 0 bloqueantes, 5 recomendados, 22 menores, 1 pregunta;
-   1-A, 3-B, 5-A, P1-A, 6-A, 10-A, 11-A). Los «sospechados», confirmados antes sobre la base. Entre otras:
-   - **Crew file desde lg:** el email y «Download CV» en la misma fila (`order`; el DOM no cambia: en esa fila el Tab
-     va de derecha a izquierda, escrito en el CSS).
-   - **Mission log y Mission control:** su composición de escritorio pasa a ≥ 1280 px (entre 900 y 1279 partían
-     «TypeScript» o «CONSTRUCCIÓN»); el «T-0» con tope por su columna (`100cqi / 1.8`, el título como contenedor).
-   - **Contenido:** la ficha de Cosmos con seis escenas y el epílogo; el «CV» de la barra se descarga y en ES su
-     nombre dice que es inglés (`nav.cvInEnglish`); fuera `profile.fullName`; los colores de los controles del Crew
-     file escritos como son (verde del canal, estado en ámbar).
-   - **Tests:** `CV_FACTS` + sha256 del PDF; teletipo del Crew file entero (con movimiento, 844×390, sin WebGL);
-     ayudas comunes `lineClips`, `TELETYPE_WRITTEN` y `brokenWords`; 1024×768 sin palabras partidas; 200 % del
-     Mission log en EN/ES; el parpadeo < 5 s; una cámara y una foto fija por capítulo; `chapterSteps.ts` fuera de la
-     huella (`stills.json` nuevo, mismas fotos); la espera del retrato con la degradación acotada al plazo de la página.
-   - **Docs:** tabla de canales (velo y AA), docs de capítulos, brief, calidad, rendimiento, arquitectura,
-     navegación, índices; captura del Crew file de escritorio rehecha en Docker.
-3. **Fase C cerrada** (`eea4363`, solo docs): roadmap con C hecha y su línea de cierre; ADR-034 con PageSpeed en F6;
-   `git-y-despliegue.md` («si la lleva»); las Naves, después de F4.5 o en el pulido, con un ADR que se numera al
-   escribirlo (ya no se reserva el 037); en ADR-036, la nota antes de «Detalle».
-4. **Dependencias de lint** (PR #113, `d408f01`): `eslint` 10.15.0, `typescript-eslint` 8.73.0 y `minimatch` 11.0.9
-   para `eslint-plugin-jsx-a11y-x` (`overrides`): `npm audit` en 0 (el aviso, GHSA-g3hv-75wg-m249, moderado, solo
-   afectaba a ESLint con los patrones del repo). Lock generado por el `npm` de Víctor.
-5. **FMT-1:** Víctor revisó el formato de Prettier (llaves pegadas, no configurable) y se queda como está.
+**Hecho esta sesión** (vivas S43 en `_claude/cadena/hecho/2026-11-23/decisiones-vivas-S43.md`):
+1. **F4.4a · placas encendidas** (PR #114, `2b4020f`; TOR-1-A, TOR-2-A, TOR-3-A): `uiStore.activeProject` lo
+   escriben las filas (ratón, foco del teclado en sus enlaces, toque; tocar fuera apaga, `useTapOutsideTurnsOff`
+   compartido con Skills); `scene/math/plateCycle` (la placa señalada o un ciclo cada 2,6 s que se para mientras hay
+   un proyecto señalado y vuelve donde iba; nada con movimiento reducido ni lejos de la tortuga) → `SceneFrame.plate`
+   → `uPlate` y `data-plate`; el pulso de la placa, por `uMotion`. El ciclo no marca filas. +391 B.
+2. **F4.4b · pins** (PR #115, `4ae33ec`; PIN-1-A, PIN-2-B): `scene/PlatePins` (capa en `body`, solo en el viaje, con
+   nombres y `onOpenProject` desde `SceneMount`); el ratón señala, el clic abre la ficha, en táctil el primer toque
+   señala y el segundo abre; el balanceo de la tortuga compartido TS/GLSL (`TURTLE_SWAY` → cabecera `TURTLE_SWAY_*`,
+   un test los ata); `fitPins` sube un piso (46 → 76 → 106 px) al que choca, de derecha a izquierda: en el móvil, en
+   escalera; ocultos mientras se lee una transmisión (Mission control). `scene/labelWriter` compartido con las
+   etiquetas de las estrellas; `--gradient-pin-stem`. +1 729 B.
+3. **AUD-F4-4A corregida entera** (PR #116, `f82a745`; 0 bloqueantes, 6 recomendados, 12 menores, 3 preguntas; P1-A,
+   P2-A, P3-A y las opciones recomendadas): un proyecto sin placa también para el ciclo; `chapterPresence(m, capítulo)`
+   con `CHAPTER_PRESENCE_FADE` (una rampa para galaxia, placas y pins); `pointGestures` (Skills y filas); el `:hover`
+   de la fila solo con `hover: hover`; `Highlight` en alto contraste; la zona de puntero de la fila hasta medio hueco
+   (confirmado: al bajar despacio de una fila a otra asomaba la placa del ciclo); `skipWithoutWebGL2`; tests de gestos
+   sin ciclo y docs de F4.4 entera. +21 B.
+4. **AUD-F4-4B lanzada** a la Mesa · base `2b4020f` · hasta `f82a745` (F4.4b y la corrección de AUD-F4-4A; vivas S43
+   hasta #30) → `_claude/cadena/aud-f4-4b/auditoria.md`.
 
 **Incidencias y lecciones:**
-- **El CI del PR #112 falló en WebKit** (dos veces, con el reintento): `labelsStill` de `constellations.spec.ts` con
-  5 s. La `m` suavizada pide ~20 frames para pararse (34 % por frame, epsilon 1e-4) y WebKit sin GPU va a ~3 fps.
-  Arreglado con 15 s y `test.slow`; no se pudo reproducir (sin WebKit en el contenedor).
-- **`code-references.test.ts` prohíbe las claves del buzón también en comentarios de tests:** se escribe «al cerrar
-  la fase C», no la clave de la auditoría.
-- **Tras un PR con `npm run stills` en Docker, el contenedor se queda con el `stills.json` anterior:** traer el de
-  `main` antes del e2e completo (si no, falla la huella sin motivo).
-- **El lock lo genera el `npm` de Víctor** (PowerShell), no el contenedor (otra versión de npm) ni la VM de su equipo
-  (sus `node_modules` son de Windows); después se comprueba en el contenedor con `npm ci`.
-- **Contenedor (S42):** Node 24 del paquete npm (`node@24.22.0`), Chromium de `/opt/pw-browsers` (1243) enlazado como
-  1248 en `~/pwb`, `.env` desde `.env.example`, `git init` local y el árbol con `git archive`; Lighthouse con el Chrome
-  for Testing del contenedor (153). Sin Docker ni WebKit: `visual`, `stills` y WebKit, en el equipo de Víctor y el CI.
+- **F4.4b se fusionó antes de corregir AUD-F4-4A** (§13 pide esperar): sin daño, la corrección fue sobre `main` y
+  cada hallazgo se contrastó con el código nuevo. Recordarlo justo antes de fusionar, no solo en el PR.
+- **Sacar código cubierto de un módulo baja su cobertura de ramas** (`Constellations` cayó por debajo del 90 % al
+  sacar `labelWriter`): se arregló quitando ramas imposibles (cada grupo guarda su malla), no con tests forzados.
+- **CSS de los módulos:** una variable que escribe la escena va con prefijo privado (`--_pin-floor`) y un degradado,
+  como token (`styles.test.ts`).
+- **e2e con el ratón:** `page.mouse.move` fuera de la ventana no dispara nada: llevar antes la fila a la vista
+  (`scrollIntoView`). Las comprobaciones de «no hay» esperan antes una señal positiva.
+- **Contenedor (S43):** como S42; Node con `npm install --prefix ~/node24 node@24.22.0`; e2e con `--workers=1`.
 
 **Deuda anotada:**
 - **CI · WebKit a ~3 fps (S35):** la traza del CI de C.2 lo midió: WebKit sin GPU pinta unos 3 frames por segundo con
@@ -63,7 +55,7 @@ entera, fase C cerrada y las dependencias de lint sin avisos de `npm audit`._
   de la prueba y lecciones del shader en `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a
   pantalla completa). La prueba es el artefacto privado «Naves · prueba»; copia del código en `_claude/naves/`. Al
   construir: su ADR (uno nuevo, numerado al escribirlo: mapa de formas `uFrom`/`uTo`/`uT`, que obliga a rehacer sobre él lo del retrato atado a
-  `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: el margen libre es de ~0,16 KB
+  `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: el margen libre es de ~0,52 KB tras F4.4
   tras AUD-C6B, así que su ADR subirá el límite, con los números reales de F4.4 y F4.5.
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
   cómo está construido: solo herramientas, para qué y lo hecho (nota de ADR-034; `experiencia.md` → «Regla de
@@ -107,6 +99,13 @@ entera, fase C cerrada y las dependencias de lint sin avisos de `npm audit`._
   por tapado. Si vuelve a fallar por algo que no sea tiempo: mirar `scroll-padding` en WebKit.
 - **Contenedor · `recruiter.spec.ts` (S36):** «390 px: the «Projects · Cosmic turtle» dot…» (EN) falla 1 de cada 5
   en el contenedor, también sobre `main`: no es de ningún cambio; en el CI pasa. Si sale en el CI, mirarlo.
+- **e2e en el equipo de Víctor con varios workers (S43):** `plates.spec.ts` agotó dos tiempos (hover y Tab) y la
+  prueba de movimiento reducido tardó 29,9 s de 30: SwiftShader en varias ventanas a la vez satura la máquina (en el
+  contenedor, 4 workers sobre 2 núcleos rompen también `constellations.spec.ts`). Los e2e de la escena, en local, con
+  `--workers=1`. En `npm run check`, `scripts/docsOnly.test.ts` agotó una vez los 10 s de su `beforeAll` (crea un repo
+  de git de usar y tirar): si se repite suelto en Windows, subir su `hookTimeout` en un PR aparte.
+- **F6 · móvil real (F4.4):** los pins en escalera a 390 px (`fitPins`), la fila que ya no se queda ámbar tras tocar
+  fuera (`:hover` solo con `hover: hover`, sospechado en iOS: AUD-F4-4A-5) y el ciclo de placas con la `m` suavizada.
 - **e2e en el equipo de Víctor (S32, S38):** la primera tanda completa de Chromium en Windows sacó dos carreras de
   carga que pasaban solas (el recuento de chunks de `scene.spec.ts`, que contaba la descarga tardía de la página del
   `beforeEach`, y el espaciado del nombre en `journey.spec.ts`, que tardaba más de 5 s con pocos frames). Blindadas
@@ -153,10 +152,10 @@ entera, fase C cerrada y las dependencias de lint sin avisos de `npm audit`._
   desde `SceneRoot`). Lo recuerdan §13, «hecho» y el roadmap.
 - **WebKit y el `<picture>`:** que WebKit pidiera el `src` del `<img>` antes de entrar en el `<picture>` es deducido
   (no hay WebKit en el contenedor); el arreglo lo vigila el e2e de escritorio sin WebGL en el CI.
-- **Peso de la escena:** 254 340 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
-  C.5 −2, C.6a +52, C.6b +967, AUD-C6B +252). Quedan 5 660 B: F4.4 ≤ 2,5 KB y F4.5 ≤ 3 KB, y ~0,16 KB de margen. Cada paso apunta lo
-  que pesó en `rendimiento.md`. Por paquete se mide con `npx source-map-explorer <chunk>.js --gzip
-  --no-border-checks` sobre un build con `sourcemap: true` (sin commitear).
+- **Peso de la escena:** 256 481 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
+  C.5 −2, C.6a +52, C.6b +967, AUD-C6B +252, F4.4a +391, F4.4b +1 729, AUD-F4-4A +21). Quedan 3 519 B: F4.5 ≤ 3 KB
+  y ~0,52 KB de margen. Cada paso apunta lo que pesó en `rendimiento.md`. Por paquete se mide con
+  `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
 - **Degradación en caliente:** un navegador que limita los frames a 30 (ahorro de batería) baja a Bajo en
   escritorio: aceptado y escrito en `rendimiento.md`.
@@ -223,7 +222,8 @@ entera, fase C cerrada y las dependencias de lint sin avisos de `npm audit`._
 - **Windows/Edge:** comprobar a mano que abrir y cerrar «Quick mission» no hace saltar la página de lado
   (`scrollbar-gutter`), si no se hizo.
 - **F6 · iPhone real:** el aire de arriba de la ficha con la zona segura (headless no la tiene).
-- **F5:** la placa iluminada al volver lee `uiStore.visitedProject` (el mismo dato del foco en la fila).
+- **F5:** la placa iluminada al volver lee `uiStore.visitedProject` (el mismo dato del foco en la fila). Hasta
+  entonces, volviendo con el teclado ya se enciende, porque ese foco señala la fila (AUD-F4-4A-P3-A); con el ratón, no.
 - En el visor y en la misión rápida (modal nativo), el Tab puede pasar por la interfaz del navegador antes de volver
   al diálogo: la página sigue inerte. Aceptado; mirarlo con NVDA en F6.
 - **F6 · NVDA:** el foco al nombre del proyecto al llegar a una ficha (también al cambiar EN / ES); tras «No,
@@ -261,11 +261,13 @@ entera, fase C cerrada y las dependencias de lint sin avisos de `npm audit`._
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **F4.4 · Tortuga:** esquema (roadmap → F4 · 4; `docs/02-experiencia/capitulos/03-tortuga.md` y
-   `docs/04-escena/constelaciones-y-placas.md`): placas por huecos, pins (la paridad TS/GLSL de su posición,
-   `formas.md`), ciclo automático y resaltado sincronizado con las filas; ≤ 2,5 KB de escena (ADR-032); fijar sus
-   zonas en el tablero; `npm run stills` y capturas. Después, su auditoría a la Mesa y F4.5 · Tierra.
-3. Víctor: mirar `/#crew-file` en Brave en producción (AUD-C6B-5); pegar la descripción, la web y los topics de
+2. **AUD-F4-4B:** cuando la Mesa entregue, decidir (Víctor) y corregir entera en su rama desde `main`.
+3. **F4.5 · Tierra:** esquema (roadmap → F4 · 5; `docs/02-experiencia/capitulos/04-tierra.md`,
+   `docs/04-escena/particulas-y-shaders.md`, `formas.md`): día/noche, amanecer, luces de ciudad, atmósfera y Sol, y la
+   gravedad del cursor más suave sobre la Tierra; ≤ 3 KB de escena (quedan 3 519 B); `npm run stills` y capturas.
+   Puede avanzar en su rama mientras se audita F4.4b, pero no se fusiona hasta que esa corrección esté en `main`.
+   Con F4.5, F4 cerrada: Lighthouse a mano, auditoría de cierre y etiqueta `v0.3.0`.
+4. Víctor: mirar `/#crew-file` en Brave en producción (AUD-C6B-5); pegar la descripción, la web y los topics de
    Cosmos en GitHub (`ABOUT_REPOS.md` del Proyecto de claude.ai); suavizar el CV y LinkedIn con el chat de mentor (y
    avisar para volver a copiar el PDF: lo pedirá `content.test.ts`); redirigir el portfolio antiguo de Vercel a
    tortoisecode.dev; mirar las líneas de las constelaciones en su pantalla; revisar los textos del Crew file y, si la
@@ -274,10 +276,10 @@ entera, fase C cerrada y las dependencias de lint sin avisos de `npm audit`._
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»).
 **Limpieza manual del usuario:**
-- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 42, entre ellas `s37/` a `s42/`, `c3/` y
+- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 43, entre ellas `s37/` a `s43/`, `c3/` y
   `aud-c2/`) y `_claude/lstree.txt`; `_claude/readme-originales/` si ya no hacen falta.
-- Ramas locales ya fusionadas (todas menos `main`, entre ellas `fix/aud-c6b`, `fix/aud-c-cierre` y
-  `chore/deps-2026-11`): `git branch` para verlas y `git branch -D <rama>`.
+- Ramas locales ya fusionadas (todas menos `main`, entre ellas `feat/turtle-plates`, `feat/turtle-pins`,
+  `fix/aud-f4-4a`, `fix/aud-c-cierre` y `chore/deps-2026-11`): `git branch` para verlas y `git branch -D <rama>`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol*.tar.gz`, `previas.tar.gz` y los `*.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js`
   ni `hecho/2026-10-28/encuadre/`). Mover a mano a `hecho/` lo que no se pudo desde aquí (`aud-f4-1/` a
