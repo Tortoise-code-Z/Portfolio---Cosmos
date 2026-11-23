@@ -72,8 +72,8 @@ cosmos-portfolio/
 │  │                              (los pins de las placas: su capa en `body` y su colocación), labelWriter
 │  │                              (lo que se escribe de una etiqueta colocada, de las estrellas o de un pin) y Sun
 │  │                              (el Sol sobre la Tierra, F4.5)
-│  │  ├─ shaders/               ← los `.glsl` (particles, stars, constellations, sun), glslHeader (etiquetas y colores desde TS) y
-│  │  │                           stripGlslComments (el plugin de vite.config.ts)
+│  │  ├─ shaders/               ← los `.glsl` (particles, stars, constellations, sun), glslHeader (etiquetas,
+│  │  │                           colores y `SUN_DIR` desde TS) y stripGlslComments (el plugin de vite.config.ts)
 │  │  ├─ math/                  ← código puro: camera (pose por `m`, campo de visión, paralaje) · gravity (la
 │  │  │                           gravedad del cursor) · projection (de la escena a la pantalla) ·
 │  │  │                           chapterPresence (cuánto está un capítulo) · constellations (encendido y
@@ -326,7 +326,7 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 - `scene/{shapes,math,config,worker}` es código puro: lo que corre en el worker o se prueba sin WebGL. ESLint
   le prohíbe Three, React, Zustand, `stores`, los módulos de la escena que usan Three, React o un store, más
   `contextLoss`, que vive con el lienzo (por ruta relativa: `SceneRoot`, `CameraRig`, `Particles`,
-  `BackgroundStars`, `Constellations`, `ConstellationLabels`, `PlatePins`, `sceneMaterials`, `particleGeometry`,
+  `BackgroundStars`, `Constellations`, `ConstellationLabels`, `PlatePins`, `Sun`, `sceneMaterials`, `particleGeometry`,
   `useSceneShapes`, `useHotDegradation`, `usePortrait`, `contextLoss`, `voidColour`, `pause`; `pointer`, `frameLoop`, `sceneClock`, `fpsMeter`, `shaders` y `labelWriter` no, son DOM o cálculo sin
   dependencias), los datos de `content` (solo sus tipos) y cualquier `import()` (un import así engordaría el
   worker sin avisar), y prohíbe `Math.random` en toda la escena, también escrito

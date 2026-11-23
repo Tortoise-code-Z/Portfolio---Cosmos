@@ -109,7 +109,7 @@ function followPlates(
   else scene?.setAttribute('data-plate', slug);
 }
 
-/** Las partículas ya están pintadas: lo que se coloca sobre las formas (los pins) deja de esperar. */
+/** Las partículas ya están pintadas: lo que va con las formas (los pins, el Sol) deja de esperar. */
 function markPainted(frame: SceneFrame): void {
   frame.painted = true;
 }

@@ -90,6 +90,11 @@ retrato entero, en su visor, sin pasar bajo la barra ni el raíl.
   partículas frente a la del panel y la del raíl. Resultado: en escritorio, ninguna forma bajo el raíl; la galaxia
   aún pasa un poco bajo el panel a 1280 y 1440 (sus brazos tenues, un 3–5 % de lo que se ve), aceptado para que
   siga siendo grande. En móvil, la galaxia roza el raíl (~3 %).
+- **La Tierra en escritorio estrecho (medido en F4.5, sin Sol):** a 1440×900 no toca el panel; a 1280×720 sus
+  partículas de fuera (la atmósfera) ya rozan su borde derecho (un escalón de 25 de 255 en ese borde, a media altura), y
+  más abajo pasa por detrás (38 a 47 a 1152×864 y 1180×820, el iPad apaisado). Entre 1280 y 1440 no se ha medido.
+  Aceptado: acercarla al raíl la haría pequeña o la llevaría bajo él. El halo del Sol cruza por debajo de ~1240 px
+  (`particulas-y-shaders.md` → «Sol»).
 - **Lo que vigila el CI:** las capturas de regresión de dos de esos tamaños, 1440×900 y 390×844
   (`docs/05-tecnico/calidad.md` → «Regresión visual»). Cada cambio de encuadre se acompaña de `npm run
   visual:update` (en Docker) y sus PNG.

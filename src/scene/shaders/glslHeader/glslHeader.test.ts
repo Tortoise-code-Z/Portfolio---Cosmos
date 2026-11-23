@@ -72,12 +72,17 @@ describe('glslHeader', () => {
     expect([x, y, z].map((c) => Number(c.toFixed(6)))).toEqual(
       SUN.position.map((c) => Number((c / length).toFixed(6))),
     );
-    expect(header).toContain(
-      `#define SUN_DIR vec3(${[x, y, z].map((c) => glslFloat(Number(c.toFixed(4)))).join(', ')})\n`,
-    );
-    // La luz de la Tierra es esa, no una dirección escrita a mano en el shader.
-    expect(particlesVertex).toContain('float lam = dot(n, SUN_DIR);');
-    expect(particlesVertex).not.toMatch(/normalize\(vec3\(-?\d/);
+    // Lo que llega al GLSL, leído de la cabecera (no con la fórmula de la implementación).
+    const written = /^#define SUN_DIR vec3\((\S+), (\S+), (\S+)\)$/m
+      .exec(header)
+      ?.slice(1)
+      .map(Number);
+    expect(written).toHaveLength(3);
+    for (const [i, c] of [x, y, z].entries()) expect(written?.[i]).toBeCloseTo(c, 4);
+    // La luz de la Tierra es esa, no una dirección escrita a mano en el shader: la línea de `lam` no lleva números.
+    const lam = /^\s*float lam = (.+);$/m.exec(particlesVertex)?.[1];
+    expect(lam).toContain('SUN_DIR');
+    expect(lam).not.toMatch(/\d/);
   });
 
   it('the lit plate pulses only with motion: its sin(uTime * 5.0) goes through uMotion', () => {

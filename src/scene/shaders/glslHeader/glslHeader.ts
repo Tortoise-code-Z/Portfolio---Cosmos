@@ -1,5 +1,5 @@
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
-import { SUN, TURTLE_SWAY } from '../../config/sceneConfig';
+import { SUN, TURTLE_SWAY, type ScenePoint } from '../../config/sceneConfig';
 import { hexToRgb, SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
 import {
   EARTH_TAG,
@@ -10,9 +10,10 @@ import {
 
 /**
  * Cabecera común de los shaders (docs/04-escena/particulas-y-shaders.md → «Etiquetas y colores»): las etiquetas
- * de `aR`, el balanceo de la tortuga (`TURTLE_SWAY_*`, la misma cuenta que los pins), las medidas del retrato y los
- * colores de la paleta salen de TypeScript, la misma fuente que los generadores y los pins. Así el GLSL no escribe
- * ningún número de etiqueta, color o balanceo a mano y no puede quedarse atrás si cambian.
+ * de `aR`, el balanceo de la tortuga (`TURTLE_SWAY_*`, la misma cuenta que los pins), la dirección del Sol
+ * (`SUN_DIR`, `SUN.position` normalizada: la luz de la Tierra), las medidas del retrato y los colores de la paleta
+ * salen de TypeScript, la misma fuente que los generadores, los pins y el Sol. Así el GLSL no escribe ningún número
+ * de etiqueta, color, balanceo o luz a mano y no puede quedarse atrás si cambian.
  */
 
 /** Un número como literal `float` de GLSL (siempre con punto: `20` → `20.0`). */
@@ -44,7 +45,7 @@ function colours(): string[] {
  * La dirección de la luz de la Tierra: hacia el Sol desde el centro de la Tierra (el origen), así que el lado de día
  * mira siempre al Sol que se ve (`SUN.position`).
  */
-export function sunDirection(): [number, number, number] {
+export function sunDirection(): ScenePoint {
   const [x, y, z] = SUN.position;
   const length = Math.hypot(x, y, z);
   return [x / length, y / length, z / length];

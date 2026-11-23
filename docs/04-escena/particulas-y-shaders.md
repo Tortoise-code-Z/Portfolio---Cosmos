@@ -52,14 +52,15 @@ antepone a cada shader de vértices:
 - `#define TURTLE_<PARTE>` y `EARTH_<CAPA>` desde `TURTLE_TAG` y `EARTH_TAG` (`shapes/shapeContract`, el mismo
   contrato que escribe el generador), `TURTLE_FLIPPERS`, el rango de placas `PLATE_FIRST`..`PLATE_LAST` (20..26,
   `config/plateSlots`), el balanceo de la tortuga `TURTLE_SWAY_*` (`TURTLE_SWAY` de `sceneConfig`, la misma cuenta que
-  los pins), la mitad del alto del retrato, `PORTRAIT_HALF_H`, y lo que mide su fundido de abajo, `PORTRAIT_FADE_H`
+  los pins), la dirección del Sol `SUN_DIR` (`SUN.position` normalizada: la luz de la Tierra, «Iluminación de la
+  Tierra»), la mitad del alto del retrato, `PORTRAIT_HALF_H`, y lo que mide su fundido de abajo, `PORTRAIT_FADE_H`
   (`PORTRAIT_FRAME`).
 - `const vec3 COLOR_<NOMBRE>` desde `config/scenePalette`, que tiene todos los colores principales del design
   system, cada uno en su papel (lo comprueba su test con la tabla), y los matices del prototipo que la tabla no
   lista (los ojos de la tortuga son `COLOR_TURTLE_EYES` × 2: más brillantes que el blanco).
 
 La cabecera solo va en los shaders de vértices: los de fragmentos no la llevan y no pueden usar sus nombres. Su
-test comprueba que todo nombre `TURTLE_*`, `EARTH_*`, `PLATE_*`, `PORTRAIT_*` o `COLOR_*` que usan los shaders de vértices
+test comprueba que todo nombre `TURTLE_*` (también `TURTLE_SWAY_*`), `EARTH_*`, `PLATE_*`, `SUN_*`, `PORTRAIT_*` o `COLOR_*` que usan los shaders de vértices
 existe, que los de fragmentos no usan ninguno, y que ni las etiquetas (comparaciones, `abs(tag - …)`, `aR.y`/`aR.z`,
 un nombre desplazado más allá del ±0,5 de redondeo) ni los colores (`c = vec3(…)`) llevan números escritos a mano.
 Las potencias del GLSL nunca llevan base negativa (indefinido en GLSL ES): `exp(-q * q)` y un `rim` que no baja
@@ -115,8 +116,12 @@ barra de scroll). Con frames de 0,1 s (el tope del reloj: ≤ 10 fps, un frame a
 por otro antes de apagarse, lo que queda del remolino salta al punto nuevo: aceptado, como un movimiento rápido. La misma intensidad en todos los capítulos salvo la Tierra: desde F4.5, `uGrav` se
 multiplica por `lerp(1; 0,5; presencia del capítulo 4)` (`EARTH_GRAVITY` en `sceneConfig`; `chapterPresence`), así que
 sobre la Tierra el remolino y el brillo extra van a la mitad, y entre la tortuga y la Tierra se suaviza poco a poco. En
-el retrato (m = 5) la presencia ya es 0: su giro con el ratón, que también lee `uGrav`, no cambia. Las constelaciones
-(F4.3) y el Sol (F4.5) no son partículas: la gravedad no los mueve.
+el retrato (m = 5) la presencia ya es 0: su giro con el ratón, que también lee `uGrav`, no cambia. A medio morph hacia él
+(de m = 4 a ~4,56, cuando la presencia llega a 0) va suavizado igual: el retrato a medio formar gira algo menos y ese
+giro crece con el scroll aunque el ratón esté quieto. No se nota y separar el giro del remolino costaría un uniform más:
+aceptado. La regla va por capítulo, no por la forma que se ve: si el retrato no llega, en m = 5 se sigue viendo la Tierra
+(«Retrato») con la gravedad entera; solo pasa si falla el retrato, aceptado. Las constelaciones (F4.3) y el Sol (F4.5)
+no son partículas: la gravedad no los mueve.
 
 ### Colores
 
@@ -193,24 +198,36 @@ fragmentos dibuja el degradado del prototipo, sin textura: núcleo `sunCore` (`#
 que pasa al halo `sunGlow` (`#ff8a3d`) y se apaga hasta el borde, con el mismo perfil de alfa que las estrellas de
 las constelaciones.
 
-- **Dónde:** `SUN.position` = (−1,4; 2,9; −1), lado 3,5: arriba a la izquierda de la Tierra y casi a su altura, sobre
-  el limbo. La luz de la Tierra sale de ahí (`SUN_DIR`, «Iluminación de la Tierra»). Por qué ahí:
+- **Dónde:** `SUN.position` = (−1,4; 2,9; −1), lado 3,5: arriba a la izquierda de la Tierra, a la altura de su limbo
+  superior y casi en su plano (z = −1; el prototipo, −5), sobre el limbo. La luz de la Tierra sale de ahí (`SUN_DIR`, «Iluminación de la Tierra»). Por qué ahí:
   - el prototipo lo ponía en (−2,6; 3; −5) con lado 9: con el encuadre de F3.6c su halo cruzaba el borde derecho del
     panel y el de la barra de arriba, y los dibujaba (`04-tierra.md` → «Layout»);
-  - a la izquierda de la Tierra y a su altura (luz de lado de verdad) cae sobre el panel: a 1280×720 el borde se
-    marcaba con un escalón de 56 a 74 de brillo;
+  - a la izquierda de la Tierra y a la altura de su centro (y ≈ 0: luz de lado de verdad) cae sobre el panel: a
+    1280×720 el borde se marcaba con un escalón de 56 a 74 de brillo;
   - detrás de la Tierra ilumina su cara de atrás, que se ve a través (las partículas suman luz, sin profundidad), y
     parece de día por todas partes.
-  Medido a 1440×900 (sin escalón al cruzar el borde del panel) y a 1280×720 (un escalón de ~6 de 255, que no se ve).
-  Entre 900 y ~1100 px de ancho la Tierra ya pasa por detrás del panel (`camara-y-encuadre.md`) y el halo también:
-  aceptado.
+  Medido en Bajo con movimiento reducido, restando el escalón de la misma vista sin Sol: desde 1280 px de ancho (1280×720
+  y 1440×900, también en la cola de Mission control, m ≈ 3,7) el halo no llega al panel ni a la barra. Por debajo de
+  ~1240 px la Tierra ya pasa por detrás del panel (escalón de 38 a 47 de 255 sin Sol; a 1280×720 ya lo roza:
+  `camara-y-encuadre.md` → «Cómo se ajustó») y el halo también (+11 a 1180×820 y +13 a 1152×864, el iPad apaisado; más por debajo de 1100): aceptado,
+  como el de la Tierra. En un móvil apaisado (800×360, 667×375, 844×390) el halo pasa bajo la barra de arriba con un
+  escalón de +9 a +14 y se ve un corte plano en su borde (la Tierra no la toca): aceptado, por ser un tamaño raro; un
+  Sol más pequeño solo ahí dependería del alto de la barra. Se mira en un móvil real (F6).
 - **Cuándo:** `uOpacity` = presencia del capítulo 4 · 0,95 (`chapterPresence`, la rampa de las placas): entero en la
-  Tierra y apagado antes de llegar al retrato. Con opacidad 0 no se pinta (`material.visible`): un cuadrado tan
-  grande costaría píxeles en cada frame aunque no se viera.
+  Tierra y apagado antes de llegar al retrato. Nada antes de que las partículas se pinten (`SceneFrame.painted`, como
+  los pins): entrando por `/#contact`, mientras llegan las formas, brillaría sobre el vacío. Con opacidad 0 no se pinta
+  (`material.visible`): un cuadrado tan grande costaría píxeles en cada frame aunque no se viera. La regla va por
+  capítulo, no por la forma que se ve: si el retrato no llega, en m = 5 se sigue viendo la Tierra («Retrato»), ya sin
+  Sol pero iluminada desde `SUN_DIR`; solo pasa si falla el retrato, aceptado.
+- **Sin recorte:** `frustumCulled = false`. Three recorta con la esfera de la geometría (radio √2) y el shader abre el
+  cuadrado más allá (`uSize / 2`, hasta 1,83): con el recorte, el halo desaparecería de golpe con el centro aún fuera
+  de la vista.
 - **Latido:** el lado va `3,5 ± 0,15 · sin(t · 0,8)` con el reloj de la escena (el 4–5 % del prototipo); con
   movimiento reducido, quieto en 3,5.
-- En todos los niveles (son dos triángulos). Las cuentas, en `updateSunUniforms` (`sceneMaterials`); las cifras, en
-  `SUN` (`sceneConfig`).
+- En todos los niveles (son dos triángulos), también con movimiento reducido (solo deja de latir). Las cuentas, en
+  `updateSunUniforms` (`sceneMaterials`); las cifras, en `SUN` (`sceneConfig`), con su capítulo, `EARTH_CHAPTER`, el
+  mismo que el de la gravedad suave. El perfil de alfa está copiado de las estrellas de las constelaciones (los shaders
+  de fragmentos no llevan cabecera): un test compara los dos bloques.
 
 ## Mejoras respecto al prototipo
 

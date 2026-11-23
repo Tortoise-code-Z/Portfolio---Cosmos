@@ -99,8 +99,8 @@ export default defineConfig({
         'src/scene/{shapes,math,config,worker}/**': STRICT,
         // Lógica de la escena que se prueba sin WebGL (el bucle, el reloj, uniforms y materiales, la geometría,
         // la cabecera y la limpieza del GLSL, el color de fondo, la pausa, el ratón, la pérdida del contexto y la
-        // degradación en caliente, el retrato, las constelaciones y sus etiquetas, los pins y lo que escribe ambos):
-        // también al 90 %.
+        // degradación en caliente, el retrato, las constelaciones y sus etiquetas, los pins y lo que escribe ambos, y
+        // el Sol): también al 90 %.
         'src/scene/{frameLoop,sceneClock,sceneMaterials,particleGeometry,voidColour,pause,pointer,contextLoss,fpsMeter,useHotDegradation,usePortrait,Constellations,ConstellationLabels,PlatePins,labelWriter,Sun}/**':
           STRICT,
         'src/scene/shaders/**': STRICT,

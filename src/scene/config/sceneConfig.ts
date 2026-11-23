@@ -27,8 +27,8 @@ export const TURTLE_SWAY = { yawRate: 0.25, yaw: 0.18, bobRate: 0.7, bob: 0.15 }
 
 /**
  * Cómo aparece y se va lo que la escena pinta por capítulo (`math/chapterPresence`): presencia
- * `clamp(1 − |m − capítulo| · fade, 0, 1)`, 1 en el capítulo y 0 a ±0,56. Una sola rampa para las constelaciones,
- * las placas y los pins.
+ * `clamp(1 − |m − capítulo| · fade, 0, 1)`, 1 en el capítulo y 0 a ±0,56. Una sola rampa para las constelaciones (2),
+ * las placas y los pins (3), y el Sol y la gravedad sobre la Tierra (4).
  */
 export const CHAPTER_PRESENCE_FADE = 1.8;
 
@@ -96,15 +96,22 @@ export const PARALLAX = { x: 0.7, y: 0.45, rate: 2 } as const;
 export const GRAVITY = { rate: 10, epsilon: 1e-3 } as const;
 
 /**
+ * El capítulo de la Tierra (forma 4): el del Sol y el de la gravedad suave. Uno solo, para que no se separen
+ * (`config` no importa de `content`, donde están los capítulos del viaje).
+ */
+export const EARTH_CHAPTER = 4;
+
+/**
  * La gravedad del cursor, más suave sobre la Tierra (docs/02-experiencia/capitulos/04-tierra.md → «Interacciones»):
  * `uGrav` por `lerp(1, scale, presencia)`, con la presencia de su capítulo (`math/chapterPresence`). En el retrato
- * (m = 5) la presencia ya es 0: su giro con el ratón no cambia.
+ * (m = 5) la presencia ya es 0 y su giro con el ratón no cambia; a medio morph (hasta m ≈ 4,56) va suavizado.
  */
-export const EARTH_GRAVITY = { chapter: 4, scale: 0.5 } as const;
+export const EARTH_GRAVITY = { chapter: EARTH_CHAPTER, scale: 0.5 } as const;
 
 /**
  * El Sol del capítulo de la Tierra (docs/04-escena/particulas-y-shaders.md → «Sol»): un brillo de `size` unidades de
- * lado que mira a la cámara, en `position`, arriba a la izquierda de la Tierra y casi a su altura. La luz de la Tierra
+ * lado que mira a la cámara, en `position`: arriba a la izquierda de la Tierra, a la altura de su limbo superior y casi
+ * en su plano (z = −1; el prototipo, −5). La luz de la Tierra
  * sale de aquí (`SUN_DIR` en la cabecera GLSL: la Tierra está en el origen), así que su lado de día mira siempre a
  * este Sol. No va donde el prototipo (−2,6, 3, −5 y 9): su halo cruzaba el borde del panel y el de la barra de arriba
  * y los dibujaba (`04-tierra.md` → «Layout»); más a la izquierda cae sobre el panel, y detrás de la Tierra ilumina su
@@ -112,13 +119,20 @@ export const EARTH_GRAVITY = { chapter: 4, scale: 0.5 } as const;
  * reducido) y aparece con la presencia de su capítulo, hasta `opacity`.
  */
 export const SUN = {
-  chapter: 4,
+  chapter: EARTH_CHAPTER,
   position: [-1.4, 2.9, -1],
   size: 3.5,
   pulse: 0.15,
   pulseRate: 0.8,
   opacity: 0.95,
-} as const;
+} as const satisfies {
+  readonly chapter: number;
+  readonly position: ScenePoint;
+  readonly size: number;
+  readonly pulse: number;
+  readonly pulseRate: number;
+  readonly opacity: number;
+};
 
 /** Subsemilla de las estrellas de fondo (como las de cada forma, `subSeed`). */
 export const STARS_SEED_NAME = 'stars';

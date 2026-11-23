@@ -43,7 +43,7 @@ ese evento para terminar de cerrarse se quedaría colgado con movimiento reducid
 |---|---|---|
 | Suavizado de `m` en la escena y en los efectos del Big Bang `k` (`M_SMOOTHING`, `lib/scroll/smoothM`) | 3,4 (12 con movimiento reducido) | `scroll-y-escena.md` |
 | Carga de detonación | 1,5 s para llenar; descarga 1,8/s (también tras detonar) | Capítulo 0 |
-| Gravedad del cursor (`GRAVITY`, `sceneConfig`) | sube y baja a ritmo 10 (≈ 0,25 s; de golpe con frames de 0,1 s); 0 con movimiento reducido | Capítulo 1 · `particulas-y-shaders.md` |
+| Gravedad del cursor (`GRAVITY`, `sceneConfig`) | sube y baja a ritmo 10 (≈ 0,25 s; de golpe con frames de 0,1 s); a la mitad sobre la Tierra (`EARTH_GRAVITY`), con la rampa de su capítulo; 0 con movimiento reducido | Capítulo 1 · `particulas-y-shaders.md` |
 | Encendido de una constelación (`CONSTELLATION_LOOK.hotRate`, `scene/config/constellationLayout`) | ritmo 8 (≈ 0,125 s para encenderse o apagarse); instantáneo con movimiento reducido | Capítulo 2 · `constelaciones-y-placas.md` |
 | Destello | dos golpes que bajan 1,6/s (≈ 0,6 s): 0,75 al empezar a bajar (al cruzar `m` 0,02; se rearma de vuelta en `m` < 0,01 con el golpe apagado) y 0,95 al detonar; manda el más fuerte (ADR-031) | Capítulo 0 |
 | Temblor | hasta 9 px con el destello + 3 px por carga (el lienzo y el punto o halo CSS, nunca el texto) | Capítulo 0 |
@@ -52,6 +52,7 @@ ese evento para terminar de cerrarse se quedaría colgado con movimiento reducid
 | Retraso de morph por partícula | hasta el 25 % de la transición | Escena |
 | Ciclo de placas | 2,6 s | Capítulo 3 |
 | Giro de nebulosa / galaxia / Tierra | 0,018 / 0,035 / 0,05 rad/s | Escena |
+| Latido del Sol (`SUN`, `sceneConfig`) | lado 3,5 ± 0,15 a ritmo 0,8 rad/s; quieto en 3,5 con movimiento reducido | Capítulo 4 · `particulas-y-shaders.md` |
 | Nado de la tortuga | aletas 1,3 rad/s; balanceo 0,7 rad/s; giro 0,25 rad/s | Escena |
 | Entrada del lienzo o del fondo sin WebGL | 400 ms (`--dur-fade-slow`; 150 ms con movimiento reducido) | Carga |
 | Foto fija sin WebGL al cambiar de capítulo | 400 ms (`--dur-fade-slow`; 150 ms con movimiento reducido), cuando ha llegado; la que sale y la que entra se suman como luz (`plus-lighter`) | Viaje sin WebGL |
