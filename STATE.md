@@ -3,46 +3,54 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F4.4 · Tortuga hecha** (placas, ciclo y pins; `main` en `f82a745` antes de este cierre) y su
-primera auditoría corregida; **AUD-F4-4B en la Mesa** · siguiente: decidir y corregir AUD-F4-4B y **F4.5 · Tierra**
-(cierra F4: `v0.3.0`).
+**Dónde estamos:** **F4.5 · Tierra hecha** (el Sol y su luz, la gravedad suave) y **AUD-F4-4B corregida**; `main` en
+`37cd82a` antes de este cierre · **AUD-F4-5 entregada por la Mesa, sin decidir** · siguiente: decidir y corregir
+AUD-F4-5 y cerrar F4 (Lighthouse, auditoría de cierre, `v0.3.0`).
 
-_Última actualización: 2026-11-23 (**CIERRE DE SESIÓN · 43**) · F4.4 en dos PR (placas encendidas y pins), AUD-F4-4A
-corregida entera, AUD-F4-4B lanzada._
+_Última actualización: 2026-11-23 (**CIERRE DE SESIÓN · 44**) · F4.5 (PR #117) y la corrección de AUD-F4-4B (PR #118)
+en `main`; AUD-F4-5 lanzada y entregada._
 
-**Hecho esta sesión** (vivas S43 en `_claude/cadena/hecho/2026-11-23/decisiones-vivas-S43.md`):
-1. **F4.4a · placas encendidas** (PR #114, `2b4020f`; TOR-1-A, TOR-2-A, TOR-3-A): `uiStore.activeProject` lo
-   escriben las filas (ratón, foco del teclado en sus enlaces, toque; tocar fuera apaga, `useTapOutsideTurnsOff`
-   compartido con Skills); `scene/math/plateCycle` (la placa señalada o un ciclo cada 2,6 s que se para mientras hay
-   un proyecto señalado y vuelve donde iba; nada con movimiento reducido ni lejos de la tortuga) → `SceneFrame.plate`
-   → `uPlate` y `data-plate`; el pulso de la placa, por `uMotion`. El ciclo no marca filas. +391 B.
-2. **F4.4b · pins** (PR #115, `4ae33ec`; PIN-1-A, PIN-2-B): `scene/PlatePins` (capa en `body`, solo en el viaje, con
-   nombres y `onOpenProject` desde `SceneMount`); el ratón señala, el clic abre la ficha, en táctil el primer toque
-   señala y el segundo abre; el balanceo de la tortuga compartido TS/GLSL (`TURTLE_SWAY` → cabecera `TURTLE_SWAY_*`,
-   un test los ata); `fitPins` sube un piso (46 → 76 → 106 px) al que choca, de derecha a izquierda: en el móvil, en
-   escalera; ocultos mientras se lee una transmisión (Mission control). `scene/labelWriter` compartido con las
-   etiquetas de las estrellas; `--gradient-pin-stem`. +1 729 B.
-3. **AUD-F4-4A corregida entera** (PR #116, `f82a745`; 0 bloqueantes, 6 recomendados, 12 menores, 3 preguntas; P1-A,
-   P2-A, P3-A y las opciones recomendadas): un proyecto sin placa también para el ciclo; `chapterPresence(m, capítulo)`
-   con `CHAPTER_PRESENCE_FADE` (una rampa para galaxia, placas y pins); `pointGestures` (Skills y filas); el `:hover`
-   de la fila solo con `hover: hover`; `Highlight` en alto contraste; la zona de puntero de la fila hasta medio hueco
-   (confirmado: al bajar despacio de una fila a otra asomaba la placa del ciclo); `skipWithoutWebGL2`; tests de gestos
-   sin ciclo y docs de F4.4 entera. +21 B.
-4. **AUD-F4-4B lanzada** a la Mesa · base `2b4020f` · hasta `f82a745` (F4.4b y la corrección de AUD-F4-4A; vivas S43
-   hasta #30) → `_claude/cadena/aud-f4-4b/auditoria.md`.
+**Hecho esta sesión** (vivas S44 en `_claude/cadena/hecho/2026-11-23/decisiones-vivas-S44.md`):
+1. **F4.5 · Tierra** (PR #117, `46fd592`; TIE-1-A a TIE-5-A): `scene/Sun`, un cuadrado de dos triángulos que mira a la
+   cámara (`shaders/sun`, núcleo `#ffb070` → halo `#ff8a3d`), con la presencia del capítulo 4, un latido quieto con
+   movimiento reducido y sin pintarse fuera de su capítulo; en (−1,4, 2,9, −1), lado 3,5, sobre el limbo superior
+   izquierdo. **La luz de la Tierra sale del Sol** (`SUN_DIR` = `SUN.position` normalizado, por la cabecera; un test los
+   ata): lo vio Víctor, la luz fija del prototipo no cuadraba con el Sol. El sitio y la luz del prototipo descartados
+   porque el halo dibujaba el borde del panel y de la barra (medido). Gravedad del cursor a la mitad sobre la Tierra
+   (`EARTH_GRAVITY`). Fotos fijas y capturas del capítulo 4. +444 B (sobre AUD-F4-4B).
+2. **AUD-F4-4B corregida entera** (PR #118, `37cd82a`; 0 bloqueantes, 9 recomendados, 31 menores, 3 preguntas: todas
+   las opciones de la Mesa, P1-A, P2-C, P3-B): el clic en un pin deja su proyecto señalado; solo la etiqueta del pin
+   recibe el puntero; los pins esperan a las partículas pintadas y leen la transmisión del frame
+   (`SceneFrame.transmission` y `painted`); `fitPins` ordena en sitio sin crear nada; el gesto recuerda su pin;
+   `motionOf`; `registerLabel` en `labelWriter`; `--_rows-gap`; tests más estrictos (ciclo, panel en el móvil, Mission
+   control, worker retenido, capa que nace de nuevo) y ayudas comunes de los e2e (`interfaceRects`, `expectInterface`);
+   docs al día. +149 B.
+3. **AUD-F4-5 lanzada y entregada** (base 2bfca5c · hasta f4d4bbe; vivas S44 hasta #14): 0 bloqueantes, 4
+   recomendados, 19 menores, 4 preguntas → `_claude/cadena/aud-f4-5/auditoria.md`.
 
 **Incidencias y lecciones:**
-- **F4.4b se fusionó antes de corregir AUD-F4-4A** (§13 pide esperar): sin daño, la corrección fue sobre `main` y
-  cada hallazgo se contrastó con el código nuevo. Recordarlo justo antes de fusionar, no solo en el PR.
-- **Sacar código cubierto de un módulo baja su cobertura de ramas** (`Constellations` cayó por debajo del 90 % al
-  sacar `labelWriter`): se arregló quitando ramas imposibles (cada grupo guarda su malla), no con tests forzados.
-- **CSS de los módulos:** una variable que escribe la escena va con prefijo privado (`--_pin-floor`) y un degradado,
-  como token (`styles.test.ts`).
-- **e2e con el ratón:** `page.mouse.move` fuera de la ventana no dispara nada: llevar antes la fila a la vista
-  (`scrollIntoView`). Las comprobaciones de «no hay» esperan antes una señal positiva.
-- **Contenedor (S43):** como S42; Node con `npm install --prefix ~/node24 node@24.22.0`; e2e con `--workers=1`.
+- **F4.5 se fusionó antes que la corrección de AUD-F4-4B** (otra vez, como en S43): sin daño (el squash de #117 tenía
+  el mismo árbol que el commit auditado). La rama de la corrección se puso al día con `git merge main`: tres conflictos
+  (docs del peso y un import de un test) y `stills.json` (las dos ramas lo cambian: se deja el de `main` y se rehace
+  con `npm run stills`). Lección: antes de pulsar «Merge», mirar la cola del tablero; un paso nuevo no se fusiona con
+  una corrección de auditoría pendiente delante.
+- **Una luz que no cuadra con su fuente** solo la vio Víctor mirando la captura: al poner un objeto que «causa» algo
+  en la escena (el Sol y la iluminación), atar las dos cosas a un solo dato y mirarlo en móvil y escritorio.
+- **Partículas aditivas sin profundidad:** una luz desde detrás ilumina la cara de atrás, que se ve a través; un Sol
+  a la izquierda y a la altura de la Tierra cae sobre el panel a 1280. Por eso el Sol va casi a su altura y arriba.
+- **El build de Víctor se cortó** antes del SPA fallback y de `buildEnd` (sin `404.html`) y `budgets.spec` falló:
+  no encadenar `npm run build; npx playwright …` con `;` (si el build falla, el test corre igual). Cada orden en su línea.
+- **El compilador de React** no deja escribir en un objeto de `useState` desde una función del componente
+  (`frame.painted = true`): se hace con una función del módulo (`markPainted`), como `stepSun`.
+- **Contenedor (S44):** `$HOME` es `/root`, el árbol con `git archive` del commit de `main` en `~/repo`, Node 24 del
+  paquete npm (`node@24.22.0`), Chromium 1243 enlazado como 1248 en `~/pwb`, e2e con `--workers=1`; el contenedor se
+  reinició a mitad de una tanda de e2e (se repitió lo que faltaba). Se copió por error `.env` a `_claude/tmp/s44/`
+  (vaciado): nunca copiar `.env` fuera de su sitio; en el contenedor va `.env.example`.
 
 **Deuda anotada:**
+- **Constellations lee `uiStore.activeSkillGroup` dentro de su `useFrame` (AUD-F4-4B-4):** los pins ya leen del
+  frame (`SceneFrame.transmission`, ADR-027); las constelaciones siguen leyendo el store en su frame. Pasarlo por el
+  frame (como `frame.plate`) en un PR aparte o con la auditoría de cierre de F4.
 - **CI · WebKit a ~3 fps (S35):** la traza del CI de C.2 lo midió: WebKit sin GPU pinta unos 3 frames por segundo con
   la página entera, y la detonación pide 15 frames (la carga avanza como mucho 0,1 s por frame). Las esperas de
   detonación de `journey.spec.ts` van a 15 s (`DETONATE_TIMEOUT_MS`); desde S42, la espera a que las etiquetas de las
@@ -55,8 +63,8 @@ corregida entera, AUD-F4-4B lanzada._
   de la prueba y lecciones del shader en `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a
   pantalla completa). La prueba es el artefacto privado «Naves · prueba»; copia del código en `_claude/naves/`. Al
   construir: su ADR (uno nuevo, numerado al escribirlo: mapa de formas `uFrom`/`uTo`/`uT`, que obliga a rehacer sobre él lo del retrato atado a
-  `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: el margen libre es de ~0,52 KB tras F4.4
-  tras AUD-C6B, así que su ADR subirá el límite, con los números reales de F4.4 y F4.5.
+  `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: quedan 2 926 B tras F4.5 y la
+  corrección de AUD-F4-4B (antes de corregir AUD-F4-5), así que su ADR subirá el límite con esos números reales.
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
   cómo está construido: solo herramientas, para qué y lo hecho (nota de ADR-034; `experiencia.md` → «Regla de
   privacidad», sin ejemplos desde AUD-C2: una lista en un repo público sería la filtración). Las viñetas y la bio van
@@ -82,8 +90,6 @@ corregida entera, AUD-F4-4B lanzada._
   `pPor`). Entre md y lg (900–1279 px) va la columna de móvil: el retrato se ve por el hueco del visor al pasar, no
   junto a la ficha. Mejora posible: un escaneo 3D (KIRI Engine o Scaniverse) convertido a partículas. El README no
   tiene captura del Crew file (si Víctor la quiere, la hace como las otras y Claude la recorta).
-- **F4.5 · gravedad sobre la Tierra:** hoy la misma intensidad en todos los capítulos (F4.2); F4.5 la suaviza
-  sobre la Tierra (`04-tierra.md`). Las constelaciones no son partículas: la gravedad no las mueve (F4.3b).
 - **Dependencias · `overrides` (S42):** `eslint-plugin-jsx-a11y-x` 0.2.0 recibe `minimatch` 11.0.9 por `overrides`
   (`stack.md` → «Conflictos»): quitarlo cuando el plugin publique una versión con `minimatch` 11.
 - **Transmisiones entre md y lg (S42):** de 900 a 1279 px, el Mission log y Mission control van en la columna de
@@ -97,15 +103,20 @@ corregida entera, AUD-F4-4B lanzada._
   veces; la 5.ª, en el CI de C.2, por tiempo (WebKit a ~3 fps y más enlaces con el Mission log). Desde C.2 lleva
   `test.slow()` en WebKit (90 s). Desde F4.3c, si lo enfocado no se ve, vuelve a mirarlo unos frames antes de darlo
   por tapado. Si vuelve a fallar por algo que no sea tiempo: mirar `scroll-padding` en WebKit.
-- **Contenedor · `recruiter.spec.ts` (S36):** «390 px: the «Projects · Cosmic turtle» dot…» (EN) falla 1 de cada 5
-  en el contenedor, también sobre `main`: no es de ningún cambio; en el CI pasa. Si sale en el CI, mirarlo.
+- **Contenedor · `recruiter.spec.ts` (S36, S44):** «390 px: the «Projects · Cosmic turtle» dot…» falla en el
+  contenedor también sobre `main`: en S44, 2 de 6 con `--repeat-each=3` (en EN y ahora también en ES); no es de ningún
+  cambio y en el CI pasa. Si sale en el CI, mirarlo (el deslizamiento táctil de `swipeDown` a 390 px).
 - **e2e en el equipo de Víctor con varios workers (S43):** `plates.spec.ts` agotó dos tiempos (hover y Tab) y la
   prueba de movimiento reducido tardó 29,9 s de 30: SwiftShader en varias ventanas a la vez satura la máquina (en el
   contenedor, 4 workers sobre 2 núcleos rompen también `constellations.spec.ts`). Los e2e de la escena, en local, con
   `--workers=1`. En `npm run check`, `scripts/docsOnly.test.ts` agotó una vez los 10 s de su `beforeAll` (crea un repo
   de git de usar y tirar): si se repite suelto en Windows, subir su `hookTimeout` en un PR aparte.
-- **F6 · móvil real (F4.4):** los pins en escalera a 390 px (`fitPins`), la fila que ya no se queda ámbar tras tocar
-  fuera (`:hover` solo con `hover: hover`, sospechado en iOS: AUD-F4-4A-5) y el ciclo de placas con la `m` suavizada.
+- **F6 · móvil real (F4.4, F4.5):** los pins en escalera a 390 px (`fitPins`), la fila que ya no se queda ámbar tras
+  tocar fuera (`:hover` solo con `hover: hover`, sospechado en iOS: AUD-F4-4A-5) y el ciclo de placas con la `m`
+  suavizada. Además (AUD-F4-4B): al subir el panel sobre la tortuga, los pins bajo su franja transparente se ven pero
+  no se tocan (P1-A, aceptado y escrito en `componentes.md`); el piso del pin puede saltar 30 px sin histéresis (P3-B);
+  `-webkit-user-select` en las capas de etiquetas y pins no se pudo confirmar sin Safari (AUD-F4-4B-31). Y el Sol
+  sobre el limbo de la Tierra en un móvil (se ve más pequeño que en escritorio).
 - **e2e en el equipo de Víctor (S32, S38):** la primera tanda completa de Chromium en Windows sacó dos carreras de
   carga que pasaban solas (el recuento de chunks de `scene.spec.ts`, que contaba la descarga tardía de la página del
   `beforeEach`, y el espaciado del nombre en `journey.spec.ts`, que tardaba más de 5 s con pocos frames). Blindadas
@@ -152,9 +163,10 @@ corregida entera, AUD-F4-4B lanzada._
   desde `SceneRoot`). Lo recuerdan §13, «hecho» y el roadmap.
 - **WebKit y el `<picture>`:** que WebKit pidiera el `src` del `<img>` antes de entrar en el `<picture>` es deducido
   (no hay WebKit en el contenedor); el arreglo lo vigila el e2e de escritorio sin WebGL en el CI.
-- **Peso de la escena:** 256 481 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
-  C.5 −2, C.6a +52, C.6b +967, AUD-C6B +252, F4.4a +391, F4.4b +1 729, AUD-F4-4A +21). Quedan 3 519 B: F4.5 ≤ 3 KB
-  y ~0,52 KB de margen. Cada paso apunta lo que pesó en `rendimiento.md`. Por paquete se mide con
+- **Peso de la escena:** 257 074 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
+  C.5 −2, C.6a +52, C.6b +967, AUD-C6B +252, F4.4a +391, F4.4b +1 729, AUD-F4-4A +21, AUD-F4-4B +149, F4.5 +444).
+  Quedan 2 926 B para la corrección de AUD-F4-5 y la auditoría de cierre de F4; C.7 subirá el límite. Cada paso
+  apunta lo que pesó en `rendimiento.md`. Por paquete se mide con
   `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
 - **Degradación en caliente:** un navegador que limita los frames a 30 (ahorro de batería) baja a Bajo en
@@ -261,25 +273,28 @@ corregida entera, AUD-F4-4B lanzada._
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **AUD-F4-4B:** cuando la Mesa entregue, decidir (Víctor) y corregir entera en su rama desde `main`.
-3. **F4.5 · Tierra:** esquema (roadmap → F4 · 5; `docs/02-experiencia/capitulos/04-tierra.md`,
-   `docs/04-escena/particulas-y-shaders.md`, `formas.md`): día/noche, amanecer, luces de ciudad, atmósfera y Sol, y la
-   gravedad del cursor más suave sobre la Tierra; ≤ 3 KB de escena (quedan 3 519 B); `npm run stills` y capturas.
-   Puede avanzar en su rama mientras se audita F4.4b, pero no se fusiona hasta que esa corrección esté en `main`.
-   Con F4.5, F4 cerrada: Lighthouse a mano, auditoría de cierre y etiqueta `v0.3.0`.
-4. Víctor: mirar `/#crew-file` en Brave en producción (AUD-C6B-5); pegar la descripción, la web y los topics de
-   Cosmos en GitHub (`ABOUT_REPOS.md` del Proyecto de claude.ai); suavizar el CV y LinkedIn con el chat de mentor (y
-   avisar para volver a copiar el PDF: lo pedirá `content.test.ts`); redirigir el portfolio antiguo de Vercel a
-   tortoisecode.dev; mirar las líneas de las constelaciones en su pantalla; revisar los textos del Crew file y, si la
-   quiere, una captura del Crew file para el README.
+2. **AUD-F4-5** (entregada, sin decidir; sello: `f4d4bbe` + vivas S44 hasta #14, releídas hasta #16): Víctor decide
+   (4 recomendados, 19 menores; P1 la Tierra del epílogo sin retrato, P2 ¿ADR para «la luz sale del Sol»?, P3 tamaños
+   sin medir, P4 ¿un test que obligue a apuntar cada pieza nueva de la escena en sus listas?) y se corrige entera en
+   `fix/aud-f4-5` desde `main`. Contrastar antes: desde `f4d4bbe` entró la corrección de AUD-F4-4B (`motionOf`,
+   `SceneFrame.painted`: -1 pide lo mismo para el Sol, ya decidido en la viva S44 #15).
+3. **Cierre de F4:** Lighthouse a mano (`calidad.md` → «Mediciones»), auditoría de cierre de F4 a la Mesa, versión
+   0.3.0 y etiqueta `v0.3.0` sobre el último commit del cierre.
+4. Víctor: mirar `/#crew-file` en Brave en producción (AUD-C6B-5) y el Sol en su pantalla y en el móvil; pegar la
+   descripción, la web y los topics de Cosmos en GitHub (`ABOUT_REPOS.md` del Proyecto de claude.ai); suavizar el CV y
+   LinkedIn con el chat de mentor (y avisar para volver a copiar el PDF: lo pedirá `content.test.ts`); redirigir el
+   portfolio antiguo de Vercel a tortoisecode.dev; mirar las líneas de las constelaciones en su pantalla; revisar los
+   textos del Crew file y, si la quiere, una captura del Crew file para el README.
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»).
 **Limpieza manual del usuario:**
-- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 43, entre ellas `s37/` a `s43/`, `c3/` y
-  `aud-c2/`) y `_claude/lstree.txt`; `_claude/readme-originales/` si ya no hacen falta.
-- Ramas locales ya fusionadas (todas menos `main`, entre ellas `feat/turtle-plates`, `feat/turtle-pins`,
-  `fix/aud-f4-4a`, `fix/aud-c-cierre` y `chore/deps-2026-11`): `git branch` para verlas y `git branch -D <rama>`.
+- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 44, entre ellas `s37/` a `s44/` —en `s44/`,
+  `env.txt`, la copia vaciada de `.env`—, `c3/` y `aud-c2/`) y `_claude/lstree.txt`; `_claude/readme-originales/` si ya
+  no hacen falta.
+- Ramas locales ya fusionadas (todas menos `main`, entre ellas `feat/earth-sun`, `fix/aud-f4-4b`, `feat/turtle-plates`,
+  `feat/turtle-pins`, `fix/aud-f4-4a`, `fix/aud-c-cierre` y `chore/deps-2026-11`): `git branch` para verlas y
+  `git branch -D <rama>`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol*.tar.gz`, `previas.tar.gz` y los `*.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js`
   ni `hecho/2026-10-28/encuadre/`). Mover a mano a `hecho/` lo que no se pudo desde aquí (`aud-f4-1/` a

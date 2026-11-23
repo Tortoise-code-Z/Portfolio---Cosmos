@@ -715,6 +715,10 @@
   de la nota anterior; lo que pesa cada paso sigue en `rendimiento.md`.
 - Nota (2026-11-22, C.6b): el retrato y la corrección de su auditoría pesaron 1 219 B (254 340 B; detalle en la nota
   de C.6b de ADR-034). Quedan 5 660 B: tras F4.4 y F4.5, ~0,16 KB de margen. Esta cuenta sustituye a la anterior.
+- Nota (2026-11-23, F4.4 y F4.5): F4.4 pesó 2 120 B de sus 2,5 KB (F4.4a 391 y F4.4b 1 729) y las correcciones de
+  sus auditorías 170 B (21 y 149); F4.5, el Sol, 444 B de sus 3 KB. Total: **257 074 B**; quedan 2 926 B para la
+  corrección de la auditoría de F4.5 y la de cierre de F4. Las Naves (C.7) subirán el límite en su propio ADR, con
+  estos números. Esta cuenta sustituye a la anterior.
 - Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).
 
 ## ADR-033 · Los commits de solo documentación van directos a `main`

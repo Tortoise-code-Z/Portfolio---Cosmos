@@ -123,9 +123,9 @@ no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierr
 4. **Tortuga:** placas por huecos, pins, ciclo automático, resaltado sincronizado con las filas.
    *(En dos PR: F4.4a, las placas que se iluminan desde las filas con su ciclo automático (PR #114), y F4.4b, los
    pins, con el balanceo de la tortuga compartido entre TypeScript y GLSL y en escalera si chocan. Hecho: F4.4a
-   (PR #114) y F4.4b (PR #115); la auditoría de F4.4a, corregida en el PR #116, y la de F4.4b, en el PR siguiente.)*
+   (PR #114) y F4.4b (PR #115); la auditoría de F4.4a, corregida en el PR #116, y la de F4.4b, en el PR #118.)*
 5. **Tierra:** día/noche, amanecer, luces de ciudad, atmósfera y Sol.
-   *(Hecho en F4.5: la Tierra traía de F3 el día y la noche, el amanecer, las luces de ciudad y la atmósfera; F4.5
+   *(Hecho en F4.5, PR #117: la Tierra traía de F3 el día y la noche, el amanecer, las luces de ciudad y la atmósfera; F4.5
    suma el Sol, un brillo que mira a la cámara sobre el limbo superior izquierdo (`scene/Sun`), del que sale la luz
    de la Tierra (`SUN_DIR`), y la gravedad del cursor a la mitad sobre la Tierra. Pesó 444 B de sus 3 KB.)*
 
