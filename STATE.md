@@ -3,64 +3,66 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **Fase C · C.1–C.6 hechos y todas sus auditorías corregidas** (`main` en `1b8a187`) · siguiente:
-**cierre de la fase C**: lanzar AUD-C-CIERRE a la Mesa, Lighthouse a mano y corregir la auditoría entera. C.7 (Naves)
-queda fuera del cierre.
+**Dónde estamos:** **Fase C cerrada** (`main` en `d408f01` antes de este cierre; sin versión: `v0.3.0` al acabar
+F4.5) · siguiente: **F4.4 · Tortuga** (placas por huecos, pins, ciclo automático, resaltado con las filas).
 
-_Última actualización: 2026-11-23 (**CIERRE DE SESIÓN · 41**) · AUD-C6B corregida entera (PR #111) y el plan del
-cierre de la fase C decidido._
+_Última actualización: 2026-11-23 (**CIERRE DE SESIÓN · 42**) · Lighthouse del cierre de C, AUD-C-CIERRE corregida
+entera, fase C cerrada y las dependencias de lint sin avisos de `npm audit`._
 
-**Hecho esta sesión** (vivas S41 en `_claude/cadena/hecho/2026-11-23/decisiones-vivas-S41.md`):
-1. **AUD-C6B corregida entera** (PR #111, `1b8a187`; 7 recomendados, 22 menores y 2 preguntas, con las
-   recomendaciones; P1-A, P2-A, 3-A; 5-A tras verlo Víctor en Brave). Entre otras:
-   - **Shader:** el haz sin `pow` de base negativa (un test vigila todos los `pow(` y ata `LAST_M` a la última forma);
-     el haz en bucle entra fundido; el fundido del busto por la altura (`PORTRAIT_FADE_H`); giro acotado; tick acotado.
-   - **El retrato que llega tarde** (salto por el raíl, `/#crew-file`): `uPor` sube en 0,6 s (`PORTRAIT_FADE_IN_S`)
-     y la Tierra pasa a retrato con el retraso del morph y el haz; sin retrato, el 4→5 no hincha la Tierra.
-   - **Carga:** un solo encargo por visita (`usePortrait`), `pPor` en `useLayoutEffect` y `uPor` leído de la geometría,
-     `data-portrait="painted"` al pintarlo entero, el worker responde el fallo al contestar.
-   - **Forma:** paredes del contorno hacia dentro (sin pelillos ni pinchos); canal R de 3 a 255 contra el ruido de
-     Brave (`PORTRAIT.depthFloor`; `pack.py` al día; el PNG rehecho sin la foto original); imágenes sin metadatos
-     (−11,5 KB, con test); `PORTRAIT_FRAME` desde constantes.
-   - **Crew file desde lg:** la pista del centro bajo el visor (pistas asimétricas), líneas guía hasta el marco,
-     título con `--text-crew-title` (variable nueva `--_title-size` de `Transmission`), **el email abajo a la izquierda
-     y «Download CV» a la derecha** (en la pista derecha el email se partía; Víctor lo vio en las capturas). En una
-     columna, el visor con la proporción del retrato (`--visor-ratio`) y centrado con él.
-   - **Tests y docs:** e2e de la degradación con el retrato en vuelo (falla en la base), del layout del Crew file y
-     presupuesto de las imágenes; arquitectura, docs de la escena, calidad, Crew file, design system, ADR-032/034.
-     Peso: +252 B (254 340 B).
-2. **Plan del cierre de la fase C** (vivas S41 #27–#29): CIERRE-C-0-A (sin C.7), 1-A (sin versión: `v0.3.0` al acabar
-   F4.5), 2-A (auditoría de cierre a la Mesa), 3-B (PageSpeed en F6). Roadmap, `transiciones-naves.md` y ADR-034 al
-   día. AUD-C-CIERRE preparada **sin lanzar** (mensaje abajo y en la cola del tablero; la copia del CV para la Mesa en
-   `_claude/cadena/aud-c-cierre/CV_base_EN.md`).
+**Hecho esta sesión** (vivas S42 en `_claude/cadena/hecho/2026-11-23/decisiones-vivas-S42.md`):
+1. **Lighthouse 13.6.0 del cierre de C** (`d45db5d`; `calidad.md` → «Cierre de la fase C»): las 6 páginas de F3 en
+   móvil simulado, mediana de 3 pasadas: `/` 98 (TBT 160 ms, antes 90: las secciones de la fase C), `/es` 99,
+   `/projects/cosmos` 100, Chessmate y AstroHub 95, la 404 100 (SEO 54, a propósito). PageSpeed, en F6.
+2. **AUD-C-CIERRE corregida entera** (PR #112, `54204f0`; 0 bloqueantes, 5 recomendados, 22 menores, 1 pregunta;
+   1-A, 3-B, 5-A, P1-A, 6-A, 10-A, 11-A). Los «sospechados», confirmados antes sobre la base. Entre otras:
+   - **Crew file desde lg:** el email y «Download CV» en la misma fila (`order`; el DOM no cambia: en esa fila el Tab
+     va de derecha a izquierda, escrito en el CSS).
+   - **Mission log y Mission control:** su composición de escritorio pasa a ≥ 1280 px (entre 900 y 1279 partían
+     «TypeScript» o «CONSTRUCCIÓN»); el «T-0» con tope por su columna (`100cqi / 1.8`, el título como contenedor).
+   - **Contenido:** la ficha de Cosmos con seis escenas y el epílogo; el «CV» de la barra se descarga y en ES su
+     nombre dice que es inglés (`nav.cvInEnglish`); fuera `profile.fullName`; los colores de los controles del Crew
+     file escritos como son (verde del canal, estado en ámbar).
+   - **Tests:** `CV_FACTS` + sha256 del PDF; teletipo del Crew file entero (con movimiento, 844×390, sin WebGL);
+     ayudas comunes `lineClips`, `TELETYPE_WRITTEN` y `brokenWords`; 1024×768 sin palabras partidas; 200 % del
+     Mission log en EN/ES; el parpadeo < 5 s; una cámara y una foto fija por capítulo; `chapterSteps.ts` fuera de la
+     huella (`stills.json` nuevo, mismas fotos); la espera del retrato con la degradación acotada al plazo de la página.
+   - **Docs:** tabla de canales (velo y AA), docs de capítulos, brief, calidad, rendimiento, arquitectura,
+     navegación, índices; captura del Crew file de escritorio rehecha en Docker.
+3. **Fase C cerrada** (`eea4363`, solo docs): roadmap con C hecha y su línea de cierre; ADR-034 con PageSpeed en F6;
+   `git-y-despliegue.md` («si la lleva»); las Naves, después de F4.5 o en el pulido, con un ADR que se numera al
+   escribirlo (ya no se reserva el 037); en ADR-036, la nota antes de «Detalle».
+4. **Dependencias de lint** (PR #113, `d408f01`): `eslint` 10.15.0, `typescript-eslint` 8.73.0 y `minimatch` 11.0.9
+   para `eslint-plugin-jsx-a11y-x` (`overrides`): `npm audit` en 0 (el aviso, GHSA-g3hv-75wg-m249, moderado, solo
+   afectaba a ESLint con los patrones del repo). Lock generado por el `npm` de Víctor.
+5. **FMT-1:** Víctor revisó el formato de Prettier (llaves pegadas, no configurable) y se queda como está.
 
 **Incidencias y lecciones:**
-- **Los binarios que pasan por el contenedor sueltos pueden volver firmados** (C2PA, ~5,7 KB por imagen: así llegaron
-  las del retrato en C.6b). Ahora lo rechaza `shapeContract.test.ts`; los binarios van dentro de un `tar` comprobado con
-  sha256, y las imágenes se miran en el equipo de Víctor tras copiarlas.
-- **En el equipo de Víctor, `tar` no puede sobrescribir** (sin permiso de borrar: «File exists»): se extrae a una
-  carpeta aparte y se copia con `cat` sobre cada archivo, comprobando antes que los de destino son los de la base.
-- **La fórmula de la Mesa para `LAST_M` iba desplazada en uno** (`length − 1`): es `length − 2 + 0,999`. Contrastar
-  cada arreglo propuesto con el código antes de copiarlo.
-- **Un unitario con `rerender` no ve un frame colado entre el render y los efectos** (`act` corre también los
-  efectos pasivos): ese orden lo dan `useLayoutEffect` y leer el estado de la geometría, no el test.
-- **Centrar con la ventana en un e2e:** comparar con el lienzo (o la foto fija), no con `clientWidth`
-  (`scrollbar-gutter: stable` lo descuadra 7,5 px).
-- **Contenedor (S41):** como en S40 (Node 24 del paquete npm, Chromium enlazado como 1248 en `~/pwb`, `.env` desde
-  `.env.example`, `git init` local, el árbol con `git archive` del commit de `main`). Docker no arranca: `stills` y
-  `visual` en el equipo de Víctor; las fotos fijas sin Docker solo para mirar.
+- **El CI del PR #112 falló en WebKit** (dos veces, con el reintento): `labelsStill` de `constellations.spec.ts` con
+  5 s. La `m` suavizada pide ~20 frames para pararse (34 % por frame, epsilon 1e-4) y WebKit sin GPU va a ~3 fps.
+  Arreglado con 15 s y `test.slow`; no se pudo reproducir (sin WebKit en el contenedor).
+- **`code-references.test.ts` prohíbe las claves del buzón también en comentarios de tests:** se escribe «al cerrar
+  la fase C», no la clave de la auditoría.
+- **Tras un PR con `npm run stills` en Docker, el contenedor se queda con el `stills.json` anterior:** traer el de
+  `main` antes del e2e completo (si no, falla la huella sin motivo).
+- **El lock lo genera el `npm` de Víctor** (PowerShell), no el contenedor (otra versión de npm) ni la VM de su equipo
+  (sus `node_modules` son de Windows); después se comprueba en el contenedor con `npm ci`.
+- **Contenedor (S42):** Node 24 del paquete npm (`node@24.22.0`), Chromium de `/opt/pw-browsers` (1243) enlazado como
+  1248 en `~/pwb`, `.env` desde `.env.example`, `git init` local y el árbol con `git archive`; Lighthouse con el Chrome
+  for Testing del contenedor (153). Sin Docker ni WebKit: `visual`, `stills` y WebKit, en el equipo de Víctor y el CI.
 
 **Deuda anotada:**
 - **CI · WebKit a ~3 fps (S35):** la traza del CI de C.2 lo midió: WebKit sin GPU pinta unos 3 frames por segundo con
   la página entera, y la detonación pide 15 frames (la carga avanza como mucho 0,1 s por frame). Las esperas de
-  detonación de `journey.spec.ts` van a 15 s (`DETONATE_TIMEOUT_MS`). No dice nada de un móvil real: medir en un
+  detonación de `journey.spec.ts` van a 15 s (`DETONATE_TIMEOUT_MS`); desde S42, la espera a que las etiquetas de las
+  constelaciones se queden quietas también (`LABELS_STILL_TIMEOUT_MS`, con `test.slow` en WebKit): con 5 s falló dos
+  veces en el CI del PR #112. Si vuelve a fallar con 15 s, no es tiempo: mirar si algo ralentiza WebKit. No dice nada de un móvil real: medir en un
   iPhone (F6) que el Mission log (cursor que parpadea siempre, líneas de barrido, velo) no pese.
 - **AUD-F4-3C-2 · iPhone real:** el toque en el margen de la escena solo lo cubre el e2e con `touchscreen`; mirarlo
   en un iPhone (si no hay móvil a mano, en F6).
 - **C.7 · Naves** (fuera del cierre de la fase C, viva S41 #27: después de F4.5 o en el pulido): estudio, versiones
   de la prueba y lecciones del shader en `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a
   pantalla completa). La prueba es el artefacto privado «Naves · prueba»; copia del código en `_claude/naves/`. Al
-  construir: su ADR-037 (mapa de formas `uFrom`/`uTo`/`uT`, que obliga a rehacer sobre él lo del retrato atado a
+  construir: su ADR (uno nuevo, numerado al escribirlo: mapa de formas `uFrom`/`uTo`/`uT`, que obliga a rehacer sobre él lo del retrato atado a
   `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: el margen libre es de ~0,16 KB
   tras AUD-C6B, así que su ADR subirá el límite, con los números reales de F4.4 y F4.5.
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
@@ -68,7 +70,7 @@ cierre de la fase C decidido._
   privacidad», sin ejemplos desde AUD-C2: una lista en un repo público sería la filtración). Las viñetas y la bio van
   suavizadas; se ha pedido lo mismo para el CV y LinkedIn en `trabajo-ofertas` (chat de mentor). El historial de git
   conserva la descripción vieja: se acepta (AUD-C2-P1-A). Cuando cambie el CV, volver a copiar el PDF a
-  `public/`. Vale también para la ficha, el README y las capturas.
+  `public/`: desde S42 falla `content.test.ts` (su sha256) hasta revisar `CV_FACTS` contra el PDF nuevo y poner su hash. Vale también para la ficha, el README y las capturas.
 - **Fase C · textos del Crew file (C.6a y C.6b, con «Identity verified»):** los escribió Claude (`textos-sitio.md` → «Epílogo») y entraron sin
   cambios en el PR #107; Víctor los revisa cuando quiera (y la Mesa en AUD-C6A). El nivel de inglés no se enseña
   (solo los idiomas).
@@ -90,6 +92,10 @@ cierre de la fase C decidido._
   tiene captura del Crew file (si Víctor la quiere, la hace como las otras y Claude la recorta).
 - **F4.5 · gravedad sobre la Tierra:** hoy la misma intensidad en todos los capítulos (F4.2); F4.5 la suaviza
   sobre la Tierra (`04-tierra.md`). Las constelaciones no son partículas: la gravedad no las mueve (F4.3b).
+- **Dependencias · `overrides` (S42):** `eslint-plugin-jsx-a11y-x` 0.2.0 recibe `minimatch` 11.0.9 por `overrides`
+  (`stack.md` → «Conflictos»): quitarlo cuando el plugin publique una versión con `minimatch` 11.
+- **Transmisiones entre md y lg (S42):** de 900 a 1279 px, el Mission log y Mission control van en la columna de
+  móvil, como el Crew file (antes partían palabras): mirarlo en una tableta apaisada real (F6).
 - **Colores repetidos:** `--color-flash` y `--color-singularity` ya tienen test de pareja con `scenePalette`
   (F4.1); `--gradient-space` sigue repitiendo a mano el violeta y el turquesa de la nebulosa.
 - **F6 · Big Bang (ADR-030):** el `wdth` del `<h1>` cambia por frame mientras se carga o se baja por el hero:
@@ -112,7 +118,7 @@ cierre de la fase C decidido._
 - **Mediciones (desde F3.8):** Lighthouse y PageSpeed corren sin GPU y miden el modo sin WebGL (con fotos fijas):
   el rendimiento de la escena solo lo miden los fps (`calidad.md` → «F3.6c · fps de la escena»). En F6, con
   Lighthouse CI, decidir si se mide también con GPU; falta el móvil real (≥ 30 fps en Bajo).
-- **Vitest:** avisa «jsdom was created 121 times · ~123 s» (tiempo sumado entre hilos). No activar `isolate: false` ni
+- **Vitest:** avisa «jsdom was created 145 times · ~68 s» (S42; tiempo sumado entre hilos). No activar `isolate: false` ni
   `vmThreads` (quitan aislamiento: stores, globales y mocks). Valorar pasar a entorno `node` los tests sin DOM (lógica
   pura de `lib`, `content`; hoy 8 de 121), midiendo antes y después. Tarea pequeña aparte.
 - **Fotos fijas (F3.9):** límites aceptados en `camara-y-encuadre.md` («Dónde no cuadra»: franjas en móvil apaisado,
@@ -154,7 +160,7 @@ cierre de la fase C decidido._
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
 - **Degradación en caliente:** un navegador que limita los frames a 30 (ahorro de batería) baja a Bajo en
   escritorio: aceptado y escrito en `rendimiento.md`.
-- **e2e de Chromium:** ~6–7 min en el contenedor (219), en Bajo en los tres motores (los dos de la degradación
+- **e2e de Chromium:** ~10 min en el contenedor (323), en Bajo en los tres motores (los de la degradación
   arrancan en Alto con los frames retrasados por el test). SwiftShader pinta sin parar mientras la página está a la
   vista: mirar los tiempos del CI. En la tanda completa del contenedor, «1280×720: loading the hero with slow fonts
   keeps CLS under 0.1» se pasó una vez de 30 s en `page.goto` (y pasó 3 de 3 suelto): vigilarlo en el CI.
@@ -255,32 +261,30 @@ cierre de la fase C decidido._
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **Lanzar AUD-C-CIERRE** (si Víctor no lo ha hecho ya; el mensaje está en la cola del tablero) y apuntarla
-   `[lanzado]`.
-3. **Lighthouse a mano** del cierre de C (`calidad.md` → «Mediciones»: tres pasadas y la mediana en `/`, `/es`,
-   `/projects/cosmos`, una ficha en ES y la 404; versión exacta de Lighthouse), en el contenedor sobre el build, y
-   apuntarlo en `calidad.md` («Cierre de la fase C»).
-4. **Corregir AUD-C-CIERRE entera** en su PR; después, el commit de docs del cierre (roadmap con la fase C hecha).
-   Sin versión ni etiqueta (CIERRE-C-1-A). Luego, **F4.4**.
-5. Víctor: mirar `/#crew-file` en Brave en producción (AUD-C6B-5); pegar la descripción, la web y los topics de
+2. **F4.4 · Tortuga:** esquema (roadmap → F4 · 4; `docs/02-experiencia/capitulos/03-tortuga.md` y
+   `docs/04-escena/constelaciones-y-placas.md`): placas por huecos, pins (la paridad TS/GLSL de su posición,
+   `formas.md`), ciclo automático y resaltado sincronizado con las filas; ≤ 2,5 KB de escena (ADR-032); fijar sus
+   zonas en el tablero; `npm run stills` y capturas. Después, su auditoría a la Mesa y F4.5 · Tierra.
+3. Víctor: mirar `/#crew-file` en Brave en producción (AUD-C6B-5); pegar la descripción, la web y los topics de
    Cosmos en GitHub (`ABOUT_REPOS.md` del Proyecto de claude.ai); suavizar el CV y LinkedIn con el chat de mentor (y
-   avisar para volver a copiar el PDF); redirigir el portfolio antiguo de Vercel a tortoisecode.dev; mirar las líneas
-   de las constelaciones en su pantalla; revisar los textos del Crew file y, si la quiere, una captura del Crew file
-   para el README.
+   avisar para volver a copiar el PDF: lo pedirá `content.test.ts`); redirigir el portfolio antiguo de Vercel a
+   tortoisecode.dev; mirar las líneas de las constelaciones en su pantalla; revisar los textos del Crew file y, si la
+   quiere, una captura del Crew file para el README.
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»).
 **Limpieza manual del usuario:**
-- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 41, entre ellas `s37/` a `s41/`, `c3/` y
+- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 42, entre ellas `s37/` a `s42/`, `c3/` y
   `aud-c2/`) y `_claude/lstree.txt`; `_claude/readme-originales/` si ya no hacen falta.
-- Ramas locales ya fusionadas (todas menos `main`, entre ellas `feat/portrait`, `fix/aud-c6a`, `fix/visual-cold-start`
-  y `fix/aud-c6b`): `git branch` para verlas y `git branch -D <rama>`.
+- Ramas locales ya fusionadas (todas menos `main`, entre ellas `fix/aud-c6b`, `fix/aud-c-cierre` y
+  `chore/deps-2026-11`): `git branch` para verlas y `git branch -D <rama>`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
-  `arbol*.tar.gz` y los `*.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js` ni
-  `hecho/2026-10-28/encuadre/`). Mover a mano a `hecho/` lo que no se pudo desde aquí (`aud-f4-1/` a `hecho/2026-11-18/`,
-  `aud-c2/` a `hecho/2026-11-21/` si siguen fuera). No borrar
-  `_claude/diseno/`, `_claude/retrato/`, `_claude/naves/` ni `_claude/c3/`.
-- En la raíz del repo, `playwright-report-firefox.zip`, `playwright-report-firefox (1).zip` y `test-results/`.
+  `arbol*.tar.gz`, `previas.tar.gz` y los `*.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js`
+  ni `hecho/2026-10-28/encuadre/`). Mover a mano a `hecho/` lo que no se pudo desde aquí (`aud-f4-1/` a
+  `hecho/2026-11-18/`, `aud-c2/` a `hecho/2026-11-21/` si siguen fuera). No borrar `_claude/diseno/`, `_claude/retrato/`,
+  `_claude/naves/` ni `_claude/c3/`.
+- En la raíz del repo, `playwright-report-firefox.zip`, `playwright-report-firefox (1).zip`,
+  `playwright-report-webkit.zip` y `test-results/`.
 - Perfiles temporales de las pruebas sin WebGL: `$env:TEMP\cosmos-sin-webgl` y `$env:TEMP\cosmos-swiftshader`.
 - Si alguna vez falla `npm ci` dentro de Docker: `docker volume rm cosmos-portfolio-visual-node-modules`.
 
