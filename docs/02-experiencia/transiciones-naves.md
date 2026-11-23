@@ -1,9 +1,11 @@
 # Transiciones con naves (idea aprobada; fuera del cierre de la fase C: después de F4.5 o en el pulido)
 
 > Idea de Víctor (20 nov 2026, sesión 35), estudiada por el Taller sobre la copia del repo con C.2 hecho. **Aprobada
-> como idea y sin calendario:** va después de C.6 o en el pulido (roadmap → «C · 7. Naves»). La prueba fuera del
+> como idea y sin calendario:** va después de F4.5 o en el pulido (roadmap → «C · 7. Naves»; fuera del cierre de la
+fase C). La prueba fuera del
 > repo ya está hecha (apartado «Prueba», versiones 1–8): **manda la versión 8**, que cambia los apartados 3 a 5 (se
-> lee a pantalla completa, sin marco). Cuando se decida construirla: ADR-037 y este doc pasa a spec.
+> lee a pantalla completa, sin marco). Cuando se decida construirla: su ADR (uno nuevo, numerado al escribirlo) y este
+doc pasa a spec.
 
 ## La idea
 
@@ -182,16 +184,19 @@ se lee → galaxia, con el scroll, y un botón para cambiar de satélite a nave 
   un e2e de que el marco y el satélite coinciden (por píxeles del lienzo, con tolerancia) y capturas nuevas.
 - **Calendario:** unos 2 días (prueba, ADR y construcción). No cabe antes del 1 dic sin retrasar la fase C.
 
-## Plan propuesto (C.7 · Naves, después de C.6)
+## Plan propuesto (C.7 · Naves, después de F4.5 o en el pulido)
 
 1. **Prueba fuera del repo** (un artefacto, como el retrato): el satélite y la nave nodriza en partículas con el
    estilo del shader, los dos morphs y el encaje con un marco HTML al 85 %. Víctor elige la forma.
-2. **ADR-037:** mapa de formas (`uFrom`/`uTo`/`uT`), naves paramétricas en el shader, el tramo de llegada y el peso.
+2. **Su ADR:** mapa de formas (`uFrom`/`uTo`/`uT`), naves paramétricas en el shader, el tramo de llegada y el peso.
 3. **Construcción** en un PR: mapa de formas y tramos, satélite (Mission log), nave nodriza (Mission control), el
-   retrato directo desde la Tierra (si C.6 no lo dejó ya así), CSS del marco, tests y capturas.
+   retrato directo desde la Tierra (hoy pasa de la Tierra al retrato en la segunda mitad de Contacto), CSS del marco,
+   tests y capturas.
 
-Mientras tanto, al construir C.4 (Mission control) y C.6 (Crew file) no se cierra nada de esto: los tramos y el
-componente `Transmission` ya admiten un tramo de llegada y un marco más estrecho sin rehacerse.
+Al construir C.4 (Mission control) y C.6 (Crew file) no se cerró nada de esto: los tramos y el componente
+`Transmission` admiten un tramo de llegada y un marco más estrecho sin rehacerse. Lo que sí hay que rehacer sobre el
+mapa de formas es lo del retrato: lo atado a `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`
+(ADR-034, nota del cierre de la fase C).
 
 ## En cristiano
 

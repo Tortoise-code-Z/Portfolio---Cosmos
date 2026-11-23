@@ -38,8 +38,9 @@
   - El criterio es uno, `scripts/docsOnly.ts`, y se prueba a mano con `node scripts/docs-only.ts <base> <head>`
     (el árbol final, como el CI y Vercel) o con `--each` (cada commit, como el pre-push): sale con 0 si son solo
     docs y dice el motivo.
-- Etiquetas por versión: `v0.1.0` (F2, el sitio sin escena)… `v1.0.0` (lanzamiento); la de cada fase, en
-  `docs/06-roadmap/roadmap.md`. Al cerrar una fase: un PR sube `version` en `package.json`, después la auditoría
+- Etiquetas por versión: `v0.1.0` (F2, el sitio sin escena)… `v1.0.0` (lanzamiento); la de cada fase (si la lleva:
+  la fase C no, ADR-034), en `docs/06-roadmap/roadmap.md`. Al cerrar una fase con versión: un PR sube `version` en
+  `package.json`, después la auditoría
   de cierre de fase y sus correcciones, y la etiqueta va sobre el último commit de ese cierre en `main` (desde
   F3: así la versión etiquetada ya está auditada; `v0.1.0` se etiquetó antes y sus correcciones fueron `v0.1.1`).
 - Nunca se commitean `.env`, `node_modules`, `build/`, informes de cobertura ni capturas temporales.

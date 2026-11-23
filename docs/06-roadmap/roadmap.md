@@ -1,7 +1,8 @@
 # Roadmap
 
 > Fases en orden. Cada fase termina con: `npm run check` y CI en verde, auditoría con mirada fresca
-> (`code-audit` o la Mesa), `STATE.md`/`DECISIONS.md` al día y una etiqueta de versión.
+> (`code-audit` o la Mesa), `STATE.md`/`DECISIONS.md` al día y, si la lleva, una etiqueta de versión (la fase C no:
+> ADR-034).
 > Dentro de cada fase se trabaja con el ciclo: `session-start` → esquema → **Visto Bueno** → pasos pequeños
 > con commit → auditoría → `session-close`. Una rama y un PR por tarea (los commits de solo documentación van
 > directos a `main`, ADR-033).
@@ -133,7 +134,7 @@ fotos nuevas en el mismo PR (ADR-029; el e2e de su huella lo recuerda). Si el pa
 **Hecho cuando:** cada capítulo cumple sus criterios de aceptación de `docs/02-experiencia/capitulos/`.
 Etiqueta `v0.3.0`.
 
-## C · Contenido y secciones nuevas (entre F4.3 y F4.4; ADR-034)
+## C · Contenido y secciones nuevas (entre F4.3 y F4.4; ADR-034) · hecha (C.1–C.6)
 
 El portfolio acompaña al CV en las candidaturas desde el 25 nov 2026, y el pulido acaba el 1 dic. Antes de seguir con
 la escena, el contenido se alinea con el CV y el viaje gana dos interludios y un epílogo que rompen su ritmo (panel
@@ -179,11 +180,15 @@ por paso, en este orden:
    transmisión: la nebulosa se convierte en un satélite que se acerca hasta que su pantalla llena la vista; la
    transmisión se lee a pantalla completa, como hoy, y al salir el satélite se aleja llevándose la pantalla con el
    texto. En Mission control, una nave nodriza; el retrato llega directo desde la Tierra. Prueba fuera del repo hecha
-   (versión 8); falta ADR-037 y un PR: `docs/02-experiencia/transiciones-naves.md`.
+   (versión 8); faltan su ADR (un ADR nuevo, numerado al escribirlo) y un PR: `docs/02-experiencia/transiciones-naves.md`.
 
 **Hecho cuando:** el sitio no contradice el CV, los dos interludios y el epílogo cumplen sus criterios (un doc por
 sección en `docs/02-experiencia/capitulos/`, escrito en su paso) en escritorio y móvil, sin WebGL y con movimiento
 reducido. Después siguen F4.4 y F4.5; F5 pasa seguramente a después del 1 dic.
+
+**Cierre (2026-11-23):** auditoría de fase en la Mesa (corregida entera: PR #112) y Lighthouse a mano
+(`calidad.md` → «Mediciones» → «Cierre de la fase C»); sin versión ni etiqueta (`v0.3.0` al acabar F4.5); PageSpeed
+Insights, en F6 con Lighthouse CI.
 
 ## F5 · Transiciones a proyectos
 

@@ -836,9 +836,9 @@
   para subir el límite.
 - Nota (2026-11-23, cierre de la fase C): la fase C se cierra sin las Naves (C.7): su «hecho cuando» no las pide, y
   cambiar el modelo de formas del shader (`uFrom`/`uTo`/`uT`) obliga a rehacer el recorrido, las transmisiones y lo
-  recién hecho del retrato. Van después de F4.5 o en el pulido, con su ADR-037 y el peso real de F4.4 y F4.5. El
-  cierre no lleva versión ni etiqueta (`v0.3.0` llega al acabar F4.5); sí una auditoría de cierre de fase y Lighthouse
-  a mano.
+  recién hecho del retrato. Van después de F4.5 o en el pulido, con su propio ADR (numerado al escribirlo) y el peso
+  real de F4.4 y F4.5. El cierre no lleva versión ni etiqueta (`v0.3.0` llega al acabar F4.5); sí una auditoría de
+  cierre de fase y Lighthouse a mano; PageSpeed Insights, en F6 con Lighthouse CI.
 - Detalle: `docs/06-roadmap/roadmap.md` → «C · Contenido y secciones nuevas»; cada sección, en su doc de
   `docs/02-experiencia/capitulos/` (`interludio-1-mission-log.md`, `interludio-2-mission-control.md`,
   `05-crew-file.md`) y el sistema visual en `docs/03-diseno/design-system.md` → «Transmisiones».
@@ -901,7 +901,6 @@
 - Consecuencias: la home baja de 38 484 a 34 663 B de JS propio (gzip; −3,8 KB), en EN y ES, y vuelve a tener margen
   para C.6 sin tocar el tope de 40 KB. Las fichas suben 0,4 KB (33 419 → 33 818 B: el detalle ya iba en su chunk
   compartido con la home y ahora va en el de la ruta). Un campo nuevo de ficha va al detalle si la home no lo pinta.
-- Detalle: `docs/01-contenido/modelo-de-datos.md` y `docs/05-tecnico/arquitectura.md` → «Capas».
 - Nota (2026-11-22, tras auditarlo): precisiones del mismo PR y de su corrección.
   - `metaDescription` (C.5, paso 2) también va en el detalle: solo la pinta la ficha.
   - Quedan fuera de las puertas, a propósito, los tests (el de contenido importa el índice desde dentro de `content`,
@@ -910,3 +909,4 @@
   - Las puertas cierran también el índice escrito con extensión o barra final (`~/content/projects/index.ts`) y los
     `import()` (con `no-restricted-syntax`), y un test (`scripts/eslintDoors.test.ts`) las comprueba con la
     configuración real.
+- Detalle: `docs/01-contenido/modelo-de-datos.md` y `docs/05-tecnico/arquitectura.md` → «Capas».
