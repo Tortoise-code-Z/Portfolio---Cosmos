@@ -139,6 +139,10 @@ fotos nuevas en el mismo PR (ADR-029; el e2e de su huella lo recuerda). Si el pa
 
 **Hecho cuando:** cada capítulo cumple sus criterios de aceptación de `docs/02-experiencia/capitulos/`.
 Etiqueta `v0.3.0`.
+*(Versión 0.3.0 medida el 2026-11-23: cada criterio de aceptación de los capítulos 0–4 tiene su test o su medida;
+PageSpeed 98–100 en móvil y 100 en escritorio, 95–100 en el build local, sin escena donde no hay GPU; 60 fps en Alto
+por todo el viaje en el equipo de F3.6c (`docs/05-tecnico/calidad.md` → «Mediciones»). Faltan la auditoría de cierre y
+la etiqueta.)*
 
 ## C · Contenido y secciones nuevas (entre F4.3 y F4.4; ADR-034) · hecha (C.1–C.6)
 

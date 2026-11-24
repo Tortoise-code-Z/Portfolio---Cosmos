@@ -238,6 +238,52 @@ mismas páginas que en F3; sin PageSpeed hasta F6)
   `typescript-eslint` 8.73.0 y `minimatch` 11.0.9 para el plugin (`overrides`; `stack.md` → «Conflictos»): 0
   vulnerabilidades en los dos.
 
+**Cierre de F4 (`v0.3.0`) · 2026-11-23 · Lighthouse 13.6.0** (build de `main` en `af5df93` con la versión 0.3.0; las
+mismas páginas que en F3 y en la fase C)
+
+| Medida | Página | Performance | Accessibility | Best Practices | SEO | LCP | CLS | TBT |
+|---|---|---|---|---|---|---|---|---|
+| Móvil simulado, build local (contenedor Linux, sin GPU) | `/` | 99 | 100 | 100 | 100 | 0,8 s | 0 | 101 ms |
+| Lo mismo | `/es` | 99 | 100 | 100 | 100 | 0,8 s | 0 | 133 ms |
+| Lo mismo | `/projects/chessmate` | 96 | 100 | 100 | 100 | 2,8 s | 0 | 53 ms |
+| Lo mismo | `/es/projects/astrohub` | 95 | 100 | 100 | 100 | 2,8 s | 0 | 113 ms |
+| Lo mismo | `/projects/cosmos` | 100 | 100 | 100 | 100 | 0,8 s | 0 | 11 ms |
+| Lo mismo | `/404` | 100 | 100 | 100 | 54 | 0,8 s | 0 | 0 ms |
+
+- Chrome for Testing sin cabeza y sin GPU: la escena se apaga sin descargar Three.js ni las fotos fijas, así que mide el
+  modo sin WebGL, como en F3 y en la fase C. F4 (constelaciones, placas, pins y el Sol) vive en el chunk de la escena:
+  las cifras no cambian frente a la fase C. La escena con GPU se mide en fps (abajo).
+- Mediana de cada medida en tres pasadas por página; la primera de `/` tras arrancar `npm run preview` (90) no se
+  apunta.
+- `npm audit` (completo y con `--omit=dev`): 0 vulnerabilidades.
+
+| PageSpeed (Lighthouse 13.6.0), producción, 2026-11-23 | Página | Performance | Accessibility | Best Practices | SEO | LCP | CLS | TBT |
+|---|---|---|---|---|---|---|---|---|
+| Móvil (Moto G Power, 4G lenta) | `/` | 98 | 100 | 100 | 100 | 0,9 s | 0 | 0 ms |
+| Móvil (Moto G Power, 4G lenta) | `/projects/cosmos` | 100 | 100 | 100 | 100 | 0,9 s | 0 | 0 ms |
+| Escritorio | `/` | 100 | 100 | 100 | 100 | 0,2 s | 0,002 | 0 ms |
+| Escritorio | `/projects/cosmos` | 100 | 100 | 100 | 100 | 0,2 s | 0 | 0 ms |
+
+- La home en móvil baja de 100 (F3) a 98 por el Speed Index: 4,4 s, con FCP y LCP en 0,9 s (en F3 no se apuntó; la
+  ficha de Cosmos, 1,2 s). Algo sigue cambiando en pantalla mucho después de la primera pintura. Lejos del mínimo del
+  brief (≥ 85); se mira en F6 con Lighthouse CI.
+- «Navegación agéntica»: 2/2 en las dos páginas.
+
+**Cierre de F4 · fps de la escena · 2026-11-23** (el fragmento de F3.6c, ahora también con el Crew file y el viaje en
+14 s; producción, `tortoisecode.dev`)
+
+| Equipo | Nivel | Inicio | About | Skills | Projects | Contact | Crew file | Viaje (scroll) | p95 · peor |
+|---|---|---|---|---|---|---|---|---|---|
+| Windows, Brave (Chromium 158), 6 núcleos, ventana 1280×800 a DPR 1,5, enchufado | Alto | 60 | 60 | 60 | 60 | 60 | 60 | 60 | 16,8 ms · 17,0 ms |
+
+- Con las constelaciones (Skills), las placas y sus pins (Projects), el Sol (Contact) y el retrato (Crew file), el
+  mismo equipo de F3.6c sigue a 60 en Alto sin bajar de nivel. 60 es el refresco de la pantalla: la medida no dice
+  cuánto margen queda.
+- Con el ahorro de energía de Brave (portátil con batería), el navegador pinta a 30 fps clavados (p95 33,5 ms) y la
+  degradación en caliente baja la escena a Bajo (30 < 45 de escritorio) aunque la GPU vaya sobrada. Queda como
+  pregunta de la auditoría de cierre de F4.
+- Queda por medir (F6): un móvil real (≥ 30 fps en Bajo) y Firefox/Safari.
+
 ## Definición de «hecho» (por tarea)
 
 1. `npm run check` en verde y build correcto (un commit de solo docs, ADR-033: solo `npm run check`); `npm run visual` (Docker) si cambia algo visible y, si es a
