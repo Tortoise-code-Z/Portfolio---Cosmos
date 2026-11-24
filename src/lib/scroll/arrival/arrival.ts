@@ -57,7 +57,8 @@ export interface StageFocus {
  * El scroll que enseña algo enfocado dentro del escenario de una llegada (ADR-039). Mientras dura la llegada el
  * escenario está pegado bajo la barra, así que lo que cae por debajo de la ventana no sube con el scroll y el
  * navegador no consigue enseñarlo al enfocarlo (Tab): hay que ir al final de la llegada, donde el escenario se suelta,
- * y bajar lo justo para que quepa entero con su anillo.
+ * y bajar lo justo para que quepa entero con su anillo. En píxeles enteros y con `FOCUS_SAFETY_PX` de más: un motor
+ * que redondea el scroll hacia abajo (WebKit) dejaba el anillo una fracción de píxel fuera.
  */
 export function stageFocusScroll({
   landingY,
@@ -68,5 +69,10 @@ export function stageFocusScroll({
   margin,
 }: StageFocus): number {
   const landed = landingY - bar;
-  return landed + Math.max(0, bar + offset + height + margin - viewport);
+  return Math.ceil(
+    landed + Math.max(0, bar + offset + height + margin + FOCUS_SAFETY_PX - viewport),
+  );
 }
+
+/** Lo que `stageFocusScroll` deja de más bajo lo enfocado (los redondeos del scroll). */
+export const FOCUS_SAFETY_PX = 2;

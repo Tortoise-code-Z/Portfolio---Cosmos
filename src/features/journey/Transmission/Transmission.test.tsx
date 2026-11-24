@@ -268,8 +268,9 @@ describe('Transmission', () => {
       act(() => {
         link.focus();
       });
-      // Final de la llegada (400 + 5000 − 64) y lo justo más allá: 64 + (760 − 64) + 44 − 720 = 84 (sin anillo en jsdom).
-      expect(scrollTo).toHaveBeenCalledWith({ top: 5336 + 84, behavior: 'auto' });
+      // Final de la llegada (400 + 5000 − 64) y lo justo más allá: 64 + (760 − 64) + 44 + 2 − 720 = 86 (sin anillo en
+      // jsdom; los 2 px de seguridad de `stageFocusScroll`).
+      expect(scrollTo).toHaveBeenCalledWith({ top: 5336 + 86, behavior: 'auto' });
     });
 
     it('it keeps looking for a few frames (WebKit scrolls for the focus later), then stops', () => {
