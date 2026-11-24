@@ -34,8 +34,8 @@ en casa.
 - Botón «Copy»: copia el email; si el portapapeles falla, selecciona el texto y lo indica.
 - Gravedad del cursor activa (suave) sobre la Tierra: a la mitad que en los otros capítulos (F4.5, `EARTH_GRAVITY`).
   No mueve el Sol (no es una partícula).
-- Debajo, el epílogo (Crew file): en la segunda mitad de Contacto la Tierra se convierte en el retrato
-  (`05-crew-file.md` → «Escena»).
+- Debajo, el epílogo (Crew file): Contacto se queda con la Tierra; se convierte en el retrato en la llegada del
+  epílogo, con su sección fija (C.7, ADR-039; `05-crew-file.md` → «Transición»).
 
 ## Layout
 

@@ -26,7 +26,8 @@ cabe, la sección crece y nunca lo recorta (P1); `useChapterLayout` mide la altu
 | 2 · Galaxia | 220 vh | 240 vh | del 52 % al 100 % |
 | 3 · Tortuga | 240 vh | 260 vh | — (quieta: cambia en la cola de Mission control) |
 | ✦ Mission control | ≥ 100 svh (según contenido) + cola de 100 vh | igual | en la cola, del 0 % al 100 % |
-| 4 · Tierra | ≥ 130 vh (según contenido) | ≥ 130 vh | del 52 % al 100 % (hacia el retrato) |
+| 4 · Tierra | ≥ 130 vh (según contenido) | ≥ 130 vh | — (quieta: cambia en la llegada del epílogo) |
+| ✦ Llegada del Crew file | 160 svh (`--arrival-h`; 0 con movimiento reducido), con la sección fija | igual | del 0 % al 100 % (la forma, del 0 % al 55 %) |
 | 5 · Crew file (epílogo) | ≥ 100 svh (según contenido) | igual | — (último) |
 
 ### Tramos del viaje
@@ -37,10 +38,14 @@ qué forma enseña (`base`) y desde qué fracción cambia a la siguiente (`morph
 About y la pantalla del Mission log se quedan en la nebulosa (`m` = 1: el reloj del HUD se para solo); en la cola,
 vacía y sin puntero, la nebulosa cambia a galaxia, y Skills llega con la galaxia ya formada. Lo mismo con Projects y
 Mission control (desde C.4): la tortuga se queda quieta (`m` = 3) y cambia a la Tierra en la cola, y Contact llega
-con la Tierra formada. El epílogo (desde C.6) es un capítulo, no un interludio: Contacto cambia en su segunda mitad,
-como Skills, y el Crew file llega con su forma, el retrato. Para el raíl y el HUD, el epílogo «se lee» con el mismo
-criterio que el resto de capítulos (`round(m)`, desde el 76 % de Contacto), no por su tramo como un interludio: con
-Contacto muy alto (la letra al 200 % en una tableta) puede marcarse con Contacto aún en pantalla, como Skills → Projects.
+con la Tierra formada. El epílogo (desde C.6) es un capítulo, no un interludio, y desde C.7 tiene **llegada**
+(ADR-039): Contacto se queda en la Tierra y, al acabar, la sección del Crew file se queda fija bajo la barra (un
+escenario `sticky`) mientras pasa un hueco de `--arrival-h`. Ese tramo (`kind: 'arrival'`) se mide en la propia
+sección; en él la Tierra pasa al retrato (formado al 55 % de la llegada: `EPILOGUE_ARRIVAL.morphEnd`, la misma cuenta
+en la cámara y en el shader) y el haz baja por la pantalla. El epílogo se lee desde el marcador del final de la
+llegada (`data-landing`), que lleva el ancla `#crew-file`: ahí aterrizan el ancla y los saltos (raíl, misión rápida).
+El raíl marca el Crew file durante toda la llegada (`sceneStore.arriving`), no desde la mitad del cambio de forma
+(`round(m)`). Con movimiento reducido el hueco mide 0: el tramo no dura nada y la sección se lee como antes.
 
 **Cálculo de `m`** (función pura, testeable):
 

@@ -28,15 +28,37 @@ Metáfora: las partículas que formaron el universo se recomponen en la cara de 
   «Transmisiones»).
 - Pie: «End of journey · 13.8 billion years + now».
 
+## Transición (C.7 · ADR-039)
+
+Idea de Víctor (sesión 47; prueba aprobada: el artefacto privado «Crew file · entrada», con una copia
+guardada fuera del repo). Hasta C.7 el retrato se formaba en la segunda mitad de Contacto y la sección subía «en
+crudo»: ahora la escena trae el epílogo.
+
+- **La llegada:** al acabar Contacto, la sección se queda fija bajo la barra (escritorio: la pantalla entera; móvil:
+  su primera pantalla, con el título, la entrada y el visor) mientras pasan 160 svh de scroll (`--arrival-h`). Todo se
+  mide con lo que lleva la llegada (`a`, de 0 a 1: `m − 4` con la `m` suavizada de la escena, `lib/scroll/arrival`):
+  - la Tierra se deshace en el retrato (formado en `a` = 0,55); las partículas llegan apagadas;
+  - el haz baja por la pantalla (de `a` = 0,05 a 0,70) y enciende lo que deja atrás: en la escena, el retrato;
+  - **(PR 2)** en la página, revela la transmisión por encima del haz (franja, aviso, título, cuadrícula, barrido) y
+    deja negro lo de debajo; las cuatro esquinas del visor salen de las de la ventana y se cierran sobre el retrato
+    (0,15 → 0,75); al encajar (0,78) brillan, las líneas guía salen del visor a los recuadros de la ficha
+    (0,78 → 0,92), la ficha aparece con el teletipo y se enciende «Identity verified».
+  - Acabada la llegada, el haz pasa en bucle por el retrato y la sección sigue con el scroll.
+- Todo va atado al scroll: subiendo, se deshace.
+- **El ancla y los saltos** (`/#crew-file`, el raíl, la misión rápida) aterrizan al final de la llegada (el marcador
+  `data-landing`, con el id del ancla): con el epílogo ya traído. El raíl marca el Crew file desde que empieza a
+  llegar.
+- **Movimiento reducido:** sin llegada (el hueco mide 0), el retrato encendido y sin haz ni fallos de señal.
+- **Sin WebGL:** también hay llegada; la foto fija pasa de la Tierra al retrato y, con el PR 2, el haz y el
+  visor de la página revelan la sección igual.
+- **(PR 2) El foco:** si el foco entra en la sección antes de que acabe la llegada (Tab), se revela entera.
+- Si el retrato llega con la escena ya aquí (un salto, entrar por `/#crew-file`), se forma en 0,6 s desde la Tierra
+  con el haz bajando por la pantalla, en vez de aparecer de golpe.
+
 ## Escena (`m = 5`)
 
-- Contacto cambia en su segunda mitad (del 52 %, como Skills): la Tierra pasa al retrato (forma 5,
-  `docs/04-escena/formas.md` → «Retrato»).
-- **Transición:** las partículas viajan de la Tierra al retrato y llegan apagadas; se encienden en el verde del canal
-  al paso del haz de barrido, que baja de arriba abajo atado al progreso del morph (`m` de 4 a 5). Acabado el morph,
-  el haz pasa en bucle. Con movimiento reducido, el retrato encendido y sin haz ni fallos de señal. Si el retrato llega
-  con la escena ya aquí (un salto por el raíl o la misión rápida, entrar por `/#crew-file`), se forma en 0,6 s desde
-  la Tierra con el haz bajando, en vez de aparecer de golpe.
+- La llegada del epílogo cambia la Tierra al retrato (forma 5, `docs/04-escena/formas.md` → «Retrato»); Contacto se
+  queda en la Tierra.
 - El retrato: una foto de Víctor convertida en profundidad, cargada como dato aparte (`src/assets/portrait/`: la foto
   y otra imagen con la profundidad, la distancia al borde y los contornos; ~150 KB) al llegar a la tortuga, un tramo
   antes de la Tierra (`m` ≥ 3), una vez por visita. Lo pide y lo lee el worker de las formas; solo el código que lo pide cuenta en el chunk de la escena

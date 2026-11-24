@@ -285,6 +285,8 @@
    */
   --interlude-min-h: 100svh;
   --interlude-tail: 100vh;
+  /* La llegada del epílogo (ADR-039): lo que dura de scroll, con la sección fija (sin movimiento reducido). */
+  --arrival-h: 160svh;
   /* Lo que ocupa el raíl a la derecha (con su texto en escritorio): una transmisión a todo el ancho lo deja libre. */
   --rail-room: 160px;
   /*

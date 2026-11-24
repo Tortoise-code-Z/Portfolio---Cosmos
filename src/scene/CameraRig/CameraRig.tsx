@@ -2,6 +2,8 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useRef, useState } from 'react';
 import { PerspectiveCamera, Vector3 } from 'three';
 
+import { arrivalShapeM } from '~/lib/scroll/arrival/arrival';
+
 import {
   cameraFov,
   cameraPose,
@@ -28,12 +30,13 @@ function fitLens(camera: PerspectiveCamera, aspect: number): void {
 
 /**
  * La pose de este frame (`m`, encuadre y paralaje, que sigue al ratón), escrita en el frame con el campo de visión
- * de su aspecto, para quien proyecte después en el mismo frame.
+ * de su aspecto, para quien proyecte después en el mismo frame. En la llegada del epílogo, la `m` de la forma
+ * (`arrivalShapeM`, ADR-039): la cámara llega al retrato cuando el retrato está formado, como el shader.
  */
 function aimCamera(frame: SceneFrame, parallax: Parallax): CameraPose {
   followParallax(parallax, frame.pointer, !frame.reducedMotion, frame.delta);
   frame.fov = cameraFov(frame.aspect);
-  return cameraPose(frame.m, frame.wide, parallax, frame.camera);
+  return cameraPose(arrivalShapeM(frame.m), frame.wide, parallax, frame.camera);
 }
 
 /**

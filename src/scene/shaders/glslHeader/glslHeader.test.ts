@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
+
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
 import { CAMERA_KEYFRAMES, SUN, TURTLE_SWAY } from '../../config/sceneConfig';
 import { SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
@@ -101,6 +103,18 @@ describe('glslHeader', () => {
     expect(Number(value)).toBeCloseTo(PORTRAIT_FRAME.halfHeight, 4);
     const fade = /#define PORTRAIT_FADE_H (\S+)\n/.exec(header)?.[1];
     expect(Number(fade)).toBeCloseTo(PORTRAIT_FRAME.fadeHeight, 4);
+  });
+
+  it('defines the arrival of the epilogue from the same numbers as the camera and the page (ADR-039)', () => {
+    const define = (name: string): number =>
+      Number(new RegExp(`#define ${name} (\\S+)\\n`).exec(header)?.[1]);
+    expect(define('ARRIVAL_BASE')).toBe(EPILOGUE_ARRIVAL.base);
+    expect(define('ARRIVAL_MORPH_END')).toBe(EPILOGUE_ARRIVAL.morphEnd);
+    expect(define('ARRIVAL_BEAM_START')).toBe(EPILOGUE_ARRIVAL.beam[0]);
+    expect(define('ARRIVAL_BEAM_END')).toBe(EPILOGUE_ARRIVAL.beam[1]);
+    // El shader los usa: la forma acaba en ARRIVAL_MORPH_END y el haz, en pantalla, con arrivalBeam().
+    expect(particlesVertex).toContain('(m - ARRIVAL_BASE) / ARRIVAL_MORPH_END');
+    expect(particlesVertex).toContain('float b = 1.0 - 2.05 * down;');
   });
 
   it('LAST_M of the particles shader stops just short of the last shape (one per camera keyframe)', () => {

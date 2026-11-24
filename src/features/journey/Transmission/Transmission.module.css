@@ -80,7 +80,8 @@
 }
 
 /* Líneas de barrido finas sobre el fondo (decoración: sin puntero). La franja, el cuerpo y el pie van por encima. */
-.transmission::after {
+.transmission::after,
+.stage::after {
   position: absolute;
   inset: 0;
   background: var(--gradient-scanlines);
@@ -89,7 +90,8 @@
 }
 
 /* El barrido de entrada: una banda de luz que baja una vez al encenderse. */
-.transmission::before {
+.transmission::before,
+.stage::before {
   position: absolute;
   z-index: 2;
   inset-inline: 0;
@@ -102,7 +104,8 @@
   visibility: hidden;
 }
 
-.transmission[data-on]::before {
+.transmission[data-on]::before,
+.transmission[data-on] .stage::before {
   visibility: visible;
   animation: transmission-sweep var(--dur-sweep) var(--ease-in-out) both;
 }
@@ -276,6 +279,61 @@
   fill: none;
   stroke: var(--_ch-line);
   stroke-width: var(--wave-stroke);
+}
+
+/*
+ * La llegada del epílogo (ADR-039; 05-crew-file.md → «Transición»): la sección mide la llegada y lo que se ve va en
+ * un escenario pegado bajo la barra mientras pasa un hueco de `--arrival-h`; acabado el hueco, sigue con el scroll. El
+ * fondo, el barrido y la banda de entrada van con el escenario (en la sección se moverían por debajo del texto quieto).
+ * Con movimiento reducido no hay llegada: el hueco mide 0 y la sección se lee como antes. El marcador del final de la
+ * llegada (`.landing`, con el ancla) cae donde acaba el hueco: ahí aterrizan el ancla y los saltos.
+ */
+.arriving {
+  --_arrival: 0px;
+
+  display: block;
+  /* El alto mínimo lo lleva el escenario: la sección mide él más la llegada. */
+  min-block-size: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .arriving {
+    --_arrival: var(--arrival-h);
+  }
+}
+
+.arriving.open {
+  background: none;
+}
+
+.arriving::before,
+.arriving::after {
+  content: none;
+}
+
+.stage {
+  position: sticky;
+  inset-block-start: calc(var(--topbar-h) + env(safe-area-inset-top, 0px));
+  display: flex;
+  flex-direction: column;
+  min-block-size: var(--interlude-min-h);
+  isolation: isolate;
+}
+
+.open .stage {
+  background: var(--_ch-grid-bg);
+}
+
+.arrivalSpace {
+  block-size: var(--_arrival);
+  pointer-events: none;
+}
+
+.landing {
+  position: absolute;
+  inset-block-start: var(--_arrival);
+  inset-inline: 0;
+  block-size: 0;
 }
 
 /* La cola: recorrido vacío en el que la escena cambia de forma. Sin puntero: las estrellas de debajo lo reciben. */

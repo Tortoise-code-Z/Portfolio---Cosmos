@@ -200,11 +200,18 @@ void earth(out vec3 P, out vec3 C, out float S, out float A) {
   A = a;
 }
 
+// Lo que ha bajado el haz de la llegada del epílogo (0 arriba de la ventana → 1 abajo; ADR-039): la misma cuenta que
+// la página (lib/scroll/arrival). Si el retrato llega con la escena ya aquí, baja con su subida (uPor).
+float arrivalBeam() {
+  float a = clamp(uM - ARRIVAL_BASE, 0.0, 1.0);
+  return min(clamp((a - ARRIVAL_BEAM_START) / (ARRIVAL_BEAM_END - ARRIVAL_BEAM_START), 0.0, 1.0), uPor);
+}
+
 // Forma 5 · retrato: holograma de escáner con la luz de la foto (pPor.w), fallos de señal (una franja salta de
-// lado un instante) y giro limitado con el ratón. Llega apagado: el haz de barrido baja con el morph (m de 4 a 5)
-// y enciende lo que deja atrás; después pasa en bucle. Con movimiento reducido, encendido y sin haz ni fallos.
-// Hasta que llega el retrato (uPor 0), la Tierra; al llegar, uPor sube a 1 en un instante y cada partícula pasa de
-// la Tierra al retrato con su retraso del morph (si llega con la escena ya aquí, el haz baja con esa subida).
+// lado un instante) y giro limitado con el ratón. Llega apagado: el haz de la llegada baja por la pantalla y enciende
+// lo que deja atrás (main, tras proyectar); después pasa en bucle. Con movimiento reducido, encendido y sin haz ni
+// fallos. Hasta que llega el retrato (uPor 0), la Tierra; al llegar, uPor sube a 1 en un instante y cada partícula
+// pasa de la Tierra al retrato con su retraso del morph.
 void portrait(out vec3 P, out vec3 C, out float S, out float A) {
   vec3 p = pPor.xyz;
   // El tick se acota: con uTime grande, sin() pierde precisión en la GPU y los fallos dejarían de ser al azar.
@@ -213,13 +220,9 @@ void portrait(out vec3 P, out vec3 C, out float S, out float A) {
   float glitch = uMotion * step(0.99, hash(band * 1.37 + tick * 17.1));
   p.x += glitch * (hash(band * 7.3 + tick) - 0.5) * 0.47;
   p = rotY(p, clamp(uMouse.x, -1.0, 1.0) * uGrav * 0.44);
-  float f = min(smoothstep(0.3, 1.0, uM - 4.0), uPor);
-  float sweep = mix(PORTRAIT_HALF_H, -PORTRAIT_HALF_H - 0.3, f);
-  // Al acabar el barrido entra el haz en bucle, fundido (sin saltar a mitad de la cara). Bases al cuadrado, nunca pow.
-  float q = (pPor.y - sweep) * 3.0;
+  // Al acabar la bajada entra el haz en bucle, fundido (sin saltar a mitad de la cara). Bases al cuadrado, nunca pow.
   float r = (pPor.y - PORTRAIT_HALF_H * 1.1 + mod(uTime * 1.3, PORTRAIT_HALF_H * 3.0)) * 3.0;
-  float beam = mix(exp(-q * q), exp(-r * r), smoothstep(0.8, 1.0, f));
-  float lit = max(smoothstep(sweep - 0.05, sweep + 0.1, pPor.y), 1.0 - uMotion);
+  float beam = exp(-r * r) * smoothstep(0.8, 1.0, arrivalBeam());
   // El haz y los fallos no encienden lo que la foto funde (el corte del busto, abajo): el mismo fundido, por la altura.
   float i = pPor.w + (beam * uMotion + glitch * 0.6) * smoothstep(-PORTRAIT_HALF_H, PORTRAIT_FADE_H - PORTRAIT_HALF_H, pPor.y);
   i *= 0.93 + 0.07 * sin(uTime * 23.0 + pPor.y * 3.0);
@@ -227,7 +230,7 @@ void portrait(out vec3 P, out vec3 C, out float S, out float A) {
     ? mix(COLOR_PORTRAIT_DEEP, COLOR_PORTRAIT_GLOW, i / 0.6)
     : mix(COLOR_PORTRAIT_GLOW, COLOR_PORTRAIT_HOT, clamp((i - 0.6) / 0.8, 0.0, 1.0));
   P = p;
-  C = c * i * i * 1.5 * mix(0.12, 1.0, lit);
+  C = c * i * i * 1.5;
   S = 1.5;
   A = 0.8;
   if (uPor < 1.0) {
@@ -252,6 +255,9 @@ void shape(float k, out vec3 P, out vec3 C, out float S, out float A) {
 
 void main() {
   float m = clamp(uM, 0.0, LAST_M);
+  // La llegada del epílogo: el retrato está formado en ARRIVAL_MORPH_END y se queda quieto el resto de la llegada (la
+  // misma cuenta que la cámara: arrivalShapeM).
+  if (m > ARRIVAL_BASE) m = min(ARRIVAL_BASE + (m - ARRIVAL_BASE) / ARRIVAL_MORPH_END, LAST_M);
   float k = floor(m);
   float tt = smoothstep(0.0, 1.0, clamp((m - k - aR.x * MORPH_DELAY) / MORPH_SPAN, 0.0, 1.0));
 
@@ -280,6 +286,18 @@ void main() {
   vec4 mv = modelViewMatrix * vec4(P, 1.0);
   gl_Position = projectionMatrix * mv;
   gl_PointSize = min(S * uPR * (SIZE_DISTANCE / -mv.z), SIZE_MAX_PX);
+
+  // El haz de la llegada, en pantalla (ADR-039): la misma línea que la página. Lo que queda por encima se enciende y
+  // brilla al pasar; por debajo, el retrato llega apagado. Solo toca la parte del retrato en la mezcla (tt · uPor).
+  if (k > 3.5) {
+    float y = gl_Position.y / gl_Position.w;
+    float down = arrivalBeam();
+    float b = 1.0 - 2.05 * down;
+    float lit = max(smoothstep(b - 0.01, b + 0.02, y), 1.0 - uMotion);
+    float q = (y - b) * 30.0;
+    float glow = exp(-q * q) * uMotion * step(0.001, down) * (1.0 - smoothstep(0.95, 1.0, down));
+    C *= mix(1.0, mix(0.12, 1.0, lit) + glow * 1.5, tt * uPor);
+  }
 
   // Gravedad del cursor, en pantalla y sin tocar la geometría (uGrav 0: táctil, sin ratón dentro, movimiento reducido).
   vec2 d = gl_Position.xy / gl_Position.w - uMouse;

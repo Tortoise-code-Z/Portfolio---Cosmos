@@ -4,6 +4,8 @@ import { CHAPTER_ANCHORS, EPILOGUE, INTERLUDE, type InterludeId } from '~/conten
 import { cx } from '~/lib/css/cx/cx';
 import { prefersReducedMotion } from '~/lib/device/reducedMotion/reducedMotion';
 import { useT } from '~/lib/i18n/useT/useT';
+import { stageFocusScroll } from '~/lib/scroll/stageFocus/stageFocus';
+import { LANDING_SELECTOR } from '~/lib/scroll/jumpToChapter/jumpToChapter';
 import { VisuallyHidden } from '~/ui/VisuallyHidden/VisuallyHidden';
 
 import { ChapterJumpLink } from '../ChapterJumpLink/ChapterJumpLink';
@@ -104,12 +106,77 @@ function useTransmissionEntry(): RefObject<HTMLElement | null> {
   return ref;
 }
 
+/** Un número de un estilo calculado, o 0 si no lo es. */
+function cssNumber(value: string): number {
+  const number = Number.parseFloat(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+/**
+ * El foco en una sección con llegada (ADR-039): mientras dura la llegada su escenario está pegado bajo la barra y lo
+ * que cae por debajo de la ventana no sube con el scroll, así que el navegador no consigue enseñar lo que se enfoca
+ * allí con Tab. Si queda fuera de la vista, se va al final de la llegada (donde el escenario se suelta) y lo justo más
+ * allá para que se vea entero con su anillo (`stageFocusScroll`). Se mira en los frames que siguen al foco
+ * (`ARRIVAL_FOCUS_FRAMES`: medio segundo a 60 fps), no solo en el primero: WebKit hace su propio scroll del foco
+ * después (en el CI, a ~3 fps, lo dejaba justo en el borde de abajo, con el anillo fuera).
+ */
+const ARRIVAL_FOCUS_FRAMES = 30;
+
+function useArrivalFocus(ref: RefObject<HTMLElement | null>, arriving: boolean): void {
+  useEffect(() => {
+    const section = ref.current;
+    if (!arriving || section === null) return undefined;
+    let frame = 0;
+    const place = (): void => {
+      const element = document.activeElement;
+      const stage = section.firstElementChild;
+      const landing = section.querySelector<HTMLElement>(LANDING_SELECTOR);
+      if (!(element instanceof HTMLElement) || stage === null || landing === null) return;
+      if (!stage.contains(element)) return;
+      const root = getComputedStyle(document.documentElement);
+      const bar = cssNumber(root.scrollPaddingBlockStart);
+      const margin =
+        cssNumber(root.getPropertyValue('--focus-offset')) +
+        cssNumber(root.getPropertyValue('--focus-width'));
+      const box = element.getBoundingClientRect();
+      if (box.top - margin >= bar && box.bottom + margin <= window.innerHeight) return;
+      const top = stageFocusScroll({
+        landingY: landing.getBoundingClientRect().top + window.scrollY,
+        offset: box.top - stage.getBoundingClientRect().top,
+        height: box.height,
+        bar,
+        viewport: window.innerHeight,
+        margin,
+      });
+      // `auto` y no `instant` (que no todos los motores entienden): el CSS no pide scroll suave.
+      window.scrollTo({ top, behavior: 'auto' });
+    };
+    const onFocus = (): void => {
+      cancelAnimationFrame(frame);
+      let left = ARRIVAL_FOCUS_FRAMES;
+      const tick = (): void => {
+        place();
+        left -= 1;
+        if (left > 0) frame = requestAnimationFrame(tick);
+      };
+      frame = requestAnimationFrame(tick);
+    };
+    section.addEventListener('focusin', onFocus);
+    return () => {
+      section.removeEventListener('focusin', onFocus);
+      cancelAnimationFrame(frame);
+    };
+  }, [ref, arriving]);
+}
+
 /**
  * Una transmisión (fase C · ADR-034; docs/02-experiencia/capitulos/interludio-*.md y 05-crew-file.md): toma la pantalla
  * en el color de su canal, con la franja del canal arriba y el pie con la onda abajo. Un interludio va entre capítulos:
  * detrás, la forma del capítulo de antes, quieta y atenuada (su velo); «Skip transmission» lleva al capítulo que sigue
  * (`INTERLUDE[id].next`), y le sigue su cola, un tramo vacío y sin puntero en el que la escena cambia a la forma
- * siguiente (`JOURNEY_SEGMENTS`). El epílogo es un capítulo (`data-chapter`, con su ancla): sin salto ni cola. Es hija
+ * siguiente (`JOURNEY_SEGMENTS`). El epílogo es un capítulo (`data-chapter`): sin salto ni cola, pero con su llegada
+ * (ADR-039): su contenido va en un escenario fijo mientras pasa un hueco (la escena trae el retrato) y su ancla está en
+ * el marcador del final de la llegada (`data-landing`), donde aterrizan el ancla y los saltos. Es hija
  * directa de `<main>`: recoge el puntero (las estrellas no).
  */
 export function Transmission(props: TransmissionProps): ReactNode {
@@ -127,74 +194,98 @@ export function Transmission(props: TransmissionProps): ReactNode {
   const t = useT();
   const ref = useTransmissionEntry();
   const interlude = props.id ?? null;
+  useArrivalFocus(ref, interlude === null);
+
+  const content = (
+    <>
+      <div className={styles.strip}>
+        <span className={styles.channel}>
+          <span className={styles.signal} aria-hidden="true">
+            <span />
+            <span />
+            <span />
+            <span />
+          </span>
+          {channelLabel}
+        </span>
+        {props.id !== undefined ? (
+          // «Skip transmission»: al capítulo siguiente, con el foco en su título.
+          <ChapterJumpLink chapter={INTERLUDE[props.id].next} className={styles.skip}>
+            {t('interlude.skip')}
+            <span aria-hidden="true">↓</span>
+          </ChapterJumpLink>
+        ) : (
+          <span className={styles.stripEnd}>{props.stripEnd}</span>
+        )}
+      </div>
+      <div className={styles.body}>
+        <p className={styles.incoming}>
+          {/* Un triángulo dibujado: «▸» no está en el subconjunto de IBM Plex Mono (design-system.md → «Iconos»). */}
+          <svg className={styles.caret} viewBox="0 0 8 8" aria-hidden="true">
+            <path d="M1 0 L8 4 L1 8 Z" />
+          </svg>
+          {incoming}
+        </p>
+        {titleDisplay === undefined ? (
+          <h2 id={titleId} className={styles.title} tabIndex={-1}>
+            {title}
+          </h2>
+        ) : (
+          <h2 id={titleId} className={styles.titleDisplay} tabIndex={-1}>
+            <VisuallyHidden>{title}</VisuallyHidden>
+            <span aria-hidden="true">{titleDisplay}</span>
+          </h2>
+        )}
+        {children}
+      </div>
+      <footer className={styles.footer}>
+        <svg
+          className={styles.wave}
+          viewBox="0 0 240 24"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path d="M0 12 Q 10 2 20 12 T 40 12 T 60 12 T 80 12 T 100 12 T 120 12 T 140 12 T 160 12 T 180 12 T 200 12 T 220 12 T 240 12" />
+        </svg>
+        <p>
+          {props.id === undefined ? props.footer : t('interlude.clock', { clock: props.clock })}
+        </p>
+      </footer>
+    </>
+  );
 
   return (
     <>
       <section
         ref={ref}
-        id={
-          props.id === undefined
-            ? (CHAPTER_ANCHORS[props.chapter] ?? undefined)
-            : INTERLUDE[props.id].anchor
-        }
+        id={props.id === undefined ? undefined : INTERLUDE[props.id].anchor}
         aria-labelledby={titleId}
-        className={cx(styles.transmission, styles[channel], open && styles.open, className)}
+        className={cx(
+          styles.transmission,
+          styles[channel],
+          open && styles.open,
+          props.id === undefined && styles.arriving,
+          className,
+        )}
         data-interlude={interlude ?? undefined}
         data-chapter={props.chapter}
       >
-        <div className={styles.strip}>
-          <span className={styles.channel}>
-            <span className={styles.signal} aria-hidden="true">
-              <span />
-              <span />
-              <span />
-              <span />
-            </span>
-            {channelLabel}
-          </span>
-          {props.id !== undefined ? (
-            // «Skip transmission»: al capítulo siguiente, con el foco en su título.
-            <ChapterJumpLink chapter={INTERLUDE[props.id].next} className={styles.skip}>
-              {t('interlude.skip')}
-              <span aria-hidden="true">↓</span>
-            </ChapterJumpLink>
-          ) : (
-            <span className={styles.stripEnd}>{props.stripEnd}</span>
-          )}
-        </div>
-        <div className={styles.body}>
-          <p className={styles.incoming}>
-            {/* Un triángulo dibujado: «▸» no está en el subconjunto de IBM Plex Mono (design-system.md → «Iconos»). */}
-            <svg className={styles.caret} viewBox="0 0 8 8" aria-hidden="true">
-              <path d="M1 0 L8 4 L1 8 Z" />
-            </svg>
-            {incoming}
-          </p>
-          {titleDisplay === undefined ? (
-            <h2 id={titleId} className={styles.title} tabIndex={-1}>
-              {title}
-            </h2>
-          ) : (
-            <h2 id={titleId} className={styles.titleDisplay} tabIndex={-1}>
-              <VisuallyHidden>{title}</VisuallyHidden>
-              <span aria-hidden="true">{titleDisplay}</span>
-            </h2>
-          )}
-          {children}
-        </div>
-        <footer className={styles.footer}>
-          <svg
-            className={styles.wave}
-            viewBox="0 0 240 24"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <path d="M0 12 Q 10 2 20 12 T 40 12 T 60 12 T 80 12 T 100 12 T 120 12 T 140 12 T 160 12 T 180 12 T 200 12 T 220 12 T 240 12" />
-          </svg>
-          <p>
-            {props.id === undefined ? props.footer : t('interlude.clock', { clock: props.clock })}
-          </p>
-        </footer>
+        {props.id !== undefined ? (
+          content
+        ) : (
+          <>
+            {/* La llegada (ADR-039): el escenario se queda fijo mientras pasa el hueco de debajo. */}
+            <div className={styles.stage}>{content}</div>
+            <div className={styles.arrivalSpace} aria-hidden="true" />
+            {/* El final de la llegada, con el ancla del capítulo: aquí aterrizan el ancla y los saltos. */}
+            <span
+              id={CHAPTER_ANCHORS[props.chapter] ?? undefined}
+              className={styles.landing}
+              data-landing=""
+              aria-hidden="true"
+            />
+          </>
+        )}
       </section>
       {interlude === null ? null : (
         <div className={styles.tail} data-interlude-tail={interlude} aria-hidden="true" />

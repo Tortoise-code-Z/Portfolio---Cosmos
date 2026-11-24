@@ -190,7 +190,8 @@ se lee → galaxia, con el scroll, y un botón para cambiar de satélite a nave 
    estilo del shader, los dos morphs y el encaje con un marco HTML al 85 %. Víctor elige la forma.
 2. **Su ADR:** mapa de formas (`uFrom`/`uTo`/`uT`), naves paramétricas en el shader, el tramo de llegada y el peso.
 3. **Construcción** en un PR: mapa de formas y tramos, satélite (Mission log), nave nodriza (Mission control), el
-   retrato directo desde la Tierra (hoy pasa de la Tierra al retrato en la segunda mitad de Contacto), CSS del marco,
+   retrato directo desde la Tierra (hecho en el primer paso de C.7: la llegada del epílogo, ADR-039, con el tipo de
+   tramo `arrival` que pueden usar las naves), CSS del marco,
    tests y capturas.
 
 Al construir C.4 (Mission control) y C.6 (Crew file) no se cerró nada de esto: los tramos y el componente

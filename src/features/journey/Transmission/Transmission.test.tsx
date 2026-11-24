@@ -199,4 +199,121 @@ describe('Transmission', () => {
     expect(region).not.toHaveAttribute('data-armed');
     expect(region).not.toHaveAttribute('data-on');
   });
+
+  describe('the arrival of the epilogue (ADR-039)', () => {
+    /** El epílogo, con un enlace al fondo de su escenario (como «Download CV»). */
+    function renderEpilogue(): { region: HTMLElement; link: HTMLElement; unmount: () => void } {
+      const { unmount } = render(
+        <MemoryRouter initialEntries={['/']}>
+          <Transmission
+            open
+            chapter={EPILOGUE}
+            channel="green"
+            channelLabel="Channel 03 · green"
+            stripEnd="All channels closed"
+            incoming="Crew file · identity verified"
+            titleId="crew"
+            title="Crew file"
+            footer="End of journey"
+          >
+            <a href="/cv.pdf">Download CV</a>
+          </Transmission>
+        </MemoryRouter>,
+      );
+      const region = screen.getByRole('region', { name: 'Crew file' });
+      return { region, link: screen.getByRole('link', { name: 'Download CV' }), unmount };
+    }
+
+    /** Coloca en la ventana el escenario (pegado bajo la barra), el marcador del final y el enlace. */
+    function layOut(region: HTMLElement, link: HTMLElement, linkTop: number): void {
+      const stage = region.firstElementChild as HTMLElement;
+      const landing = region.querySelector<HTMLElement>('[data-landing]');
+      if (landing === null) throw new Error('No landing marker');
+      const at = (top: number, height: number) => () =>
+        ({ top, bottom: top + height, height }) as DOMRect;
+      vi.spyOn(stage, 'getBoundingClientRect').mockImplementation(at(64, 900));
+      vi.spyOn(landing, 'getBoundingClientRect').mockImplementation(at(400, 0));
+      vi.spyOn(link, 'getBoundingClientRect').mockImplementation(at(linkTop, 44));
+    }
+
+    /** Los frames se corren en el acto; la barra tapa 64 px y la ventana mide 720. */
+    function setUpWindow(): ReturnType<typeof vi.fn> {
+      vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+        callback(0);
+        return 1;
+      });
+      vi.stubGlobal('innerHeight', 720);
+      vi.stubGlobal('scrollY', 5000);
+      document.documentElement.style.scrollPaddingBlockStart = '64px';
+      const scrollTo = vi.fn();
+      vi.stubGlobal('scrollTo', scrollTo);
+      return scrollTo;
+    }
+
+    it('the content goes in a stage; after it the space of the arrival and the marker with the anchor', () => {
+      const { region } = renderEpilogue();
+      expect(region).not.toHaveAttribute('id');
+      expect(region).toHaveAttribute('data-chapter', String(EPILOGUE));
+      const [stage, space, landing] = [...region.children];
+      expect(stage).toHaveTextContent('Crew file');
+      expect(space).toHaveAttribute('aria-hidden', 'true');
+      expect(landing).toHaveAttribute('data-landing', '');
+      expect(landing).toHaveAttribute('id', 'crew-file');
+    });
+
+    it('what takes the focus below the window, while the stage is held, is brought into view past the arrival', () => {
+      const scrollTo = setUpWindow();
+      const { region, link } = renderEpilogue();
+      layOut(region, link, 760);
+      act(() => {
+        link.focus();
+      });
+      // Final de la llegada (400 + 5000 − 64) y lo justo más allá: 64 + (760 − 64) + 44 + 2 − 720 = 86 (sin anillo en
+      // jsdom; los 2 px de seguridad de `stageFocusScroll`).
+      expect(scrollTo).toHaveBeenCalledWith({ top: 5336 + 86, behavior: 'auto' });
+    });
+
+    it('it keeps looking for a few frames (WebKit scrolls for the focus later), then stops', () => {
+      const scrollTo = setUpWindow();
+      const { region, link } = renderEpilogue();
+      layOut(region, link, 760);
+      act(() => {
+        link.focus();
+      });
+      // Con el enlace siempre fuera de la vista (las cajas no cambian en jsdom): un intento por frame, y se acaba.
+      expect(scrollTo).toHaveBeenCalledTimes(30);
+    });
+
+    it('what is already in view is left where it is', () => {
+      const scrollTo = setUpWindow();
+      const { region, link } = renderEpilogue();
+      layOut(region, link, 300);
+      act(() => {
+        link.focus();
+      });
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+
+    it('an interlude has no arrival: the focus is left to the browser', () => {
+      const scrollTo = setUpWindow();
+      const region = renderTransmission();
+      expect(region.querySelector('[data-landing]')).toBeNull();
+      const line = screen.getByText('Línea');
+      line.tabIndex = -1;
+      act(() => {
+        line.focus();
+      });
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+
+    it('unmounting stops listening', () => {
+      const scrollTo = setUpWindow();
+      const { region, link, unmount } = renderEpilogue();
+      layOut(region, link, 760);
+      const remove = vi.spyOn(region, 'removeEventListener');
+      unmount();
+      expect(remove).toHaveBeenCalledWith('focusin', expect.any(Function));
+      expect(scrollTo).not.toHaveBeenCalled();
+    });
+  });
 });

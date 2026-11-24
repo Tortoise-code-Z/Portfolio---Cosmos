@@ -247,11 +247,11 @@ test.describe('Crew file', () => {
         await page.evaluate(() => {
           document.documentElement.style.fontSize = '200%';
         });
-        // El texto del cuerpo, los botones («Copy») y la franja del canal (su primer hijo).
+        // El texto del cuerpo, los botones («Copy») y la franja del canal (el primer hijo de su escenario, ADR-039).
         const cut = await crewFile(page).evaluate((section) =>
           [
             ...section.querySelectorAll('h2, li, dd, dt, p, a, button'),
-            ...(section.firstElementChild?.querySelectorAll('*') ?? []),
+            ...(section.firstElementChild?.firstElementChild?.querySelectorAll('*') ?? []),
           ]
             .filter((element) => element.scrollWidth > element.clientWidth)
             .map((element) => element.textContent.slice(0, 40)),
@@ -292,6 +292,75 @@ test.describe('Crew file', () => {
       for (const box of boxes) expect(box.size).toBeGreaterThanOrEqual(24);
     });
   }
+
+  /** Dónde está la sección (su principio) y el final de su llegada en el documento, y lo que tapa la barra. */
+  const arrivalGeometry = (page: Page) =>
+    crewFile(page).evaluate((section) => {
+      const landing = section.querySelector('[data-landing]');
+      const bar = Number.parseFloat(
+        getComputedStyle(document.documentElement).scrollPaddingBlockStart,
+      );
+      return {
+        start: section.getBoundingClientRect().top + window.scrollY - bar,
+        landed: (landing?.getBoundingClientRect().top ?? 0) + window.scrollY - bar,
+        bar,
+      };
+    });
+  /** Dónde está el borde de arriba del escenario (el primer hijo de la sección) en la ventana. */
+  const stageTop = (page: Page) =>
+    crewFile(page).evaluate((section) =>
+      Math.round(section.firstElementChild?.getBoundingClientRect().top ?? Number.NaN),
+    );
+  const scrollToY = async (page: Page, y: number) => {
+    await page.evaluate((top) => {
+      window.scrollTo({ top, behavior: 'instant' });
+    }, y);
+  };
+
+  test('its arrival (ADR-039): it holds still under the bar while it arrives, the rail marks it from the start, and then it scrolls on', async ({
+    page,
+  }) => {
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    const { start, landed, bar } = await arrivalGeometry(page);
+    // 160 svh de llegada (`--arrival-h`).
+    expect(landed - start).toBeCloseTo((await page.evaluate(() => window.innerHeight)) * 1.6, -1);
+    for (const at of [0.05, 0.5, 1]) {
+      await scrollToY(page, start + at * (landed - start));
+      expect(await stageTop(page)).toBe(Math.round(bar));
+      await expect(rail(page).locator('[aria-current="step"]')).toHaveAccessibleName(
+        'Crew file · Epilogue',
+      );
+    }
+    // Justo antes de la llegada aún se lee Contacto, y pasada la llegada el escenario sube con el scroll.
+    await scrollToY(page, start - 40);
+    await expect(rail(page).locator('[aria-current="step"]')).toHaveAccessibleName(
+      'Contact · Earth',
+    );
+    await scrollToY(page, landed + 100);
+    expect(await stageTop(page)).toBe(Math.round(bar) - 100);
+  });
+
+  test('its anchor and the rail land where its arrival ends, with the epilogue already brought in', async ({
+    page,
+  }) => {
+    // A un par de píxeles: Firefox redondea el scroll de un salto a su manera (en el CI, 1 px de más).
+    const offLanding = async () =>
+      Math.abs((await page.evaluate(() => window.scrollY)) - (await arrivalGeometry(page)).landed);
+    await page.goto('/#crew-file', { waitUntil: 'networkidle' });
+    await expect.poll(offLanding).toBeLessThanOrEqual(2);
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    await rail(page).getByRole('link', { name: 'Crew file · Epilogue' }).click();
+    await expect.poll(offLanding, { timeout: 10_000 }).toBeLessThanOrEqual(2);
+  });
+
+  test('with reduced motion it has no arrival: it is read as soon as it comes', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    const { start, landed } = await arrivalGeometry(page);
+    expect(landed).toBeCloseTo(start, 0);
+  });
 
   test('with reduced motion nothing is held back: every line is there and no teletype', async ({
     page,

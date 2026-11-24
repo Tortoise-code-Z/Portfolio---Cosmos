@@ -1,6 +1,8 @@
 import { renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
+
 import { CHAPTER_PRESENCE_FADE, SUN } from '../config/sceneConfig';
 import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
 import { Sun, useSun } from './Sun';
@@ -79,9 +81,13 @@ describe('useSun', () => {
   it('turns on and off right at the edges of its ramp, on both sides (the turtle and the portrait)', () => {
     const { result, frame } = renderSun();
     const { material } = result.current;
-    // La `m` con esa presencia del capítulo (`chapterPresence`), a cada lado.
-    const at = (presence: number, side: -1 | 1): number =>
-      SUN.chapter + side * ((1 - presence) / CHAPTER_PRESENCE_FADE);
+    // La `m` con esa presencia del capítulo (`chapterPresence`), a cada lado. Hacia el retrato, en la llegada del
+    // epílogo, la de la forma (`arrivalShapeM`, ADR-039): el Sol se va con la Tierra, antes de acabar la llegada.
+    const at = (presence: number, side: -1 | 1): number => {
+      const shapeM = SUN.chapter + side * ((1 - presence) / CHAPTER_PRESENCE_FADE);
+      const { base, morphEnd } = EPILOGUE_ARRIVAL;
+      return shapeM <= base ? shapeM : base + (shapeM - base) * morphEnd;
+    };
     for (const side of [-1, 1] as const) {
       frame.m = at(0.01, side);
       paintFrame();

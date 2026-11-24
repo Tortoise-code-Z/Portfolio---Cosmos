@@ -36,6 +36,11 @@ export interface SceneState {
    * capítulo anterior).
    */
   readonly interlude: InterludeId | null;
+  /**
+   * El capítulo que está llegando (su tramo de llegada, ADR-039: hoy, el epílogo), o `null`: lo escribe el scroll con
+   * `m`. El raíl lo marca desde que empieza a llegar, aunque `m` aún esté más cerca del capítulo de antes.
+   */
+  readonly arriving: ChapterIndex | null;
 }
 
 export const sceneStore = createStore<SceneState>()(() => ({
@@ -43,6 +48,7 @@ export const sceneStore = createStore<SceneState>()(() => ({
   m: 0,
   charge: 0,
   interlude: null,
+  arriving: null,
 }));
 
 /**
@@ -58,6 +64,12 @@ export function setScrollTarget(mTarget: number): void {
 export function setReadingInterlude(interlude: InterludeId | null): void {
   if (sceneStore.getState().interlude === interlude) return;
   sceneStore.setState({ interlude });
+}
+
+/** El capítulo que está llegando (o `null`), con el scroll. */
+export function setReadingArrival(arriving: ChapterIndex | null): void {
+  if (sceneStore.getState().arriving === arriving) return;
+  sceneStore.setState({ arriving });
 }
 
 /** La carga de la detonación (se queda entre 0 y 1). */
@@ -79,10 +91,12 @@ export function selectActiveChapter({ m }: SceneState): ChapterIndex {
 }
 
 /**
- * Lo que marca el raíl: el interludio mientras se lee (su pantalla y la primera mitad de su cola, mientras la forma
- * sigue siendo la del capítulo de antes) o, si no, el capítulo activo. Una cadena: re-renderiza solo al cambiar.
+ * Lo que marca el raíl: el capítulo que está llegando (toda su llegada), el interludio mientras se lee (su pantalla y
+ * la primera mitad de su cola, mientras la forma sigue siendo la del capítulo de antes) o, si no, el capítulo activo.
+ * Una cadena: re-renderiza solo al cambiar.
  */
-export function selectActiveStop({ m, interlude }: SceneState): JourneyStop {
+export function selectActiveStop({ m, interlude, arriving }: SceneState): JourneyStop {
+  if (arriving !== null) return CHAPTER_STOPS[arriving];
   const chapter = activeChapter(m);
   if (interlude !== null && INTERLUDE[interlude].after === chapter) return interlude;
   return CHAPTER_STOPS[chapter];

@@ -28,7 +28,11 @@ import { localeFromPathname } from '~/lib/i18n/locale/locale';
 import { isLowerCasePathname } from '~/lib/i18n/paths/paths';
 import { useScrollTarget } from '~/lib/scroll/useScrollTarget/useScrollTarget';
 import { homeMeta, notFoundMeta } from '~/lib/seo/meta/meta';
-import { setReadingInterlude, setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import {
+  setReadingArrival,
+  setReadingInterlude,
+  setScrollTarget,
+} from '~/stores/sceneStore/sceneStore';
 
 import type { Route } from './+types/journey';
 
@@ -39,13 +43,12 @@ export function meta({ location }: Route.MetaArgs): Route.MetaDescriptors {
   return homeMeta({ origin: SITE_ORIGIN, locale, profile, siteShare: siteShareImage, skillGroups });
 }
 
-/** Con `m`, el tramo: si es de un interludio, el raíl lo marca. */
+/** Con `m`, el tramo: si es de un interludio o la llegada de un capítulo, el raíl lo marca. */
 function onScrollTarget(m: number, segment: number): void {
   setScrollTarget(m);
   const reading = JOURNEY_SEGMENTS[segment];
-  setReadingInterlude(
-    reading === undefined || reading.kind === 'chapter' ? null : reading.interlude,
-  );
+  setReadingInterlude(reading !== undefined && 'interlude' in reading ? reading.interlude : null);
+  setReadingArrival(reading?.kind === 'arrival' ? reading.chapter : null);
 }
 
 const SCROLL_TARGET = {

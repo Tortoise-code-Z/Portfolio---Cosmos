@@ -168,7 +168,8 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--rail-room` | 160 px (< md: 44 px) | Lo que ocupa el raíl a la derecha: una transmisión a todo el ancho lo deja libre |
 | `--rail-stops` · `--rail-stop-min` · `--rail-stop` | 8 · 24 px · `clamp(24 px, (100svh − barra − zonas seguras) / 8, --target-min)` | Paradas del raíl (una por capítulo y por interludio) y el alto de cada una: 44 px, y en una ventana baja lo justo para caber bajo la barra, nunca por debajo de 24 px (WCAG 2.5.8) |
 | `--rail-half-h` | `--rail-stops` × `--rail-stop` / 2 | Media altura del raíl: lo baja si no cabe bajo la barra, y la escena reserva lo mismo para sus etiquetas (`railHalfHeight`) |
-| `--chapter-end-room` | 12vh | Aire bajo Contacto: más recorrido en su segunda mitad, donde la Tierra pasa al retrato |
+| `--chapter-end-room` | 12vh | Aire bajo Contacto, antes de la llegada del epílogo |
+| `--arrival-h` | 160svh | Lo que dura de scroll la llegada del epílogo, con la sección fija (ADR-039; 0 con movimiento reducido) |
 | `--hero-room-bottom` | 12vh (< sm: 10vh) | Aire bajo el contenido del hero |
 | `--hero-indent` · `--hero-lead-measure` | 0.6em · 40ch | Sangría de la segunda línea del nombre · ancho de la frase del hero |
 | `--singularity-halo-size` · `--singularity-core-size` | 46vmin · 6 px | Halo y punto de la singularidad en CSS |

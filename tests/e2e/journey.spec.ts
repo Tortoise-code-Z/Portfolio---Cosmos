@@ -122,7 +122,11 @@ test.describe('the journey (home)', () => {
         'mission-control',
       );
       for (const [id, title] of CHAPTERS[locale]) {
-        await expect(page.getByRole('region', { name: title })).toHaveAttribute('id', id);
+        const region = page.getByRole('region', { name: title });
+        // El epílogo lleva su ancla en el marcador del final de su llegada (ADR-039), dentro de la sección.
+        await expect(
+          id === 'crew-file' ? region.locator('[data-landing]') : region,
+        ).toHaveAttribute('id', id);
       }
       expect(errors).toEqual([]);
     });
@@ -396,8 +400,8 @@ test.describe('the journey (home)', () => {
       const barLink = page.getByRole('banner').getByRole('link', { name: bar, exact: true });
       await expect(barLink).toHaveAttribute('href', CV);
       await expect(barLink).toHaveAttribute('download');
-      for (const region of ['contact', 'crew-file']) {
-        const link = page.locator(`#${region}`).getByRole('link', { name: download });
+      for (const region of ['#contact', '[data-chapter="5"]']) {
+        const link = page.locator(region).getByRole('link', { name: download });
         await expect(link).toHaveAttribute('href', CV);
         await expect(link).toHaveAttribute('download');
       }

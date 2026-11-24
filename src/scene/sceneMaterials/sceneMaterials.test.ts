@@ -1,6 +1,8 @@
 import { AdditiveBlending } from 'three';
 import { describe, expect, it } from 'vitest';
 
+import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
+
 import {
   CHAPTER_PRESENCE_FADE,
   EARTH_GRAVITY,
@@ -67,6 +69,15 @@ const frame: Readonly<SceneFrame> = {
   painted: true,
 };
 
+/**
+ * La `m` de la escena que da una `m` de la forma (la inversa de `arrivalShapeM`): en la llegada del epílogo la Tierra
+ * se va antes (ADR-039), así que el Sol y la gravedad de la Tierra se miden con la de la forma.
+ */
+function fromShapeM(shapeM: number): number {
+  const { base, morphEnd } = EPILOGUE_ARRIVAL;
+  return shapeM <= base ? shapeM : base + (shapeM - base) * morphEnd;
+}
+
 describe('particle uniforms', () => {
   it('start neutral: no charge, no lit plate, no gravity, the pointer away', () => {
     const uniforms = createParticleUniforms();
@@ -131,14 +142,14 @@ describe('particle uniforms', () => {
     // Por los dos lados (la tortuga y el retrato, que también gira con `uGrav`), a medias con media presencia y entera
     // justo pasado el final de la rampa.
     for (const side of [-1, 1] as const) {
-      expect(at(mWithPresence(EARTH_GRAVITY.chapter, 0.5, side))).toBeCloseTo(
+      expect(at(fromShapeM(mWithPresence(EARTH_GRAVITY.chapter, 0.5, side)))).toBeCloseTo(
         whole * (1 + EARTH_GRAVITY.scale) * 0.5,
       );
-      expect(at(mWithPresence(EARTH_GRAVITY.chapter, 0.01, side))).toBeLessThan(whole);
-      expect(at(mWithPresence(EARTH_GRAVITY.chapter, PAST_THE_RAMP, side))).toBe(whole);
+      expect(at(fromShapeM(mWithPresence(EARTH_GRAVITY.chapter, 0.01, side)))).toBeLessThan(whole);
+      expect(at(fromShapeM(mWithPresence(EARTH_GRAVITY.chapter, PAST_THE_RAMP, side)))).toBe(whole);
     }
     // A medio morph hacia el retrato, aún suavizada; en la tortuga y en el retrato, entera.
-    expect(at(EARTH_GRAVITY.chapter + 0.25)).toBeLessThan(whole);
+    expect(at(fromShapeM(EARTH_GRAVITY.chapter + 0.25))).toBeLessThan(whole);
     expect(at(EARTH_GRAVITY.chapter - 1)).toBe(whole);
     expect(at(EARTH_GRAVITY.chapter + 1)).toBe(whole);
   });
@@ -226,9 +237,11 @@ describe('sun uniforms', () => {
     expect(opacityAt(SUN.chapter)).toBe(SUN.opacity);
     // Por los dos lados, con la rampa de la presencia: a medias con media y nada justo pasado su final.
     for (const side of [-1, 1] as const) {
-      expect(opacityAt(mWithPresence(SUN.chapter, 0.5, side))).toBeCloseTo(SUN.opacity * 0.5);
-      expect(opacityAt(mWithPresence(SUN.chapter, 0.01, side))).toBeGreaterThan(0);
-      expect(opacityAt(mWithPresence(SUN.chapter, PAST_THE_RAMP, side))).toBe(0);
+      expect(opacityAt(fromShapeM(mWithPresence(SUN.chapter, 0.5, side)))).toBeCloseTo(
+        SUN.opacity * 0.5,
+      );
+      expect(opacityAt(fromShapeM(mWithPresence(SUN.chapter, 0.01, side)))).toBeGreaterThan(0);
+      expect(opacityAt(fromShapeM(mWithPresence(SUN.chapter, PAST_THE_RAMP, side)))).toBe(0);
     }
     expect(opacityAt(SUN.chapter - 1)).toBe(0);
     expect(opacityAt(SUN.chapter + 1)).toBe(0);
