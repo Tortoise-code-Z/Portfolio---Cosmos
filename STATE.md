@@ -3,51 +3,51 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F4 · versión 0.3.0 en `main`** (`00df423`, PR #120) con AUD-F4-5 corregida (PR #119) ·
-**AUD-F4-CIERRE en la Mesa** · siguiente: decidir y corregir AUD-F4-CIERRE y etiquetar `v0.3.0` (**F4 cerrada**).
+**Dónde estamos:** **F4 cerrada · `v0.3.0`** sobre `ea64f26` (PR #121, la corrección de AUD-F4-CIERRE) · siguiente:
+decidir entre C.7 (Naves) y F5 (transiciones a las fichas).
 
-_Última actualización: 2026-11-24 (**CIERRE DE SESIÓN · 45**) · AUD-F4-5 corregida entera, la versión 0.3.0 medida
-(Lighthouse, PageSpeed y fps) y la auditoría de cierre de F4 lanzada; ADR-037 (la luz de la Tierra sale del Sol)._
+_Última actualización: 2026-11-24 (**CIERRE DE SESIÓN · 46**) · AUD-F4-CIERRE decidida y corregida entera, el Speed
+Index medido, ADR-038 y la etiqueta `v0.3.0`: F4 cerrada._
 
-**Hecho esta sesión** (vivas S45 en `_claude/cadena/hecho/2026-11-24/decisiones-vivas-S45.md`):
-1. **AUD-F4-5 corregida entera** (PR #119, `af5df93`; 4 recomendados, 19 menores; P1-A, P2-A, P3-A, P4-B): el Sol
-   espera a la Tierra (`frame.painted`, como los pins; confirmado antes sobre `main` con un e2e nuevo: entrando por
-   `/#contact` con el worker retenido brillaba 151 sobre el vacío; el mismo e2e mira que compila sin avisos en los tres
-   motores); `EARTH_CHAPTER`, `sunDirection(): ScenePoint`, `SUN` con `satisfies`; tests más estrictos (los dos
-   triángulos, los bordes de la rampa, el Sol con movimiento reducido y en Bajo, `SUN_DIR` leído de la cabecera, el
-   perfil de alfa igual al de las estrellas, una línea propia de cada shader en `budgets.spec`, el Sol en `SceneRoot`
-   en los tres niveles); docs al día. +1 B (257 075 B).
-2. **P3 medido** (viva #7): el escalón que pone el Sol, restando el de un build sin Sol. Desde 1280 px, 0; por debajo de
-   ~1240 px la Tierra ya cruza el panel (no de ~1100, como decía el doc) y el halo también: aceptado como ella. En
-   móvil apaisado, el halo bajo la barra (+9 a +14): **SOL-1-A**, aceptado y escrito; se mira en F6.
-3. **Versión 0.3.0** (PR #120, `00df423`): `package.json` y el lock; `calidad.md` → «Mediciones» → «Cierre de F4»:
-   Lighthouse local 95–100 (igual que en F3 y la fase C), PageSpeed `/` 98 móvil (Speed Index 4,4 s) y 100 escritorio,
-   `/projects/cosmos` 100 y 100; fps 60 en Alto por todo el viaje (con el ahorro de energía, 30 y Bajo). `npm audit`
-   0. Aceptación de los capítulos 0–4: cada criterio con su test o su medida. Roadmap: versión medida.
-4. **AUD-F4-CIERRE lanzada** (base `6b46c7d` · hasta `00df423`; vivas S45 hasta #21): toda F4 transversal, con
-   CF4-1-A como hallazgo esperado y las preguntas AUD-F4-5-P4, CF4-2 y el Speed Index →
-   `_claude/cadena/aud-f4-cierre/auditoria.md`.
-5. **ADR-037** · la luz de la Tierra sale del Sol que se ve (AUD-F4-5-P2-A), en este cierre.
+**Hecho esta sesión** (vivas S46 en `_claude/cadena/hecho/2026-11-24/decisiones-vivas-S46.md`):
+1. **AUD-F4-CIERRE decidida** (P1-B, P2-A, P3-A, P4-A; en los menores con opciones, -6, -7, -10, -26 y -29 en A) y
+   **corregida entera** (PR #121, `ea64f26`; 7 recomendados, 30 menores): las constelaciones leen el grupo del frame
+   (`SceneFrame.skillGroup`; el bucle lee cada store una vez por frame: ningún `useFrame` lee un store, nota de
+   ADR-027), esperan a `painted` y no se dibujan a opacidad 0; el ciclo de placas se queda quieto en un interludio; el
+   pin valida su slug; la etiqueta del pin sobre `--color-veil` (8,6 y 8,1 : 1 sobre una escena blanca), el 70 % del
+   tallo en su token, sin resaltado del sistema al tocar, la etiqueta de estrella con `--dur-base`. **Tabla única de la
+   escena** (`scripts/sceneModules.ts`, con su test): de ella salen `IMPURE_SCENE_MODULES`, el 90 % (entran
+   `SceneRoot`, `CameraRig`, `Particles`, `BackgroundStars` y `useSceneShapes`) y la parte de `scene/` de la huella
+   (entra `lib/device/mediaQuery`; salen `math/labelFit` y `math/platePins`); los `.glsl`, con `import.meta.glob`. Tests
+   nuevos o más estrictos (primera pintura sin JS, clic corto que de verdad descarga, enlaces de la fila sin WebGL,
+   `user-select: all`, esperas por frames con `waitFrames`, los pins al volver de una ficha, salir de Projects con la
+   rueda, la fila que manda más de un turno). Docs: la tabla «criterio → test» de los capítulos 0–4 en `calidad.md`,
+   la medida de fps de F4 y el límite del ahorro de energía (aceptado) en `rendimiento.md`, roadmap. +52 B: **257 127 B**.
+2. **P3 medido:** el Speed Index de 4,4 s era ruido de PageSpeed (5 pasadas: 4,49 · 2,75 · 1,20 · 1,22 · 1,11 s; el
+   FCP simulado, 0,9 s en todas; tras la primera pintura la pantalla casi no cambia). Sin código; escrito en `calidad.md`.
+3. **ADR-038** · el puntero del viaje (los capítulos lo dejan pasar a las capas de la escena), y la nota de ADR-032 con
+   el peso tras el cierre de F4.
+4. **Etiqueta anotada `v0.3.0`** («v0.3.0: F4, the chapters (audited)») sobre `ea64f26`: **F4 cerrada**.
 
 **Incidencias y lecciones:**
-- **fps con el ahorro de energía:** la primera medida dio 30 clavados y Bajo; con un tope del navegador los frames
-  salen idénticos (p95 = media), no dispersos como con una GPU que no llega. Medir enchufado, sin el ahorro y
-  recargando la página (el nivel se elige al cargar).
-- **Un doc con una cifra sin medir** («~1100 px») salió de medir solo 1440 y 1280: al aceptar algo «entre X e Y»,
-  medir también los extremos. Para aislar lo que pone una pieza (el halo) de lo que ya había (la Tierra), restar el
-  mismo escalón en un build sin esa pieza.
-- **PageSpeed** es una página que pinta con JS: `WebFetch` no ve las notas; se leen con el navegador integrado.
-- **Contenedor (S45):** limpio al empezar. Node 24 del paquete npm (`node@24.22.0`), Chromium 1243 enlazado como 1248
-  en `~/pwb` (`PLAYWRIGHT_BROWSERS_PATH`), Lighthouse 13.6.0 con `CHROME_PATH` al 1243. En la copia con `git init`,
-  `git config core.hooksPath /dev/null`: si no, el commit de la copia corre Husky y lint-staged. Una vez se lanzó
-  `git --no-optional-locks diff --stat` contra el árbol de trabajo del equipo (la regla es no hacerlo): no dejó
-  `index.lock`.
+- **PageSpeed:** la API, desde el contenedor, da 403 (proxy); sin clave, 429 (cuota 0). Se lee
+  `window.__LIGHTHOUSE_MOBILE_JSON__` (y `…DESKTOP…`) en pagespeed.web.dev con el navegador integrado. La web guarda
+  el informe de la misma URL un rato: para pasadas nuevas, `?psi=N` en la dirección. El SI simulado sale sobre todo
+  del SI observado en su propia carga (la red real): una sola pasada no dice nada.
+- **Volcar al equipo con `tar`:** sin permiso de borrar, `tar` no puede reemplazar un archivo (lo desenlaza):
+  `--overwrite`. Comprobar después con `cmp` archivo a archivo.
+- Los docs no pueden citar rutas del buzón (`code-references.test.ts`); el fragmento de fps se cita como «guardado
+  fuera del repo».
+- El e2e de la telemetría de Mission control falla si el build es anterior a un cambio de `DECISIONS.md` o de los
+  tests: rehacer el build antes de la última tanda de e2e.
+- Projects mide 240 vh: un e2e que «sale» del capítulo con la rueda necesita cuatro pantallas (con dos, sigue dentro).
+- Una vez se lanzó `git --no-optional-locks diff <commit>` contra el árbol de trabajo del equipo (la regla es no
+  hacerlo): no dejó `index.lock`.
+- **Contenedor (S46):** como S45 (Node 24 del paquete npm, Chromium 1243 enlazado como 1248 en `~/pwb`, Lighthouse
+  13.6.0); el árbol con `git archive` de `11e59ff` en `~/repo`, `git init` con `core.hooksPath /dev/null`. e2e de
+  Chromium enteros con `--workers=1` (~10 min). `recruiter.spec.ts` pasó.
 
 **Deuda anotada:**
-- **Constellations lee `uiStore.activeSkillGroup` dentro de su `useFrame` (AUD-F4-4B-4):** los pins ya leen del
-  frame (`SceneFrame.transmission`, ADR-027); las constelaciones siguen leyendo el store en su frame. Va en
-  AUD-F4-CIERRE como hallazgo esperado (CF4-1-A, viva S45 #14): pasarlo por el frame (como `frame.plate`) en su
-  corrección.
 - **CI · WebKit a ~3 fps (S35):** la traza del CI de C.2 lo midió: WebKit sin GPU pinta unos 3 frames por segundo con
   la página entera, y la detonación pide 15 frames (la carga avanza como mucho 0,1 s por frame). Las esperas de
   detonación de `journey.spec.ts` van a 15 s (`DETONATE_TIMEOUT_MS`); desde S42, la espera a que las etiquetas de las
@@ -60,8 +60,7 @@ _Última actualización: 2026-11-24 (**CIERRE DE SESIÓN · 45**) · AUD-F4-5 co
   de la prueba y lecciones del shader en `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a
   pantalla completa). La prueba es el artefacto privado «Naves · prueba»; copia del código en `_claude/naves/`. Al
   construir: su ADR (uno nuevo, numerado al escribirlo: mapa de formas `uFrom`/`uTo`/`uT`, que obliga a rehacer sobre él lo del retrato atado a
-  `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: quedan 2 925 B tras F4.5 y las
-  correcciones de AUD-F4-4B y AUD-F4-5 (antes de la de AUD-F4-CIERRE), así que su ADR subirá el límite con esos números
+  `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: quedan 2 873 B tras el cierre de F4 (257 127 B), así que su ADR subirá el límite con esos números
   reales.
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
   cómo está construido: solo herramientas, para qué y lo hecho (nota de ADR-034; `experiencia.md` → «Regla de
@@ -109,7 +108,8 @@ _Última actualización: 2026-11-24 (**CIERRE DE SESIÓN · 45**) · AUD-F4-5 co
   contenedor, 4 workers sobre 2 núcleos rompen también `constellations.spec.ts`). Los e2e de la escena, en local, con
   `--workers=1`. En `npm run check`, `scripts/docsOnly.test.ts` agotó una vez los 10 s de su `beforeAll` (crea un repo
   de git de usar y tirar): si se repite suelto en Windows, subir su `hookTimeout` en un PR aparte.
-- **F6 · móvil real (F4.4, F4.5):** los pins en escalera a 390 px (`fitPins`), la fila que ya no se queda ámbar tras
+- **F6 · móvil real (F4.4, F4.5, cierre de F4):** que tocar un grupo, una fila, una etiqueta o un pin no pinta el
+  resaltado del sistema (`-webkit-tap-highlight-color`, sin forma de verlo en Playwright); los pins en escalera a 390 px (`fitPins`), la fila que ya no se queda ámbar tras
   tocar fuera (`:hover` solo con `hover: hover`, sospechado en iOS: AUD-F4-4A-5) y el ciclo de placas con la `m`
   suavizada. Además (AUD-F4-4B): al subir el panel sobre la tortuga, los pins bajo su franja transparente se ven pero
   no se tocan (P1-A, aceptado y escrito en `componentes.md`); el piso del pin puede saltar 30 px sin histéresis (P3-B);
@@ -155,32 +155,31 @@ _Última actualización: 2026-11-24 (**CIERRE DE SESIÓN · 45**) · AUD-F4-5 co
   (`overflow-x: clip`) en vez de dar scroll de lado. Junto al resto del texto al 200 %.
 - **F6 · iPhone real (AUD-F4-1-13):** con el bucle del Big Bang, el halo es fijo a `50svh` y el lienzo a toda la
   ventana: con la barra de direcciones escondida pueden no ser concéntricos (solo en `m` < 0,12).
-- **F4 · fotos fijas:** cada paso que cambie lo que se ve (formas, shaders, cámara, placas, el Sol) pide
-  `npm run stills` en el mismo PR; una carpeta nueva de `scene/` que cambie las fotos va a `STILLS_SOURCES`
-  (`tests/stills/fingerprint.ts`).
-  La lista es a mano (desde S40 suma el retrato —`usePortrait`, `worker`, sus imágenes byte a byte— y `content/chapters.ts` con `lib/scroll/mapM`): AUD-F3-CIERRE sumó `sceneClock` y `reducedMotion`, que `SceneRoot` importa por ruta relativa.
-  Al añadir una carpeta, mirar también sus imports relativos (si F4 trae varias, un guardián que recorra el grafo
-  desde `SceneRoot`). Lo recuerdan §13, «hecho» y el roadmap.
+- **Fotos fijas:** cada paso que cambie lo que se ve (formas, shaders, cámara, placas, el Sol) pide
+  `npm run stills` en el mismo PR. Desde el cierre de F4, la parte de `scene/` de `STILLS_SOURCES` sale de la tabla
+  única de la escena (`scripts/sceneModules.ts`: una carpeta nueva se clasifica allí y su test lo exige); fuera de
+  `scene/`, la lista de `tests/stills/fingerprint.ts` sigue a mano (mirar los imports relativos de lo que se añada).
 - **WebKit y el `<picture>`:** que WebKit pidiera el `src` del `<img>` antes de entrar en el `<picture>` es deducido
   (no hay WebKit en el contenedor); el arreglo lo vigila el e2e de escritorio sin WebGL en el CI.
-- **Peso de la escena:** 257 075 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
+- **Peso de la escena:** 257 127 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
   C.5 −2, C.6a +52, C.6b +967, AUD-C6B +252, F4.4a +391, F4.4b +1 729, AUD-F4-4A +21, AUD-F4-4B +149, F4.5 +444,
-  AUD-F4-5 +1). Quedan 2 925 B para la corrección de AUD-F4-CIERRE; C.7 subirá el límite. Cada paso
+  AUD-F4-5 +1, AUD-F4-CIERRE +52): **257 127 B**. Quedan 2 873 B; C.7 subirá el límite. Cada paso
   apunta lo que pesó en `rendimiento.md`. Por paquete se mide con
   `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
 - **Degradación en caliente:** un navegador que limita los frames a 30 (ahorro de batería) baja a Bajo en
   escritorio: aceptado y escrito en `rendimiento.md`. Medido en S45 (Brave con el ahorro de energía: 30 fps clavados,
-  p95 33,5 ms, y la escena en Bajo; enchufado, 60 en Alto). Va a AUD-F4-CIERRE como pregunta (CF4-2): si la Mesa no
-  trae nada nuevo, sigue aceptado.
+  p95 33,5 ms, y la escena en Bajo; enchufado, 60 en Alto). Confirmado en el cierre de F4 (sigue aceptado): solo en
+  escritorios y portátiles; un móvil arranca en Bajo y en Bajo no se mide.
 - **e2e de Chromium:** ~10 min en el contenedor (323), en Bajo en los tres motores (los de la degradación
   arrancan en Alto con los frames retrasados por el test). SwiftShader pinta sin parar mientras la página está a la
   vista: mirar los tiempos del CI. En la tanda completa del contenedor, «1280×720: loading the hero with slow fonts
   keeps CLS under 0.1» se pasó una vez de 30 s en `page.goto` (y pasó 3 de 3 suelto): vigilarlo en el CI.
-- **F4 · escena:** todo lo nuevo lee `SceneFrame.m` (la `m` suavizada de la escena), nunca `sceneStore.m`
-  (ADR-028). Un módulo nuevo de `scene/` con Three, React o un store se añade a `IMPURE_SCENE_MODULES` de
-  `eslint.config.js` (la lista es a mano), y uno de lógica que se prueba sin WebGL, al 90 % de `vitest.config.ts`
-  (F3.6a lo olvidó con `fpsMeter` y `useHotDegradation`; `useSceneShapes` sigue fuera de esa lista).
+- **Escena:** todo lo nuevo lee `SceneFrame.m` (la `m` suavizada de la escena), nunca `sceneStore.m` (ADR-028), y
+  ningún `useFrame` lee un store: lo copia el bucle al frame (nota de ADR-027). Una carpeta nueva de `scene/` se
+  clasifica en `scripts/sceneModules.ts` (`impure`, `strict`, `stills`, con el motivo de lo que no va). `eslint.config.js`
+  importa ese `.ts` (Node 24 quita los tipos; sin avisos con 24.22): si un Node da avisos o falla en Windows o en el
+  CI, la tabla pasa a `.js` con JSDoc.
 - **Encuadre (F3.6c):** a 1280 y 1440 los brazos tenues de la galaxia montan un 3–5 % en el panel (aceptado para
   que siga grande); en móvil las formas quedan algo más pequeñas que antes y la galaxia roza el raíl (~3 %). El CI
   solo vigila 1440×900 y 390×844: los otros cuatro tamaños se miran con las herramientas de
@@ -274,17 +273,14 @@ _Última actualización: 2026-11-24 (**CIERRE DE SESIÓN · 45**) · AUD-F4-5 co
 - **Fotos fijas en el contenedor (S40):** se pueden sacar sin Docker (`COSMOS_STILLS_DOCKER=1 npx playwright test -c
   playwright.stills.config.ts`) para comprobar o para rehacer solo `stills.json`; las fotos que entran son las de
   Docker (`npm run stills` en el equipo de Víctor).
-- **PageSpeed · Speed Index de la home en móvil (S45):** 4,4 s con FCP y LCP en 0,9 s (Performance 98; la ficha de
-  Cosmos, 1,2 s y 100). Va a AUD-F4-CIERRE como pregunta: qué sigue cambiando en pantalla tras la primera pintura.
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **AUD-F4-CIERRE** (lanzada el 2026-11-24; sello: `00df423` + vivas S45 hasta #21): Víctor decide y se
-   corrige entera en `fix/aud-f4-cierre` desde `main`, con CF4-1-A (las constelaciones leen el grupo del frame). CF4-2
-   ya era deuda aceptada («Degradación en caliente»): si la Mesa no trae nada nuevo, sigue así.
-3. **Etiqueta anotada `v0.3.0`** («v0.3.0: F4, the chapters (audited)») sobre el último commit del cierre en `main`, y
-   en el roadmap «**F4 cerrada**». Después, decidir entre C.7 (Naves) y F5 (transiciones a proyectos).
-4. Víctor: mirar `/#crew-file` en Brave en producción (AUD-C6B-5) y el Sol en su móvil (también apaisado); pegar la
+2. **Decidir entre C.7 (Naves) y F5 (transiciones a las fichas).** C.7: estudio y prueba en
+   `docs/02-experiencia/transiciones-naves.md` (manda la versión 8), su ADR (mapa de formas `uFrom`/`uTo`/`uT`) sube
+   el límite de la escena con los números reales (257 127 B; quedan 2 873). F5: roadmap → F5 (quita el velo y la pausa
+   de la ficha, la placa iluminada al volver, la 404 con la nebulosa atenuada).
+3. Víctor: mirar `/#crew-file` en Brave en producción (AUD-C6B-5) y el Sol en su móvil (también apaisado); pegar la
    descripción, la web y los topics de Cosmos en GitHub (`ABOUT_REPOS.md` del Proyecto de claude.ai); suavizar el CV y
    LinkedIn con el chat de mentor (y avisar para volver a copiar el PDF: lo pedirá `content.test.ts`); redirigir el
    portfolio antiguo de Vercel a tortoisecode.dev; mirar las líneas de las constelaciones en su pantalla; revisar los
@@ -293,10 +289,10 @@ _Última actualización: 2026-11-24 (**CIERRE DE SESIÓN · 45**) · AUD-F4-5 co
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»).
 **Limpieza manual del usuario:**
-- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 45, entre ellas `s37/` a `s45/` —en `s44/`,
+- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 46, entre ellas `s37/` a `s46/` —en `s44/`,
   `env.txt`, la copia vaciada de `.env`—, `c3/` y `aud-c2/`) y `_claude/lstree.txt`; `_claude/readme-originales/` si ya
   no hacen falta.
-- Ramas locales ya fusionadas (todas menos `main`, entre ellas `fix/aud-f4-5`, `chore/release-0.3.0`, `feat/earth-sun`, `fix/aud-f4-4b`, `feat/turtle-plates`,
+- Ramas locales ya fusionadas (todas menos `main`, entre ellas `fix/aud-f4-cierre`, `fix/aud-f4-5`, `chore/release-0.3.0`, `feat/earth-sun`, `fix/aud-f4-4b`, `feat/turtle-plates`,
   `feat/turtle-pins`, `fix/aud-f4-4a`, `fix/aud-c-cierre` y `chore/deps-2026-11`): `git branch` para verlas y
   `git branch -D <rama>`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los

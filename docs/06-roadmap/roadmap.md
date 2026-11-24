@@ -105,7 +105,7 @@ desactivado. Versión 0.2.0, auditoría de cierre y etiqueta `v0.2.0` sobre el �
 no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierre corregida en el PR #80 y etiqueta
 `v0.2.0` sobre `6b46c7d` el 2026-10-31: **F3 cerrada**.)*
 
-## F4 · Capítulos (uno por PR, salvo la galaxia, en tres, y la tortuga, en dos; en este orden)
+## F4 · Capítulos (uno por PR, salvo la galaxia, en tres, y la tortuga, en dos; en este orden) · cerrada
 
 1. **Singularidad:** mantén para detonar (puntero y teclado), destello, temblor, nombre con `wdth`, autoscroll.
    *(Hecho en F4.1, PR #82: la carga llega a la escena y los efectos del DOM tienen su propio bucle con la misma `m`
@@ -145,8 +145,8 @@ Etiqueta `v0.3.0`.
 *(Versión 0.3.0 medida el 2026-11-23: cada criterio de aceptación de los capítulos 0–4 tiene su test o su medida
 (tabla en `docs/05-tecnico/calidad.md` → «Cierre de F4 · aceptación de los capítulos 0–4»);
 PageSpeed 98–100 en móvil y 100 en escritorio, 95–100 en el build local, sin escena donde no hay GPU; 60 fps en Alto
-por todo el viaje en el equipo de F3.6c (`docs/05-tecnico/calidad.md` → «Mediciones»). Faltan la auditoría de cierre y
-la etiqueta.)*
+por todo el viaje en el equipo de F3.6c (`docs/05-tecnico/calidad.md` → «Mediciones»). Auditoría de cierre corregida
+en el PR #121 y etiqueta `v0.3.0` sobre `ea64f26` el 2026-11-24: **F4 cerrada**.)*
 
 ## C · Contenido y secciones nuevas (entre F4.3 y F4.4; ADR-034) · hecha (C.1–C.6)
 
