@@ -251,7 +251,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
-| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); grupo de skills encendido (`activeSkillGroup`, desde F4.3b: lo lee la escena en cada frame con `getState()`; lo escriben el panel y las etiquetas desde F4.3c: `setActiveSkillGroup` enciende y `releaseActiveSkillGroup` apaga solo si sigue encendido; `selectSceneOn` dice si hay escena); página de proyecto a la vista (`projectPageOpen`: la escribe la ficha al montarse y al irse; hasta F5, la escena se pausa con ella); proyecto señalado (`activeProject`, su slug, desde F4.4a: lo escriben las filas del capítulo 3 —ratón, foco del teclado en sus enlaces, toque— y, desde F4.4b, los pins (ratón y toque); `setActiveProject` señala y `releaseActiveProject` suelta solo si sigue señalado; la escena lo lee en cada frame con `getState()` e ilumina su placa, y la fila lo marca con su selector) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto y, hasta F5, en la ficha); desde F4.3, la escena lee en cada frame, con `getState()`, `activeSkillGroup` (las constelaciones) y, desde F4.4, `activeProject` (las placas y los pins); desde F5, la placa visitada |
+| `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); grupo de skills encendido (`activeSkillGroup`, desde F4.3b: lo lee el bucle de la escena una vez por frame con `getState()` y lo copia a `SceneFrame.skillGroup`; lo escriben el panel y las etiquetas desde F4.3c: `setActiveSkillGroup` enciende y `releaseActiveSkillGroup` apaga solo si sigue encendido; `selectSceneOn` dice si hay escena); página de proyecto a la vista (`projectPageOpen`: la escribe la ficha al montarse y al irse; hasta F5, la escena se pausa con ella); proyecto señalado (`activeProject`, su slug, desde F4.4a: lo escriben las filas del capítulo 3 —ratón, foco del teclado en sus enlaces, toque— y, desde F4.4b, los pins (ratón y toque); `setActiveProject` señala y `releaseActiveProject` suelta solo si sigue señalado; el bucle de la escena lo lee una vez por frame con `getState()` e ilumina su placa, y la fila lo marca con su selector) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto y, hasta F5, en la ficha); desde F4.3, el bucle de la escena lee una vez por frame, con `getState()`, `activeSkillGroup` (las constelaciones) y, desde F4.4, `activeProject` (las placas y los pins), y los deja en el `SceneFrame`: ningún `useFrame` lee un store (ADR-027); desde F5, la placa visitada |
 | `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028; `setScrollTarget` no deja pasar lo que no sea un número finito), el interludio que se lee (`interlude`, fase C: lo escribe el viaje con `setReadingInterlude` en la pantalla y la cola del interludio), la carga de la detonación (`charge`, desde F4.1: la escribe el bucle del botón del hero en cada frame mientras carga o se descarga, ADR-030); el peso de cada capítulo no va aquí: lo calcula la escena desde su `m` (`scene/math/chapterPresence`), y el ratón lo escribe `scene/pointer` en el `SceneFrame` | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget`, `charge` e `interlude` y deja su `m` suavizada, la carga y si se lee una transmisión (`transmission`: los pins se ocultan) en el `SceneFrame` que leen los `useFrame`; los efectos del Big Bang del hero (`useBigBang`, ADR-030) por suscripción, en su propio bucle y **sin re-render**; el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen la parada activa (`selectActiveStop`: el interludio mientras se lee, o el capítulo `round(m)`), y el HUD la lee para esconderse en una transmisión (un interludio o el epílogo, `isTransmissionStop`); las fotos fijas del modo sin WebGL eligen `selectActiveChapter` (solo se repintan al cambiar) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
@@ -324,14 +324,17 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
   «Worker de las formas»). Si después pinta por debajo de los fps del presupuesto, baja un nivel
   (`useHotDegradation`: rendimiento.md → «Degradación en caliente»).
 - `scene/{shapes,math,config,worker}` es código puro: lo que corre en el worker o se prueba sin WebGL. ESLint
-  le prohíbe Three, React, Zustand, `stores`, los módulos de la escena que usan Three, React o un store, más
-  `contextLoss`, que vive con el lienzo (por ruta relativa: `SceneRoot`, `CameraRig`, `Particles`,
-  `BackgroundStars`, `Constellations`, `ConstellationLabels`, `PlatePins`, `Sun`, `sceneMaterials`, `particleGeometry`,
-  `useSceneShapes`, `useHotDegradation`, `usePortrait`, `contextLoss`, `voidColour`, `pause`; `pointer`, `frameLoop`, `sceneClock`, `fpsMeter`, `shaders` y `labelWriter` no, son DOM o cálculo sin
-  dependencias), los datos de `content` (solo sus tipos) y cualquier `import()` (un import así engordaría el
-  worker sin avisar), y prohíbe `Math.random` en toda la escena, también escrito
-  `globalThis.Math.random` (ADR-011: el azar con semilla de `scene/shapes/prng`). **Un módulo nuevo de `scene/`
-  con Three, React o un store se añade a `IMPURE_SCENE_MODULES`** (`eslint.config.js`): la lista es a mano.
+  le prohíbe Three, React, Zustand, `stores`, las piezas de la escena que usan Three, React o un store (por ruta
+  relativa; hoy `SceneRoot`, `CameraRig`, `Particles`, `BackgroundStars`, `Constellations`, `ConstellationLabels`,
+  `PlatePins`, `Sun`, `sceneMaterials`, `particleGeometry`, `useSceneShapes`, `useHotDegradation`, `usePortrait`,
+  `voidColour` y `pause`), más `contextLoss`, que vive con el lienzo (`pointer`, `frameLoop`, `sceneClock`, `fpsMeter`,
+  `shaders` y `labelWriter` no: son DOM o cálculo sin dependencias), los datos de `content` (solo sus tipos) y
+  cualquier `import()` (un import así engordaría el worker sin avisar), y prohíbe `Math.random` en toda la escena,
+  también escrito `globalThis.Math.random` (ADR-011: el azar con semilla de `scene/shapes/prng`). **Una carpeta nueva
+  de `scene/` se clasifica en la tabla única de la escena** (`scripts/sceneModules.ts`): de su `impure` sale
+  `IMPURE_SCENE_MODULES` (`eslint.config.js`), de su `strict` el 90 % de `vitest.config.ts` y de su `stills` la huella
+  de las fotos fijas; `sceneModules.test.ts` falla si falta una carpeta, si `impure` no casa con sus imports (también
+  a través de otra pieza) o si ESLint no cierra al código puro una pieza impura.
 - Three.js, React Three Fiber y lo que arrastran van en el chunk `scene` (grupo de `vite.config.ts`), que
   ningún HTML pide (ADR-020). El grupo es el resto de dependencias diferidas: un `import()` nuevo de otra
   librería necesita su propio grupo (lo vigila `budgets.spec.ts`). Solo `SceneMount` importa la escena, y solo
@@ -341,10 +344,11 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 - El lienzo vive en `root.tsx` (persistente entre rutas). El viaje (`routes/journey/journey.tsx`) le escribe
   `mTarget` en `sceneStore` (`setScrollTarget`), y el panel de Skills y las etiquetas, el grupo encendido
   (`uiStore.activeSkillGroup`, F4.3c), y las filas de Proyectos y los pins, el proyecto señalado
-  (`uiStore.activeProject`, F4.4), que la escena lee en cada frame; la atenuación de las fichas (F5) llega después.
+  (`uiStore.activeProject`, F4.4), que el bucle de la escena lee una vez por frame y copia al `SceneFrame`; la
+  atenuación de las fichas (F5) llega después.
   `SceneMount` le pasa a `SceneRoot`, en el viaje, los textos de las etiquetas y los nombres de los pins, y cómo
   abrir una ficha desde un pin (`onOpenProject`: navega en el idioma de la página).
-- **Puntero del viaje** (F4.3c): las etiquetas de las constelaciones (y, desde F4.4b, los pins de las placas) están
+- **Puntero del viaje** (F4.3c; la regla, en ADR-038): las etiquetas de las constelaciones (y, desde F4.4b, los pins de las placas) están
   en su capa, debajo de `<main>` (`--z-labels` < `--z-content`). En el viaje, `<main>` y los capítulos (`ChapterSection`) van sin puntero; lo
   recogen los hijos directos de cada capítulo (el panel, el contenido del hero) y todo hijo directo de `<main>` que no
   sea un capítulo, así que una sección nueva (un interludio de la fase C) nace con puntero sin hacer nada

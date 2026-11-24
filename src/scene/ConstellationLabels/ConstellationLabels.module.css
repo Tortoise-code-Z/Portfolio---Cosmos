@@ -17,6 +17,8 @@
 
 .label {
   position: absolute;
+  /* Tocarlo en un móvil no pinta el resaltado del sistema encima del ámbar. */
+  -webkit-tap-highlight-color: transparent;
   inset-block-start: 0;
   inset-inline-start: 0;
   padding: 3px 6px 3px 14px;
@@ -29,7 +31,7 @@
   text-shadow: var(--halo-star-label);
   opacity: 0;
   visibility: hidden;
-  transition: color var(--dur-fast) var(--ease-out);
+  transition: color var(--dur-base) var(--ease-out);
 }
 
 /* El trazo que apunta a la estrella, a la izquierda y a media altura. */

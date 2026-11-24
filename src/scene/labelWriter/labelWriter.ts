@@ -3,7 +3,9 @@ import type { LabelBox } from '../math/labelFit/labelFit';
 /**
  * Escribe en el DOM una etiqueta que la escena coloca en cada frame (las de las estrellas, F4.3, y los pins de las
  * placas, F4.4b): visibilidad, `data-live`, posición (`transform`), opacidad y `data-hot`, y solo lo que cambia
- * (cero objetos nuevos por frame, ADR-004).
+ * (ADR-004). La excepción a «cero objetos nuevos por frame»: el DOM solo acepta cadenas, así que lo que cambia se
+ * escribe con una cadena nueva (`transform`, `opacity` y, en los pins, `--_pin-floor`); redondeado a píxel (y la
+ * opacidad a centésimas) y solo al cambiar, para que sean pocas (docs/04-escena/rendimiento.md → «Presupuesto»).
  */
 
 /** Las etiquetas montadas de una capa (las de las estrellas o los pins), por su id: la escena las coloca en cada frame. */

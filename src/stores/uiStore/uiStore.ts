@@ -33,9 +33,9 @@ export interface UiState {
   readonly languageNoticeOpen: boolean;
   /**
    * El grupo de skills encendido (docs/02-experiencia/capitulos/02-galaxia.md → «Interacciones»), o ninguno. Lo
-   * escriben el panel de Skills (ratón, foco, toque) y las etiquetas de la escena (ratón y toque; F4.3c); la escena
-   * lo lee en cada frame con `getState()`, sin re-render, y enciende su constelación; el panel lo marca con su
-   * selector.
+   * escriben el panel de Skills (ratón, foco, toque) y las etiquetas de la escena (ratón y toque; F4.3c); el bucle de
+   * la escena lo lee una vez por frame con `getState()`, sin re-render, y lo copia a `SceneFrame.skillGroup`, de
+   * donde lo leen las constelaciones (ADR-027); el panel lo marca con su selector.
    */
   readonly activeSkillGroup: SkillGroupId | null;
   /**
@@ -46,9 +46,9 @@ export interface UiState {
   readonly projectPageOpen: boolean;
   /**
    * El proyecto señalado (su slug), o ninguno (docs/02-experiencia/capitulos/03-tortuga.md → «Interacciones»). Lo
-   * escriben las filas del capítulo 3 (ratón, foco, toque) y, desde F4.4b, los pins de la escena; la escena lo lee en
-   * cada frame con `getState()`, sin re-render, e ilumina su placa (mientras hay uno, el ciclo automático se para); la
-   * fila lo marca con su selector.
+   * escriben las filas del capítulo 3 (ratón, foco, toque) y, desde F4.4b, los pins de la escena; el bucle de la
+   * escena lo lee una vez por frame con `getState()`, sin re-render, e ilumina su placa en `SceneFrame.plate`
+   * (mientras hay uno, el ciclo automático se para); la fila lo marca con su selector.
    */
   readonly activeProject: string | null;
 }

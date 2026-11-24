@@ -6,6 +6,7 @@ import react from '@vitejs/plugin-react';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
+import { PURE_SCENE_GLOB, STRICT_SCENE_GLOB } from './scripts/sceneModules.ts';
 import { siteTelemetry, UNIT_TEST_GLOBS } from './scripts/siteTelemetry.ts';
 import { PROJECT_IMAGE_WIDTHS, SHARE_IMAGE_WIDTH } from './src/content/imageWidths.ts';
 
@@ -96,14 +97,10 @@ export default defineConfig({
         lines: 70,
         'src/lib/**': STRICT,
         'src/content/**': STRICT,
-        'src/scene/{shapes,math,config,worker}/**': STRICT,
-        // Lógica de la escena que se prueba sin WebGL (el bucle, el reloj, uniforms y materiales, la geometría,
-        // la cabecera y la limpieza del GLSL, el color de fondo, la pausa, el ratón, la pérdida del contexto y la
-        // degradación en caliente, el retrato, las constelaciones y sus etiquetas, los pins y lo que escribe ambos, y
-        // el Sol): también al 90 %.
-        'src/scene/{frameLoop,sceneClock,sceneMaterials,particleGeometry,voidColour,pause,pointer,contextLoss,fpsMeter,useHotDegradation,usePortrait,Constellations,ConstellationLabels,PlatePins,labelWriter,Sun}/**':
-          STRICT,
-        'src/scene/shaders/**': STRICT,
+        [PURE_SCENE_GLOB]: STRICT,
+        // Las piezas de la escena al 90 % (`strict` en la tabla única, `scripts/sceneModules.ts`): lógica que se
+        // prueba sin WebGL, los shaders y su cabecera; las que no van, con su motivo en la tabla.
+        [STRICT_SCENE_GLOB]: STRICT,
         'scripts/docsOnly.ts': STRICT,
         'scripts/siteTelemetry.ts': STRICT,
       },

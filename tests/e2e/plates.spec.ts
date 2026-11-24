@@ -8,9 +8,11 @@ import {
   interfaceRects,
   overlaps,
   PARTICLES_PAINTED,
+  projectBySlug,
   SCENE_READY,
   settleScene,
   skipWithoutWebGL2,
+  waitFrames,
   withoutWebGL,
   type Rect,
 } from './support/helpers.ts';
@@ -214,18 +216,26 @@ test.describe('the plates of the turtle', () => {
     await expect.poll(async () => (await shownPins(page)).length).toBe(ordered.length);
   });
 
-  test('while Mission control is read (the turtle still behind its veil), no pin shows', async ({
+  test('while Mission control is read (the turtle still behind its veil), no pin shows and no plate lights', async ({
     page,
+    browserName,
   }) => {
+    test.slow(browserName === 'webkit', 'WebKit without a GPU paints few frames per second in CI');
     await page.setViewportSize(DESKTOP);
     await page.goto('/#mission-control', { waitUntil: 'networkidle' });
     await expect(page.locator(PARTICLES_PAINTED)).toBeAttached({
       timeout: SHAPES_WORKER_TIMEOUT_MS * 2,
     });
-    // Primero, que la escena está en la tortuga detrás del velo: el ciclo enciende sus placas.
-    await expect(page.locator('[data-plate]')).toBeAttached({ timeout: CYCLE_TIMEOUT_MS });
+    // Más que un turno del ciclo (2,6 s de reloj de escena, que avanza como mucho 0,1 s por frame).
+    await waitFrames(page, 40, 3000);
+    expect(await plates(page)).toEqual({ plate: null, rows: [] });
     expect(await shownPins(page)).toEqual([]);
     expect(await page.locator('[data-plate-pins] [data-live]').count()).toBe(0);
+    // La tortuga estaba detrás: de vuelta en Projects, el ciclo enciende sus placas.
+    await page.evaluate(() => {
+      document.getElementById('projects')?.scrollIntoView({ block: 'start', behavior: 'instant' });
+    });
+    await expect(page.locator('[data-plate]')).toBeAttached({ timeout: CYCLE_TIMEOUT_MS });
   });
 
   test('a row pointed while the cycle lights another plate lights its own', async ({ page }) => {
@@ -233,8 +243,21 @@ test.describe('the plates of the turtle', () => {
     const { plate: cycling } = await plates(page);
     const other = ordered.find(({ slug }) => slug !== cycling);
     if (other === undefined) throw new Error('Two projects needed');
-    // Que además el ciclo se pare no se ve desde fuera (`plateCycle.test.ts`): aquí, que manda la fila.
     await row(page, other.slug).hover();
+    await expectPointed(page, other.slug);
+    // Y la fila sigue mandando: más de un turno del ciclo (2,6 s de reloj de escena) sin que cambie la placa. Si no
+    // mandara, el ciclo pasaría por la suya dentro del sondeo y el `expectPointed` de arriba pasaría igual.
+    await page.locator('[data-plate]').evaluate((scene) => {
+      const seen: string[] = [];
+      Object.assign(window, { platesSeen: seen });
+      new MutationObserver(() => {
+        seen.push(scene.getAttribute('data-plate') ?? 'none');
+      }).observe(scene, { attributes: true, attributeFilter: ['data-plate'] });
+    });
+    await waitFrames(page, 40, 3000);
+    expect(
+      await page.evaluate(() => (window as unknown as { platesSeen: string[] }).platesSeen),
+    ).toEqual([]);
     await expectPointed(page, other.slug);
   });
 
@@ -359,6 +382,41 @@ test.describe('the plates of the turtle', () => {
       await pinsStill(page);
       await pinOf(page, first.slug).click();
       await expect(page).toHaveURL(new RegExp(`/projects/${first.slug}$`));
+      // Atrás: la capa de los pins vuelve a nacer y la escena los escribe enteros, los tres, en su sitio.
+      await page.goBack();
+      await expect(page).toHaveURL(/#projects$/);
+      await pinsStill(page);
+      expect((await shownPins(page)).map(({ slug }) => slug).sort()).toEqual(
+        ordered.map(({ slug }) => slug).sort(),
+      );
+    });
+
+    test('leaving the chapter with the wheel, the mouse still over a pin, lets its project go', async ({
+      page,
+    }) => {
+      const [first] = ordered;
+      if (first === undefined) throw new Error('No projects');
+      await openProjects(page, false);
+      await pinsStill(page);
+      await pinOf(page, first.slug).hover();
+      await expectPointed(page, first.slug);
+      // Sin mover el ratón: el motor tiene que volver a mirar qué hay bajo el puntero tras el scroll (en WebKit no
+      // está garantizado), como las etiquetas de Skills. Projects mide 240 vh: cuatro pantallas lo dejan atrás.
+      await page.mouse.wheel(0, DESKTOP.height * 4);
+      await expect(page.locator('[data-plate-pins] [data-live]')).toHaveCount(0);
+      await expectNothingPointed(page);
+    });
+
+    test('leaving the chapter with the wheel, the mouse still over a row, lets its project go', async ({
+      page,
+    }) => {
+      const [first] = ordered;
+      if (first === undefined) throw new Error('No projects');
+      await openProjects(page, false);
+      await row(page, first.slug).hover();
+      await expectPointed(page, first.slug);
+      await page.mouse.wheel(0, DESKTOP.height * 2);
+      await expectNothingPointed(page);
     });
 
     test('in Windows high contrast, the pointed row stands out (Highlight)', async ({
@@ -484,4 +542,27 @@ test('without WebGL the rows light no plate and are not marked by the mouse', as
   const off = await border(second.slug);
   await expect.poll(() => border(first.slug)).not.toBe(off);
   expect(await plates(page)).toEqual({ plate: null, rows: [] });
+});
+
+test('without WebGL the links of a row work: its project page, its code and its live demo', async ({
+  page,
+}) => {
+  await withoutWebGL(page);
+  await page.goto('/#projects', { waitUntil: 'networkidle' });
+  await settleScene(page);
+  await expect(page.locator('html')).toHaveClass(/\bno-gl\b/);
+  const chessmate = projectBySlug('chessmate');
+  const links = row(page, 'chessmate');
+  for (const [name, href] of [
+    ['Code', chessmate.links.code],
+    ['Live demo', chessmate.links.demo],
+  ] as const) {
+    if (href === null) continue;
+    const link = links.getByRole('link', { name: new RegExp(`^${name}`) });
+    await expect(link).toHaveAttribute('href', href);
+    await expect(link).toHaveAttribute('target', '_blank');
+  }
+  await links.getByRole('link', { name: 'View project Chessmate' }).click();
+  await expect(page).toHaveURL(/\/projects\/chessmate$/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Chessmate');
 });

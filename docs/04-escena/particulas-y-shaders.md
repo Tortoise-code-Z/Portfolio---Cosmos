@@ -209,7 +209,7 @@ las constelaciones.
   Medido en Bajo con movimiento reducido, restando el escalón de la misma vista sin Sol: desde 1280 px de ancho (1280×720
   y 1440×900, también en la cola de Mission control, m ≈ 3,7) el halo no llega al panel ni a la barra. Por debajo de
   ~1240 px la Tierra ya pasa por detrás del panel (escalón de 38 a 47 de 255 sin Sol; a 1280×720 ya lo roza:
-  `camara-y-encuadre.md` → «Cómo se ajustó») y el halo también (+11 a 1180×820 y +13 a 1152×864, el iPad apaisado; más por debajo de 1100): aceptado,
+  `camara-y-encuadre.md` → «Cómo se ajustó») y el halo también (+11 a 1180×820 y +13 a 1152×864, el iPad apaisado; +79 a 1100×800 y +36 a 1024×768, donde la Tierra ya cruza el panel): aceptado,
   como el de la Tierra. En un móvil apaisado (800×360, 667×375, 844×390) el halo pasa bajo la barra de arriba con un
   escalón de +9 a +14 y se ve un corte plano en su borde (la Tierra no la toca): aceptado, por ser un tamaño raro; un
   Sol más pequeño solo ahí dependería del alto de la barra. Se mira en un móvil real (F6).
@@ -218,7 +218,9 @@ las constelaciones.
   los pins): entrando por `/#contact`, mientras llegan las formas, brillaría sobre el vacío. Con opacidad 0 no se pinta
   (`material.visible`): un cuadrado tan grande costaría píxeles en cada frame aunque no se viera. La regla va por
   capítulo, no por la forma que se ve: si el retrato no llega, en m = 5 se sigue viendo la Tierra («Retrato»), ya sin
-  Sol pero iluminada desde `SUN_DIR`; solo pasa si falla el retrato, aceptado.
+  Sol pero iluminada desde `SUN_DIR`; solo pasa si falla el retrato, aceptado. No lee `SceneFrame.transmission`: va
+  detrás de Mission control y entra en su cola; al saltar con el raíl al interludio, se apaga con la rampa (~0,24 s),
+  como se aceptó para los pins.
 - **Sin recorte:** `frustumCulled = false`. Three recorta con la esfera de la geometría (radio √2) y el shader abre el
   cuadrado más allá (`uSize / 2`, hasta 1,83): con el recorte, el halo desaparecería de golpe con el centro aún fuera
   de la vista.

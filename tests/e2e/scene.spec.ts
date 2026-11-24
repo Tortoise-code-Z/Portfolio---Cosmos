@@ -19,6 +19,7 @@ import {
   SCENE_READY,
   settleScene,
   skipWithoutWebGL2,
+  waitFrames,
   withoutWebGL,
 } from './support/helpers.ts';
 import { SWIFTSHADER_RENDERER } from './support/renderers.ts';
@@ -552,7 +553,7 @@ test.describe('the scene with WebGL', () => {
       .poll(
         async () => {
           const first = await brightnessGrid(page, scene, CELL);
-          await page.waitForTimeout(400);
+          await waitFrames(page, 10, 400);
           before = await brightnessGrid(page, scene, CELL);
           const cells = before.flatMap((row, top) =>
             row.map((value, left) => ({ value, top, left })),
@@ -576,8 +577,22 @@ test.describe('the scene with WebGL', () => {
       scene.y + best.top * CELL + CELL / 2,
       { steps: 5 },
     );
-    await page.waitForTimeout(800);
-    const after = await brightnessGrid(page, scene, CELL);
+    // La gravedad sube en ≈ 0,25 s de reloj de escena: se mide cuando dos capturas seguidas (con 10 frames entre
+    // ellas) dan lo mismo en la celda del ratón, no tras una espera fija.
+    let after: number[][] = [];
+    await expect
+      .poll(
+        async () => {
+          const first = await brightnessGrid(page, scene, CELL);
+          await waitFrames(page, 10, 400);
+          after = await brightnessGrid(page, scene, CELL);
+          const now = after[best.top]?.[best.left] ?? 0;
+          const previous = first[best.top]?.[best.left] ?? 0;
+          return Math.abs(now - previous) / Math.max(now, 1);
+        },
+        { timeout: 15_000 },
+      )
+      .toBeLessThan(0.05);
     const [r, g, b] = await voidRgb(page);
     return {
       voidLevel: (r + g + b) / 3,

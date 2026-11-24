@@ -138,6 +138,22 @@ describe('PlatePins (the layer)', () => {
     expect(onOpen).toHaveBeenCalledExactlyOnceWith('chessmate');
   });
 
+  it('a pin with no project of its own (no data-pin, or an unknown one) neither points nor opens', () => {
+    const onOpen = vi.fn();
+    const elements = mountPins(onOpen);
+    const chessmate = pin(elements, 'chessmate');
+    for (const value of [undefined, 'unknown']) {
+      if (value === undefined) delete chessmate.dataset.pin;
+      else chessmate.dataset.pin = value;
+      fireEvent.pointerEnter(chessmate, { pointerType: 'mouse' });
+      fireEvent.pointerDown(chessmate, { pointerType: 'mouse' });
+      fireEvent.click(chessmate);
+      fireEvent.pointerLeave(chessmate, { pointerType: 'mouse' });
+      expect(pointed(), String(value)).toBeNull();
+    }
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
   it('a click that opens keeps its project pointed while the project page arrives (the tap-outside capture let it go)', () => {
     const onOpen = vi.fn();
     const elements = mountPins(onOpen);
@@ -234,9 +250,14 @@ describe('PlatePins (the layer)', () => {
     // Las medidas en que se apoya `pinTagWidth`: la mono (0,6 em por letra), en una línea, y el borde de `borderPx`.
     expect(rule('.pin')).toContain('font-family: var(--font-mono);');
     expect(rule('.pin')).toContain('white-space: nowrap;');
-    // El tallo: el degradado ámbar al 70 % (componentes.md → «Pin de placa»).
+    // El tallo: el degradado ámbar, con su 70 % en el token (componentes.md → «Pin de placa»).
     expect(rule('.stem')).toContain('background-image: var(--gradient-pin-stem);');
-    expect(rule('.stem')).toContain('opacity: 0.7;');
+    expect(rule('.stem')).not.toContain('opacity');
+    // La etiqueta, sobre el velo de los paneles: `styles.test.ts` prueba su texto (`--color-ink-soft` y, encendida,
+    // `--color-star`) con AA sobre ese velo encima de una escena blanca.
+    expect(rule('.tag')).toContain('background-color: var(--color-veil);');
+    // Tocarlo en un móvil no pinta el resaltado del sistema.
+    expect(rule('.pin')).toContain('-webkit-tap-highlight-color: transparent;');
     // Se enciende al ritmo de la fila (movimiento.md: `--dur-base`).
     expect(rule('.tag')).toContain('color var(--dur-base) var(--ease-out)');
     expect(rule('.tag')).toContain('border-color var(--dur-base) var(--ease-out);');

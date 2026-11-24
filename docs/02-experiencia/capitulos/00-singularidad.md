@@ -23,7 +23,7 @@ Presentar quién eres en 3 segundos y dar el primer momento «wow». Tesis visua
 **Mantén pulsado para detonar**
 - Mientras se mantiene (ratón, dedo, o `Espacio`/`Enter` con foco en el botón) la carga sube de 0 a 1 en
   **1,5 s**; al soltar, baja a ritmo de 1,8/s.
-- Con la carga: el punto crece y vibra, el halo se expande, el fondo (lienzo y halo) tiembla un poco y el nombre
+- Con la carga: el punto (con escena) crece y vibra, el halo se expande, el fondo (lienzo y halo) tiembla un poco y el nombre
   **se comprime** (el eje `wdth` baja): la energía se acumula.
 - Al llegar a 1: **destello** radial blanco-ámbar (entre el lienzo y el texto, y se apaga solo en ≈ 0,6 s: no se
   queda tapando la lectura), la explosión
@@ -61,8 +61,9 @@ Presentar quién eres en 3 segundos y dar el primer momento «wow». Tesis visua
   usuario).
 - Sin WebGL: el punto y el halo se dibujan con CSS, así que el hero se ve completo igual. Con escena, el punto
   es el de partículas y el halo sigue siendo el CSS (`estados-y-accesibilidad.md` → «Secuencia de carga»).
-- Sin WebGL, el nombre (`wdth` y espaciado) y el halo (con él, el punto CSS) siguen la carga y el scroll; el destello y el temblor solo
-  existen con la escena, porque acompañan a la explosión de partículas (ADR-030).
+- Sin WebGL, el nombre (`wdth` y espaciado) y el halo siguen la carga y el scroll; el punto CSS se apaga con el halo
+  al bajar (no crece: eso lo hace el de partículas). El destello y el temblor solo existen con la escena, porque
+  acompañan a la explosión de partículas (ADR-030).
 
 ## Aceptación
 

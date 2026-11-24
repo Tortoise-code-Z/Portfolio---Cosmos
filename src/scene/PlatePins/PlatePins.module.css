@@ -19,6 +19,8 @@
 
 .pin {
   position: absolute;
+  /* Tocarlo en un móvil no pinta el resaltado del sistema encima del ámbar. */
+  -webkit-tap-highlight-color: transparent;
   inset-block-start: 0;
   inset-inline-start: 0;
   font-family: var(--font-mono);
@@ -37,7 +39,8 @@
   display: block;
   padding: 4px 8px;
   border: var(--border-width) solid var(--color-faint);
-  background-color: var(--color-veil-soft);
+  /* El velo de los paneles: su texto pasa AA aunque la tortuga brille detrás (componentes.md → «Pin de placa»). */
+  background-color: var(--color-veil);
   transition:
     color var(--dur-base) var(--ease-out),
     border-color var(--dur-base) var(--ease-out);
@@ -54,7 +57,6 @@
   inline-size: var(--border-width);
   block-size: calc(46px + var(--_pin-floor, 0) * 30px);
   background-image: var(--gradient-pin-stem);
-  opacity: 0.7;
   pointer-events: none;
 }
 

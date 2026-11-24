@@ -6,7 +6,8 @@ import { chapterPresence } from '../chapterPresence/chapterPresence';
  * proyecto señalado (fila o pin) y, si no hay ninguno, la del ciclo automático, que va por turnos cada
  * `PLATE_LOOK.cycleSeconds`. Mientras hay uno señalado, tenga placa o no, el ciclo se para y, al soltarlo, vuelve a
  * contar desde cero en la placa en la que estaba. Sin ciclo con movimiento reducido. Con la presencia del capítulo 3 a
- * `litFrom` o menos, ninguna. Puras: `SceneRoot` las aplica con lo que lee del frame y de `uiStore`.
+ * `litFrom` o menos, o en un interludio (la tortuga quieta tras el velo de Mission control, como los pins), ninguna.
+ * Puras: `SceneRoot` las aplica con lo que lee del frame y de `uiStore`.
  */
 
 /** El ciclo automático: la placa en la que va (índice en la lista de placas con proyecto) y el tiempo en ella. */
@@ -26,6 +27,8 @@ export interface PlateStep {
   /** Segundos desde el frame anterior. */
   delta: number;
   reducedMotion: boolean;
+  /** Se lee un interludio (`SceneFrame.transmission`): ninguna placa y el ciclo, quieto. */
+  transmission: boolean;
   /** Hay un proyecto señalado (con placa o sin ella: más de 7 proyectos): el ciclo se para. */
   pointing: boolean;
   /** La placa del proyecto señalado, o `NO_PLATE` (ninguno, o uno sin placa). */
@@ -33,7 +36,14 @@ export interface PlateStep {
 }
 
 export function createPlateStep(): PlateStep {
-  return { m: 0, delta: 0, reducedMotion: false, pointing: false, pointed: NO_PLATE };
+  return {
+    m: 0,
+    delta: 0,
+    reducedMotion: false,
+    transmission: false,
+    pointing: false,
+    pointed: NO_PLATE,
+  };
 }
 
 /**
@@ -41,7 +51,8 @@ export function createPlateStep(): PlateStep {
  * proyecto, en el orden de su asignación (`assignPlates`: el destacado primero).
  */
 export function stepPlates(cycle: PlateCycle, labels: readonly number[], step: PlateStep): number {
-  const near = chapterPresence(step.m, PLATE_LOOK.chapter) > PLATE_LOOK.litFrom;
+  const near =
+    !step.transmission && chapterPresence(step.m, PLATE_LOOK.chapter) > PLATE_LOOK.litFrom;
   const running = near && !step.reducedMotion && !step.pointing && labels.length > 0;
   if (!running) {
     cycle.elapsed = 0;

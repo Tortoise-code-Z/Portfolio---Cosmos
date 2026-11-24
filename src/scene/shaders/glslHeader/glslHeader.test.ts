@@ -4,34 +4,39 @@ import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/pla
 import { CAMERA_KEYFRAMES, SUN, TURTLE_SWAY } from '../../config/sceneConfig';
 import { SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
 import { EARTH_TAG, PORTRAIT_FRAME, TURTLE_TAG } from '../../shapes/shapeContract/shapeContract';
-import constellationLinesFragment from '../constellations/constellationLines.frag.glsl?raw';
-import constellationsVertex from '../constellations/constellations.vert.glsl?raw';
-import constellationStarsFragment from '../constellations/constellationStars.frag.glsl?raw';
-import particlesFragment from '../particles/particles.frag.glsl?raw';
-import particlesVertex from '../particles/particles.vert.glsl?raw';
-import starsFragment from '../stars/stars.frag.glsl?raw';
-import starsVertex from '../stars/stars.vert.glsl?raw';
-import sunFragment from '../sun/sun.frag.glsl?raw';
-import sunVertex from '../sun/sun.vert.glsl?raw';
 import { constantName, glslFloat, glslHeader, sunDirection } from './glslHeader';
 
 const header = glslHeader();
-/** La cabecera solo se antepone a los vertex shaders (`sceneMaterials`). */
-const VERTEX_SHADERS = { particlesVertex, starsVertex, constellationsVertex, sunVertex };
-const FRAGMENT_SHADERS = {
-  particlesFragment,
-  starsFragment,
-  constellationStarsFragment,
-  constellationLinesFragment,
-  sunFragment,
-};
-const SHADERS = { ...VERTEX_SHADERS, ...FRAGMENT_SHADERS };
+/**
+ * Todos los shaders de `scene/shaders`, por su ruta: uno nuevo queda vigilado sin apuntarlo a mano. La cabecera solo
+ * se antepone a los vertex shaders (`sceneMaterials`).
+ */
+const SHADERS: Readonly<Record<string, string>> = import.meta.glob<string>('../**/*.glsl', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+const only = (suffix: string): Readonly<Record<string, string>> =>
+  Object.fromEntries(Object.entries(SHADERS).filter(([path]) => path.endsWith(suffix)));
+const VERTEX_SHADERS = only('.vert.glsl');
+const FRAGMENT_SHADERS = only('.frag.glsl');
+const particlesVertex = SHADERS['../particles/particles.vert.glsl'] ?? '';
 const HEADER_NAME = /\b(?:TURTLE|EARTH|PLATE|PORTRAIT|COLOR|SUN)_\w+/g;
 
 /** Los nombres que define la cabecera (`#define X …` y `const vec3 X = …`). */
 const defined = new Set(
   [...header.matchAll(/^(?:#define (\w+)|const vec3 (\w+))/gm)].map(([, a, b]) => a ?? b),
 );
+
+describe('the shaders of scene/shaders', () => {
+  it('are all here, each a vertex or a fragment shader', () => {
+    expect(Object.keys(SHADERS).length).toBeGreaterThanOrEqual(9);
+    expect(particlesVertex).not.toBe('');
+    expect(Object.keys(VERTEX_SHADERS).length + Object.keys(FRAGMENT_SHADERS).length).toBe(
+      Object.keys(SHADERS).length,
+    );
+  });
+});
 
 describe('glslHeader', () => {
   it('defines every turtle and Earth tag with its value, and the plate range', () => {

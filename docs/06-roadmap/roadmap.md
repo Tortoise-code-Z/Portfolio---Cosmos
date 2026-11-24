@@ -109,15 +109,16 @@ no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierr
 
 1. **Singularidad:** mantén para detonar (puntero y teclado), destello, temblor, nombre con `wdth`, autoscroll.
    *(Hecho en F4.1, PR #82: la carga llega a la escena y los efectos del DOM tienen su propio bucle con la misma `m`
-   suavizada, ADR-030.)*
+   suavizada, ADR-030. Su auditoría, corregida en el PR #85.)*
 2. **Nebulosa:** protoestrella y gravedad del cursor.
    *(Hecho en F4.2, PR #83: la protoestrella ya venía de F3; la gravedad del cursor, conectada, con la misma
-   intensidad en todos los capítulos hasta que F4.3 y F4.5 ajusten los suyos.)*
+   intensidad en todos los capítulos hasta que F4.3 y F4.5 ajusten los suyos. Su auditoría, corregida en el PR #86.)*
 3. **Galaxia:** 4 constelaciones, etiquetas proyectadas, encendido sincronizado con el panel (ratón, foco, toque);
    test de no solapamiento.
    *(En tres PR: F4.3a, el peso de la escena (ADR-032: 260 KB) y las posiciones con su test de no solapamiento;
    F4.3b, la escena, las etiquetas y el grupo activo, con las fotos y la captura de la galaxia; F4.3c, el panel, el
-   táctil y los e2e de la interacción. Hecho: F4.3a (PR #87), F4.3b (PR #88) y F4.3c (PR #94).)*
+   táctil y los e2e de la interacción. Hecho: F4.3a (PR #87), F4.3b (PR #88) y F4.3c (PR #94); sus auditorías,
+   corregidas en los PR #89, #93, #96 y #101.)*
 *(Los pasos 4 y 5 esperan a la fase C, «Contenido y secciones nuevas», que va entre F4.3 y F4.4: ADR-034.)*
 
 4. **Tortuga:** placas por huecos, pins, ciclo automático, resaltado sincronizado con las filas.
@@ -127,19 +128,22 @@ no hay GPU; `docs/05-tecnico/calidad.md` → «Mediciones». Auditoría de cierr
 5. **Tierra:** día/noche, amanecer, luces de ciudad, atmósfera y Sol.
    *(Hecho en F4.5, PR #117: la Tierra traía de F3 el día y la noche, el amanecer, las luces de ciudad y la atmósfera; F4.5
    suma el Sol, un brillo que mira a la cámara sobre el limbo superior izquierdo (`scene/Sun`), del que sale la luz
-   de la Tierra (`SUN_DIR`), y la gravedad del cursor a la mitad sobre la Tierra. Pesó 444 B de sus 3 KB.)*
+   de la Tierra (`SUN_DIR`), y la gravedad del cursor a la mitad sobre la Tierra. Pesó 444 B de sus 3 KB. Su auditoría,
+   corregida en el PR #119.)*
 
 Con la galaxia y la tortuga hechas (pasos 3 y 4), la ficha de **Cosmos** suma sus constelaciones: entró en C.5
-como «Skill constellations that light up with the mouse, keyboard or touch»; las placas, cuando tengan interacción
-(F5) (`docs/01-contenido/proyectos/cosmos.md` → «Features»).
+como «Skill constellations that light up with the mouse, keyboard or touch»; las placas, con su interacción completa
+(F5: su luz al volver de una ficha) (`docs/01-contenido/proyectos/cosmos.md` → «Features»).
 
 En cada paso que cambie lo que se ve de la escena (formas, shaders, cámara, placas, el Sol): `npm run stills` y las
 fotos nuevas en el mismo PR (ADR-029; el e2e de su huella lo recuerda). Si el paso crea una carpeta nueva en
-`scene/` que cambie las fotos, se añade a `STILLS_SOURCES` (`tests/stills/fingerprint.ts`).
+`scene/`, se clasifica en la tabla única de la escena (`scripts/sceneModules.ts`; su test lo exige): con `stills: true`,
+entra en la huella.
 
 **Hecho cuando:** cada capítulo cumple sus criterios de aceptación de `docs/02-experiencia/capitulos/`.
 Etiqueta `v0.3.0`.
-*(Versión 0.3.0 medida el 2026-11-23: cada criterio de aceptación de los capítulos 0–4 tiene su test o su medida;
+*(Versión 0.3.0 medida el 2026-11-23: cada criterio de aceptación de los capítulos 0–4 tiene su test o su medida
+(tabla en `docs/05-tecnico/calidad.md` → «Cierre de F4 · aceptación de los capítulos 0–4»);
 PageSpeed 98–100 en móvil y 100 en escritorio, 95–100 en el build local, sin escena donde no hay GPU; 60 fps en Alto
 por todo el viaje en el equipo de F3.6c (`docs/05-tecnico/calidad.md` → «Mediciones»). Faltan la auditoría de cierre y
 la etiqueta.)*

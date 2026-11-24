@@ -31,6 +31,8 @@
 
 .group {
   padding-block: var(--space-2);
+  /* Tocarlo en un móvil no pinta el resaltado del sistema encima del ámbar. */
+  -webkit-tap-highlight-color: transparent;
   padding-inline-start: var(--space-4);
   border-inline-start: var(--border-width) solid var(--color-faint);
   transition: border-color var(--dur-base) var(--ease-out);

@@ -81,8 +81,15 @@ pisarían el panel o la barra); en la foto fija de la galaxia se ve bien.
 «Peso» = presencia del capítulo 2: `clamp(1 − |m − 2| · 1,8, 0, 1)` (`math/chapterPresence`: la misma rampa para
 las placas y los pins del 3; el 1,8 es `CHAPTER_PRESENCE_FADE`, `sceneConfig`). La transición entre estados se suaviza a
 ritmo `dt · 8`; con movimiento reducido es instantánea. El grupo activo es `uiStore.activeSkillGroup` (lo escriben
-el panel y las etiquetas, F4.3c; la escena lo lee en cada frame, sin re-render). Las cifras viven en
+el panel y las etiquetas, F4.3c); el bucle de la escena lo copia en cada frame a `SceneFrame.skillGroup`, sin
+re-render, y las constelaciones lo leen de ahí, no del store (ADR-027). Las cifras viven en
 `CONSTELLATION_LOOK` (`scene/config/constellationLayout`) y las cuentas en `scene/math/constellations`.
+
+Antes de que las partículas se pinten (`SceneFrame.painted`), nada: entrando por `/#skills` mientras llegan las
+formas, las estrellas, las líneas y sus etiquetas (vivas) flotarían sobre el vacío, como los pins y el Sol. No leen
+`SceneFrame.transmission`: van detrás del Mission log y entran en su cola; al saltar con el raíl al interludio, se
+apagan con la rampa (~0,24 s), como se aceptó para los pins. A opacidad 0 (fuera de su capítulo) no se dibujan
+(`visible = false` en sus materiales).
 
 Las etiquetas en reposo van al 0,8 (5,9 : 1 sobre el vacío; al 0,6 del prototipo daban 3,7 : 1) y llevan un halo
 oscuro alrededor de las letras (`--halo-star-label`, dos sombras de `--color-void`): así se leen también sobre los
@@ -171,8 +178,8 @@ la parte superior del caparazón.
   con una inserción (cero objetos nuevos por frame). En el móvil quedan en escalera. El piso se decide en cada frame
   desde el de abajo, sin histéresis: si el balanceo o el paralaje llevan dos etiquetas justo al umbral de choque, el
   tallo salta 30 px y vuelve (se acepta: es raro y lento; se mira en un móvil real, F6). Mientras se lee una
-  transmisión (`SceneFrame.transmission`, que el bucle copia de `sceneStore.interlude`: Mission control, con la
-  tortuga aún detrás de su velo), ninguno: sus etiquetas quedarían tras el texto. Tampoco antes de que las partículas
+  transmisión (`SceneFrame.transmission`, que el bucle copia de `sceneStore.interlude`: un interludio, su pantalla o
+  su cola, no el epílogo; aquí cuenta Mission control, con la tortuga aún detrás de su velo), ninguno: sus etiquetas quedarían tras el texto. Tampoco antes de que las partículas
   se pinten (`SceneFrame.painted`): entrando por `/#projects`, mientras llegan las formas, flotarían sobre el vacío. Se escribe solo lo que cambia (`scene/labelWriter`, el
   mismo que usan las etiquetas): `transform`, opacidad (la presencia del capítulo 3), `visibility`, `data-hot` (su
   placa encendida: el proyecto señalado o el ciclo), `data-live` y el piso (`--_pin-floor`).
@@ -198,9 +205,11 @@ la parte superior del caparazón.
   orden de la asignación (el destacado primero). Mientras hay uno señalado (aunque no tenga placa: con más de 7
   proyectos), el ciclo se para y, al soltarlo, vuelve a contar desde cero en la placa en la que estaba; uno sin placa
   no enciende ninguna. Sin ciclo con movimiento reducido. Con la presencia del capítulo 3
-  (`math/chapterPresence`, la misma rampa que la del 2) a 0,2 o menos, ninguna. Las cifras viven en
+  (`math/chapterPresence`, la misma rampa que la del 2) a 0,2 o menos, ninguna. Leyendo Mission control (con la
+  tortuga quieta y atenuada tras su velo, como los pins: `SceneFrame.transmission`), ninguna y el ciclo se queda quieto;
+  al volver a Projects, sigue desde cero en la placa en la que estaba. Las cifras viven en
   `PLATE_LOOK` (`config/plateSlots`) y la cuenta en `scene/math/plateCycle`; el bucle de `SceneRoot` la deja en
-  `SceneFrame.plate` y marca su envoltorio con el slug del proyecto (`data-plate`, para los e2e).
+  `SceneFrame.plate` (leyendo `uiStore.activeProject` una vez por frame) y marca su envoltorio con el slug del proyecto (`data-plate`, para los e2e).
 - El ciclo solo enciende la placa (y, desde F4.4b, su pin): la fila se marca (`data-hot`) solo con un gesto.
 - En el shader la placa activa pasa a blanco cálido ×2 con pulso `sin(t · 5)` (sin pulso con movimiento reducido:
   va por `uMotion`) y tamaño +0,7.

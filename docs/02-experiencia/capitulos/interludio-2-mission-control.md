@@ -60,8 +60,8 @@ rótulo.
 
 - La tortuga se queda quieta y atenuada detrás: Projects ya no cambia en su segunda mitad (`morphStart: null`), y el
   cambio a la Tierra pasa a la cola del interludio, al salir (`JOURNEY_SEGMENTS`). En la pantalla, el reloj se para
-  (`m` = 3): el HUD se esconde y el pie lo dice. Las placas no reciben el puntero (la pantalla lo recoge); la cola, sí
-  lo deja pasar.
+  (`m` = 3): el HUD se esconde y el pie lo dice. Ni pins ni placa encendida: el ciclo automático se queda quieto
+  (enseña que las placas se tocan, y ahí no se tocan; la pantalla recoge el puntero); la cola, sí lo deja pasar.
 - El raíl creció a siete paradas en C.4 (la reserva de las etiquetas de las estrellas, `STAR_LABEL_KEEP_OUT`, media
   altura del raíl, pasó a 154 px); desde C.6, con el Crew file, son ocho y 176 px.
 

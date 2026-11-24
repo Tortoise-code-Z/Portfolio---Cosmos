@@ -4,7 +4,6 @@ import { BufferAttribute, BufferGeometry, type ShaderMaterial } from 'three';
 
 import { skillGroups } from '~/content/skills';
 import type { SkillGroupId } from '~/content/types';
-import { useUiStore } from '~/stores/uiStore/uiStore';
 
 import type { StarLabelElements } from '../ConstellationLabels/ConstellationLabels';
 import {
@@ -184,7 +183,6 @@ export function createConstellationWork(
       frame,
       width: 1,
       height: 1,
-      active: null,
       widths: { wide: [], narrow: [] },
       labels: labelElements,
     },
@@ -197,23 +195,34 @@ export interface ConstellationStep {
   /** El tamaño del lienzo, en píxeles CSS. */
   width: number;
   height: number;
-  active: SkillGroupId | null;
   widths: LabelWidths;
   labels: StarLabelElements;
 }
 
-/** Un frame: lo encendido de cada grupo y sus uniforms; después, las etiquetas. */
+/**
+ * Un frame: lo encendido de cada grupo y sus uniforms; después, las etiquetas. Hasta que las partículas están pintadas
+ * (`frame.painted`), nada: sin galaxia detrás, como los pins y el Sol. No miran `frame.transmission`: entran en la cola
+ * del Mission log.
+ */
 export function stepConstellations(work: ConstellationWork, step: ConstellationStep): void {
-  const { frame, active } = step;
-  const presence = chapterPresence(frame.m, CONSTELLATION_LOOK.chapter);
+  const { frame } = step;
+  const presence = frame.painted ? chapterPresence(frame.m, CONSTELLATION_LOOK.chapter) : 0;
   for (const group of work.groups) {
     const { mesh } = group;
-    group.hot = followHot(group.hot, mesh.group === active, frame.delta, frame.reducedMotion);
+    group.hot = followHot(
+      group.hot,
+      mesh.group === frame.skillGroup,
+      frame.delta,
+      frame.reducedMotion,
+    );
     const look = constellationLook(presence, group.hot, work.look);
     mesh.starUniforms.uSize.value = look.starPx;
     mesh.starUniforms.uPR.value = frame.pixelRatio;
     mesh.starUniforms.uOpacity.value = look.starOpacity;
     mesh.lineUniforms.uOpacity.value = look.lineOpacity;
+    // A opacidad 0 no se dibujan (como el Sol): fuera de su capítulo, ni llamadas de dibujo ni sprites que suman 0.
+    mesh.stars.material.visible = look.starOpacity > 0;
+    mesh.lines.material.visible = look.lineOpacity > 0;
     group.labelOpacity = look.labelOpacity;
   }
   // Sin capítulo, y con las etiquetas ya ocultas, nada que colocar.
@@ -224,7 +233,7 @@ export function stepConstellations(work: ConstellationWork, step: ConstellationS
 
 function placeLabels(
   work: ConstellationWork,
-  { frame, width, height, active, widths, labels }: ConstellationStep,
+  { frame, width, height, widths, labels }: ConstellationStep,
   presence: number,
 ): void {
   const { viewport, point } = work;
@@ -255,7 +264,7 @@ function placeLabels(
       labels.get(slot.id),
       slot,
       slot.group.labelOpacity,
-      slot.group.id === active,
+      slot.group.id === frame.skillGroup,
       interactive,
     );
   }
@@ -268,7 +277,6 @@ export function runConstellationsFrame(
   labels: StarLabelElements,
   size: Readonly<{ width: number; height: number }>,
   widths: LabelWidths,
-  active: SkillGroupId | null,
 ): void {
   const { step } = work;
   step.frame = frame;
@@ -276,14 +284,13 @@ export function runConstellationsFrame(
   step.width = size.width;
   step.height = size.height;
   step.widths = widths;
-  step.active = active;
   stepConstellations(work, step);
 }
 
 /**
  * Lo que mueve las constelaciones en cada frame (docs/04-escena/constelaciones-y-placas.md → «Estados»): la
- * presencia del capítulo 2 (con la `m` de la escena), lo encendido de cada grupo (el activo de
- * `uiStore.activeSkillGroup`; al instante con movimiento reducido) y, de ahí, el tamaño y la opacidad de estrellas y
+ * presencia del capítulo 2 (con la `m` de la escena, y nada hasta que las partículas están pintadas), lo encendido de
+ * cada grupo (el de `frame.skillGroup`, que el bucle copia de `uiStore`; al instante con movimiento reducido) y, de ahí, el tamaño y la opacidad de estrellas y
  * líneas. Coloca las etiquetas: las proyecta con la pose de la cámara de este frame (la deja `CameraRig`, que va
  * antes), oculta las que no caben (`fitLabels`, contra lo que tapa la interfaz) y escribe solo lo que cambia; con el
  * capítulo a más de `interactiveFrom`, las visibles responden al puntero, ratón o toque (`data-live`). Sin
@@ -312,14 +319,7 @@ export function useConstellations({
   );
 
   useFrame((state: RootState) => {
-    runConstellationsFrame(
-      work,
-      frame,
-      labels,
-      state.size,
-      widths,
-      useUiStore.getState().activeSkillGroup,
-    );
+    runConstellationsFrame(work, frame, labels, state.size, widths);
   });
 
   return meshes;
