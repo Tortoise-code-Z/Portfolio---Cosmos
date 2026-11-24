@@ -269,7 +269,18 @@ describe('Transmission', () => {
         link.focus();
       });
       // Final de la llegada (400 + 5000 − 64) y lo justo más allá: 64 + (760 − 64) + 44 − 720 = 84 (sin anillo en jsdom).
-      expect(scrollTo).toHaveBeenCalledWith({ top: 5336 + 84, behavior: 'instant' });
+      expect(scrollTo).toHaveBeenCalledWith({ top: 5336 + 84, behavior: 'auto' });
+    });
+
+    it('it keeps looking for a few frames (WebKit scrolls for the focus later), then stops', () => {
+      const scrollTo = setUpWindow();
+      const { region, link } = renderEpilogue();
+      layOut(region, link, 760);
+      act(() => {
+        link.focus();
+      });
+      // Con el enlace siempre fuera de la vista (las cajas no cambian en jsdom): un intento por frame, y se acaba.
+      expect(scrollTo).toHaveBeenCalledTimes(30);
     });
 
     it('what is already in view is left where it is', () => {

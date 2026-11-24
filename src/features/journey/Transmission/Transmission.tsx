@@ -116,9 +116,12 @@ function cssNumber(value: string): number {
  * El foco en una sección con llegada (ADR-039): mientras dura la llegada su escenario está pegado bajo la barra y lo
  * que cae por debajo de la ventana no sube con el scroll, así que el navegador no consigue enseñar lo que se enfoca
  * allí con Tab. Si queda fuera de la vista, se va al final de la llegada (donde el escenario se suelta) y lo justo más
- * allá para que se vea entero con su anillo (`stageFocusScroll`). Un frame después del foco: tras el scroll del
- * navegador.
+ * allá para que se vea entero con su anillo (`stageFocusScroll`). Se mira en los frames que siguen al foco
+ * (`ARRIVAL_FOCUS_FRAMES`: medio segundo a 60 fps), no solo en el primero: WebKit hace su propio scroll del foco
+ * después (en el CI, a ~3 fps, lo dejaba justo en el borde de abajo, con el anillo fuera).
  */
+const ARRIVAL_FOCUS_FRAMES = 30;
+
 function useArrivalFocus(ref: RefObject<HTMLElement | null>, arriving: boolean): void {
   useEffect(() => {
     const section = ref.current;
@@ -145,11 +148,18 @@ function useArrivalFocus(ref: RefObject<HTMLElement | null>, arriving: boolean):
         viewport: window.innerHeight,
         margin,
       });
-      window.scrollTo({ top, behavior: 'instant' });
+      // `auto` y no `instant` (que no todos los motores entienden): el CSS no pide scroll suave.
+      window.scrollTo({ top, behavior: 'auto' });
     };
     const onFocus = (): void => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(place);
+      let left = ARRIVAL_FOCUS_FRAMES;
+      const tick = (): void => {
+        place();
+        left -= 1;
+        if (left > 0) frame = requestAnimationFrame(tick);
+      };
+      frame = requestAnimationFrame(tick);
     };
     section.addEventListener('focusin', onFocus);
     return () => {
