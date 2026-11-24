@@ -4,7 +4,7 @@ import { CHAPTER_ANCHORS, EPILOGUE, INTERLUDE, type InterludeId } from '~/conten
 import { cx } from '~/lib/css/cx/cx';
 import { prefersReducedMotion } from '~/lib/device/reducedMotion/reducedMotion';
 import { useT } from '~/lib/i18n/useT/useT';
-import { stageFocusScroll } from '~/lib/scroll/arrival/arrival';
+import { stageFocusScroll } from '~/lib/scroll/stageFocus/stageFocus';
 import { LANDING_SELECTOR } from '~/lib/scroll/jumpToChapter/jumpToChapter';
 import { VisuallyHidden } from '~/ui/VisuallyHidden/VisuallyHidden';
 

@@ -343,14 +343,14 @@ test.describe('Crew file', () => {
   test('its anchor and the rail land where its arrival ends, with the epilogue already brought in', async ({
     page,
   }) => {
+    // A un par de píxeles: Firefox redondea el scroll de un salto a su manera (en el CI, 1 px de más).
+    const offLanding = async () =>
+      Math.abs((await page.evaluate(() => window.scrollY)) - (await arrivalGeometry(page)).landed);
     await page.goto('/#crew-file', { waitUntil: 'networkidle' });
-    const { landed } = await arrivalGeometry(page);
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeCloseTo(landed, 0);
+    await expect.poll(offLanding).toBeLessThanOrEqual(2);
     await page.goto('/#contact', { waitUntil: 'networkidle' });
     await rail(page).getByRole('link', { name: 'Crew file · Epilogue' }).click();
-    await expect
-      .poll(() => page.evaluate(() => window.scrollY), { timeout: 10_000 })
-      .toBeCloseTo((await arrivalGeometry(page)).landed, 0);
+    await expect.poll(offLanding, { timeout: 10_000 }).toBeLessThanOrEqual(2);
   });
 
   test('with reduced motion it has no arrival: it is read as soon as it comes', async ({
