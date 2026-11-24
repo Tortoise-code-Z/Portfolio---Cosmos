@@ -91,9 +91,12 @@ export function stopChapter(stop: ChapterStop): ChapterIndex {
   return Number(stop.slice('chapter-'.length)) as ChapterIndex;
 }
 
-/** Un tramo del viaje medido en el DOM: un capítulo, la pantalla de un interludio o su cola. */
+/**
+ * Un tramo del viaje medido en el DOM: un capítulo, la pantalla de un interludio o su cola, o la llegada de un
+ * capítulo (el tramo antes de leerlo en el que se queda fijo mientras la escena lo trae: hoy, el epílogo; ADR-039).
+ */
 export type JourneySegment =
-  | { readonly kind: 'chapter'; readonly chapter: ChapterIndex }
+  | { readonly kind: 'chapter' | 'arrival'; readonly chapter: ChapterIndex }
   | { readonly kind: 'interlude' | 'interlude-tail'; readonly interlude: InterludeId };
 
 /**
@@ -101,8 +104,9 @@ export type JourneySegment =
  * su forma (`base`) y desde qué fracción cambia a la siguiente (`morphStart`; `null`, quieta). Antes de cada interludio,
  * el capítulo y la pantalla del interludio se quedan quietos y la forma cambia en su cola, al salir: About y el Mission
  * log con la nebulosa (a galaxia), Projects y Mission control con la tortuga (a la Tierra). El inicio cambia desde el
- * principio (el Big Bang), y Skills y Contacto en su segunda mitad (la columna «Ventana de morph»). El último, el
- * epílogo, no cambia.
+ * principio (el Big Bang) y Skills en su segunda mitad (la columna «Ventana de morph»). Contacto se queda con la
+ * Tierra: el epílogo tiene su llegada (ADR-039), un tramo medido en su propia sección (fija mientras dura) en el que la
+ * Tierra pasa al retrato; lo lee el marcador del final de la llegada (`data-landing`), ya en el retrato.
  */
 export const JOURNEY_SEGMENTS: readonly (JourneySegment & {
   readonly base: ChapterIndex;
@@ -116,8 +120,9 @@ export const JOURNEY_SEGMENTS: readonly (JourneySegment & {
   { kind: 'chapter', chapter: 3, base: 3, morphStart: null },
   { kind: 'interlude', interlude: 'mission-control', base: 3, morphStart: null },
   { kind: 'interlude-tail', interlude: 'mission-control', base: 3, morphStart: 0 },
-  // Contacto cambia en su segunda mitad, como Skills: la Tierra pasa al retrato del epílogo (la forma 5). Si el retrato
-  // aún no ha llegado, con `m` entre 4 y 5 la escena se queda en la Tierra (docs/04-escena/formas.md → «Retrato»).
-  { kind: 'chapter', chapter: 4, base: 4, morphStart: 0.52 },
+  { kind: 'chapter', chapter: 4, base: 4, morphStart: null },
+  // La llegada del epílogo: la Tierra pasa al retrato (la forma 5) mientras la sección se queda fija. Si el retrato aún
+  // no ha llegado, con `m` entre 4 y 5 la escena se queda en la Tierra (docs/04-escena/formas.md → «Retrato»).
+  { kind: 'arrival', chapter: 5, base: 4, morphStart: 0 },
   { kind: 'chapter', chapter: 5, base: 5, morphStart: null },
 ];

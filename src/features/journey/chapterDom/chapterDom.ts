@@ -1,4 +1,5 @@
 import type { ChapterIndex, InterludeId } from '~/content/chapters';
+import { LANDING_SELECTOR } from '~/lib/scroll/jumpToChapter/jumpToChapter';
 
 /**
  * El contrato del viaje con el DOM: cómo se encuentran sus capítulos y su nombre. Lo pintan los
@@ -11,10 +12,11 @@ import type { ChapterIndex, InterludeId } from '~/content/chapters';
 export const CHAPTER_SELECTOR = '[data-chapter]';
 
 /**
- * Cómo se encuentran los tramos del viaje en el DOM, en el orden de `JOURNEY_SEGMENTS`: los capítulos y, de cada
- * interludio, su pantalla y su cola (lo usa el mapeo de scroll).
+ * Cómo se encuentran los tramos del viaje en el DOM, en el orden de `JOURNEY_SEGMENTS`: los capítulos, de cada
+ * interludio su pantalla y su cola, y de un capítulo con llegada (el epílogo) el final de la llegada (lo usa el mapeo
+ * de scroll; la sección del capítulo mide su llegada).
  */
-export const JOURNEY_SEGMENT_SELECTOR = '[data-chapter], [data-interlude], [data-interlude-tail]';
+export const JOURNEY_SEGMENT_SELECTOR = `[data-chapter], [data-interlude], [data-interlude-tail], ${LANDING_SELECTOR}`;
 
 /** Id del nombre (el `h1`): destino de «Skip to content» sin JavaScript. */
 export const HERO_TITLE_ID = 'hero-title';

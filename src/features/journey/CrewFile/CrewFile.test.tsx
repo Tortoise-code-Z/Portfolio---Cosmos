@@ -62,7 +62,6 @@ function record(region: HTMLElement): [string, string][] {
 describe('CrewFile', () => {
   it('is the epilogue chapter, with its anchor, in the green channel, and closes the channels instead of skipping', () => {
     const region = renderAt('/');
-    expect(region).toHaveAttribute('id', CHAPTER_ANCHORS[EPILOGUE]);
     expect(region).toHaveAttribute('data-chapter', String(EPILOGUE));
     expect(region).not.toHaveAttribute('data-interlude');
     expect(region).toHaveTextContent('Channel 03 · green');
@@ -73,9 +72,24 @@ describe('CrewFile', () => {
     expect(document.querySelector('[data-interlude-tail]')).toBeNull();
   });
 
+  it('has its arrival (ADR-039): the content in a stage, a space after it and the anchor where the arrival ends', () => {
+    const region = renderAt('/');
+    // El ancla no está en la sección (su principio es el de la llegada): está en el marcador del final.
+    expect(region).not.toHaveAttribute('id');
+    const landing = region.querySelector('[data-landing]');
+    expect(landing).toHaveAttribute('id', CHAPTER_ANCHORS[EPILOGUE]);
+    expect(landing).toHaveAttribute('aria-hidden', 'true');
+    // El escenario lleva todo lo que se lee; detrás, el hueco de la llegada (decoración) y el marcador.
+    const [stage, space] = [...region.children];
+    expect(stage).toContainElement(within(region).getByRole('heading', { name: 'Crew file' }));
+    expect(stage).toContainElement(within(region).getByRole('link', { name: /Download CV/ }));
+    expect(space).toHaveAttribute('aria-hidden', 'true');
+    expect(region.lastElementChild).toBe(landing);
+  });
+
   it('in Spanish too: its channel, the strip that closes the channels and the end of the journey', () => {
     const region = renderAt('/es');
-    expect(region).toHaveAttribute('id', CHAPTER_ANCHORS[EPILOGUE]);
+    expect(region.querySelector('[data-landing]')).toHaveAttribute('id', CHAPTER_ANCHORS[EPILOGUE]);
     expect(region).toHaveTextContent('Canal 03 · verde');
     expect(region).toHaveTextContent('Todos los canales cerrados');
     expect(region).toHaveTextContent('Fin del viaje · 13.800 millones de años + ahora');

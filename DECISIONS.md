@@ -728,6 +728,7 @@
   cierre de F4, 52 B (las constelaciones que leen el grupo del frame y esperan a las partículas, no se dibujan a
   opacidad 0, el ciclo de placas quieto en un interludio y el pin que valida su slug): **257 127 B**. Quedan 2 873 B;
   las Naves (C.7) subirán el límite en su propio ADR con estos números. Esta cuenta sustituye a la anterior.
+- Nota (2026-11-24, C.7, primer paso): la llegada del epílogo (ADR-039) pesó 185 B: **257 312 B**. Quedan 2 688 B.
 - Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).
 
 ## ADR-033 · Los commits de solo documentación van directos a `main`
@@ -977,3 +978,42 @@
   deja sin puntero las etiquetas y los pins. Lo vigilan los e2e de `constellations.spec.ts` (ninguna etiqueta viva
   tapada por un capítulo, al entrar y salir la galaxia) y `plates.spec.ts` (`hover` sobre cada pin).
 - Detalle: `docs/05-tecnico/arquitectura.md` → «Puntero del viaje»; `docs/04-escena/constelaciones-y-placas.md`.
+
+## ADR-039 · La llegada del epílogo: un tramo con la sección fija, medido con la misma `m` que la escena
+- Estado: Aceptada
+- Fecha: 2026-11-24
+- Contexto: hasta ahora la Tierra pasaba al retrato en la segunda mitad de Contacto y la sección del Crew file subía
+  con el scroll como una página más: el retrato se formaba mientras aún se leía Contacto y la transmisión entraba
+  «en crudo», a diferencia de la idea de las naves (C.7), en la que la escena trae cada transmisión. Víctor aprobó
+  una entrada propia (sesión 47, con una prueba fuera del repo): la sección se queda quieta mientras la
+  Tierra se deshace en el retrato, un haz baja por la pantalla revelándola y las esquinas del visor se cierran sobre
+  la cara. Es el primer paso de C.7, antes de las naves.
+- Decisión:
+  - **Un tipo de tramo nuevo, `arrival`** (`JOURNEY_SEGMENTS`): la llegada de un capítulo, entre el capítulo de
+    antes y su lectura. Hoy solo la tiene el epílogo (base 4, `morphStart` 0); Contacto deja de cambiar. Las naves
+    podrán usar el mismo tipo para su tramo de llegada.
+  - **La sección se queda fija con CSS, sin mover nada a mano:** su contenido va en un escenario `sticky` bajo la
+    barra y, detrás, un hueco de `--arrival-h` (160 svh). La sección (no `sticky`) mide el tramo; un marcador
+    absoluto al final del hueco (`data-landing`) mide la lectura del capítulo y lleva el id del ancla, así que el ancla
+    nativa y los saltos (`jumpToChapter` busca el marcador) aterrizan con el epílogo ya traído. El raíl marca el
+    capítulo durante toda su llegada (`sceneStore.arriving`).
+  - **Todo se mide con lo que lleva la llegada, `a` = `m − 4` con la `m` suavizada de la escena**
+    (`lib/scroll/arrival`, `EPILOGUE_ARRIVAL`). La forma acaba en `morphEnd` (0,55): la cámara (`arrivalShapeM`) y el
+    shader hacen la misma cuenta, y el Sol y la gravedad de la Tierra se van con ella. El haz baja por la **pantalla**
+    (`arrivalBeam`): el shader compara la `y` proyectada de cada partícula con la línea, así que coincidirá al píxel
+    con el haz que pinte la página. La coreografía de la página (el recorte que revela la sección, las esquinas, el
+    encaje y las líneas guía) llega en un segundo PR, con un bucle propio que suaviza `m` como la escena (como el Big
+    Bang, ADR-030).
+  - **Con movimiento reducido no hay llegada:** el hueco mide 0 por CSS (sin saltos de alto) y el tramo no dura
+    nada. **Sin WebGL sí la hay**: la foto fija pasa de la Tierra al retrato y la página revela la sección
+    igual; quitarla solo sin WebGL obligaría a cambiar el alto de la página al detectarlo y a recolocar el ancla.
+- Alternativas descartadas: la sección `sticky` entera midiendo el tramo (la medida de un elemento pegado depende de
+  dónde esté el scroll al medir); un capítulo aparte para la llegada (otra ancla, otra parada del raíl); recolocar la
+  sección con `transform` desde JavaScript (sin JavaScript no se leería); el haz medido en el retrato, como hasta
+  ahora (no coincidiría con una línea de la página: la cámara se mueve durante la llegada).
+- Consecuencias: la página crece 160 svh; una ruta a `#crew-file` cae al final de la llegada; quien mida el epílogo
+  por su sección mide su llegada. Pesa unos bytes de GLSL y de JavaScript (`rendimiento.md` → «Presupuesto»). Lo
+  vigilan los tests de `arrival`, el orden de los tramos del DOM (`journey.test.tsx`), el ancla en el marcador
+  (`CrewFile.test.tsx`) y los e2e del epílogo.
+- Detalle: `docs/02-experiencia/capitulos/05-crew-file.md` → «Transición»; `docs/02-experiencia/scroll-y-escena.md`
+  → «Tramos del viaje»; `docs/04-escena/particulas-y-shaders.md` → «Forma 5».

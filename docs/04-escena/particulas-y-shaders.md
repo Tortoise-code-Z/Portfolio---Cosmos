@@ -142,10 +142,13 @@ poner (`rendimiento.md` → «Robustez»).
 Holograma de escáner en el verde del canal del epílogo (`COLOR_PORTRAIT_DEEP` → `_GLOW` → `_HOT`, los dos últimos
 son `--color-channel-green` y `-bright`). La luz de cada partícula llega en `pPor.w` (`formas.md` → «Forma 5»); el
 shader le suma:
-- **Haz de barrido.** Durante el morph (`m` de 4 a 5) baja de arriba abajo con `smoothstep(0,3; 1; m − 4)` y
-  enciende lo que deja atrás: por debajo, la partícula llega apagada (12 % de su luz). Si el retrato llega con la
-  escena ya ahí, el barrido va con la subida de `uPor` (`min(morph, uPor)`). Al acabar, entra el haz en bucle
-  fundido con el del barrido (en el último 20 %), sin saltar a mitad de la cara. Ni el haz ni los fallos encienden
+- **Haz de la llegada, en pantalla** (C.7 · ADR-039). En la llegada del epílogo, el retrato se forma en
+  `ARRIVAL_MORPH_END` (la `m` de la forma se remapea en el shader como en la cámara, `arrivalShapeM`) y el haz baja
+  por la **pantalla**, de arriba abajo, entre `ARRIVAL_BEAM_START` y `ARRIVAL_BEAM_END` (`arrivalBeam()`, la misma
+  cuenta que la página: `lib/scroll/arrival`). Tras proyectar, la `y` de cada partícula (NDC) se compara con la línea:
+  por encima se enciende y brilla al pasar; por debajo llega apagada (12 % de su luz). Solo toca la parte del retrato
+  en la mezcla (`tt · uPor`). Si el retrato llega con la escena ya ahí, el haz baja con la subida de `uPor`
+  (`min(haz, uPor)`). Al acabar, entra el haz en bucle por la cara, fundido (en el último 20 % de la bajada). Ni el haz ni los fallos encienden
   lo que la foto funde (el corte del busto): se apagan con el mismo fundido, sacado de la altura (`PORTRAIT_FADE_H`).
 - **Fallos de señal:** cada 0,2 s, una franja horizontal de cada 100 salta de lado y brilla. El tick se acota
   (`mod 997`): con `uTime` grande, `sin` pierde precisión en la GPU de un móvil y los fallos dejarían de ser al azar.

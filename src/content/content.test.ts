@@ -192,6 +192,24 @@ describe('contenido', () => {
     });
   });
 
+  it('la llegada del epílogo (ADR-039): justo antes de leerlo, desde la forma de antes y y desde la Tierra', () => {
+    const arrivals = JOURNEY_SEGMENTS.flatMap((segment, index) =>
+      segment.kind === 'arrival' ? [{ segment, index }] : [],
+    );
+    expect(arrivals).toHaveLength(1);
+    const [{ segment, index }] = arrivals as [
+      { segment: (typeof JOURNEY_SEGMENTS)[number]; index: number },
+    ];
+    expect(segment).toMatchObject({ chapter: EPILOGUE, base: EPILOGUE - 1, morphStart: 0 });
+    expect(JOURNEY_SEGMENTS[index + 1]).toMatchObject({ kind: 'chapter', chapter: EPILOGUE });
+    // Contacto ya no cambia: la Tierra pasa al retrato en la llegada.
+    expect(JOURNEY_SEGMENTS[index - 1]).toMatchObject({
+      kind: 'chapter',
+      chapter: EPILOGUE - 1,
+      morphStart: null,
+    });
+  });
+
   it('un interludio y el capítulo de antes se quedan quietos (su pantalla y él), y «Skip» lleva al capítulo siguiente', () => {
     for (const interlude of INTERLUDES) {
       const { id } = interlude;

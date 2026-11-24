@@ -195,6 +195,10 @@ por paso, en este orden:
    transmisión se lee a pantalla completa, como hoy, y al salir el satélite se aleja llevándose la pantalla con el
    texto. En Mission control, una nave nodriza; el retrato llega directo desde la Tierra. Prueba fuera del repo hecha
    (versión 8); faltan su ADR (un ADR nuevo, numerado al escribirlo) y un PR: `docs/02-experiencia/transiciones-naves.md`.
+   **Primer paso (sesión 47, antes de las naves): la entrada del Crew file** (prueba aprobada): la
+   sección se queda fija mientras la Tierra se deshace en el retrato, el haz baja revelándola y el visor se cierra
+   (`05-crew-file.md` → «Transición», ADR-039). En dos PR: el tramo de llegada, la sección fija, los saltos y la
+   escena (PR 1); la coreografía de la página (PR 2).
 
 **Hecho cuando:** el sitio no contradice el CV, los dos interludios y el epílogo cumplen sus criterios (un doc por
 sección en `docs/02-experiencia/capitulos/`, escrito en su paso) en escritorio y móvil, sin WebGL y con movimiento

@@ -11,7 +11,8 @@ import { STILLS_EXCLUDED, STILLS_SCENE_PATHS } from '../../scripts/sceneModules.
  * (`scripts/sceneModules.ts`: las carpetas puras —formas, cámara, paleta, placas…—, los shaders y cada pieza con
  * `stills: true`, menos `STILLS_EXCLUDED`); de fuera de ella: las imágenes del retrato, las cuentas que comparten
  * (`lib/math` y el suavizado de `m`, `lib/scroll/smoothM`), los tramos del viaje y su `m` (`content/chapters.ts`,
- * `lib/scroll/mapM`: las fotos se sacan en el ancla, en su `base`), el movimiento reducido (las fotos se sacan con el
+ * `lib/scroll/mapM`: las fotos se sacan en el ancla, en su `base`; la llegada del epílogo, `lib/scroll/arrival`, que
+ * comparten la cámara y el shader), el movimiento reducido (las fotos se sacan con el
  * reloj parado: `uTime` = 0), si es escritorio (`lib/device/mediaQuery`: el encuadre se aparta a un lado), los niveles,
  * cómo se sacan las fotos y las placas de la tortuga (una por proyecto). `npm run stills` la guarda en
  * `src/assets/scene-stills/stills.json` y `budgets.spec.ts` la compara: si cambia algo de esto sin rehacer las fotos,
@@ -24,6 +25,7 @@ export const STILLS_SOURCES: readonly string[] = [
   'src/lib/math',
   'src/lib/scroll/smoothM',
   'src/lib/scroll/mapM',
+  'src/lib/scroll/arrival',
   'src/content/chapters.ts',
   'src/lib/device/reducedMotion',
   'src/lib/device/mediaQuery',

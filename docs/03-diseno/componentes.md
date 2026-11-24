@@ -122,8 +122,12 @@
   el raíl (`--rail-room`). Una palabra larga parte (`overflow-wrap: anywhere`) en vez de cortarse con la letra al
   200 %.
 - Dos variantes (props exclusivas: el tipo no deja mezclarlas): un **interludio** (`id`, `clock`) o el **epílogo**,
-  un capítulo que se lee como transmisión (`chapter`, que solo puede ser el 5; `stripEnd`, `footer`): su ancla sale de
-  `CHAPTER_ANCHORS`, lleva `data-chapter` y no tiene cola.
+  un capítulo que se lee como transmisión (`chapter`, que solo puede ser el 5; `stripEnd`, `footer`): lleva
+  `data-chapter` y no tiene cola, pero sí **llegada** (ADR-039): lo que se ve va en un escenario pegado bajo la barra
+  (con el fondo, el barrido y la banda de entrada) mientras pasa un hueco de `--arrival-h` (0 con movimiento
+  reducido), y su ancla (`CHAPTER_ANCHORS`) está en el marcador del final de la llegada (`data-landing`). Si el foco
+  cae en el escenario fuera de la vista (Tab, con la ventana más baja que él), se va al final de la llegada y lo justo
+  más allá para enseñarlo.
 - Franja del canal arriba, con aire arriba y abajo (`--space-2`: el anillo de foco no se corta): indicador de señal
   y nombre del canal, y «Skip transmission ↓», un enlace de verdad al capítulo siguiente (`INTERLUDE[id].next`; salta
   con el foco en su título, como el raíl; ≥ 44 px). El enlace es `ChapterJumpLink`, el mismo de «Touchdown» en

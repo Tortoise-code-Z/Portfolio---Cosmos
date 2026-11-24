@@ -263,28 +263,31 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
 
 ## Puente scroll → escena
 
-1. `useChapterLayout` mide el inicio y la altura de cada tramo del viaje (`JOURNEY_SEGMENT_SELECTOR`: los capítulos
-   y, de cada interludio, su pantalla y su cola; `getBoundingClientRect` + `scrollY`) al montar, con un
+1. `useChapterLayout` mide el inicio y la altura de cada tramo del viaje (`JOURNEY_SEGMENT_SELECTOR`: los capítulos,
+   de cada interludio su pantalla y su cola, y del epílogo el marcador del final de su llegada, `data-landing`, ADR-039;
+   `getBoundingClientRect` + `scrollY`; nunca un elemento `sticky`, cuya medida depende del scroll) al montar, con un
    ResizeObserver sobre `<main>` y tras `document.fonts.ready`; `useScrollTarget` las pasa a posiciones de scroll
    bajo la barra fija (`toScrollLayout`).
 2. Un único listener de scroll pasivo busca el tramo (`segmentAt`, con 1 px de margen para un ancla redondeada) y
    calcula `mTarget = mapM(scrollY, layout, JOURNEY_SEGMENTS)`: cada tramo tiene su forma y su ventana de morph, y un
    interludio la deja quieta (scroll-y-escena.md → «Tramos del viaje»). Lo escribe en `sceneStore`
-   (`setScrollTarget`, y `setReadingInterlude` con el interludio del tramo; también al montar, para una recarga a
-   mitad del viaje). La ruta del viaje los conecta:
+   (`setScrollTarget`, `setReadingInterlude` con el interludio del tramo y `setReadingArrival` con el capítulo que
+   llega; también al montar, para una recarga a mitad del viaje). La ruta del viaje los conecta:
    `lib` no importa `stores`, así que el destino le llega por parámetro.
 3. El bucle de la escena lee `mTarget` en cada frame y suaviza su propia `m` (`smoothM` de `lib/scroll`, con el tiempo
    real del frame; en su primer frame arranca en `mTarget`), que deja en el `SceneFrame` compartido; los `useFrame`
    de cada pieza (uniforms, cámara y etiquetas) la leen de ahí (ADR-028). `CameraRig` además **escribe** en el frame
    su pose y su campo de visión, y por eso su `useFrame` va antes que nadie (prioridad −1, `CAMERA_RIG_PRIORITY`):
-   las etiquetas de las constelaciones proyectan con ellos. `sceneStore.m` sigue siendo
+   las etiquetas de las constelaciones proyectan con ellos. En la llegada del epílogo, la cámara, el shader, el Sol y
+   la gravedad de la Tierra usan la `m` de la forma (`arrivalShapeM`, `lib/scroll/arrival`, ADR-039), que acaba antes
+   que el tramo; el haz del retrato, lo que lleva la llegada. `sceneStore.m` sigue siendo
    `mTarget`. Con la página oculta o la misión rápida abierta, el bucle se pausa (`scene/pause`). Los efectos del
    Big Bang en el DOM (`features/journey/useBigBang`) llevan otra copia con el mismo `smoothM` y la escriben, ya
    convertida en destello, temblor, nombre y halo, como variables CSS privadas en `<html>` (`--_bang-*`); los leen el
    hero, el destello (`BigBangFlash`, en la ruta del viaje, fuera de `<main>`) y el lienzo, sin importarse entre
    capas (ADR-030).
-4. El raíl y el idioma eligen la parada activa (`selectActiveStop`: el interludio mientras se lee, o el capítulo
-   `round(m)`); las fotos fijas (sin WebGL), `round(m)` (`selectActiveChapter`). El HUD se suscribe y solo toca el DOM
+4. El raíl y el idioma eligen la parada activa (`selectActiveStop`: el capítulo que llega durante su llegada, el
+   interludio mientras se lee, o el capítulo `round(m)`); las fotos fijas (sin WebGL), `round(m)` (`selectActiveChapter`). El HUD se suscribe y solo toca el DOM
    cuando cambia su texto o si se esconde (en una transmisión: un interludio o el epílogo) (cambios discretos, no por frame).
 
 ## Carga de la escena

@@ -46,6 +46,20 @@ describe('jumpToChapter', () => {
     expect(document.activeElement).toBe(title);
   });
 
+  it('lands where the arrival of the chapter ends, if it has one (ADR-039), and still focuses its title', () => {
+    stubReducedMotion(false);
+    const { chapter, title, scrollIntoView } = chapterWithTitle();
+    const landing = document.createElement('span');
+    landing.dataset.landing = '';
+    const land = vi.fn();
+    landing.scrollIntoView = land;
+    chapter.append(landing);
+    jumpToChapter(chapter);
+    expect(land).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(title);
+  });
+
   it('jumps instantly with reduced motion', () => {
     stubReducedMotion(true);
     const { chapter, scrollIntoView } = chapterWithTitle();

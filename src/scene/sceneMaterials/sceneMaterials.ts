@@ -2,6 +2,7 @@ import { AdditiveBlending, ShaderMaterial, Vector2, type IUniform } from 'three'
 
 import type { SkillGroupId } from '~/content/types';
 import { lerp } from '~/lib/math/lerp/lerp';
+import { arrivalShapeM } from '~/lib/scroll/arrival/arrival';
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
 
 import { NO_PLATE } from '../config/plateSlots/plateSlots';
@@ -234,7 +235,7 @@ export function updateParticleUniforms(
   uniforms.uExtras.value = frame.extras ? 1 : 0;
   uniforms.uGrav.value =
     frame.gravity.strength *
-    lerp(1, EARTH_GRAVITY.scale, chapterPresence(frame.m, EARTH_GRAVITY.chapter));
+    lerp(1, EARTH_GRAVITY.scale, chapterPresence(arrivalShapeM(frame.m), EARTH_GRAVITY.chapter));
   uniforms.uMouse.value.set(frame.gravity.x, frame.gravity.y);
 }
 
@@ -248,10 +249,12 @@ export function updateStarUniforms(uniforms: StarUniforms, frame: Readonly<Scene
  * El Sol (docs/04-escena/particulas-y-shaders.md → «Sol»): aparece con la presencia de su capítulo, hasta
  * `SUN.opacity`, y late con el reloj de la escena; con movimiento reducido, quieto en su tamaño. Nada antes de que
  * las partículas se pinten (`frame.painted`: entrando por `/#contact`, mientras llegan las formas, brillaría sobre el
- * vacío), como los pins.
+ * vacío), como los pins. En la llegada del epílogo se va con la Tierra (la `m` de la forma, ADR-039).
  */
 export function updateSunUniforms(uniforms: SunUniforms, frame: Readonly<SceneFrame>): void {
-  uniforms.uOpacity.value = frame.painted ? chapterPresence(frame.m, SUN.chapter) * SUN.opacity : 0;
+  uniforms.uOpacity.value = frame.painted
+    ? chapterPresence(arrivalShapeM(frame.m), SUN.chapter) * SUN.opacity
+    : 0;
   uniforms.uSize.value = frame.reducedMotion
     ? SUN.size
     : SUN.size + Math.sin(frame.time * SUN.pulseRate) * SUN.pulse;
