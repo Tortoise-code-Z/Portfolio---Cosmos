@@ -3,7 +3,7 @@ import { useLocation, useParams } from 'react-router';
 
 import { profile } from '~/content/profile';
 import { projects } from '~/content/projects';
-import { siteShareImage } from '~/content/shareImage';
+import { siteShare } from '~/content/shareImage';
 import type { Locale, Project } from '~/content/types';
 import { NotFoundPage } from '~/features/errors/NotFoundPage/NotFoundPage';
 import { LanguageNotice } from '~/features/navigation/LanguageNotice/LanguageNotice';
@@ -33,7 +33,7 @@ export function meta({ location, params }: Route.MetaArgs): Route.MetaDescriptor
   const project = findProject(location.pathname, params.slug);
   return project === undefined
     ? notFoundMeta({ locale, profile })
-    : projectMeta({ origin: SITE_ORIGIN, locale, profile, project, siteShare: siteShareImage });
+    : projectMeta({ origin: SITE_ORIGIN, locale, profile, project, siteShare });
 }
 
 /**

@@ -57,7 +57,8 @@ function previewDirectoryIndex(): Plugin {
  * - `?project` → AVIF y WebP a 640, 1280 y 1920 px y, como salida, `{ src, width, height, sources }`
  *   (la forma de `ResponsiveImage` en `content/types`): `src` y las medidas son las de la WebP mayor (el
  *   respaldo del `<img>`) y `sources`, el `srcset` de cada formato.
- * - `?share` → JPEG de 1200 px para `og:image` (no todas las redes leen WebP) como `{ src, width, height }`.
+ * - `?share` → JPEG de 1200 px para `og:image` de cada portada y la del sitio (no todas las redes leen WebP)
+ *   como `{ src, width, height }`.
  * Los anchos salen de `src/content/imageWidths.ts`, que comparten el sustituto de Vitest, las reglas del
  * contenido y los e2e. Su tipo está en `src/env.d.ts` y Vitest los sustituye por datos de las medidas
  * reales (vitest.config.ts).

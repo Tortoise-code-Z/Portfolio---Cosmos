@@ -13,8 +13,8 @@ Sin servidor ni base de datos en la v1. Hosting estático en Vercel.
 ```
 cosmos-portfolio/
 ├─ src/                         ← appDirectory de React Router
-│  ├─ root.tsx                  ← documento HTML, <html lang>, fuentes, meta de reserva, ErrorBoundary y
-│  │                               HydrateFallback raíz
+│  ├─ root.tsx                  ← documento HTML, <html lang>, fuentes, favicon, iconos, manifest y `theme-color`,
+│  │                               meta de reserva, ErrorBoundary y HydrateFallback raíz
 │  ├─ root.test.tsx             ← meta de reserva, ErrorBoundary y HydrateFallback (excepción de ADR-018)
 │  ├─ entry.client.tsx          ← (si hace falta personalizar la hidratación)
 │  ├─ routes.ts                 ← configuración de rutas EN/ES
@@ -143,8 +143,10 @@ cosmos-portfolio/
 │                                 contador de las cifras de Mission control (ADR-035): siteTelemetry.ts, con su
 │                                 test, un plugin de Vite (y de Vitest) que sirve `virtual:site-telemetry`. Y
 │                                 eslintDoors.test.ts, que prueba las puertas de ESLint del detalle de las fichas
-│                                 (ADR-036). Y portrait/: los Python que sacan de una foto las imágenes del
-│                                 retrato (fuera del build; su README)
+│                                 (ADR-036). Y og.ts (`npm run og`), que saca la imagen para compartir y los
+│                                 iconos del favicon, con ogInputs.ts (lo que entra y su huella, og.json) y su
+│                                 test. Y portrait/: los Python que sacan de una foto las imágenes del retrato
+│                                 (fuera del build; su README)
 ├─ docs/                        ← esta documentación
 ├─ .github/workflows/ci.yml
 └─ (configs) react-router.config.ts · vite.config.ts · vitest.config.ts · playwright.config.ts · playwright.visual.config.ts · playwright.stills.config.ts ·
@@ -178,7 +180,7 @@ El diagrama es orientativo; manda la tabla.
 
 | Capa | Puede importar | No puede importar |
 |---|---|---|
-| `content` | nada salvo sus tipos y, en `projects/media.ts`, las capturas de `src/assets/` (ADR-023); en `telemetry.ts`, el módulo `virtual:site-telemetry` (ADR-035), que nadie más importa; `projects/details/` solo lo importa `projects/index.ts`, y a ese índice (los proyectos enteros) solo `routes/project` y `features/project`: la home lee las tarjetas, `projects/entries` (ADR-036) | React, Three, cualquier otra capa |
+| `content` | nada salvo sus tipos y, en `projects/media.ts`, las capturas de `src/assets/` (ADR-023), y en `shareImage.ts`, la imagen para compartir del sitio (`?share`); en `telemetry.ts`, el módulo `virtual:site-telemetry` (ADR-035), que nadie más importa; `projects/details/` solo lo importa `projects/index.ts`, y a ese índice (los proyectos enteros) solo `routes/project` y `features/project`: la home lee las tarjetas, `projects/entries` (ADR-036) | React, Three, cualquier otra capa |
 | `lib` | `content/types` (tipos y constantes de idioma) y `content/texts` (para `useT`) (ADR-017) | Los datos de `content` (perfil, proyectos, skills: le llegan por parámetro), `stores`, `ui`, `features`, `scene`, `routes`, Three |
 | `stores` | `lib`, `content` | `ui`, `features`, `scene`, `routes`, Three |
 | `ui` | `lib` | `stores`, `features`, `scene`, `routes`, `content` (recibe datos por props), Three |
@@ -235,7 +237,8 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
   config. Tampoco entiende los imports de imagen: de los proyectos importa `projectEntries` (sin imágenes, ADR-023),
   igual que los e2e. Su `buildEnd` escribe `sitemap.xml`, `robots.txt` y `404.html` (copia de la 404 EN) en `build/client`.
 - Segmento `projects` igual en ambos idiomas (decisión: URLs estables y sin mapa de traducción de rutas).
-- `meta` de cada ruta (`lib/seo/meta/meta.ts`): título, descripción (en proyectos, el `summary`), canónica propia de
+- `meta` de cada ruta (`lib/seo/meta/meta.ts`): título, descripción (en proyectos, su `metaDescription` o, si no
+  tiene, el `summary`), canónica propia de
   cada idioma, `hreflang` en/es/x-default (= EN), Open Graph (`og:locale` `en_US`/`es_ES` con su alternativa,
   `og:type` `website` o `article`; `og:image` = un JPEG de 1200 px con medidas y `alt`: en las fichas con portada,
   la suya; en la home y en las fichas sin portada, la imagen del sitio de su idioma (`content/shareImage.ts`, que

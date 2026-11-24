@@ -5,5 +5,5 @@
 /** Variantes AVIF y WebP de cada captura (`?project`), de menor a mayor. */
 export const PROJECT_IMAGE_WIDTHS = [640, 1280, 1920] as const;
 
-/** La imagen para compartir de cada portada (`?share`, `og:image`). */
+/** La imagen para compartir de cada portada y la del sitio (`?share`, `og:image`). */
 export const SHARE_IMAGE_WIDTH = 1200;

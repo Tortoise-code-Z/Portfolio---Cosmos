@@ -20,7 +20,7 @@ Versiones exactas y conflictos → `docs/05-tecnico/stack.md`.
   sus `*-in-docker.sh`; el criterio de los commits de solo docs, `docsOnly.ts` y la orden `docs-only.ts`, ADR-033; y
   `siteTelemetry.ts`, que cuenta al construir las cifras de Mission control, ADR-035; `eslintDoors.test.ts`, que prueba
   las puertas de ESLint del detalle de las fichas, ADR-036; `og.ts`, que saca la imagen para compartir y los iconos
-  del favicon, `npm run og`; y `portrait/`, los Python que sacan de una foto las imágenes del retrato de
+  del favicon, `npm run og`, con `ogInputs.ts`, lo que entra y su huella; y `portrait/`, los Python que sacan de una foto las imágenes del retrato de
   `src/assets/portrait/`, fuera del build).
 - Archivos con el mismo nombre (`x.ts` + `x.test.ts`…) van juntos en su carpeta `x/` en `src/` y `tests/` (ADR-018).
 - `public/` estáticos · `build/client/` salida que se despliega · `.github/workflows/ci.yml`.

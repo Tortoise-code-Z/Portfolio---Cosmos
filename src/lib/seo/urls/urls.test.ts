@@ -36,7 +36,7 @@ describe('assetUrl', () => {
     ['/assets/01-home-CaIUKrxu.jpeg', 'https://cosmos.test/assets/01-home-CaIUKrxu.jpeg'],
     ['/assets/01-home-BT_LfYPm.avif', 'https://cosmos.test/assets/01-home-BT_LfYPm.avif'],
     ['/assets/home-a-.webp', 'https://cosmos.test/assets/home-a-.webp'],
-    ['/og/og-en.png', 'https://cosmos.test/og/og-en.png'],
+    ['/assets/og-en-Gh_4.jpeg', 'https://cosmos.test/assets/og-en-Gh_4.jpeg'],
     ['/favicon.svg', 'https://cosmos.test/favicon.svg'],
     // `npm run dev`: vite-imagetools sirve las variantes desde memoria, sin extensión.
     [
