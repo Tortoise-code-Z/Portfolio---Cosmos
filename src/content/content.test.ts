@@ -332,6 +332,14 @@ describe('contenido', () => {
     for (const icon of pngs) expect(pngSize(icon.src.slice(1))).toBe(icon.sizes);
   });
 
+  it('el favicon es XML válido: si no, el navegador no lo lee como imagen y la pestaña sale sin icono', () => {
+    // Un comentario con dos guiones seguidos (p. ej. citando `--color-void`) basta para romperlo.
+    const svg = readFileSync(join(PUBLIC_DIR, 'favicon.svg'), 'utf8');
+    const doc = new DOMParser().parseFromString(svg, 'image/svg+xml');
+    expect(doc.getElementsByTagName('parsererror')).toHaveLength(0);
+    expect(doc.documentElement.tagName).toBe('svg');
+  });
+
   it('el favicon solo usa colores de los tokens (--color-void, --color-star, --color-aurora) y blanco', () => {
     const tokens = readFileSync(join(PUBLIC_DIR, '..', 'src', 'styles', 'tokens.css'), 'utf8');
     const token = (name: string): string | undefined =>

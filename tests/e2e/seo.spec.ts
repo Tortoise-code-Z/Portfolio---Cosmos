@@ -271,6 +271,15 @@ test.describe('favicon, iconos y manifest', () => {
       return response.headers()['content-type'] ?? '';
     };
     expect(await typeOf('/favicon.svg')).toMatch(/^image\/svg\+xml/);
+    // Y se lee como imagen: un SVG mal formado se sirve igual (200, su tipo) y la pestaña sale sin icono.
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    const decoded = await page.evaluate(async () => {
+      const probe = new Image();
+      probe.src = '/favicon.svg';
+      await probe.decode();
+      return probe.naturalWidth > 0;
+    });
+    expect(decoded).toBe(true);
     expect(await typeOf('/apple-touch-icon.png')).toBe('image/png');
     expect(await typeOf('/manifest.webmanifest')).toMatch(/^application\/manifest\+json/);
     const manifest = (await (await page.request.get('/manifest.webmanifest')).json()) as {
