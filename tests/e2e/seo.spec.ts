@@ -27,8 +27,8 @@ const ORIGIN = parseSiteUrl(loadEnv('production', process.cwd(), 'VITE_').VITE_S
 const PAGES = sitePages(projectEntries);
 
 /**
- * Proyectos con portada y, por tanto, con `og:image` (content/projects/media.ts). Escrito a mano: los e2e
- * cargan el contenido sin Vite y no pueden importar las imágenes.
+ * Proyectos con portada y, por tanto, con su propia `og:image` (content/projects/media.ts); los demás llevan la del
+ * sitio. Escrito a mano: los e2e cargan el contenido sin Vite y no pueden importar las imágenes.
  */
 const WITH_COVER: ReadonlySet<string> = new Set(['chessmate', 'astrohub']);
 
@@ -120,11 +120,13 @@ test.describe('páginas indexables', () => {
           return {
             description: content('meta[name="description"]'),
             ogDescription: content('meta[property="og:description"]'),
+            ogImage: content('meta[property="og:image"]'),
           };
         }, html);
         expect(served).toEqual({
           description: [text.description],
           ogDescription: [text.description],
+          ogImage: meta.ogImage,
         });
         expect(meta.canonical).toEqual([canonical]);
         expect(meta.ogUrl).toEqual([canonical]);
@@ -135,9 +137,8 @@ test.describe('páginas indexables', () => {
         ]);
         expect(meta.ogLocale).toEqual([OG_LOCALE[locale]]);
         expect(meta.ogType).toEqual([sitePage.kind === 'home' ? 'website' : 'article']);
-        expect(meta.ogImage).toHaveLength(
-          sitePage.kind === 'project' && WITH_COVER.has(sitePage.slug) ? 1 : 0,
-        );
+        // Todas llevan imagen para compartir: la portada o, sin ella (la home, Cosmos), la del sitio.
+        expect(meta.ogImage).toHaveLength(1);
         expect(meta.robots).toEqual([]);
 
         expect(meta.jsonLd).toHaveLength(1);
@@ -158,7 +159,22 @@ test.describe('páginas indexables', () => {
   }
 });
 
-test.describe('imagen para compartir de las fichas', () => {
+/** `og:image` y sus etiquetas, tal como quedan en la página. */
+async function shareTags(page: Page) {
+  const content = (selector: string): Promise<string[]> =>
+    page
+      .locator(selector)
+      .evaluateAll((elements) => elements.map((element) => element.getAttribute('content') ?? ''));
+  return {
+    card: await content('meta[name="twitter:card"]'),
+    image: await content('meta[property="og:image"]'),
+    width: await content('meta[property="og:image:width"]'),
+    height: await content('meta[property="og:image:height"]'),
+    alt: await content('meta[property="og:image:alt"]'),
+  };
+}
+
+test.describe('imagen para compartir', () => {
   test('la lista de proyectos con portada solo nombra proyectos que existen', () => {
     test.skip(test.info().project.name !== 'chromium', 'Solo lee el contenido: basta una vez');
     const slugs = projectEntries.map(({ slug }) => slug);
@@ -172,40 +188,20 @@ test.describe('imagen para compartir de las fichas', () => {
   });
 
   for (const sitePage of PAGES) {
-    if (sitePage.kind !== 'project') continue;
     for (const locale of ['en', 'es'] as const) {
       const path = sitePage.paths[locale];
-      const hasCover = WITH_COVER.has(sitePage.slug);
+      const hasCover = sitePage.kind === 'project' && WITH_COVER.has(sitePage.slug);
 
-      test(`${path}: ${hasCover ? 'og:image = su portada en JPEG de 1200 px' : 'sin portada ni og:image'}`, async ({
+      test(`${path}: og:image = ${hasCover ? 'su portada' : 'la del sitio en su idioma'}, en JPEG de 1200 px`, async ({
         page,
       }) => {
         await page.goto(path, { waitUntil: 'networkidle' });
-        const content = (selector: string): Promise<string[]> =>
-          page
-            .locator(selector)
-            .evaluateAll((elements) =>
-              elements.map((element) => element.getAttribute('content') ?? ''),
-            );
-        // La lista escrita a mano coincide con la página: portada (la imagen con prioridad) solo en esas.
-        const coverImage = page.getByRole('main').locator('img[fetchpriority="high"]');
-        await expect(coverImage).toHaveCount(hasCover ? 1 : 0);
-        const card = await content('meta[name="twitter:card"]');
-        const image = await content('meta[property="og:image"]');
-        if (!hasCover) {
-          expect(image).toEqual([]);
-          expect(card).toEqual(['summary']);
-          return;
-        }
-
-        expect(card).toEqual(['summary_large_image']);
-        expect(image).toHaveLength(1);
-        const url = new URL(image[0] ?? '');
+        const tags = await shareTags(page);
+        expect(tags.card).toEqual(['summary_large_image']);
+        expect(tags.image).toHaveLength(1);
+        const url = new URL(tags.image[0] ?? '');
         expect(url.origin).toBe(new URL(ORIGIN).origin);
         expect(url.pathname).toMatch(/^\/assets\/[\w-]+\.jpeg$/);
-        expect(await content('meta[property="og:image:alt"]')).toEqual([
-          (await coverImage.getAttribute('alt')) ?? '',
-        ]);
         // El archivo existe en el sitio y mide lo que dicen sus etiquetas.
         const response = await page.request.get(url.pathname);
         expect(response.status()).toBe(200);
@@ -216,14 +212,73 @@ test.describe('imagen para compartir de las fichas', () => {
           await probe.decode();
           return [String(probe.naturalWidth), String(probe.naturalHeight)];
         }, url.pathname);
-        expect([
-          ...(await content('meta[property="og:image:width"]')),
-          ...(await content('meta[property="og:image:height"]')),
-        ]).toEqual(size);
+        expect([...tags.width, ...tags.height]).toEqual(size);
         expect(size[0]).toBe(String(SHARE_IMAGE_WIDTH));
+
+        if (sitePage.kind === 'project') {
+          // La lista escrita a mano coincide con la página: portada (la imagen con prioridad) solo en esas.
+          const coverImage = page.getByRole('main').locator('img[fetchpriority="high"]');
+          await expect(coverImage).toHaveCount(hasCover ? 1 : 0);
+          if (hasCover) {
+            expect(tags.alt).toEqual([(await coverImage.getAttribute('alt')) ?? '']);
+            return;
+          }
+        }
+        // La del sitio: 1200×630, la del idioma (`og-en`, `og-es`) y la misma que la home de ese idioma.
+        expect(size[1]).toBe('630');
+        expect(url.pathname).toMatch(new RegExp(`^/assets/og-${locale}-`));
+        expect(tags.alt[0]).toContain(profile.name);
+        if (sitePage.kind === 'project') {
+          await page.goto(locale === 'en' ? '/' : '/es', { waitUntil: 'networkidle' });
+          const home = await shareTags(page);
+          expect({ image: tags.image, alt: tags.alt }).toEqual({
+            image: home.image,
+            alt: home.alt,
+          });
+        }
       });
     }
   }
+});
+
+test.describe('favicon, iconos y manifest', () => {
+  test('la cabecera los enlaza y el sitio los sirve con su tipo', async ({ page }) => {
+    test.skip(test.info().project.name !== 'chromium', 'Lee archivos del servidor: basta una vez');
+    const html = await (await page.request.get('/')).text();
+    const links = await page.evaluate((source) => {
+      const doc = new DOMParser().parseFromString(source, 'text/html');
+      const href = (rel: string): string[] =>
+        [...doc.querySelectorAll(`link[rel="${rel}"]`)].map(
+          (link) => link.getAttribute('href') ?? '',
+        );
+      return {
+        icon: href('icon'),
+        apple: href('apple-touch-icon'),
+        manifest: href('manifest'),
+        theme: doc.querySelector('meta[name="theme-color"]')?.getAttribute('content') ?? null,
+      };
+    }, html);
+    expect(links).toEqual({
+      icon: ['/favicon.svg'],
+      apple: ['/apple-touch-icon.png'],
+      manifest: ['/manifest.webmanifest'],
+      theme: '#04050b',
+    });
+
+    const typeOf = async (path: string): Promise<string> => {
+      const response = await page.request.get(path);
+      expect(response.status(), path).toBe(200);
+      return response.headers()['content-type'] ?? '';
+    };
+    expect(await typeOf('/favicon.svg')).toMatch(/^image\/svg\+xml/);
+    expect(await typeOf('/apple-touch-icon.png')).toBe('image/png');
+    expect(await typeOf('/manifest.webmanifest')).toMatch(/^application\/manifest\+json/);
+    const manifest = (await (await page.request.get('/manifest.webmanifest')).json()) as {
+      readonly icons: readonly { readonly src: string; readonly type: string }[];
+    };
+    for (const icon of manifest.icons)
+      expect(await typeOf(icon.src)).toMatch(new RegExp(`^${icon.type.replace('+', '\\+')}`));
+  });
 });
 
 test.describe('sitemap y robots', () => {

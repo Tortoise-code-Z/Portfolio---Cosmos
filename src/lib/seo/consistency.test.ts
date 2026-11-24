@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import { LOCALES } from '~/content/types';
 
-import { fakeProfile, fakeProjects, fakeSkillGroups, ORIGIN } from './fixtures';
+import { fakeProfile, fakeProjects, fakeSiteShare, fakeSkillGroups, ORIGIN } from './fixtures';
 import { homeMeta, projectMeta } from './meta/meta';
 import { indexablePaths, sitePages } from './pages/pages';
 import { sitemapXml } from './sitemap/sitemap';
@@ -34,9 +34,21 @@ function urlsIn(descriptors: readonly MetaDescriptor[]): {
 describe('URL absolutas coherentes', () => {
   const pages = sitePages(fakeProjects);
   const all = LOCALES.flatMap((locale) => [
-    homeMeta({ origin: ORIGIN, locale, profile: fakeProfile, skillGroups: fakeSkillGroups }),
+    homeMeta({
+      origin: ORIGIN,
+      locale,
+      profile: fakeProfile,
+      siteShare: fakeSiteShare,
+      skillGroups: fakeSkillGroups,
+    }),
     ...fakeProjects.map((project) =>
-      projectMeta({ origin: ORIGIN, locale, profile: fakeProfile, project }),
+      projectMeta({
+        origin: ORIGIN,
+        locale,
+        profile: fakeProfile,
+        project,
+        siteShare: fakeSiteShare,
+      }),
     ),
   ]).map(urlsIn);
 

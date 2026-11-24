@@ -29,7 +29,8 @@ cosmos-portfolio/
 │  │                              `JOURNEY_SEGMENTS`, con la forma y la ventana de morph de cada uno),
 │  │                              `experience.ts` (la experiencia del Mission log), `workflow.ts` (la secuencia
 │  │                              de Mission control), `telemetry.ts` (las cifras del repo, contadas al
-│  │                              construir: `virtual:site-telemetry`, ADR-035) y `site.ts` (repo del sitio)
+│  │                              construir: `virtual:site-telemetry`, ADR-035), `site.ts` (repo del sitio) y
+│  │                              `shareImage.ts` (la imagen para compartir del sitio, `?share`)
 │  │                              incluidos; en `projects/`, las tarjetas (`entries.ts`, lo que pinta la
 │  │                              home), el detalle de cada ficha (`details/`, solo para su página, ADR-036)
 │  │                              y las imágenes (`media.ts`), que junta `index.ts`
@@ -123,9 +124,11 @@ cosmos-portfolio/
 │  │                               con los presets `?project` y `?share` de vite.config.ts; ADR-023)
 │  ├─ assets/scene-stills/      ← fotos fijas del modo sin WebGL, `{avif,webp}/` y su huella `stills.json`
 │  │                               (las saca `npm run stills`; ADR-029)
+│  ├─ assets/og/                ← la imagen para compartir del sitio, `og-{en,es}.png` (la saca `npm run og`)
 │  └─ assets/portrait/          ← las dos imágenes del retrato (forma 5): la foto y el paquete de profundidad
 │                                  (las escribe scripts/portrait/; las descarga el worker con `?url`)
-├─ public/                      ← favicon.svg y el CV (Victor_Perez_CV.pdf); apple-touch-icon.png y og/, en F6
+├─ public/                      ← favicon.svg, sus PNG (apple-touch-icon.png, icon-192.png, icon-512.png; los saca
+│                                  `npm run og`), manifest.webmanifest y el CV (Victor_Perez_CV.pdf)
 │                                  (robots.txt y sitemap.xml se generan en el build)
 ├─ tests/
 │  ├─ e2e/                      ← Playwright: recorridos (support/: ayudas y el `test` de los specs, que en
@@ -234,9 +237,9 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 - Segmento `projects` igual en ambos idiomas (decisión: URLs estables y sin mapa de traducción de rutas).
 - `meta` de cada ruta (`lib/seo/meta/meta.ts`): título, descripción (en proyectos, el `summary`), canónica propia de
   cada idioma, `hreflang` en/es/x-default (= EN), Open Graph (`og:locale` `en_US`/`es_ES` con su alternativa,
-  `og:type` `website` o `article`; en las fichas con portada, `og:image` = su JPEG de 1200 px con medidas y `alt`,
-  y `twitter:card` `summary_large_image`; sin ella, sin `og:image` hasta que exista la imagen del sitio, F6, y
-  `summary`), JSON-LD (`Person` en la home, sin email; `SoftwareSourceCode` en cada
+  `og:type` `website` o `article`; `og:image` = un JPEG de 1200 px con medidas y `alt`: en las fichas con portada,
+  la suya; en la home y en las fichas sin portada, la imagen del sitio de su idioma (`content/shareImage.ts`, que
+  las rutas pasan a `meta`); con ella, `twitter:card` `summary_large_image`; la 404, sin imagen y `summary`), JSON-LD (`Person` en la home, sin email; `SoftwareSourceCode` en cada
   proyecto, con el autor embebido). URL base desde `VITE_SITE_URL`.
 - Forma única de las URL absolutas (`absoluteUrl`): origen + ruta, sin barra final salvo la home EN
   (`https://…/`, `https://…/es`, `https://…/projects/chessmate`), sin `?` ni `#`. Un test comprueba que

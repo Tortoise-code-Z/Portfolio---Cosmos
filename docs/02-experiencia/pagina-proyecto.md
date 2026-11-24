@@ -77,8 +77,8 @@ Las secciones sin datos (por ejemplo, `tryIt: null`) **no se pintan**. Cada secc
 
 - `<title>` y descripción propias (`meta.project.title`; la descripción, su `metaDescription` si la tiene —≤ 160 caracteres, para un `summary` demasiado largo: Cosmos— y si no, el `summary` tal cual; el JSON-LD lleva siempre el `summary` entero, que no se corta). Imagen Open Graph = la portada en
   JPEG de 1200 px (`cover.share`), con `og:image:width`, `og:image:height`, `og:image:alt` (el de la portada) y
-  `twitter:card` `summary_large_image`. Sin portada: la imagen del sitio de su idioma cuando exista (F6); hasta
-  entonces, sin `og:image` y con `twitter:card` `summary`.
+  `twitter:card` `summary_large_image`. Sin portada (hoy, Cosmos): la imagen del sitio de su idioma, con su `alt`
+  (`docs/01-contenido/assets.md` → «Imagen para compartir»), y también `summary_large_image`.
 - HTML pre-renderizado con todo el contenido (decisión técnica en `docs/05-tecnico/`).
 - Datos estructurados `SoftwareSourceCode` (un `CreativeWork`) con nombre, descripción, año, URL canónica, URL del
   código (`codeRepository`), idioma y autor embebido.

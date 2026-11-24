@@ -1,8 +1,15 @@
 import type { MetaDescriptor } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
-import { fakeCover, fakeProfile, fakeProject, fakeSkillGroups, ORIGIN } from '../fixtures';
-import { coverShareImage, homeMeta, notFoundMeta, projectMeta } from './meta';
+import {
+  fakeCover,
+  fakeProfile,
+  fakeProject,
+  fakeSiteShare,
+  fakeSkillGroups,
+  ORIGIN,
+} from '../fixtures';
+import { coverShareImage, homeMeta, notFoundMeta, projectMeta, siteShareImage } from './meta';
 
 /** Valor de una etiqueta `meta` por `property` o `name`. */
 function metaContent(descriptors: readonly MetaDescriptor[], key: string): string | undefined {
@@ -41,12 +48,14 @@ describe('homeMeta', () => {
     origin: ORIGIN,
     locale: 'en',
     profile: fakeProfile,
+    siteShare: fakeSiteShare,
     skillGroups: fakeSkillGroups,
   });
   const es = homeMeta({
     origin: ORIGIN,
     locale: 'es',
     profile: fakeProfile,
+    siteShare: fakeSiteShare,
     skillGroups: fakeSkillGroups,
   });
 
@@ -77,15 +86,23 @@ describe('homeMeta', () => {
     expect(links(es, 'alternate')).toEqual(expected);
   });
 
-  it('Open Graph y Twitter sin imagen', () => {
+  it('Open Graph y Twitter', () => {
     expect(metaContent(en, 'og:type')).toBe('website');
     expect(metaContent(en, 'og:site_name')).toBe('Ada Pérez');
     expect(metaContent(en, 'og:locale')).toBe('en_US');
     expect(metaContent(en, 'og:locale:alternate')).toBe('es_ES');
     expect(metaContent(es, 'og:locale')).toBe('es_ES');
     expect(metaContent(es, 'og:locale:alternate')).toBe('en_US');
-    expect(metaContent(en, 'twitter:card')).toBe('summary');
-    expect(metaContent(en, 'og:image')).toBeUndefined();
+  });
+
+  it('la imagen para compartir del sitio en su idioma: URL absoluta, 1200×630, alt y tarjeta grande', () => {
+    expect(metaContent(en, 'og:image')).toBe('https://cosmos.test/assets/og-en-Gh_4.jpeg');
+    expect(metaContent(es, 'og:image')).toBe('https://cosmos.test/assets/og-es-Ij-5.jpeg');
+    expect(metaContent(en, 'og:image:width')).toBe('1200');
+    expect(metaContent(en, 'og:image:height')).toBe('630');
+    expect(metaContent(en, 'og:image:alt')).toBe('Ada Pérez next to a turtle');
+    expect(metaContent(es, 'og:image:alt')).toBe('Ada Pérez junto a una tortuga');
+    expect(metaContent(en, 'twitter:card')).toBe('summary_large_image');
   });
 
   it('lleva la ficha Person', () => {
@@ -95,7 +112,13 @@ describe('homeMeta', () => {
 
 describe('projectMeta', () => {
   const project = fakeProject('beta-2', 'Beta');
-  const es = projectMeta({ origin: ORIGIN, locale: 'es', profile: fakeProfile, project });
+  const es = projectMeta({
+    origin: ORIGIN,
+    locale: 'es',
+    profile: fakeProfile,
+    project,
+    siteShare: fakeSiteShare,
+  });
 
   it('título con el nombre, descripción = summary y tipo article', () => {
     expect(titleOf(es)).toBe('Beta · Víctor Pérez');
@@ -119,12 +142,14 @@ describe('projectMeta', () => {
       locale: 'en',
       profile: fakeProfile,
       project: withMeta,
+      siteShare: fakeSiteShare,
     });
     const esMeta = projectMeta({
       origin: ORIGIN,
       locale: 'es',
       profile: fakeProfile,
       project: withMeta,
+      siteShare: fakeSiteShare,
     });
     expect(metaContent(en, 'description')).toBe('Short Beta.');
     expect(metaContent(en, 'og:description')).toBe('Short Beta.');
@@ -139,10 +164,11 @@ describe('projectMeta', () => {
     expect(jsonLdOf(es)).toMatchObject({ '@type': 'SoftwareSourceCode', name: 'Beta' });
   });
 
-  it('sin portada: sin og:image y tarjeta `summary`', () => {
-    expect(metaContent(es, 'og:image')).toBeUndefined();
-    expect(metaContent(es, 'og:image:alt')).toBeUndefined();
-    expect(metaContent(es, 'twitter:card')).toBe('summary');
+  it('sin portada: la imagen del sitio en su idioma y tarjeta grande', () => {
+    expect(metaContent(es, 'og:image')).toBe('https://cosmos.test/assets/og-es-Ij-5.jpeg');
+    expect(metaContent(es, 'og:image:height')).toBe('630');
+    expect(metaContent(es, 'og:image:alt')).toBe('Ada Pérez junto a una tortuga');
+    expect(metaContent(es, 'twitter:card')).toBe('summary_large_image');
   });
 
   it('con portada: su JPEG para compartir con URL absoluta, medidas y alt del idioma', () => {
@@ -152,12 +178,14 @@ describe('projectMeta', () => {
       locale: 'en',
       profile: fakeProfile,
       project: withCover,
+      siteShare: fakeSiteShare,
     });
     const esCover = projectMeta({
       origin: ORIGIN,
       locale: 'es',
       profile: fakeProfile,
       project: withCover,
+      siteShare: fakeSiteShare,
     });
     expect(metaContent(en, 'og:image')).toBe('https://cosmos.test/assets/home-Ef-3.jpeg');
     expect(metaContent(en, 'og:image:width')).toBe('1200');
@@ -165,7 +193,7 @@ describe('projectMeta', () => {
     expect(metaContent(en, 'og:image:alt')).toBe('Beta home page');
     expect(metaContent(esCover, 'og:image:alt')).toBe('Página de inicio de Beta');
     expect(metaContent(en, 'twitter:card')).toBe('summary_large_image');
-    // Una sola imagen: ni la portada WebP ni sus variantes.
+    // Una sola imagen: ni la portada WebP, ni sus variantes, ni la del sitio.
     expect(
       en.filter((descriptor) => 'property' in descriptor && descriptor.property === 'og:image'),
     ).toHaveLength(1);
@@ -183,6 +211,17 @@ describe('coverShareImage', () => {
   });
 });
 
+describe('siteShareImage', () => {
+  it('el JPEG del idioma con sus medidas y su alt', () => {
+    expect(siteShareImage(ORIGIN, 'en', fakeSiteShare)).toEqual({
+      url: 'https://cosmos.test/assets/og-en-Gh_4.jpeg',
+      width: 1200,
+      height: 630,
+      alt: 'Ada Pérez next to a turtle',
+    });
+  });
+});
+
 describe('notFoundMeta', () => {
   const es = notFoundMeta({ locale: 'es', profile: fakeProfile });
 
@@ -194,5 +233,10 @@ describe('notFoundMeta', () => {
     expect(metaContent(es, 'og:url')).toBeUndefined();
     expect(jsonLdOf(es)).toBeUndefined();
     expect(metaContent(es, 'og:type')).toBe('website');
+  });
+
+  it('sin imagen para compartir (página sin dirección propia)', () => {
+    expect(metaContent(es, 'og:image')).toBeUndefined();
+    expect(metaContent(es, 'twitter:card')).toBe('summary');
   });
 });

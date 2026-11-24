@@ -311,5 +311,10 @@ su propio contenido con `z-index: -1` (el brillo «hot» de la fila de proyecto)
 ## Marca
 
 - **Logotipo:** la palabra `TORTOISE_CODE` en `--font-mono`, `letter-spacing: var(--tracking-logo)` (0.16em).
-- **Favicon:** un hexágono ámbar (una placa del caparazón) con un punto blanco en el centro (la singularidad).
-  Versión SVG + PNG 180 px para iOS.
+- **Favicon · «Constelación tortuga»** (elegido en la sesión 47): sobre un cuadrado redondeado del color del espacio
+  (`--color-void`), doce estrellas ámbar (`--color-star`) unidas por líneas turquesa (`--color-aurora` al 75 %), como
+  la galaxia de skills, dibujan una tortuga vista desde arriba: cabeza, caparazón hexagonal, cuatro patas y cola, con
+  la singularidad (blanco) en el centro. El cuadrado oscuro lo hace legible en pestañas claras y oscuras; a 16 px las
+  líneas se funden y quedan las estrellas. Versión SVG y PNG para iOS y el manifest (`docs/01-contenido/assets.md`).
+- **Imagen para compartir:** la foto fija de la tortuga con el eyebrow, el nombre y el dominio del hero
+  (`docs/01-contenido/assets.md` → «Imagen para compartir»).

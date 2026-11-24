@@ -10,6 +10,7 @@ import {
   type Locale,
   type Profile,
   type Project,
+  type SiteShareImage,
   type SkillGroup,
 } from '~/content/types';
 import { homePath, projectPath } from '~/lib/i18n/paths/paths';
@@ -42,6 +43,17 @@ export function coverShareImage(origin: string, locale: Locale, cover: CoverAsse
     width: cover.share.width,
     height: cover.share.height,
     alt: cover.alt[locale],
+  };
+}
+
+/** La imagen para compartir del sitio en su idioma (la home y las fichas sin portada). */
+export function siteShareImage(origin: string, locale: Locale, site: SiteShareImage): ShareImage {
+  const file = site.share[locale];
+  return {
+    url: assetUrl(origin, file.src),
+    width: file.width,
+    height: file.height,
+    alt: site.alt[locale],
   };
 }
 
@@ -114,18 +126,24 @@ interface MetaInput {
   readonly profile: Profile;
 }
 
+/** Con la imagen para compartir del sitio. */
+interface SharedMetaInput extends MetaInput {
+  readonly siteShare: SiteShareImage;
+}
+
 export function homeMeta({
   origin,
   locale,
   profile,
+  siteShare,
   skillGroups,
-}: MetaInput & { readonly skillGroups: readonly SkillGroup[] }): MetaDescriptor[] {
+}: SharedMetaInput & { readonly skillGroups: readonly SkillGroup[] }): MetaDescriptor[] {
   const text = {
     title: translate(locale, 'meta.title'),
     description: translate(locale, 'meta.description'),
   };
   return [
-    ...baseMeta(locale, profile.name, text, 'website'),
+    ...baseMeta(locale, profile.name, text, 'website', siteShareImage(origin, locale, siteShare)),
     ...linkMeta(origin, locale, byLocale(homePath)),
     { 'script:ld+json': personJsonLd({ origin, locale, profile, skillGroups }) },
   ];
@@ -133,14 +151,15 @@ export function homeMeta({
 
 /**
  * Descripción = su `metaDescription` si la tiene (un `summary` demasiado largo para los buscadores) y, si no,
- * el `summary` tal cual; imagen para compartir = la portada, si la hay (sin ella, ninguna).
+ * el `summary` tal cual; imagen para compartir = la portada, si la hay, y si no, la del sitio.
  */
 export function projectMeta({
   origin,
   locale,
   profile,
   project,
-}: MetaInput & { readonly project: Project }): MetaDescriptor[] {
+  siteShare,
+}: SharedMetaInput & { readonly project: Project }): MetaDescriptor[] {
   const text = {
     title: translate(locale, 'meta.project.title', { project: project.name }),
     description: (project.metaDescription ?? project.summary)[locale],
@@ -151,7 +170,9 @@ export function projectMeta({
       profile.name,
       text,
       'article',
-      project.cover === null ? null : coverShareImage(origin, locale, project.cover),
+      project.cover === null
+        ? siteShareImage(origin, locale, siteShare)
+        : coverShareImage(origin, locale, project.cover),
     ),
     ...linkMeta(
       origin,

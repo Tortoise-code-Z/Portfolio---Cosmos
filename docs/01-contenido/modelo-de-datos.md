@@ -92,6 +92,12 @@ export interface CoverAsset extends ImageAsset {
   readonly share: ImageFile;                   // import con `?share`: JPEG de 1200 px para `og:image`
 }
 
+// La imagen para compartir del sitio (content/shareImage.ts): la home y las fichas sin portada.
+export interface SiteShareImage {
+  readonly share: Localized<ImageFile>;        // `?share` de src/assets/og/og-{en,es}.png (1200×630, `npm run og`)
+  readonly alt: Localized;
+}
+
 export type WorkMode = 'remote' | 'hybrid' | 'onsite';
 
 export interface Profile {
@@ -181,8 +187,8 @@ export interface Project {
   readonly highlights: readonly Localized[]; // retos técnicos resueltos; vacío = no se pinta
   readonly notes: readonly ProjectNote[];
   readonly tryIt: TryIt | null;
-  readonly cover: CoverAsset | null;        // null = sin portada (Cosmos, hasta F6): ni se pinta ni hay
-                                             // og:image. La de Chessmate y AstroHub = su captura de Inicio
+  readonly cover: CoverAsset | null;        // null = sin portada (Cosmos, hasta F6): no se pinta y su og:image
+                                             // es la del sitio. La de Chessmate y AstroHub = su captura de Inicio
   readonly gallery: readonly ImageAsset[];  // vacía = la sección no se pinta
   readonly links: {
     readonly code: string;                   // URL del repo

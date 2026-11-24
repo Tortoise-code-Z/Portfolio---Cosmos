@@ -262,8 +262,9 @@ test.describe('build budgets', () => {
         ),
       ),
     );
-    // Chessmate y AstroHub: 21 capturas × 2 formatos × 3 anchos + 2 JPEG para compartir (128).
-    expect(images.size).toBe(21 * 2 * PROJECT_IMAGE_WIDTHS.length + 2);
+    // Chessmate y AstroHub: 21 capturas × 2 formatos × 3 anchos + sus 2 JPEG para compartir, y los 2 del sitio
+    // (`og-en`, `og-es`: la home y Cosmos) (130).
+    expect(images.size).toBe(21 * 2 * PROJECT_IMAGE_WIDTHS.length + 2 + 2);
     const over = [...images]
       .map((image) => ({ image, bytes: statSync(join(CLIENT_DIR, image)).size }))
       .filter(({ bytes }) => bytes > IMAGE_BUDGET_BYTES);

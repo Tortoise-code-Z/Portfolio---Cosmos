@@ -222,7 +222,9 @@ Insights, en F6 con Lighthouse CI.
 - Movimiento reducido completo, táctil, encuadre en los 6 tamaños de referencia, degradación de nivel en caliente.
 - Presupuestos de Lighthouse CI activados en CI; revisión con NVDA; pruebas en un móvil real.
 - ✔ Ficha de **Cosmos** con datos reales (proceso, retos y funcionalidades; el stack revisado): adelantada a C.5.
-  Quedan aquí sus capturas (portada y galería). Imágenes Open Graph EN/ES; favicon.
+  Quedan aquí sus capturas (portada y galería).
+- ✔ Imágenes Open Graph EN/ES y favicon definitivo (con `apple-touch-icon` y manifest): adelantados en la sesión 47,
+  antes de las candidaturas (`npm run og`; `docs/01-contenido/assets.md`).
 - ✔ SEO de las fichas: la meta description de Cosmos pasaba de 220 (EN) y 228 (ES) caracteres; adelantado a C.5
   con un `metaDescription` opcional (≤ 160, solo Cosmos; las demás siguen con el `summary`).
 - ✔ README del repo en inglés con capturas y arquitectura: adelantado a C.5 (siete capturas en `docs/readme/`), y
