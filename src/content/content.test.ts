@@ -25,6 +25,7 @@ import {
 import { experience } from './experience';
 import { SHARE_IMAGE_WIDTH } from './imageWidths';
 import { profile } from './profile';
+import { siteShareImage } from './shareImage';
 import { assembleProjects, projectDetails, projects } from './projects';
 import { projectEntries } from './projects/entries';
 import { projectMedia } from './projects/media';
@@ -301,6 +302,45 @@ describe('contenido', () => {
       expect(cv).toMatch(/^\/[\w.-]+\.pdf$/);
       expect(readFileSync(join(PUBLIC_DIR, cv)).subarray(0, 5).toString()).toBe('%PDF-');
     }
+  });
+
+  it('la imagen para compartir del sitio: 1200×630 por idioma (Open Graph) y un alt que dice quién es', () => {
+    for (const locale of LOCALES) {
+      expect(siteShareImage.share[locale]).toMatchObject({ width: 1200, height: 630 });
+      expect(siteShareImage.alt[locale]).toContain(profile.name);
+    }
+  });
+
+  it('los iconos de public/ (`npm run og`) miden lo que dicen el manifest y `apple-touch-icon`', () => {
+    const pngSize = (file: string): string => {
+      const bytes = readFileSync(join(PUBLIC_DIR, file));
+      expect(bytes.toString('latin1', 12, 16), file).toBe('IHDR');
+      return `${String(bytes.readUInt32BE(16))}x${String(bytes.readUInt32BE(20))}`;
+    };
+    expect(pngSize('apple-touch-icon.png')).toBe('180x180');
+    const manifest = JSON.parse(readFileSync(join(PUBLIC_DIR, 'manifest.webmanifest'), 'utf8')) as {
+      readonly name: string;
+      readonly icons: readonly {
+        readonly src: string;
+        readonly sizes: string;
+        readonly type: string;
+      }[];
+    };
+    expect(manifest.name).toContain(profile.name);
+    const pngs = manifest.icons.filter((icon) => icon.type === 'image/png');
+    expect(pngs.map((icon) => icon.sizes)).toEqual(['192x192', '512x512']);
+    for (const icon of pngs) expect(pngSize(icon.src.slice(1))).toBe(icon.sizes);
+  });
+
+  it('el favicon solo usa colores de los tokens (--color-void, --color-star, --color-aurora) y blanco', () => {
+    const tokens = readFileSync(join(PUBLIC_DIR, '..', 'src', 'styles', 'tokens.css'), 'utf8');
+    const token = (name: string): string | undefined =>
+      new RegExp(`--color-${name}:\\s*(#[0-9a-f]{6});`).exec(tokens)?.[1];
+    const allowed = [token('void'), token('star'), token('aurora'), '#ffffff'];
+    expect(allowed).not.toContain(undefined);
+    const svg = readFileSync(join(PUBLIC_DIR, 'favicon.svg'), 'utf8');
+    const used = new Set(svg.toLowerCase().match(/#[0-9a-f]{6}/g));
+    expect([...used].filter((color) => !allowed.includes(color))).toEqual([]);
   });
 
   // El sitio no contradice el CV (fase C): los datos que repite, comparados con lo que dice el PDF revisado. Si el PDF

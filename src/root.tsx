@@ -50,7 +50,11 @@ export function Layout({ children }: { readonly children: ReactNode }): ReactNod
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="color-scheme" content="dark" />
+        {/* Favicon e iconos (docs/01-contenido/assets.md → «Favicon e iconos»): los PNG salen de `npm run og`. */}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content="#04050b" />
         <Meta />
         <Links />
       </head>

@@ -54,6 +54,15 @@ export interface CoverAsset extends ImageAsset {
   readonly share: ImageFile;
 }
 
+/**
+ * La imagen para compartir del sitio (`og:image` de la home y de las fichas sin portada): un JPEG de 1200×630 por
+ * idioma (import con `?share`; sale de `npm run og`) y su texto alternativo.
+ */
+export interface SiteShareImage {
+  readonly share: Localized<ImageFile>;
+  readonly alt: Localized;
+}
+
 export type WorkMode = 'remote' | 'hybrid' | 'onsite';
 
 /** Un módulo del manifiesto de una misión: una herramienta, para qué se usó y qué entradas del registro le tocan. */
@@ -224,8 +233,8 @@ export interface Project {
   readonly notes: readonly ProjectNote[];
   readonly tryIt: TryIt | null;
   /**
-   * `null` = sin portada todavía: la interfaz no la pinta y la ficha no lleva `og:image` (Cosmos, hasta
-   * F6). La de Chessmate y AstroHub es su captura de Inicio, la misma que abre la galería.
+   * `null` = sin portada todavía (Cosmos, hasta F6): la interfaz no la pinta y su `og:image` es la del sitio
+   * (`SiteShareImage`). La de Chessmate y AstroHub es su captura de Inicio, la misma que abre la galería.
    */
   readonly cover: CoverAsset | null;
   readonly gallery: readonly ImageAsset[];

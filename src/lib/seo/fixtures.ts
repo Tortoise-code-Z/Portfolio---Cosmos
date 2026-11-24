@@ -1,7 +1,7 @@
 // Datos de mentira para los tests de lib/seo: lib no importa el contenido real (ADR-017) y así cada
 // test controla lo que comprueba. No se usa fuera de los tests.
 
-import type { CoverAsset, Profile, Project, SkillGroup } from '~/content/types';
+import type { CoverAsset, Profile, Project, SiteShareImage, SkillGroup } from '~/content/types';
 
 export const ORIGIN = 'https://cosmos.test';
 
@@ -76,6 +76,15 @@ export const fakeCover: CoverAsset = {
   sources: { avif: '/assets/home-Cd_2.avif 1920w', webp: '/assets/home-Ab_1.webp 1920w' },
   alt: { en: 'Beta home page', es: 'Página de inicio de Beta' },
   share: { src: '/assets/home-Ef-3.jpeg', width: 1200, height: 600 },
+};
+
+/** La imagen para compartir del sitio: un JPEG por idioma, con la forma de las del build. */
+export const fakeSiteShare: SiteShareImage = {
+  share: {
+    en: { src: '/assets/og-en-Gh_4.jpeg', width: 1200, height: 630 },
+    es: { src: '/assets/og-es-Ij-5.jpeg', width: 1200, height: 630 },
+  },
+  alt: { en: 'Ada Pérez next to a turtle', es: 'Ada Pérez junto a una tortuga' },
 };
 
 export const fakeProjects: readonly Project[] = [

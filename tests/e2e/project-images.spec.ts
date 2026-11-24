@@ -176,7 +176,10 @@ test.describe('project images', () => {
       }
       const [shareUrl, shareWidth, shareHeight] = share;
       if (pictures.length === 0) {
-        expect(shareUrl, path).toBeNull();
+        // Sin portada (Cosmos): la imagen para compartir del sitio, que comprueba `seo.spec.ts`.
+        expect(new URL(shareUrl ?? 'https://x.invalid').pathname, path).toMatch(
+          /^\/assets\/og-(en|es)-/,
+        );
         continue;
       }
       // La portada (la 1.ª imagen) es la 1.ª captura de la galería (la 2.ª).
