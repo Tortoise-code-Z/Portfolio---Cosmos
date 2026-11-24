@@ -198,7 +198,7 @@ por paso, en este orden:
    **Primer paso (sesión 47, antes de las naves): la entrada del Crew file** (prueba aprobada): la
    sección se queda fija mientras la Tierra se deshace en el retrato, el haz baja revelándola y el visor se cierra
    (`05-crew-file.md` → «Transición», ADR-039). En dos PR: el tramo de llegada, la sección fija, los saltos y la
-   escena (PR 1); la coreografía de la página (PR 2).
+   escena (PR 1, ✔ #124); la coreografía de la página (PR 2).
 
 **Hecho cuando:** el sitio no contradice el CV, los dos interludios y el epílogo cumplen sus criterios (un doc por
 sección en `docs/02-experiencia/capitulos/`, escrito en su paso) en escritorio y móvil, sin WebGL y con movimiento

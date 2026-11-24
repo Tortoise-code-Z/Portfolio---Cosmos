@@ -3,49 +3,47 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F4 cerrada · `v0.3.0`** sobre `ea64f26` (PR #121, la corrección de AUD-F4-CIERRE) · siguiente:
-decidir entre C.7 (Naves) y F5 (transiciones a las fichas).
+**Dónde estamos:** **C.7 · primer paso (la entrada del Crew file)** · PR 1 en `main` (#124) y AUD-SHARE corregida
+(#125, `297f523`) · siguiente: el PR 2 (la coreografía de la página) y decidir AUD-C7-1 (ya entregada por la Mesa).
 
-_Última actualización: 2026-11-24 (**CIERRE DE SESIÓN · 46**) · AUD-F4-CIERRE decidida y corregida entera, el Speed
-Index medido, ADR-038 y la etiqueta `v0.3.0`: F4 cerrada._
+_Última actualización: 2026-11-24 (**CIERRE DE SESIÓN · 47**) · imagen para compartir y favicon definitivo (adelantados
+de F6), la llegada del Crew file (PR 1 de C.7, ADR-039) y AUD-SHARE corregida entera._
 
-**Hecho esta sesión** (vivas S46 en `_claude/cadena/hecho/2026-11-24/decisiones-vivas-S46.md`):
-1. **AUD-F4-CIERRE decidida** (P1-B, P2-A, P3-A, P4-A; en los menores con opciones, -6, -7, -10, -26 y -29 en A) y
-   **corregida entera** (PR #121, `ea64f26`; 7 recomendados, 30 menores): las constelaciones leen el grupo del frame
-   (`SceneFrame.skillGroup`; el bucle lee cada store una vez por frame: ningún `useFrame` lee un store, nota de
-   ADR-027), esperan a `painted` y no se dibujan a opacidad 0; el ciclo de placas se queda quieto en un interludio; el
-   pin valida su slug; la etiqueta del pin sobre `--color-veil` (8,6 y 8,1 : 1 sobre una escena blanca), el 70 % del
-   tallo en su token, sin resaltado del sistema al tocar, la etiqueta de estrella con `--dur-base`. **Tabla única de la
-   escena** (`scripts/sceneModules.ts`, con su test): de ella salen `IMPURE_SCENE_MODULES`, el 90 % (entran
-   `SceneRoot`, `CameraRig`, `Particles`, `BackgroundStars` y `useSceneShapes`) y la parte de `scene/` de la huella
-   (entra `lib/device/mediaQuery`; salen `math/labelFit` y `math/platePins`); los `.glsl`, con `import.meta.glob`. Tests
-   nuevos o más estrictos (primera pintura sin JS, clic corto que de verdad descarga, enlaces de la fila sin WebGL,
-   `user-select: all`, esperas por frames con `waitFrames`, los pins al volver de una ficha, salir de Projects con la
-   rueda, la fila que manda más de un turno). Docs: la tabla «criterio → test» de los capítulos 0–4 en `calidad.md`,
-   la medida de fps de F4 y el límite del ahorro de energía (aceptado) en `rendimiento.md`, roadmap. +52 B: **257 127 B**.
-2. **P3 medido:** el Speed Index de 4,4 s era ruido de PageSpeed (5 pasadas: 4,49 · 2,75 · 1,20 · 1,22 · 1,11 s; el
-   FCP simulado, 0,9 s en todas; tras la primera pintura la pantalla casi no cambia). Sin código; escrito en `calidad.md`.
-3. **ADR-038** · el puntero del viaje (los capítulos lo dejan pasar a las capas de la escena), y la nota de ADR-032 con
-   el peso tras el cierre de F4.
-4. **Etiqueta anotada `v0.3.0`** («v0.3.0: F4, the chapters (audited)») sobre `ea64f26`: **F4 cerrada**.
+**Hecho esta sesión** (vivas S47 en `_claude/cadena/hecho/2026-11-24/decisiones-vivas-S47.md`):
+1. **Imagen para compartir del sitio y favicon definitivo** (PR #122, `34dd92c`): `npm run og` (`scripts/og.ts`,
+   Playwright) saca `og-en/es.png` 1200×630 (la foto fija de la tortuga con eyebrow, nombre y dominio) y los iconos
+   (180, 192, 512) del favicon «Constelación tortuga» (elegido entre dos tandas de opciones); `og:image` en la home y
+   en las fichas sin portada; manifest, `apple-touch-icon` y `theme-color`. **Arreglo** (PR #123, `53ecc74`): el
+   comentario del SVG llevaba «--» y no era XML válido (el navegador no lo pintaba); tests que lo parsean y lo
+   decodifican como imagen.
+2. **C.7 · primer paso, PR 1** (PR #124, `2b3cb6d`; **ADR-039**): la llegada del epílogo, un tramo `arrival` de
+   160 svh en `JOURNEY_SEGMENTS` con la sección fija (escenario sticky + marcador `data-landing` con el id
+   `crew-file`), la Tierra que se deshace en el retrato en la primera mitad y el barrido del haz en pantalla; el raíl
+   marca «Crew file» desde que empieza (`sceneStore.arriving`); los saltos aterrizan al final; sin WebGL también hay
+   llegada; con movimiento reducido no. Antes, una prueba fuera del repo (artefacto «Crew file · entrada») aprobada.
+   +185 B: **257 312 B**.
+3. **AUD-SHARE decidida y corregida entera** (PR #125, `297f523`): huella de la imagen para compartir
+   (`scripts/ogInputs.ts` → `src/assets/og/og.json`, test en `npm run check`; el dominio, en el e2e de SEO), nombre en
+   mayúsculas como el hero, `og.ts` falla si una fuente no carga, `siteShare` con un alt que describe lo que se ve,
+   manifest con `id` y `lang`, tests del favicon (solo tokens), del color de tema y de las etiquetas servidas; docs.
+4. **AUD-C7-1 lanzada y entregada** por la Mesa (base `53ecc74` · hasta `2b3cb6d`, vivas S47 hasta #29): **sin
+   decidir** (0 bloqueantes · 8 recomendados · 22 menores · 6 preguntas).
 
 **Incidencias y lecciones:**
-- **PageSpeed:** la API, desde el contenedor, da 403 (proxy); sin clave, 429 (cuota 0). Se lee
-  `window.__LIGHTHOUSE_MOBILE_JSON__` (y `…DESKTOP…`) en pagespeed.web.dev con el navegador integrado. La web guarda
-  el informe de la misma URL un rato: para pasadas nuevas, `?psi=N` en la dirección. El SI simulado sale sobre todo
-  del SI observado en su propia carga (la red real): una sola pasada no dice nada.
-- **Volcar al equipo con `tar`:** sin permiso de borrar, `tar` no puede reemplazar un archivo (lo desenlaza):
-  `--overwrite`. Comprobar después con `cmp` archivo a archivo.
-- Los docs no pueden citar rutas del buzón (`code-references.test.ts`); el fragmento de fps se cita como «guardado
-  fuera del repo».
-- El e2e de la telemetría de Mission control falla si el build es anterior a un cambio de `DECISIONS.md` o de los
-  tests: rehacer el build antes de la última tanda de e2e.
-- Projects mide 240 vh: un e2e que «sale» del capítulo con la rueda necesita cuatro pantallas (con dos, sigue dentro).
-- Una vez se lanzó `git --no-optional-locks diff <commit>` contra el árbol de trabajo del equipo (la regla es no
-  hacerlo): no dejó `index.lock`.
-- **Contenedor (S46):** como S45 (Node 24 del paquete npm, Chromium 1243 enlazado como 1248 en `~/pwb`, Lighthouse
-  13.6.0); el árbol con `git archive` de `11e59ff` en `~/repo`, `git init` con `core.hooksPath /dev/null`. e2e de
-  Chromium enteros con `--workers=1` (~10 min). `recruiter.spec.ts` pasó.
+- **Un comentario XML no puede llevar «--»** (ni citando `--color-void`): el SVG deja de ser imagen. Al principio se
+  dijo «caché»; lo destapó decodificarlo en el navegador. Ante un icono que no sale, decodificarlo antes de culpar a la
+  caché. Vercel tarda ~3 min en servir tras el merge.
+- **Huella de las fotos fijas:** lo que no cambia lo que se ve va fuera de las carpetas de `STILLS_SOURCES` (el ajuste
+  del foco vivía en `lib/scroll/arrival` y cada cambio movía la huella: pasó a `lib/scroll/stageFocus`).
+- **WebKit y el foco:** hace su propio scroll después del nuestro y redondea hacia abajo: destinos con `Math.ceil` y
+  margen. Firefox cae 1 px más abajo en el salto al Crew file (el e2e admite 2 px).
+- **Huella de og:** el dominio no entra en ella (Vitest corre con `VITE_SITE_URL=https://cosmos.test`): va aparte en
+  `og.json` y lo comprueba el e2e contra el origen. `document.fonts.check` falla con una fuente que no se usa
+  (Geologica, fuera de la lista).
+- El PR 1 se subió sin `npm run visual` ni `npm run stills` locales: el CI lo cubrió (Visual regression y la huella de
+  `budgets.spec.ts`), pero la regla sigue siendo correrlos antes.
+- **Contenedor (S47):** como S46; árbol en `~/repo` sobre el commit base, volcado con `tar --overwrite` y `md5sum -c`
+  (base antes, archivos nuevos después). e2e de Chromium enteros: 355 en ~10 min.
 
 **Deuda anotada:**
 - **CI · WebKit a ~3 fps (S35):** la traza del CI de C.2 lo midió: WebKit sin GPU pinta unos 3 frames por segundo con
@@ -60,8 +58,11 @@ Index medido, ADR-038 y la etiqueta `v0.3.0`: F4 cerrada._
   de la prueba y lecciones del shader en `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a
   pantalla completa). La prueba es el artefacto privado «Naves · prueba»; copia del código en `_claude/naves/`. Al
   construir: su ADR (uno nuevo, numerado al escribirlo: mapa de formas `uFrom`/`uTo`/`uT`, que obliga a rehacer sobre él lo del retrato atado a
-  `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: quedan 2 873 B tras el cierre de F4 (257 127 B), así que su ADR subirá el límite con esos números
-  reales.
+  `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: quedan 2 688 B tras el PR 1 de C.7
+  (257 312 B), así que su ADR subirá el límite con esos números reales. **Primer paso en marcha (S47):** la entrada
+  del Crew file (ADR-039; prueba aprobada: artefacto privado «Crew file · entrada», copia en `_claude/crew-entrada/`).
+  PR 1 hecho (#124: tramo de llegada, sección fija, saltos, escena); falta el PR 2 (la coreografía de la página).
+  Mientras no esté, la sección llega revelada entera y fija, sin haz ni visor en el DOM.
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
   cómo está construido: solo herramientas, para qué y lo hecho (nota de ADR-034; `experiencia.md` → «Regla de
   privacidad», sin ejemplos desde AUD-C2: una lista en un repo público sería la filtración). Las viñetas y la bio van
@@ -99,7 +100,10 @@ Index medido, ADR-038 y la etiqueta `v0.3.0`: F4 cerrada._
 - **WebKit (CI) · test de Tab** («1280×720: every focusable element… comes into view with Tab»): ha fallado cinco
   veces; la 5.ª, en el CI de C.2, por tiempo (WebKit a ~3 fps y más enlaces con el Mission log). Desde C.2 lleva
   `test.slow()` en WebKit (90 s). Desde F4.3c, si lo enfocado no se ve, vuelve a mirarlo unos frames antes de darlo
-  por tapado. Si vuelve a fallar por algo que no sea tiempo: mirar `scroll-padding` en WebKit.
+  por tapado. Si vuelve a fallar por algo que no sea tiempo: mirar `scroll-padding` en WebKit. En S47 falló dos veces
+  más con «Download CV» del Crew file (la sección fija de la llegada): `useArrivalFocus` mira 30 frames tras el foco y
+  `stageFocusScroll` (`lib/scroll/stageFocus`) redondea hacia arriba con 2 px de margen; WebKit redondea el scroll
+  hacia abajo.
 - **Contenedor · `recruiter.spec.ts` (S36, S44, S45):** «390 px: the «Projects · Cosmic turtle» dot…» falla en el
   contenedor también sobre `main`: en S44, 2 de 6 con `--repeat-each=3` (en EN y ahora también en ES); en S45, 1 de 2;
   no es de ningún cambio y en el CI pasa. Si sale en el CI, mirarlo (el deslizamiento táctil de `swipeDown` a 390 px).
@@ -163,7 +167,7 @@ Index medido, ADR-038 y la etiqueta `v0.3.0`: F4 cerrada._
   (no hay WebKit en el contenedor); el arreglo lo vigila el e2e de escritorio sin WebGL en el CI.
 - **Peso de la escena:** 257 127 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
   C.5 −2, C.6a +52, C.6b +967, AUD-C6B +252, F4.4a +391, F4.4b +1 729, AUD-F4-4A +21, AUD-F4-4B +149, F4.5 +444,
-  AUD-F4-5 +1, AUD-F4-CIERRE +52): **257 127 B**. Quedan 2 873 B; C.7 subirá el límite. Cada paso
+  AUD-F4-5 +1, AUD-F4-CIERRE +52, C.7 PR 1 +185): **257 312 B**. Quedan 2 688 B; C.7 subirá el límite. Cada paso
   apunta lo que pesó en `rendimiento.md`. Por paquete se mide con
   `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
@@ -224,8 +228,9 @@ Index medido, ADR-038 y la etiqueta `v0.3.0`: F4 cerrada._
 - **Imágenes (F2.8):** Vercel no guarda la caché de `vite-imagetools`, así que cada despliegue genera las 128
   variantes (~1 min más; ADR-023). La LCP de las fichas es la portada: medida al cerrar F2 (`calidad.md` →
   «Mediciones»); en local pasa algo de 2,5 s y en producción no: vigilarla en F6.
-  El `og:image` de las fichas mide ~1200×576 (proporción de la captura, no 1,91:1): ver cómo lo recortan las redes
-  cuando se hagan las imágenes del sitio (F6). Las capturas traen de origen la barra de scroll del navegador a la
+  El `og:image` de las fichas mide ~1200×576 (proporción de la captura, no 1,91:1). La imagen del sitio (1200×630,
+  S47) la recortan algunas redes en cuadrado (aceptado, AUD-SHARE): en LinkedIn se ve bien; falta mirarla en
+  WhatsApp, también con las fichas. Las capturas traen de origen la barra de scroll del navegador a la
   derecha: recortarla en F6 si molesta. En el contenedor solo corre Chromium: Firefox y WebKit de
   `project-images.spec.ts` se ven en el CI.
 - **`sizes` (AUD-F2-8):** los cortes no cuentan una barra de scroll clásica de escritorio: en esa franja de ~15 px
@@ -260,7 +265,6 @@ Index medido, ADR-038 y la etiqueta `v0.3.0`: F4 cerrada._
 - **F7:** que `/es/*` reciba la 404 ES y que las 404 salgan con estado 404 real en Vercel (en `preview` salen con
   200); comprobar el `X-Robots-Tag: noindex` de las previews (ahora más importante: su canónica apunta a
   `tortoisecode.dev`, ADR-025); **`cleanUrls: true`** en `vercel.json`.
-- Provisional: `favicon.svg` (F6).
 - **React Router 8.4 no pasa `caseSensitive` a las rutas del cliente:** lo cubre `isLowerCasePathname`. Al
   actualizar React Router, comprobar si ya lo pasa.
 - Si alguna ruta lanza un 404 desde un `loader` (`throw data(null, { status: 404 })`), choca con
@@ -276,23 +280,29 @@ Index medido, ADR-038 y la etiqueta `v0.3.0`: F4 cerrada._
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **Decidir entre C.7 (Naves) y F5 (transiciones a las fichas).** C.7: estudio y prueba en
-   `docs/02-experiencia/transiciones-naves.md` (manda la versión 8), su ADR (mapa de formas `uFrom`/`uTo`/`uT`) sube
-   el límite de la escena con los números reales (257 127 B; quedan 2 873). F5: roadmap → F5 (quita el velo y la pausa
-   de la ficha, la placa iluminada al volver, la 404 con la nebulosa atenuada).
-3. Víctor: mirar `/#crew-file` en Brave en producción (AUD-C6B-5) y el Sol en su móvil (también apaisado); pegar la
-   descripción, la web y los topics de Cosmos en GitHub (`ABOUT_REPOS.md` del Proyecto de claude.ai); suavizar el CV y
-   LinkedIn con el chat de mentor (y avisar para volver a copiar el PDF: lo pedirá `content.test.ts`); redirigir el
-   portfolio antiguo de Vercel a tortoisecode.dev; mirar las líneas de las constelaciones en su pantalla; revisar los
-   textos del Crew file y, si la quiere, una captura del Crew file para el README.
+2. **AUD-C7-1** (entregada, `_claude/cadena/aud-c7-1/auditoria.md`): leerla con Víctor, contestar sus 6 preguntas y
+   corregirla entera en su PR, antes de fusionar el PR 2. El PR 2 puede avanzar mientras tanto en su rama, sin fusionarse antes que la corrección.
+3. **C.7 · PR 2 de la entrada del Crew file** (rama nueva desde `main`): la coreografía de la página, en un bucle
+   propio con la `m` suavizada (como ADR-030) que escribe variables CSS: el haz revela la sección de arriba abajo
+   (`clip-path` con `arrivalBeam`), las esquinas del visor se cierran (0,15 → 0,75), encaje en 0,78, líneas guía
+   0,78 → 0,92, la ficha con el teletipo al encajar y «Identity verified»; el foco revela de golpe; con movimiento
+   reducido, nada (`05-crew-file.md` → «Transición», ADR-039, viva S47 #14 con los tramos de la prueba).
+4. Después, las naves (`transiciones-naves.md`, versión 8; su ADR sube el límite de la escena).
+5. Víctor: mirar la imagen para compartir en WhatsApp (home y una ficha); mirar `/#crew-file` en Brave en producción
+   (AUD-C6B-5) y el Sol en su móvil (también apaisado); pegar la descripción, la web y los topics de Cosmos en GitHub
+   (`ABOUT_REPOS.md` del Proyecto de claude.ai); suavizar el CV y LinkedIn con el chat de mentor (y avisar para volver
+   a copiar el PDF: lo pedirá `content.test.ts`); redirigir el portfolio antiguo de Vercel a tortoisecode.dev; mirar
+   las líneas de las constelaciones en su pantalla; revisar los textos del Crew file y, si la quiere, una captura del
+   Crew file para el README.
 
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»).
 **Limpieza manual del usuario:**
-- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 46, entre ellas `s37/` a `s46/` —en `s44/`,
+- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 47, entre ellas `s37/` a `s47/` —en `s44/`,
   `env.txt`, la copia vaciada de `.env`—, `c3/` y `aud-c2/`) y `_claude/lstree.txt`; `_claude/readme-originales/` si ya
   no hacen falta.
-- Ramas locales ya fusionadas (todas menos `main`, entre ellas `fix/aud-f4-cierre`, `fix/aud-f4-5`, `chore/release-0.3.0`, `feat/earth-sun`, `fix/aud-f4-4b`, `feat/turtle-plates`,
+- Ramas locales ya fusionadas (todas menos `main`, entre ellas `fix/aud-share`, `feat/crew-arrival`, `fix/favicon-xml`,
+  `feat/share-image-favicon`, `fix/aud-f4-cierre`, `fix/aud-f4-5`, `chore/release-0.3.0`, `feat/earth-sun`, `fix/aud-f4-4b`, `feat/turtle-plates`,
   `feat/turtle-pins`, `fix/aud-f4-4a`, `fix/aud-c-cierre` y `chore/deps-2026-11`): `git branch` para verlas y
   `git branch -D <rama>`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
@@ -300,8 +310,7 @@ Index medido, ADR-038 y la etiqueta `v0.3.0`: F4 cerrada._
   ni `hecho/2026-10-28/encuadre/` ni `hecho/2026-11-24/medir-fps.js`). Mover a mano a `hecho/` lo que no se pudo desde aquí (`aud-f4-1/` a
   `hecho/2026-11-18/`, `aud-c2/` a `hecho/2026-11-21/` si siguen fuera). No borrar `_claude/diseno/`, `_claude/retrato/`,
   `_claude/naves/` ni `_claude/c3/`.
-- En la raíz del repo, `playwright-report-firefox.zip`, `playwright-report-firefox (1).zip`,
-  `playwright-report-webkit.zip` y `test-results/`.
+- En la raíz del repo, los `playwright-report-*.zip` (los de los CI de S46 y S47) y `test-results/`.
 - Perfiles temporales de las pruebas sin WebGL: `$env:TEMP\cosmos-sin-webgl` y `$env:TEMP\cosmos-swiftshader`.
 - Si alguna vez falla `npm ci` dentro de Docker: `docker volume rm cosmos-portfolio-visual-node-modules`.
 
