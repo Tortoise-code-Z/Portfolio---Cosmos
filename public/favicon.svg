@@ -2,8 +2,9 @@
   <!--
     Favicon · «Constelación tortuga» (docs/03-diseno/design-system.md → «Logotipo y favicon»): estrellas unidas por
     líneas, como la galaxia de skills, que dibujan una tortuga vista desde arriba con la singularidad en el centro del
-    caparazón. Colores de tokens.css: --color-void, --color-star, --color-aurora y blanco. Los iconos PNG salen de
-    aquí (`npm run og`); la clase `tile` deja a `apple-touch-icon` quitar las esquinas (iOS ya las redondea).
+    caparazón. Colores de tokens.css: color-void, color-star, color-aurora y blanco (sin sus dos guiones: un
+    comentario XML no puede llevarlos y el SVG dejaría de leerse como imagen). Los iconos PNG salen de aquí
+    (`npm run og`); la clase `tile` deja a `apple-touch-icon` quitar las esquinas (iOS ya las redondea).
   -->
   <rect class="tile" width="32" height="32" rx="7" fill="#04050b" />
   <g fill="none" stroke="#62e8cf" stroke-width="1.4" stroke-opacity="0.75">
