@@ -243,6 +243,10 @@ describe('Projects', () => {
       return css.slice(start, css.indexOf('\n}', start));
     }
 
+    it('tapping a row on a phone does not paint the system highlight over its amber (CSS)', () => {
+      expect(rowCss()).toMatch(/\n\.row \{[^}]*-webkit-tap-highlight-color: transparent;/);
+    });
+
     it('amber is the focus in one of its links, the mouse over it or, with the scene, its pointed project (CSS)', () => {
       const css = rowCss();
       const top = css.replace(/@media[^{]+\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '');

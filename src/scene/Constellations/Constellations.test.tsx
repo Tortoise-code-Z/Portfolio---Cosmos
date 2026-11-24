@@ -1,8 +1,7 @@
-import { act, render, renderHook } from '@testing-library/react';
+import { render, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { skillGroups } from '~/content/skills';
-import { setActiveSkillGroup, useUiStore } from '~/stores/uiStore/uiStore';
 
 import {
   ConstellationLabels,
@@ -44,7 +43,6 @@ function paint(width = 1280, height = 720): void {
 
 afterEach(() => {
   frameCallbacks.length = 0;
-  useUiStore.setState(useUiStore.getInitialState(), true);
 });
 
 /** Los textos de las etiquetas en un idioma, por id y en el orden del panel. */
@@ -99,9 +97,10 @@ function shownLabels(labels: StarLabelElements): string[] {
   return Object.keys(TEXTS).filter((id) => labels.get(id)?.style.visibility === 'visible');
 }
 
-/** El frame de la galaxia en escritorio, con la pose que dejaría la cámara. */
+/** El frame de la galaxia en escritorio, con las partículas ya pintadas y la pose que dejaría la cámara. */
 function galaxyFrame(m = 2, wide = true): SceneFrame {
   const frame = createSceneFrame();
+  frame.painted = true;
   frame.m = m;
   frame.wide = wide;
   frame.delta = 0.05;
@@ -151,12 +150,6 @@ describe('useConstellations', () => {
     }
   });
 
-  it('the labels follow the order of the panel', () => {
-    expect(SKILLS.map(({ id }) => id)).toEqual(
-      skillGroups.flatMap((group) => group.skills.map(({ id }) => id)),
-    );
-  });
-
   it('gives the stars the pixel ratio of the frame (their size stays the same on screen)', () => {
     const frame = galaxyFrame();
     frame.pixelRatio = 2;
@@ -175,29 +168,60 @@ describe('useConstellations', () => {
     }
   });
 
-  it('the lit group grows and brightens smoothly; at once with reduced motion', () => {
+  it('the lit group grows and brightens smoothly, and only that one; at once with reduced motion', () => {
     const frame = galaxyFrame();
     const { result } = setup(frame);
-    act(() => {
-      setActiveSkillGroup('tools');
-    });
+    frame.skillGroup = 'tools';
     paint();
     const tools = result.current[skillGroups.findIndex(({ id }) => id === 'tools')];
-    const web = result.current[0];
     expect(tools?.lineUniforms.uOpacity.value).toBeGreaterThan(0.22);
     expect(tools?.lineUniforms.uOpacity.value).toBeLessThan(0.9);
-    expect(web?.lineUniforms.uOpacity.value).toBeCloseTo(0.22, 10);
+    for (const mesh of result.current) {
+      if (mesh.group === 'tools') continue;
+      expect(mesh.lineUniforms.uOpacity.value, mesh.group).toBeCloseTo(0.22, 10);
+      expect(mesh.starUniforms.uSize.value, mesh.group).toBe(CONSTELLATION_LOOK.starPx);
+    }
     frame.reducedMotion = true;
     paint();
     expect(tools?.lineUniforms.uOpacity.value).toBeCloseTo(0.9, 10);
     expect(tools?.starUniforms.uSize.value).toBeCloseTo(CONSTELLATION_LOOK.starPx * 1.55, 10);
   });
 
-  it('far from the galaxy, nothing shows', () => {
+  it('far from the galaxy, nothing shows and nothing is drawn', () => {
     const { result, labels } = setup(galaxyFrame(0.5));
     paint();
-    for (const mesh of result.current) expect(mesh.starUniforms.uOpacity.value).toBe(0);
+    for (const mesh of result.current) {
+      expect(mesh.starUniforms.uOpacity.value).toBe(0);
+      expect(mesh.stars.material.visible, mesh.group).toBe(false);
+      expect(mesh.lines.material.visible, mesh.group).toBe(false);
+    }
     expect(label(labels, 'html').style.visibility).toBe('');
+  });
+
+  it('at the galaxy, the stars and lines are drawn', () => {
+    const { result } = setup(galaxyFrame());
+    paint();
+    for (const mesh of result.current) {
+      expect(mesh.stars.material.visible, mesh.group).toBe(true);
+      expect(mesh.lines.material.visible, mesh.group).toBe(true);
+    }
+  });
+
+  it('waits for the particles: at the galaxy, nothing shows nor takes the mouse before they are painted', () => {
+    const frame = galaxyFrame();
+    frame.painted = false;
+    const { result, labels } = setup(frame);
+    paint();
+    for (const mesh of result.current) {
+      expect(mesh.starUniforms.uOpacity.value, mesh.group).toBe(0);
+      expect(mesh.lineUniforms.uOpacity.value, mesh.group).toBe(0);
+    }
+    expect(shownLabels(labels)).toEqual([]);
+    for (const id of Object.keys(TEXTS))
+      expect(label(labels, id), id).not.toHaveAttribute('data-live');
+    frame.painted = true;
+    paint();
+    expect(shownLabels(labels)).toHaveLength(Object.keys(TEXTS).length);
   });
 
   it('places every label right of its star at 1280×720, centred on it, visible, at the resting opacity', () => {
@@ -226,9 +250,7 @@ describe('useConstellations', () => {
     const frame = galaxyFrame();
     frame.reducedMotion = true;
     const { labels } = setup(frame);
-    act(() => {
-      setActiveSkillGroup('ai');
-    });
+    frame.skillGroup = 'ai';
     paint();
     expect(Number(label(labels, 'claude').style.opacity)).toBeGreaterThan(
       CONSTELLATION_LOOK.labelOpacity.rest,
@@ -279,9 +301,7 @@ describe('useConstellations', () => {
   it('labels born again with no frame in between keep the amber of the lit group', () => {
     const frame = galaxyFrame();
     const { labels, layer } = setup(frame);
-    act(() => {
-      setActiveSkillGroup('ai');
-    });
+    frame.skillGroup = 'ai';
     paint();
     expect(label(labels, 'claude')).toHaveAttribute('data-hot');
     layer.rerender(<ConstellationLabels texts={null} elements={labels} />);
@@ -325,7 +345,6 @@ describe('useConstellations', () => {
       labels,
       { width: 1280, height: 720 },
       { wide: [], narrow: [] },
-      null,
     );
     const html = label(labels, 'html');
     expect(html.style.visibility).toBe('visible');
@@ -351,16 +370,13 @@ describe('useConstellations', () => {
   });
 
   it('marks the labels of the lit group (data-hot) and only those', () => {
-    const { labels } = setup(galaxyFrame());
-    act(() => {
-      setActiveSkillGroup('ai');
-    });
+    const frame = galaxyFrame();
+    const { labels } = setup(frame);
+    frame.skillGroup = 'ai';
     paint();
     expect(label(labels, 'claude')).toHaveAttribute('data-hot');
     expect(label(labels, 'git')).not.toHaveAttribute('data-hot');
-    act(() => {
-      setActiveSkillGroup(null);
-    });
+    frame.skillGroup = null;
     paint();
     expect(label(labels, 'claude')).not.toHaveAttribute('data-hot');
   });

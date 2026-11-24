@@ -7,6 +7,7 @@ import {
   PARTICLES_PAINTED,
   settleScene,
   skipWithoutWebGL2,
+  waitFrames,
   withoutWebGL,
 } from './support/helpers.ts';
 
@@ -167,11 +168,17 @@ test.describe('the journey (home)', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await settleScene(page);
     const button = page.getByRole('button', { name: 'Hold to detonate' });
-    await button.click();
-    // Si soltar no funcionara, la carga seguiría subiendo hasta detonar y nunca volvería a 0.
-    await expect
-      .poll(() => button.evaluate((element) => element.style.getPropertyValue('--_charge')))
-      .toBe('0');
+    const box = await button.boundingBox();
+    if (box === null) throw new Error('Hold button not rendered');
+    const charge = (): Promise<number> =>
+      button.evaluate((element) => Number(element.style.getPropertyValue('--_charge') || 0));
+    // Mantener hasta que la carga suba de verdad y soltar antes de detonar: si soltar no funcionara, seguiría
+    // subiendo hasta detonar y nunca volvería a 0 (un `click()` suelta antes de que suba: no probaría nada).
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await expect.poll(charge).toBeGreaterThan(0.2);
+    await page.mouse.up();
+    await expect.poll(charge).toBe(0);
     await expect(button).not.toHaveAttribute('aria-disabled');
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
   });
@@ -607,12 +614,12 @@ test.describe('the Big Bang', () => {
         page.evaluate(() => document.documentElement.style.getPropertyValue('--_bang-flash')),
       )
       .toBe('0.000');
-    // Y no vuelve mientras sigue ahí: sin ningún pico en el medio segundo siguiente (algo que no pasa no se puede
-    // esperar con un sondeo).
+    // Y no vuelve mientras sigue ahí: sin ningún pico en los frames siguientes (algo que no pasa no se puede esperar
+    // con un sondeo): 15 frames y medio segundo como mínimo.
     await page.evaluate(() => {
       (window as unknown as { bigBangPeaks: { flash: number } }).bigBangPeaks.flash = 0;
     });
-    await page.waitForTimeout(500);
+    await waitFrames(page, 15, 500);
     expect((await peaks()).flash).toBe(0);
   });
 
@@ -720,6 +727,23 @@ test.describe('without JavaScript', () => {
     for (const email of await emails.all()) {
       await expect(email).toHaveAttribute('href', 'mailto:victorperez@tortoisecode.dev');
     }
+  });
+
+  test('the first paint of the hero is whole without JavaScript: kicker, name, lead, button and the dot', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    // El hero es la sección del `<h1>` (sin ancla propia).
+    const hero = page.locator('section').filter({ has: page.getByRole('heading', { level: 1 }) });
+    await expect(
+      hero.getByText('Tortoise_code · Frontend developer · React + TypeScript'),
+    ).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Víctor Pérez');
+    await expect(
+      hero.getByText('Everything that exists started as a single point. So did my code.'),
+    ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Hold to detonate' })).toBeVisible();
+    await expect(page.locator('[data-singularity="core"]')).toBeVisible();
   });
 
   test('the dark background does not depend on JavaScript (P1)', async ({ page }) => {

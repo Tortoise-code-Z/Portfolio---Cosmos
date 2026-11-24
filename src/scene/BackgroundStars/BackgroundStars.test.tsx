@@ -1,8 +1,8 @@
-import { renderHook } from '@testing-library/react';
+import { render, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
-import { useBackgroundStars, type BackgroundStarsProps } from './BackgroundStars';
+import { BackgroundStars, useBackgroundStars, type BackgroundStarsProps } from './BackgroundStars';
 
 /** `useFrame` necesita el lienzo de R3F: aquí se guarda el callback para dar los frames a mano. */
 const frameCallbacks = vi.hoisted((): (() => void)[] => []);
@@ -74,5 +74,12 @@ describe('useBackgroundStars', () => {
     unmount();
     expect(disposeGeometry).toHaveBeenCalledTimes(1);
     expect(disposeMaterial).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('BackgroundStars', () => {
+  it('mounts its points with the geometry and the material of the hook, never culled', () => {
+    const { container } = render(<BackgroundStars count={50} frame={createSceneFrame()} />);
+    expect(container.querySelectorAll('points')).toHaveLength(1);
   });
 });

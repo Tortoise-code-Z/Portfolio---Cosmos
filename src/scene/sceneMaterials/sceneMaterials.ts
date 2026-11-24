@@ -1,5 +1,6 @@
 import { AdditiveBlending, ShaderMaterial, Vector2, type IUniform } from 'three';
 
+import type { SkillGroupId } from '~/content/types';
 import { lerp } from '~/lib/math/lerp/lerp';
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
 
@@ -161,10 +162,17 @@ export interface SceneFrame {
    */
   plate: number;
   /**
-   * Se lee una transmisión (Mission control, con la tortuga aún detrás de su velo): `sceneStore.interlude`, que el
-   * bucle copia aquí como `mTarget` y `charge` (los `useFrame` leen el frame, no el store: ADR-027).
+   * Se lee un interludio (Mission log o Mission control, su pantalla o su cola; no el epílogo):
+   * `sceneStore.interlude`, que el bucle copia aquí como `mTarget` y `charge` (los `useFrame` leen el frame, no el
+   * store: ADR-027). Lo leen los pins y el ciclo de placas, que se apagan tras el velo de Mission control. Las
+   * constelaciones y el Sol no: van detrás de su interludio y entran en su cola.
    */
   transmission: boolean;
+  /**
+   * El grupo de Skills encendido (`uiStore.activeSkillGroup`), o ninguno: lo copia el bucle, como `plate` y
+   * `transmission` (ADR-027).
+   */
+  skillGroup: SkillGroupId | null;
   /**
    * Las partículas ya se han pintado (el primer frame con formas, `Particles` → `onFirstFrame`): antes, lo que va con
    * una forma (los pins, el Sol) no tiene dónde.
@@ -189,6 +197,7 @@ export function createSceneFrame(): SceneFrame {
     fov: 55,
     plate: NO_PLATE,
     transmission: false,
+    skillGroup: null,
     painted: false,
   };
 }

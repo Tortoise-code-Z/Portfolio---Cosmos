@@ -34,7 +34,7 @@ escena. Metáfora: según el mito, una tortuga carga con el mundo; la tuya carga
 - **Clic en un pin o en «View project»** → transición a la página del proyecto (ver `pagina-proyecto.md`).
 - **Sin interacción:** las placas se iluminan por turnos cada ~2,6 s para mostrar que son interactivas; mientras
   hay un proyecto señalado, el ciclo se detiene y, al soltarlo, vuelve a empezar la cuenta. El ciclo no marca las
-  filas: solo ilumina la placa (y su pin).
+  filas: solo ilumina la placa (y su pin). Leyendo Mission control (la tortuga tras su velo), ninguna placa ni pin.
 - **Táctil:** tocar una fila ilumina su placa; tocar fuera la apaga (deslizar no). Tocar un pin ilumina su placa; un
   segundo toque (o el botón de la fila) abre el proyecto.
 - Al ir a una ficha o al apagarse la escena, no queda nada señalado. Sin escena, las filas solo se resaltan.

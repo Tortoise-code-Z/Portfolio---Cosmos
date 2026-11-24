@@ -43,8 +43,11 @@
 - **Cuándo se rehacen:** al cambiar las formas, los shaders, la paleta, la cámara, los niveles, las cuentas que
   comparten (`lib/math` y el suavizado de `m`), los tramos del viaje y su `m` (`content/chapters.ts`, `lib/scroll/mapM`:
   las fotos se sacan en el ancla de cada capítulo), el reloj y el movimiento reducido (se sacan con el reloj parado),
-  cómo se piden las formas, las imágenes del retrato (`src/assets/portrait/`, byte a byte), los proyectos (las placas
-  de la tortuga) o el propio script. La lista exacta es `STILLS_SOURCES`.
+  cómo se piden las formas y se monta el lienzo (`SceneRoot`), las constelaciones (sin sus etiquetas: son del DOM), el
+  Sol, si es escritorio (`lib/device/mediaQuery`: el encuadre), las imágenes del retrato (`src/assets/portrait/`, byte
+  a byte), los proyectos (las placas de la tortuga) o el propio script. La lista exacta es `STILLS_SOURCES`; de
+  `scene/`, la da la tabla única de la escena (`scripts/sceneModules.ts`: cada pieza con `stills: true`, o el motivo
+  por el que no entra).
   `stills.json` guarda la huella de todo eso (`tests/stills/fingerprint.ts`; de los proyectos, solo sus placas) y
   `budgets.spec.ts` falla si no coincide. La huella solo se escribe si en esa pasada se han rehecho las 20 fotos: `npm run stills`, mirar las fotos y commitearlas con el cambio (y `npm run visual:update` si cambia la
   captura del modo sin WebGL).

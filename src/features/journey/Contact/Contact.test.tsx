@@ -1,3 +1,7 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -51,6 +55,12 @@ function renderAt(path: string): HTMLElement {
   );
   return screen.getByRole('region', { name: path === '/' ? 'Touchdown' : 'Aterrizaje' });
 }
+
+/** El CSS del capítulo (jsdom no aplica la selección). */
+const contactCss = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), 'Contact.module.css'),
+  'utf8',
+);
 
 describe('Contact', () => {
   it('region #contact with the email as a mailto link', () => {
@@ -148,5 +158,15 @@ describe('Contact', () => {
     const region = renderAt('/');
     expect(within(region).queryByText(/Master\.D/)).toBeNull();
     expect(within(region).queryByRole('link', { name: /^This site is open source/ })).toBeNull();
+  });
+});
+
+describe('Contact (CSS)', () => {
+  it('the email is selected whole with one click, to copy it by hand (also in Safari: the pair, without autoprefixer)', () => {
+    const start = contactCss.indexOf('\n.email {');
+    expect(start).toBeGreaterThan(-1);
+    const email = contactCss.slice(start, contactCss.indexOf('}', start));
+    expect(email).toContain('-webkit-user-select: all;');
+    expect(email).toMatch(/\n\s+user-select: all;/);
   });
 });

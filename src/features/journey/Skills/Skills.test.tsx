@@ -119,6 +119,10 @@ describe('Skills', () => {
     expect(css.match(/\.group:not\(\[tabindex\]\):hover/g)).toHaveLength(2);
   });
 
+  it('tapping a group on a phone does not paint the system highlight over its amber', () => {
+    expect(styles()).toMatch(/\n\.group \{[^}]*-webkit-tap-highlight-color: transparent;/);
+  });
+
   it('in Windows high contrast, the lit group is painted with Highlight (the system evens out its colours)', () => {
     expect(styles()).toContain(
       '@media (forced-colors: active) {\n  .group[data-hot] {\n    border-color: Highlight;\n  }\n\n  .group[data-hot] .groupTitle {\n    color: Highlight;',

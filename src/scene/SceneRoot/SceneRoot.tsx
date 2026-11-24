@@ -86,11 +86,13 @@ const OPEN_NOTHING = (): void => undefined;
 
 /**
  * La placa que se ilumina en este frame (docs/04-escena/constelaciones-y-placas.md → «Resaltado»): la del proyecto
- * señalado en `uiStore` o la del ciclo automático (`stepPlates`), en `frame.plate` (de ahí, `uPlate`). Cuando cambia,
- * el envoltorio lo marca con el slug de su proyecto (`data-plate`, para los e2e); sin placa, sin atributo.
+ * señalado en `uiStore` (`activeProject`, que el bucle lee una vez por frame) o la del ciclo automático
+ * (`stepPlates`, quieto en un interludio), en `frame.plate` (de ahí, `uPlate`). Cuando cambia, el envoltorio lo marca
+ * con el slug de su proyecto (`data-plate`, para los e2e); sin placa, sin atributo.
  */
 function followPlates(
   frame: SceneFrame,
+  activeProject: string | null,
   cycle: PlateCycle,
   step: PlateStep,
   scene: HTMLElement | null,
@@ -98,7 +100,7 @@ function followPlates(
   step.m = frame.m;
   step.delta = frame.delta;
   step.reducedMotion = frame.reducedMotion;
-  const { activeProject } = useUiStore.getState();
+  step.transmission = frame.transmission;
   step.pointing = activeProject !== null;
   step.pointed = plateLabelOf(SCENE_PLATES, activeProject);
   const plate = stepPlates(cycle, SCENE_PLATE_LABELS, step);
@@ -134,8 +136,9 @@ const NO_POINTER = { pointerEvents: 'none' } as const;
  * por su sitio en el JSX.
  *
  * Los frames los pide su propio bucle (`frameloop="never"` + `startFrameLoop`, ADR-027): antes de cada `advance()`
- * rellena el frame compartido (`m` suavizado, la carga de la detonación, si se lee una transmisión, la gravedad del
- * cursor, la placa iluminada, reloj, densidad de píxeles…; el ratón y si es escritorio los escriben sus observadores, `watchPointer` y
+ * rellena el frame compartido (`m` suavizado, la carga de la detonación, si se lee una transmisión, el grupo de Skills
+ * encendido, la gravedad del cursor, la placa iluminada, reloj, densidad de píxeles…: lo que necesita de un store lo
+ * lee aquí, una vez por frame; el ratón y si es escritorio los escriben sus observadores, `watchPointer` y
  * `watchMediaQuery`) y, si un frame lanza, para y pasa a sin WebGL. La `m` de la escena es suya: persigue a `mTarget`
  * con un amortiguado (`M_SMOOTHING`, con el tiempo real del frame) y arranca en él (sin repetir la explosión a mitad
  * del viaje); `sceneStore` sigue con `m = mTarget` para la interfaz (ADR-028). Con la página oculta o la misión rápida
@@ -276,7 +279,9 @@ export default function SceneRoot({
         clock.tick(seconds);
         degradation.sample(seconds);
         const state = get();
+        // Cada store, una vez por frame: los `useFrame` leen el frame, nunca un store (ADR-027).
         const { mTarget, charge, interlude } = sceneStore.getState();
+        const { activeSkillGroup, activeProject } = useUiStore.getState();
         frame.m =
           first || !Number.isFinite(frame.m)
             ? mTarget
@@ -284,6 +289,7 @@ export default function SceneRoot({
         first = false;
         frame.charge = charge;
         frame.transmission = interlude !== null;
+        frame.skillGroup = activeSkillGroup;
         frame.time = clock.time;
         frame.delta = clock.delta;
         frame.reducedMotion = clock.reduced;
@@ -291,7 +297,7 @@ export default function SceneRoot({
         frame.aspect = state.size.width / Math.max(state.size.height, 1);
         frame.extras = LEVEL_SETTINGS[levelRef.current].extras;
         followGravity(frame.gravity, frame.pointer, !clock.reduced, clock.delta);
-        followPlates(frame, plateCycle, plateStep, sceneRef.current);
+        followPlates(frame, activeProject, plateCycle, plateStep, sceneRef.current);
         state.advance(seconds);
       },
       onError: (error) => {

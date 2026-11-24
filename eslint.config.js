@@ -6,6 +6,8 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+import { IMPURE_SCENE_NAMES, PURE_SCENE_GLOB } from './scripts/sceneModules.ts';
+
 // Capas de src/ y lo que cada una NO puede importar (docs/05-tecnico/arquitectura.md).
 // Cada capa se bloquea por alias (~/capa) y por ruta relativa (**/capa/**).
 const layer = (name) => [`~/${name}`, `~/${name}/**`, `**/${name}/**`];
@@ -21,34 +23,15 @@ const REACT = [
 ];
 
 /** El código puro de la escena (arquitectura.md → «Capas»). */
-const PURE_SCENE = 'src/scene/{shapes,math,config,worker}/**';
+const PURE_SCENE = PURE_SCENE_GLOB;
 /**
  * Los módulos de la escena que el código puro no puede importar por ruta relativa (así se colarían Three, React o
- * los stores en el worker sin pasar por los nombres de arriba): los que usan Three, React o un store, y
- * `contextLoss` (vive con el lienzo). Los demás de `scene/` sí puede importarlos (hoy `pointer`, `frameLoop`,
- * `sceneClock`, `fpsMeter`, `shaders` y `labelWriter`: DOM o cálculo sin dependencias; `math/camera` y `math/gravity`
- * usan el tipo de `pointer`).
- * **Un módulo nuevo de `scene/` con Three, React o un store se añade aquí** (arquitectura.md → «Capas» y «Carga
- * de la escena»).
+ * los stores en el worker sin pasar por los nombres de arriba): los que usan Three, React o un store, y los que se
+ * cierran por decisión (`contextLoss`, que vive con el lienzo). Salen de la tabla única de la escena
+ * (`scripts/sceneModules.ts`, con `impure`): **una carpeta nueva de `scene/` se clasifica allí**, y su test comprueba
+ * que la clasificación case con sus imports y que esta regla la cierre (arquitectura.md → «Capas»).
  */
-const IMPURE_SCENE_MODULES = [
-  'SceneRoot',
-  'CameraRig',
-  'Constellations',
-  'ConstellationLabels',
-  'PlatePins',
-  'Particles',
-  'BackgroundStars',
-  'Sun',
-  'sceneMaterials',
-  'particleGeometry',
-  'useSceneShapes',
-  'useHotDegradation',
-  'usePortrait',
-  'contextLoss',
-  'voidColour',
-  'pause',
-].flatMap((name) => [`**/${name}`, `**/${name}/**`]);
+const IMPURE_SCENE_MODULES = IMPURE_SCENE_NAMES.flatMap((name) => [`**/${name}`, `**/${name}/**`]);
 const PURE_SCENE_FORBIDDEN = [
   ...THREE,
   ...REACT,

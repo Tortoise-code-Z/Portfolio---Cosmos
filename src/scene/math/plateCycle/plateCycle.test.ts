@@ -32,6 +32,7 @@ describe('stepPlates', () => {
       m: 0,
       delta: 0,
       reducedMotion: false,
+      transmission: false,
       pointing: false,
       pointed: NO_PLATE,
     });
@@ -86,6 +87,17 @@ describe('stepPlates', () => {
     expect(run(cycle, 6, { reducedMotion: true })).toBe(NO_PLATE);
     expect(cycle).toEqual({ index: 0, elapsed: 0 });
     expect(stepPlates(cycle, LABELS, at(3, 1, { reducedMotion: true, pointed: 21 }))).toBe(21);
+  });
+
+  it('while an interlude is read (the turtle behind the veil of Mission control) no plate lights and the cycle waits', () => {
+    const cycle = createPlateCycle();
+    expect(run(cycle, 3)).toBe(21);
+    expect(run(cycle, 10, { transmission: true })).toBe(NO_PLATE);
+    expect(cycle).toEqual({ index: 1, elapsed: 0 });
+    expect(stepPlates(cycle, LABELS, at(3, 0, { transmission: true, pointed: 22 }))).toBe(NO_PLATE);
+    // Al salir, vuelve a contar desde cero en la placa en la que estaba.
+    expect(run(cycle, 2.5)).toBe(21);
+    expect(run(cycle, 0.2)).toBe(22);
   });
 
   it('away from the turtle (presence 0.2 or less) no plate lights, not even the pointed one, and the cycle waits', () => {

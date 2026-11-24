@@ -39,7 +39,7 @@ activo.
 | `--color-veil-chrome` | `rgb(4 5 11 / 0.7)` | Fondo de la barra superior y de los avisos, bajo el desenfoque: `--color-ink-soft` da 5,8:1 aunque pase `--color-ink` por debajo | — |
 | `--color-veil-dialog` | `rgb(4 5 11 / 0.96)` | Fondo de los diálogos a pantalla completa: el modo misión rápida y el visor de galería | — |
 | `--gradient-row-hot` | degradado ámbar al 8 % → transparente | Fondo de una fila de proyecto «hot» | — |
-| `--gradient-pin-stem` | `--color-star` → transparente, de abajo arriba | Tallo del pin de una placa (al 70 %) | — |
+| `--gradient-pin-stem` | ámbar de `--color-star` al 70 % → transparente, de abajo arriba | Tallo del pin de una placa | — |
 | `--gradient-panel` · `--gradient-panel-mobile` | velo radial · velo que entra desde arriba (`--space-8`) | Fondo del panel en escritorio · en móvil | — |
 | `--color-flash` | `#fff2d9` | Destello del Big Bang (el mismo `flash` de la paleta de la escena; lo comprueba su test) | — |
 | `--gradient-flash` | radial blanco → `--color-flash` → ámbar → violeta → transparente | Velo del destello del Big Bang | — |

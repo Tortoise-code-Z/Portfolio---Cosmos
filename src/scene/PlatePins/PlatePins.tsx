@@ -174,7 +174,10 @@ export function stepPlatePins(
   }
 }
 
-/** El piso del pin (`--_pin-floor`: el CSS alarga el tallo), solo si se ve y cambió, o en un elemento nuevo. */
+/**
+ * El piso del pin (`--_pin-floor`: el CSS alarga el tallo), solo si se ve y cambió, o en un elemento nuevo (una cadena
+ * nueva al cambiar, la excepción de `labelWriter`).
+ */
 function writeFloor(element: HTMLElement | undefined, pin: PinSlot): void {
   if (element === undefined || !pin.box.visible) return;
   if (pin.floorOn === element && pin.floor === pin.place.floor) return;
@@ -234,8 +237,9 @@ const NO_GESTURE: Readonly<PinGesture> = { slug: null, mouse: false, wasPointed:
 export function PlatePins({ names, elements, onOpen }: PlatePinsProps): ReactNode {
   const gesture = useRef<PinGesture>({ ...NO_GESTURE });
   if (names === null) return null;
-  const slugOf = (event: { currentTarget: HTMLElement }): string =>
-    event.currentTarget.dataset.pin ?? '';
+  // El slug de un pin que existe, nunca `''` ni uno inventado (como `ConstellationLabels.groupOf`).
+  const slugOf = (event: { currentTarget: HTMLElement }): string | null =>
+    PINS.find(({ slug }) => slug === event.currentTarget.dataset.pin)?.slug ?? null;
 
   return createPortal(
     <div className={styles.layer} aria-hidden="true" data-plate-pins="">
@@ -248,13 +252,16 @@ export function PlatePins({ names, elements, onOpen }: PlatePinsProps): ReactNod
           className={styles.pin}
           data-pin={slug}
           onPointerEnter={(event: PointerEvent<HTMLElement>) => {
-            if (event.pointerType === 'mouse') setActiveProject(slugOf(event));
+            const pin = slugOf(event);
+            if (pin !== null && event.pointerType === 'mouse') setActiveProject(pin);
           }}
           onPointerLeave={(event: PointerEvent<HTMLElement>) => {
-            if (event.pointerType === 'mouse') releaseActiveProject(slugOf(event));
+            const pin = slugOf(event);
+            if (pin !== null && event.pointerType === 'mouse') releaseActiveProject(pin);
           }}
           onPointerDown={(event: PointerEvent<HTMLElement>) => {
             const pin = slugOf(event);
+            if (pin === null) return;
             gesture.current = {
               slug: pin,
               mouse: event.pointerType === 'mouse',
@@ -268,6 +275,7 @@ export function PlatePins({ names, elements, onOpen }: PlatePinsProps): ReactNod
             const pin = slugOf(event);
             const { slug, mouse, wasPointed } = gesture.current;
             gesture.current = { ...NO_GESTURE };
+            if (pin === null) return;
             // Siempre señalado (la captura de «tocar fuera» lo acaba de soltar); y abre si el gesto era suyo.
             setActiveProject(pin);
             if (slug === pin && (mouse || wasPointed)) onOpen(pin);

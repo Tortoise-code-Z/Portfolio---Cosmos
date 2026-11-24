@@ -63,6 +63,7 @@ const frame: Readonly<SceneFrame> = {
   fov: 55,
   plate: 21,
   transmission: false,
+  skillGroup: null,
   painted: true,
 };
 
@@ -168,6 +169,7 @@ describe('createSceneFrame', () => {
       fov: 55,
       plate: 0,
       transmission: false,
+      skillGroup: null,
       painted: false,
     });
   });
@@ -276,32 +278,45 @@ describe('sun uniforms', () => {
   });
 });
 
+/** Todos los shaders de `scene/shaders`: cada uno, con su material en la tabla de abajo. */
+const ALL_SHADERS = Object.values(
+  import.meta.glob<string>('../shaders/**/*.glsl', {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  }),
+);
+
+const MATERIALS = [
+  ['particles', createParticleMaterial, createParticleUniforms, particlesVertex, particlesFragment],
+  ['stars', createStarsMaterial, createStarUniforms, starsVertex, starsFragment],
+  [
+    'constellation stars',
+    createConstellationStarsMaterial,
+    () => createConstellationUniforms(false),
+    constellationsVertex,
+    constellationStarsFragment,
+  ],
+  [
+    'constellation lines',
+    createConstellationLinesMaterial,
+    () => createConstellationUniforms(true),
+    constellationsVertex,
+    constellationLinesFragment,
+  ],
+  ['sun', createSunMaterial, createSunUniforms, sunVertex, sunFragment],
+] as const;
+
 describe('materials', () => {
-  for (const [name, material, uniforms, vertex, fragment] of [
-    [
-      'particles',
-      createParticleMaterial,
-      createParticleUniforms,
-      particlesVertex,
-      particlesFragment,
-    ],
-    ['stars', createStarsMaterial, createStarUniforms, starsVertex, starsFragment],
-    [
-      'constellation stars',
-      createConstellationStarsMaterial,
-      () => createConstellationUniforms(false),
-      constellationsVertex,
-      constellationStarsFragment,
-    ],
-    [
-      'constellation lines',
-      createConstellationLinesMaterial,
-      () => createConstellationUniforms(true),
-      constellationsVertex,
-      constellationLinesFragment,
-    ],
-    ['sun', createSunMaterial, createSunUniforms, sunVertex, sunFragment],
-  ] as const) {
+  it('every shader of scene/shaders has its material here', () => {
+    const used = new Set<string>(
+      MATERIALS.flatMap(([, , , vertex, fragment]) => [vertex, fragment]),
+    );
+    expect(ALL_SHADERS.length).toBeGreaterThan(0);
+    for (const source of ALL_SHADERS) expect(used.has(source)).toBe(true);
+  });
+
+  for (const [name, material, uniforms, vertex, fragment] of MATERIALS) {
     it(`${name}: additive light, no depth, its own shaders with the header first and the uniforms shared`, () => {
       const own = uniforms();
       const created = (material as (u: typeof own) => ReturnType<typeof createParticleMaterial>)(

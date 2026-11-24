@@ -19,6 +19,7 @@ import {
   openQuickMission,
   releaseActiveProject,
   setActiveProject,
+  setActiveSkillGroup,
   useUiStore,
 } from '~/stores/uiStore/uiStore';
 
@@ -419,6 +420,8 @@ describe('SceneRoot', () => {
       plate: 0,
       // Sin transmisión que leer; y las partículas, pintadas (lo que se coloca sobre ellas ya tiene dónde).
       transmission: false,
+      // Ningún grupo de Skills encendido.
+      skillGroup: null,
       painted: true,
     });
     // La cámara y el Sol leen el mismo frame.
@@ -434,6 +437,13 @@ describe('SceneRoot', () => {
     setReadingInterlude(null);
     frames.tick(4000);
     expect((seen.frame as { transmission: boolean }).transmission).toBe(false);
+    // El grupo de Skills encendido, igual: lo copia el bucle (las constelaciones lo leen del frame, no del store).
+    setActiveSkillGroup('ai');
+    frames.tick(5000);
+    expect((seen.frame as { skillGroup: string | null }).skillGroup).toBe('ai');
+    setActiveSkillGroup(null);
+    frames.tick(6000);
+    expect((seen.frame as { skillGroup: string | null }).skillGroup).toBeNull();
   });
 
   it('its m starts at the scroll target and then follows it smoothly; the store keeps the target for the interface', () => {
@@ -694,11 +704,19 @@ describe('SceneRoot', () => {
     releaseActiveProject('unknown');
     frames.tick(3850);
     expect(frame.plate).toBe(21);
+    // Tras el velo de Mission control (la `m` quieta en 3), ninguna: el ciclo se queda quieto, como los pins.
+    setReadingInterlude('mission-control');
+    for (let t = 3900; t <= 7000; t += 50) frames.tick(t);
+    expect(frame.plate).toBe(0);
+    expect(scene?.hasAttribute('data-plate')).toBe(false);
+    setReadingInterlude(null);
+    frames.tick(7050);
+    expect(frame.plate).toBe(21);
     // Lejos de la tortuga, ninguna: sin atributo.
     act(() => {
       setScrollTarget(0);
     });
-    for (let t = 3900; t <= 8000; t += 50) frames.tick(t);
+    for (let t = 7100; t <= 11200; t += 50) frames.tick(t);
     expect(frame.plate).toBe(0);
     expect(scene?.hasAttribute('data-plate')).toBe(false);
   });

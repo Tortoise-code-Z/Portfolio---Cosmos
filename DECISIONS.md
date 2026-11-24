@@ -507,7 +507,7 @@
   tests»), `docs/05-tecnico/calidad.md` («Presupuestos»).
 
 ## ADR-027 · Bucle de frames propio para la escena y lienzo sin gestión de color
-- Estado: Aceptada · la pausa la concreta ADR-028
+- Estado: Aceptada · la pausa la concreta ADR-028 · nota de 2026-11-24 (qué copia el bucle al frame)
 - Fecha: 2026-10-26
 - Contexto: F3.3 pinta las partículas y la escena pasa a animarse en cada frame. Lo que lanza en un `useFrame` o
   en `gl.render` corre en el `requestAnimationFrame` de React Three Fiber, fuera de React: ningún *error
@@ -540,6 +540,11 @@
     tiempo del frame compartido (`SceneFrame.time` y `SceneFrame.delta`, del reloj de la escena), nunca ese
     `delta`. La media de fps de la degradación en caliente (F3.6) se mide en el `step` del bucle.
   - Pintar sin parar cuesta en los e2e de Chromium (SwiftShader): de ~4,5 a ~6,7 min desde F3.3.
+- Nota (2026-11-24, al cerrar F4): lo que un `useFrame` necesita de fuera de la escena lo copia el `step` del bucle al
+  `SceneFrame` (`m`, `charge`, `transmission`, `plate`, `painted`, `skillGroup`), leyendo cada store una vez por frame;
+  **ningún `useFrame` lee un store**. `CameraRig` escribe la pose (`camera`, `fov`) antes que nadie, y el ratón y la
+  gravedad del cursor (`pointer`, `gravity`) los escriben su observador y el bucle. Lo que va con una forma (las
+  constelaciones, los pins, el Sol) espera a `painted`.
 - Detalle: `docs/04-escena/rendimiento.md` («Robustez»), `docs/04-escena/particulas-y-shaders.md` («Colores»,
   «Etiquetas y colores»).
 
@@ -719,6 +724,10 @@
   sus auditorías 170 B (21 y 149); F4.5, el Sol, 444 B de sus 3 KB. Total: **257 074 B**; quedan 2 926 B para la
   corrección de la auditoría de F4.5 y la de cierre de F4. Las Naves (C.7) subirán el límite en su propio ADR, con
   estos números. Esta cuenta sustituye a la anterior.
+- Nota (2026-11-24, al cerrar F4): la corrección de la auditoría de F4.5 pesó 1 B (257 075 B) y la de la auditoría de
+  cierre de F4, 52 B (las constelaciones que leen el grupo del frame y esperan a las partículas, no se dibujan a
+  opacidad 0, el ciclo de placas quieto en un interludio y el pin que valida su slug): **257 127 B**. Quedan 2 873 B;
+  las Naves (C.7) subirán el límite en su propio ADR con estos números. Esta cuenta sustituye a la anterior.
 - Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).
 
 ## ADR-033 · Los commits de solo documentación van directos a `main`
@@ -939,3 +948,32 @@
   sigue con la Tierra iluminada desde `SUN_DIR`, ya sin Sol (aceptado: solo en ese fallo).
 - Detalle: `docs/04-escena/particulas-y-shaders.md` → «Iluminación de la Tierra» y «Sol»;
   `docs/02-experiencia/capitulos/04-tierra.md`.
+
+## ADR-038 · El puntero del viaje: los capítulos lo dejan pasar a las capas de la escena
+- Estado: Aceptada
+- Fecha: 2026-11-24
+- Contexto: desde F4.3c las etiquetas de las constelaciones, y desde F4.4b los pins de las placas, son elementos del
+  DOM que la escena coloca en cada frame y que reciben el ratón y el toque. Van en su propia capa, fija, debajo del
+  contenido (`--z-labels` < `--z-content`): encima taparían los paneles, y dentro de cada capítulo no podrían cruzar
+  de uno a otro mientras la escena pasa entre ellos. Para que lleguen a ellas, el contenido de encima tiene que
+  dejar pasar el puntero allí donde no hay nada que tocar. Hasta ahora solo lo contaban `arquitectura.md` y
+  `constelaciones-y-placas.md`, y una sección nueva que ponga `pointer-events` sin saberlo deja muertas las etiquetas
+  y los pins sin que nada falle a la vista.
+- Decisión:
+  - **Las capas de la escena se montan con un portal en `body`**, debajo de `<main>` (`--z-labels`), fuera del árbol
+    del viaje; solo reciben el puntero los elementos que la escena marca con `data-live`.
+  - **En el viaje, `<main>` y los capítulos (`ChapterSection`) van sin puntero**; lo recogen los hijos directos de
+    cada capítulo (el panel, el contenido del hero) y todo hijo directo de `<main>` que no sea un capítulo, con
+    `:where` para que la regla propia de un hijo siga mandando. Una sección nueva hija de `<main>` nace con puntero.
+  - **La cola de un interludio va sin puntero** (`.tail` de `Transmission`): las etiquetas de Skills asoman en ella.
+  - **Tocar fuera apaga**: un `click` escuchado en la fase de captura del documento, mientras la escena está
+    encendida, suelta el grupo encendido o el proyecto señalado; el `click` propio de un grupo, una fila, una etiqueta
+    o un pin lo vuelve a encender (manda el último gesto).
+- Alternativas descartadas: las etiquetas encima del contenido (tapan los paneles y su texto); dentro de cada
+  capítulo (se cortan en las fronteras entre capítulos y no cruzan un interludio); un `elementFromPoint` propio en
+  cada movimiento del ratón (más código, y el foco, el toque y el lector de pantalla irían por otro camino).
+- Consecuencias: quien añada una sección al viaje (C.7, F5) no toca nada si es hija directa de `<main>`; si pone
+  `pointer-events` a un contenedor que cubre la pantalla, o monta algo a pantalla completa encima de `--z-labels`,
+  deja sin puntero las etiquetas y los pins. Lo vigilan los e2e de `constellations.spec.ts` (ninguna etiqueta viva
+  tapada por un capítulo, al entrar y salir la galaxia) y `plates.spec.ts` (`hover` sobre cada pin).
+- Detalle: `docs/05-tecnico/arquitectura.md` → «Puntero del viaje»; `docs/04-escena/constelaciones-y-placas.md`.

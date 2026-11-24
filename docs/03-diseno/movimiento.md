@@ -15,7 +15,7 @@
 | Token | Valor | Uso |
 |---|---|---|
 | `--dur-fast` | 150 ms | Color y borde en hover/focus |
-| `--dur-base` | 250 ms | Encendido de grupos, filas y pins |
+| `--dur-base` | 250 ms | Encendido de grupos, filas, pins y etiquetas de las estrellas |
 | `--dur-slow` | 400 ms | Desplazamiento corto de avisos y diálogos al entrar (lo que no es opacidad) |
 | `--dur-flight` | 800 ms | Vuelo de cámara a una placa |
 | `--dur-breathe` | 4 s | Latido lento del halo CSS de la singularidad y del punto del chip «Open to work» (se quitan con movimiento reducido) |

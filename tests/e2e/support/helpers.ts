@@ -77,6 +77,28 @@ export async function withoutWebGL(page: Page): Promise<void> {
 }
 
 /**
+ * Espera `frames` frames de la página y, como mínimo, `minMs`. Para lo que no pasa (no se puede sondear): una espera
+ * solo en milisegundos son 1–2 frames con WebKit sin GPU (~3 fps en el CI), y la escena avanza por frames (como mucho
+ * `MAX_STEP_S` de reloj por frame).
+ */
+export async function waitFrames(page: Page, frames: number, minMs = 0): Promise<void> {
+  await page.evaluate(
+    ([count, ms]) =>
+      new Promise<void>((resolve) => {
+        const start = performance.now();
+        let left = count;
+        const next = (): void => {
+          left -= 1;
+          if (left <= 0 && performance.now() - start >= ms) resolve();
+          else requestAnimationFrame(next);
+        };
+        requestAnimationFrame(next);
+      }),
+    [frames, minMs] as const,
+  );
+}
+
+/**
  * Espera a que el sitio decida la escena (la escena montada o el modo sin WebGL) y, si salió el aviso «sin WebGL»,
  * lo descarta. Para los tests que miden la posición del scroll al usar algo del pie de la ventana: en un
  * navegador sin WebGL (un motor del CI sin GPU) el aviso flota abajo y, por accesibilidad, sube lo

@@ -7,6 +7,9 @@
 - **Medido en F3.6c** en un equipo real (Windows, 6 núcleos, DPR 1,5, nivel Alto; `calidad.md` → «Mediciones»):
   60 fps estables en los 5 capítulos y en el viaje con scroll continuo, p95 de 16,8 ms, sin bajar de nivel. El
   tope es el refresco de la pantalla, así que no dice cuánto margen queda.
+- **Medido al cerrar F4** (el mismo equipo, ventana de 1280×800): 60 fps en Alto en los 6 capítulos y en el viaje,
+  p95 16,8 ms, sin bajar de nivel (`calidad.md` → «Cierre de F4 · fps de la escena»). Las constelaciones, las placas,
+  los pins, el Sol y el retrato no bajan de los presupuestos.
 - **Ajustes del shader que se dejan como están** (F3.6c): el tope del tamaño de punto en píxeles del dispositivo
   (`SIZE_MAX_PX = 48`), el tope de 0,1 s por frame (`MAX_STEP_S`: por debajo de 10 fps la animación va más lenta
   que el reloj), la estela con alfa 0 en Bajo (no se salta con `gl_PointSize = 0.0`) y la compilación del shader
@@ -47,8 +50,9 @@
   que recuerda su pin y el clic que deja señalado) pesó 149 B, del margen: **256 630 B**. **F4.5** (el Sol: su
   cuadrado, sus dos shaders, sus uniforms y la luz de la Tierra que sale de él; y la gravedad más suave sobre la
   Tierra) pesó 444 B de sus 3 KB: **257 074 B**. La corrección de su auditoría (el Sol que espera a la Tierra) pesó
-  1 B, del margen: **257 075 B**. Quedan 2 925 B de margen (para la auditoría de cierre de F4 y, después, las Naves,
-  C.7). Los generadores no
+  1 B, del margen: **257 075 B**. La de la auditoría de cierre de F4 (las constelaciones que leen el grupo del frame
+  y esperan a las partículas, sin dibujarse a opacidad 0; el ciclo de placas quieto en un interludio; el pin que valida
+  su slug) pesó 52 B: **257 127 B**. Quedan 2 873 B de margen (para las Naves, C.7, que subirán el límite). Los generadores no
   cuentan ahí: van en el worker (≤ 10 KB; con el retrato, 6 042 B) y, para el reintento, en su propio chunk (≤ 10 KB;
   el retrato no va en él). Las imágenes del retrato (~150 KB: 152 529 B sin metadatos) las pide el worker, no la página.
 
@@ -107,8 +111,10 @@ baja **un** nivel (Alto → Medio → Bajo; `nextLowerLevel`). Las cifras, en `H
   nuevo, el medidor empieza de cero.
 - **Si las formas no llegan:** `console.warn` (degradación prevista), nivel y formas siguen como estaban y no se
   mide más en esa visita (sin bucle de intentos). Nunca se sube durante la visita.
-- **Límite conocido:** un navegador que limita los frames a 30 (ahorro de batería de Chrome, modo de bajo consumo
-  de Safari) baja hasta Bajo en escritorio. Se acepta: en ese modo, gastar menos es lo que se pide.
+- **Límite conocido:** un navegador que limita los frames a 30 (ahorro de energía de Chromium, modo de bajo consumo
+  de Safari en macOS) baja hasta Bajo en escritorio. Se acepta: en ese modo, gastar menos es lo que se pide. Medido
+  al cerrar F4: Brave con el ahorro de energía, 30 fps clavados (p95 33,5–33,7 ms) y la escena en Bajo; enchufado, 60
+  en Alto. No pasa en un móvil (arranca en Bajo y en Bajo no se mide) y, una vez abajo, no sube en la visita.
 
 ## Worker de las formas
 
@@ -160,7 +166,13 @@ una degradación en caliente, que las trajo antes de bajar el nivel).
   fuera de vista» no se da mientras el lienzo sea fijo a toda la ventana.
 - Las etiquetas solo se proyectan si el peso de su capítulo es > 0 (y, una vez ocultas al irse, nada más).
 - El HUD solo toca el DOM cuando su texto cambia.
-- Cero asignaciones por frame en `useFrame` (vectores reutilizados) para no provocar recolección de basura.
+- Cero asignaciones por frame en `useFrame` (vectores reutilizados) para no provocar recolección de basura. La
+  excepción es lo que se escribe en el DOM (`labelWriter` y los pins): el DOM solo acepta cadenas, así que `transform`,
+  `opacity` y `--_pin-floor` se escriben con una cadena nueva, redondeados a píxel (la opacidad, a centésimas) y solo
+  cuando cambian. En el peor caso, 37 etiquetas y 3 pins (que se balancean con la tortuga salvo con movimiento
+  reducido): basura joven y barata.
+- Lo que no se ve no se dibuja: las constelaciones y el Sol apagan su material (`visible = false`) a opacidad 0, fuera
+  de su capítulo.
 
 ## Robustez
 

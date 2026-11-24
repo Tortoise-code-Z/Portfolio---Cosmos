@@ -186,9 +186,14 @@
   `STAR_LABEL_BOX` y con el no-solapamiento (`labelFit`).
 
 ### Pin de placa (`PlatePins`)
-- Tallo vertical de 46 px (`--gradient-pin-stem`, al 70 %) + etiqueta con borde (`--color-faint`) y velo
-  (`--color-veil-soft`), en mono de 11 px (10 por debajo de 900 px) en mayúsculas con `--tracking-micro`. *Hot* (su
-  placa encendida, también por el ciclo): borde y texto ámbar. La coloca la escena en cada frame (`PLATE_PIN`); si
+- Tallo vertical de 46 px (`--gradient-pin-stem`, ámbar al 70 % en el token) + etiqueta con borde (`--color-faint`)
+  y el velo de los paneles (`--color-veil`), en mono de 11 px (10 por debajo de 900 px) en mayúsculas con
+  `--tracking-micro`. *Hot* (su placa encendida, también por el ciclo): borde y texto ámbar. Contraste, en el peor
+  caso (una escena blanca detrás, como los paneles: `styles.test.ts`): 8,6 : 1 en reposo (`--color-ink-soft`) y
+  8,1 : 1 encendida (`--color-star`); sobre el vacío, ~14 : 1. Con el velo suave de antes (`--color-veil-soft`)
+  bajaba a ~4 : 1 si la tortuga brillaba detrás.
+- Tocar un pin (o un grupo, una fila o una etiqueta) en un móvil no pinta el resaltado del sistema
+  (`-webkit-tap-highlight-color: transparent`): el ámbar es el estado. La coloca la escena en cada frame (`PLATE_PIN`); si
   choca con otro pin, sube un piso: el tallo crece 30 px (`--_pin-floor`).
 - Con el capítulo a más de 0,6 de presencia reciben el puntero (`data-live`), solo en la etiqueta (el tallo, una
   línea de 1 px, no: cruzarlo encendería y apagaría la placa a destellos): el ratón encima señala su proyecto (marca
@@ -307,6 +312,9 @@
   tras cada cambio de foco, el aviso comprueba si tapa lo enfocado y, si es así, sube la página lo justo.
 - Uso: sugerencia de idioma (con su `lang`) y, desde F3, sin WebGL («Got it», una vez por visita). Descartable.
   Nunca dos a la vez: el de sin WebGL espera a que se conteste la sugerencia de idioma.
+- Las etiquetas de las estrellas y los pins no evitan el aviso (`labelFit` aparta la barra, el raíl, el panel y el
+  HUD): con la sugerencia de idioma abierta, alguno puede quedar bajo su velo hasta que se conteste. Aceptado: es raro
+  (navegador en español, en `/`) y pasajero, y el panel y las filas siguen siendo la versión completa.
 
 ### Nota de proyecto (`ProjectNote`)
 - Bloque con borde izquierdo de 2 px (`--note-border-width`): turquesa (`info`) o ámbar (`warning`), icono del

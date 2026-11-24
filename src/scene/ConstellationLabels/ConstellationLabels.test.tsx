@@ -112,6 +112,11 @@ describe('ConstellationLabels', () => {
     expect(css).not.toContain('will-change');
   });
 
+  it('lights at the pace of its group, row and pin (--dur-base), with no system tap highlight', () => {
+    expect(rule('.label')).toContain('transition: color var(--dur-base) var(--ease-out);');
+    expect(rule('.label')).toContain('-webkit-tap-highlight-color: transparent;');
+  });
+
   it('only the labels the scene marks live take the pointer', () => {
     expect(rule('.layer')).toContain('pointer-events: none;');
     expect(rule('.label')).not.toContain('pointer-events');

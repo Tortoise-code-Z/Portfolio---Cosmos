@@ -110,7 +110,7 @@ function SkillGroupItem({ group, sceneOn }: SkillGroupItemProps): ReactNode {
 /**
  * Capítulo 2 · Galaxia · Habilidades (docs/02-experiencia/capitulos/02-galaxia.md). El panel es la versión completa
  * y accesible: los 4 grupos con todas sus skills. Con la escena encendida, cada grupo enciende su constelación
- * (`uiStore.activeSkillGroup`, que la escena lee en cada frame); sin escena, un grupo solo se resalta con el puntero.
+ * (`uiStore.activeSkillGroup`, que el bucle de la escena copia a su frame); sin escena, un grupo solo se resalta con el puntero.
  * Como todo capítulo, la sección deja pasar el ratón a las etiquetas de la escena: de este capítulo, solo el panel lo
  * recoge (docs/05-tecnico/arquitectura.md → «Puntero del viaje»).
  */
