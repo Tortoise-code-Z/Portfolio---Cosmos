@@ -176,8 +176,8 @@ npm run dev
 Portfolio---Cosmos/
 │
 ├── docs/              ← vision, content, experience, design, scene and technical docs (in Spanish)
-├── public/            ← static files (CV, favicon)
-├── scripts/           ← build-time telemetry, the Docker runners and the portrait pipeline (Python)
+├── public/            ← static files (CV, favicon, icons, web manifest)
+├── scripts/           ← build-time telemetry, the share-image and icon generator, the Docker runners and the portrait pipeline (Python)
 ├── src/
 │   ├── content/       ← typed data: texts, projects, skills, chapters
 │   ├── lib/           ← pure helpers

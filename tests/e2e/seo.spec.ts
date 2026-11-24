@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { expect, type Page } from '@playwright/test';
 
 import { test } from './support/test.ts';
@@ -43,6 +46,10 @@ const PROJECT_DETAILS: Readonly<Partial<Record<string, ProjectDetail>>> = {
 };
 const INDEXABLE = indexablePaths(PAGES).map((path) => absoluteUrl(ORIGIN, path));
 const OG_LOCALE: Readonly<Record<Locale, string>> = { en: 'en_US', es: 'es_ES' };
+/** El color del espacio (`--color-void`), de `tokens.css`: el de `theme-color`. */
+const VOID_TOKEN = /--color-void:\s*(#[0-9a-f]{6});/.exec(
+  readFileSync(join(process.cwd(), 'src', 'styles', 'tokens.css'), 'utf8'),
+)?.[1];
 
 /** Título, descripción y nombre del JSON-LD que tiene que llevar cada página, sacados del contenido. */
 function expectedText(
@@ -121,12 +128,21 @@ test.describe('páginas indexables', () => {
             description: content('meta[name="description"]'),
             ogDescription: content('meta[property="og:description"]'),
             ogImage: content('meta[property="og:image"]'),
+            ogImageWidth: content('meta[property="og:image:width"]'),
+            ogImageHeight: content('meta[property="og:image:height"]'),
+            ogImageAlt: content('meta[property="og:image:alt"]'),
+            twitterCard: content('meta[name="twitter:card"]'),
           };
         }, html);
+        const tags = await shareTags(page);
         expect(served).toEqual({
           description: [text.description],
           ogDescription: [text.description],
           ogImage: meta.ogImage,
+          ogImageWidth: tags.width,
+          ogImageHeight: tags.height,
+          ogImageAlt: tags.alt,
+          twitterCard: ['summary_large_image'],
         });
         expect(meta.canonical).toEqual([canonical]);
         expect(meta.ogUrl).toEqual([canonical]);
@@ -229,16 +245,35 @@ test.describe('imagen para compartir', () => {
         expect(url.pathname).toMatch(new RegExp(`^/assets/og-${locale}-`));
         expect(tags.alt[0]).toContain(profile.name);
         if (sitePage.kind === 'project') {
-          await page.goto(locale === 'en' ? '/' : '/es', { waitUntil: 'networkidle' });
-          const home = await shareTags(page);
-          expect({ image: tags.image, alt: tags.alt }).toEqual({
-            image: home.image,
-            alt: home.alt,
-          });
+          // La misma que la home de su idioma, leída del HTML servido (sin arrancar la escena de la home).
+          const homePath = PAGES.find((other) => other.kind === 'home')?.paths[locale] ?? '/';
+          const homeHtml = await (await page.request.get(homePath)).text();
+          const home = await page.evaluate((source) => {
+            const doc = new DOMParser().parseFromString(source, 'text/html');
+            const content = (property: string): string[] =>
+              [...doc.querySelectorAll(`meta[property="${property}"]`)].map(
+                (element) => element.getAttribute('content') ?? '',
+              );
+            return { image: content('og:image'), alt: content('og:image:alt') };
+          }, homeHtml);
+          expect({ image: tags.image, alt: tags.alt }).toEqual(home);
         }
       });
     }
   }
+});
+
+test.describe('la imagen para compartir del sitio (`npm run og`)', () => {
+  test('enseña el dominio del sitio: el de las canónicas (og.json lo guarda al hacerla)', () => {
+    test.skip(test.info().project.name !== 'chromium', 'Lee un archivo: basta una vez');
+    const { host } = JSON.parse(
+      readFileSync(join(process.cwd(), 'src', 'assets', 'og', 'og.json'), 'utf8'),
+    ) as { readonly host: string };
+    expect(
+      host,
+      'La imagen enseña otro dominio: corre `npm run og` con el VITE_SITE_URL del sitio',
+    ).toBe(new URL(ORIGIN).host);
+  });
 });
 
 test.describe('favicon, iconos y manifest', () => {
@@ -262,7 +297,7 @@ test.describe('favicon, iconos y manifest', () => {
       icon: ['/favicon.svg'],
       apple: ['/apple-touch-icon.png'],
       manifest: ['/manifest.webmanifest'],
-      theme: '#04050b',
+      theme: VOID_TOKEN,
     });
 
     const typeOf = async (path: string): Promise<string> => {

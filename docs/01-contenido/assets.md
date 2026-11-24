@@ -68,23 +68,40 @@
 
 - **Estado:** hecha (adelantada de F6 en la sesión 47, antes de las candidaturas). `src/assets/og/og-en.png` y
   `og-es.png`, de 1200×630 (proporción 1,91:1 de Open Graph y LinkedIn): la foto fija de la tortuga
-  (`scene-still-desktop-3`) a la derecha y, como el hero, el eyebrow del rol (`hero.kicker` del idioma), el nombre en
-  el display y, abajo, el favicon y el dominio. Un velo del color del espacio por la izquierda deja leer el texto.
+  (`scene-still-desktop-3`) a la derecha y, como el hero, el eyebrow del rol (`hero.kicker` del idioma) y el nombre en
+  el display y en mayúsculas; abajo, el favicon y el dominio (el de `VITE_SITE_URL`, el de las canónicas). Un velo
+  del color del espacio por la izquierda deja leer el texto.
 - Entran al build con `?share` (JPEG de 1200 px con hash en el nombre: las redes no se quedan con una versión vieja)
-  desde `src/content/shareImage.ts`, con su `alt` en los dos idiomas. Las llevan la home de cada idioma y las fichas
-  sin portada (hoy, Cosmos); las fichas con portada siguen con la suya. La 404 no lleva (no tiene dirección propia).
-- **Se generan con `npm run og`** (`scripts/og.ts`, Playwright): los textos salen del contenido, el estilo de
-  `tokens.css` y las fuentes del sitio. Se vuelven a sacar si cambian el nombre, el rol, el favicon, los tokens o la
-  foto fija de la tortuga (tras `npm run stills`), y se commitean.
+  desde `src/content/shareImage.ts` (`siteShare`). Las llevan la home de cada idioma y las fichas sin portada (hoy,
+  Cosmos); las fichas con portada siguen con la suya. La 404 no lleva (no tiene dirección propia).
+- **El `alt`** cuenta lo que se lee en ella (no sale una foto de Víctor, sino su nombre escrito):
+  - EN: “Víctor Pérez” in large type under “Tortoise_code · Frontend developer · React + TypeScript”, with
+    tortoisecode.dev, beside a particle turtle swimming through space.
+  - ES: «Víctor Pérez» en letra grande bajo «Tortoise_code · Desarrollador frontend · React + TypeScript», con
+    tortoisecode.dev, junto a una tortuga de partículas que nada por el espacio.
+- **Recorte:** apaisada en LinkedIn, X, Slack y el correo (en X, a 2:1, solo pierde ~15 px arriba y abajo). Una app
+  que la recorte a un cuadrado centrado (miniaturas pequeñas de algunas mensajerías) dejaría el nombre y la tortuga a
+  medias: aceptado. Se mira pegando el enlace en el inspector de LinkedIn y en un chat de WhatsApp.
+- **Se generan con `npm run og`** (`scripts/og.ts`, Playwright): los textos salen del contenido y de `VITE_SITE_URL`,
+  el estilo de `tokens.css` y las fuentes del sitio (`OG_FONTS` repite sus `@font-face`). Se vuelven a sacar si
+  cambia algo de lo que se ve en ellas: el nombre, el rol, el dominio, el favicon, los tokens, la foto fija de la
+  tortuga (tras `npm run stills`), las fuentes o el propio generador; y se commitean con `og.json`. **No hace falta
+  acordarse:** `og.json` guarda la huella de todo eso (`scripts/ogInputs.ts`) y `scripts/ogInputs.test.ts` (en
+  `npm run check`) falla hasta rehacerlas; el dominio va aparte en `og.json` (Vitest usa el suyo) y lo compara el e2e
+  de SEO con el de las canónicas. `og.ts` falla si alguna fuente no carga, en vez de pintar con la de reserva.
 
 ## Favicon e iconos
 
 - **Estado:** hecho (sesión 47). `public/favicon.svg` («Constelación tortuga», `design-system.md` → «Marca»),
   `public/apple-touch-icon.png` (180, a sangre: iOS redondea las esquinas), `public/icon-192.png` e
-  `public/icon-512.png` (los del `manifest.webmanifest` básico: nombre, iconos y el color del espacio), y
-  `theme-color` en la cabecera. Los PNG los saca `npm run og` del mismo SVG.
-- Un test de contenido comprueba que el favicon solo usa colores de los tokens y que los PNG miden lo que dicen el
-  manifest y `apple-touch-icon`; un e2e, que la cabecera los enlaza y el sitio los sirve con su tipo.
+  `public/icon-512.png` (los del `manifest.webmanifest` básico: nombre, iconos, el color del espacio, `lang: "en"` e
+  `id: "/"`; uno solo, en inglés: abre la home inglesa aunque se guarde desde `/es`), y `theme-color` en la cabecera.
+  Los PNG los saca `npm run og` del mismo SVG (y entran en su huella).
+- Un test de contenido comprueba que el favicon es **XML válido** (un comentario con dos guiones seguidos lo rompe y
+  el navegador deja la pestaña sin icono: le pasó al primero), que solo pinta con los colores de los tokens, blanco o
+  nada (sin `style`, y las líneas al 75 %), que los PNG miden lo que dicen el manifest y `apple-touch-icon` y que el
+  color del espacio de la cabecera y del manifest es el token; un e2e, que la cabecera los enlaza, el sitio los sirve
+  con su tipo y el favicon se decodifica como imagen.
 
 ## CV en PDF
 

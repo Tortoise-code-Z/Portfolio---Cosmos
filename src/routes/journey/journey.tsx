@@ -3,7 +3,7 @@ import { useLocation } from 'react-router';
 
 import { JOURNEY_SEGMENTS } from '~/content/chapters';
 import { profile } from '~/content/profile';
-import { siteShareImage } from '~/content/shareImage';
+import { siteShare } from '~/content/shareImage';
 import { skillGroups } from '~/content/skills';
 import { NotFoundPage } from '~/features/errors/NotFoundPage/NotFoundPage';
 import { CosmicHud } from '~/features/hud/CosmicHud/CosmicHud';
@@ -40,7 +40,7 @@ export function meta({ location }: Route.MetaArgs): Route.MetaDescriptors {
   const locale = localeFromPathname(location.pathname);
   // `/ES` casa esta ruta en el cliente, pero es 404 (ver `isLowerCasePathname`).
   if (!isLowerCasePathname(location.pathname)) return notFoundMeta({ locale, profile });
-  return homeMeta({ origin: SITE_ORIGIN, locale, profile, siteShare: siteShareImage, skillGroups });
+  return homeMeta({ origin: SITE_ORIGIN, locale, profile, siteShare, skillGroups });
 }
 
 /** Con `m`, el tramo: si es de un interludio o la llegada de un capítulo, el raíl lo marca. */

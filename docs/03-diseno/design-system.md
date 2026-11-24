@@ -317,5 +317,5 @@ su propio contenido con `z-index: -1` (el brillo «hot» de la fila de proyecto)
   la galaxia de skills, dibujan una tortuga vista desde arriba: cabeza, caparazón hexagonal, cuatro patas y cola, con
   la singularidad (blanco) en el centro. El cuadrado oscuro lo hace legible en pestañas claras y oscuras; a 16 px las
   líneas se funden y quedan las estrellas. Versión SVG y PNG para iOS y el manifest (`docs/01-contenido/assets.md`).
-- **Imagen para compartir:** la foto fija de la tortuga con el eyebrow, el nombre y el dominio del hero
-  (`docs/01-contenido/assets.md` → «Imagen para compartir»).
+- **Imagen para compartir:** la foto fija de la tortuga con el eyebrow y el nombre del hero (en mayúsculas), y el
+  favicon con el dominio (`docs/01-contenido/assets.md` → «Imagen para compartir»).

@@ -175,10 +175,12 @@ test.describe('project images', () => {
         }
       }
       const [shareUrl, shareWidth, shareHeight] = share;
+      expect(shareUrl, `${path}: og:image`).not.toBeNull();
       if (pictures.length === 0) {
-        // Sin portada (Cosmos): la imagen para compartir del sitio, que comprueba `seo.spec.ts`.
+        // Sin portada (Cosmos): la imagen para compartir del sitio en el idioma de la ruta (la comprueba `seo.spec.ts`).
+        const locale = path.startsWith('/es/') ? 'es' : 'en';
         expect(new URL(shareUrl ?? 'https://x.invalid').pathname, path).toMatch(
-          /^\/assets\/og-(en|es)-/,
+          new RegExp(`^/assets/og-${locale}-`),
         );
         continue;
       }

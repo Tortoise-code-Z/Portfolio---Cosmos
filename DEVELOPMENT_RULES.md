@@ -176,7 +176,7 @@ Método general en las skills `taller` y `mesa`; aquí, solo lo propio del proye
   `STILLS_SOURCES` (`tests/stills/fingerprint.ts`; de `scene/`, la tabla `scripts/sceneModules.ts`): cualquier cambio
   ahí, aunque sea un comentario, pide
   `npm run stills` (si las fotos salen iguales, solo cambia `stills.json`), y antes del commit se pasa
-  `budgets.spec.ts` (S37). El hook de pre-commit
+  `budgets.spec.ts` (S37). `npm run og` si cambia algo de lo que se ve en la imagen para compartir o en los iconos (el nombre, el rol, el dominio, el favicon, los tokens, la foto fija de la tortuga, las fuentes o el propio generador), y commitear sus PNG y `og.json` (lo avisa `scripts/ogInputs.test.ts`, en `check`). El hook de pre-commit
   genera antes los tipos de las rutas (`react-router typegen`): sin ellos, ESLint rechaza las rutas nuevas. Si el cambio toca la config de Vite o
   imports especiales (`?project`, `?share`…), abrir también las páginas afectadas con `npm run dev`, sin errores
   en consola: los e2e prueban el build y Vitest sustituye esos imports (F2.8).

@@ -54,7 +54,7 @@ const CONTENT_FORBIDDEN = [
   ...['lib', 'stores', 'ui', 'features', 'scene', 'routes'].flatMap(layer),
 ];
 const CONTENT_MESSAGE =
-  'content no importa nada: solo datos y sus tipos (y, en projects/media.ts, las capturas de src/assets/, ADR-023; en telemetry.ts, el módulo virtual:site-telemetry, ADR-035).';
+  'content no importa nada: solo datos y sus tipos (y, en projects/media.ts, las capturas de src/assets/, ADR-023; en shareImage.ts, la imagen para compartir del sitio; en telemetry.ts, el módulo virtual:site-telemetry, ADR-035).';
 
 /**
  * Las cifras del repo de Mission control (ADR-035) entran por una sola puerta: `content/telemetry.ts` importa el

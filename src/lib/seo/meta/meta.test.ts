@@ -86,7 +86,7 @@ describe('homeMeta', () => {
     expect(links(es, 'alternate')).toEqual(expected);
   });
 
-  it('Open Graph y Twitter', () => {
+  it('Open Graph: tipo, nombre del sitio y locales', () => {
     expect(metaContent(en, 'og:type')).toBe('website');
     expect(metaContent(en, 'og:site_name')).toBe('Ada Pérez');
     expect(metaContent(en, 'og:locale')).toBe('en_US');

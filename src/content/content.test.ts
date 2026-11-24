@@ -25,8 +25,9 @@ import {
 import { experience } from './experience';
 import { SHARE_IMAGE_WIDTH } from './imageWidths';
 import { profile } from './profile';
-import { siteShareImage } from './shareImage';
+import { siteShare } from './shareImage';
 import { assembleProjects, projectDetails, projects } from './projects';
+import { cosmos } from './projects/cosmos';
 import { projectEntries } from './projects/entries';
 import { projectMedia } from './projects/media';
 import { skillGroups } from './skills';
@@ -322,10 +323,13 @@ describe('contenido', () => {
     }
   });
 
-  it('la imagen para compartir del sitio: 1200×630 por idioma (Open Graph) y un alt que dice quién es', () => {
+  it('la imagen para compartir del sitio: 1200×630 por idioma (Open Graph) y un alt con lo que se lee en ella', () => {
+    const host = new URL(cosmos.links.demo ?? '').host;
     for (const locale of LOCALES) {
-      expect(siteShareImage.share[locale]).toMatchObject({ width: 1200, height: 630 });
-      expect(siteShareImage.alt[locale]).toContain(profile.name);
+      expect(siteShare.share[locale]).toMatchObject({ width: 1200, height: 630 });
+      expect(siteShare.alt[locale]).toContain(profile.name);
+      expect(siteShare.alt[locale]).toContain(uiTexts[locale]['hero.kicker']);
+      expect(siteShare.alt[locale]).toContain(host);
     }
   });
 
@@ -358,15 +362,52 @@ describe('contenido', () => {
     expect(doc.documentElement.tagName).toBe('svg');
   });
 
-  it('el favicon solo usa colores de los tokens (--color-void, --color-star, --color-aurora) y blanco', () => {
-    const tokens = readFileSync(join(PUBLIC_DIR, '..', 'src', 'styles', 'tokens.css'), 'utf8');
-    const token = (name: string): string | undefined =>
-      new RegExp(`--color-${name}:\\s*(#[0-9a-f]{6});`).exec(tokens)?.[1];
-    const allowed = [token('void'), token('star'), token('aurora'), '#ffffff'];
+  /** Un color de `tokens.css` (`--color-<name>`, en hex de 6 cifras). */
+  const tokenColor = (name: string): string | undefined =>
+    new RegExp(`--color-${name}:\\s*(#[0-9a-f]{6});`).exec(
+      readFileSync(join(PUBLIC_DIR, '..', 'src', 'styles', 'tokens.css'), 'utf8'),
+    )?.[1];
+
+  it('el favicon solo pinta con colores de los tokens (vacío, estrella, aurora), blanco o nada, y las líneas al 75 %', () => {
+    const allowed = [
+      tokenColor('void'),
+      tokenColor('star'),
+      tokenColor('aurora'),
+      '#ffffff',
+      'none',
+    ];
     expect(allowed).not.toContain(undefined);
-    const svg = readFileSync(join(PUBLIC_DIR, 'favicon.svg'), 'utf8');
-    const used = new Set(svg.toLowerCase().match(/#[0-9a-f]{6}/g));
-    expect([...used].filter((color) => !allowed.includes(color))).toEqual([]);
+    const doc = new DOMParser().parseFromString(
+      readFileSync(join(PUBLIC_DIR, 'favicon.svg'), 'utf8'),
+      'image/svg+xml',
+    );
+    // Sin hojas ni `style` (colores que el recorrido no vería); cada fill, stroke y stop-color, de la lista.
+    expect(doc.getElementsByTagName('style')).toHaveLength(0);
+    const painted = [...doc.getElementsByTagName('*')].flatMap((element) => {
+      expect(element.hasAttribute('style'), element.tagName).toBe(false);
+      return ['fill', 'stroke', 'stop-color'].flatMap((attribute) => {
+        const value = element.getAttribute(attribute);
+        return value === null ? [] : [value.toLowerCase()];
+      });
+    });
+    expect(painted.length).toBeGreaterThan(0);
+    expect(painted.filter((color) => !allowed.includes(color))).toEqual([]);
+    const lines = [...doc.getElementsByTagName('g')].find(
+      (group) => group.getAttribute('stroke') !== null,
+    );
+    expect(lines?.getAttribute('stroke-opacity')).toBe('0.75');
+  });
+
+  it('el color del espacio de la cabecera y el manifest es el token (`--color-void`)', () => {
+    const void_ = tokenColor('void');
+    const manifest = JSON.parse(readFileSync(join(PUBLIC_DIR, 'manifest.webmanifest'), 'utf8')) as {
+      readonly theme_color: string;
+      readonly background_color: string;
+    };
+    expect(manifest.theme_color).toBe(void_);
+    expect(manifest.background_color).toBe(void_);
+    const root = readFileSync(join(PUBLIC_DIR, '..', 'src', 'root.tsx'), 'utf8');
+    expect(/<meta name="theme-color" content="(#[0-9a-f]{6})"/.exec(root)?.[1]).toBe(void_);
   });
 
   // El sitio no contradice el CV (fase C): los datos que repite, comparados con lo que dice el PDF revisado. Si el PDF

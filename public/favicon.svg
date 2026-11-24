@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <!--
-    Favicon · «Constelación tortuga» (docs/03-diseno/design-system.md → «Logotipo y favicon»): estrellas unidas por
+    Favicon · «Constelación tortuga» (docs/03-diseno/design-system.md → «Marca»): estrellas unidas por
     líneas, como la galaxia de skills, que dibujan una tortuga vista desde arriba con la singularidad en el centro del
     caparazón. Colores de tokens.css: color-void, color-star, color-aurora y blanco (sin sus dos guiones: un
     comentario XML no puede llevarlos y el SVG dejaría de leerse como imagen). Los iconos PNG salen de aquí

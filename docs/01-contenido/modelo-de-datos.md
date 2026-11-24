@@ -32,6 +32,7 @@ src/content/
     es.ts             ← textos-sitio.md (ES), tipado como `UiTexts`
     index.ts          ← `uiTexts`: los dos idiomas
   imageWidths.ts      ← anchos de las capturas (variantes y JPEG para compartir): presets, Vitest y tests
+  shareImage.ts       ← `siteShare`: la imagen para compartir del sitio y su texto alternativo (`?share`)
   validate/
     validate.ts       ← comprobaciones puras de las reglas de abajo (solo las usan los tests)
     validate.test.ts  ← cada comprobación, con casos rotos a propósito
@@ -48,6 +49,7 @@ src/content/
   entiende Vite con `vite-imagetools`. La config de React Router (`prerender`, sitemap) y los e2e cargan el
   contenido sin Vite: importan `projectEntries`, que no toca `media.ts`. Vitest los sustituye por la misma forma
   con las medidas reales del PNG (`vitest.config.ts`). Las capturas viven en `src/assets/projects/<slug>/`.
+  `shareImage.ts` también importa con `?share`: por eso solo lo importan las rutas, nunca la config ni los e2e.
 
 El contenido es **código TypeScript tipado** (no JSON ni CMS): no viene de fuera, así que el compilador y los
 tests bastan para validarlo. Si en el futuro llega contenido externo (por ejemplo, la API de la NASA), ese dato
@@ -278,6 +280,9 @@ export interface LaunchStep {
    hacia atrás (de la auditoría a un paso anterior); `browserName` nombra los tres navegadores del CI y deja uno
    desconocido tal cual. Cada proyecto tiene su detalle y cada detalle es de un proyecto (ADR-036). La
    `metaDescription` de una ficha, si la hay, mide como mucho 160 caracteres en cada idioma (hoy solo la de Cosmos).
+   El texto alternativo de la imagen del sitio para compartir nombra, en cada idioma, el nombre, el eyebrow del
+   hero y el dominio; el favicon solo usa colores de los tokens (sin `<style>` ni `style`), y el color de tema
+   del manifest y de `root.tsx` es el del vacío (`assets.md` → «Imagen para compartir» y «Favicon e iconos»).
 
 ## Relación con la escena
 
