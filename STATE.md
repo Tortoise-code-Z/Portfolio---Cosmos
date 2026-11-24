@@ -3,54 +3,51 @@
 > **Solo la foto actual** (último cierre). Los cierres anteriores están en `docs/_historial/estado/`
 > (un archivo por mes, lo más nuevo arriba).
 
-**Dónde estamos:** **F4.5 · Tierra hecha** (el Sol y su luz, la gravedad suave) y **AUD-F4-4B corregida**; `main` en
-`37cd82a` antes de este cierre · **AUD-F4-5 entregada por la Mesa, sin decidir** · siguiente: decidir y corregir
-AUD-F4-5 y cerrar F4 (Lighthouse, auditoría de cierre, `v0.3.0`).
+**Dónde estamos:** **F4 · versión 0.3.0 en `main`** (`00df423`, PR #120) con AUD-F4-5 corregida (PR #119) ·
+**AUD-F4-CIERRE en la Mesa** · siguiente: decidir y corregir AUD-F4-CIERRE y etiquetar `v0.3.0` (**F4 cerrada**).
 
-_Última actualización: 2026-11-23 (**CIERRE DE SESIÓN · 44**) · F4.5 (PR #117) y la corrección de AUD-F4-4B (PR #118)
-en `main`; AUD-F4-5 lanzada y entregada._
+_Última actualización: 2026-11-24 (**CIERRE DE SESIÓN · 45**) · AUD-F4-5 corregida entera, la versión 0.3.0 medida
+(Lighthouse, PageSpeed y fps) y la auditoría de cierre de F4 lanzada; ADR-037 (la luz de la Tierra sale del Sol)._
 
-**Hecho esta sesión** (vivas S44 en `_claude/cadena/hecho/2026-11-23/decisiones-vivas-S44.md`):
-1. **F4.5 · Tierra** (PR #117, `46fd592`; TIE-1-A a TIE-5-A): `scene/Sun`, un cuadrado de dos triángulos que mira a la
-   cámara (`shaders/sun`, núcleo `#ffb070` → halo `#ff8a3d`), con la presencia del capítulo 4, un latido quieto con
-   movimiento reducido y sin pintarse fuera de su capítulo; en (−1,4, 2,9, −1), lado 3,5, sobre el limbo superior
-   izquierdo. **La luz de la Tierra sale del Sol** (`SUN_DIR` = `SUN.position` normalizado, por la cabecera; un test los
-   ata): lo vio Víctor, la luz fija del prototipo no cuadraba con el Sol. El sitio y la luz del prototipo descartados
-   porque el halo dibujaba el borde del panel y de la barra (medido). Gravedad del cursor a la mitad sobre la Tierra
-   (`EARTH_GRAVITY`). Fotos fijas y capturas del capítulo 4. +444 B (sobre AUD-F4-4B).
-2. **AUD-F4-4B corregida entera** (PR #118, `37cd82a`; 0 bloqueantes, 9 recomendados, 31 menores, 3 preguntas: todas
-   las opciones de la Mesa, P1-A, P2-C, P3-B): el clic en un pin deja su proyecto señalado; solo la etiqueta del pin
-   recibe el puntero; los pins esperan a las partículas pintadas y leen la transmisión del frame
-   (`SceneFrame.transmission` y `painted`); `fitPins` ordena en sitio sin crear nada; el gesto recuerda su pin;
-   `motionOf`; `registerLabel` en `labelWriter`; `--_rows-gap`; tests más estrictos (ciclo, panel en el móvil, Mission
-   control, worker retenido, capa que nace de nuevo) y ayudas comunes de los e2e (`interfaceRects`, `expectInterface`);
-   docs al día. +149 B.
-3. **AUD-F4-5 lanzada y entregada** (base 2bfca5c · hasta f4d4bbe; vivas S44 hasta #14): 0 bloqueantes, 4
-   recomendados, 19 menores, 4 preguntas → `_claude/cadena/aud-f4-5/auditoria.md`.
+**Hecho esta sesión** (vivas S45 en `_claude/cadena/hecho/2026-11-24/decisiones-vivas-S45.md`):
+1. **AUD-F4-5 corregida entera** (PR #119, `af5df93`; 4 recomendados, 19 menores; P1-A, P2-A, P3-A, P4-B): el Sol
+   espera a la Tierra (`frame.painted`, como los pins; confirmado antes sobre `main` con un e2e nuevo: entrando por
+   `/#contact` con el worker retenido brillaba 151 sobre el vacío; el mismo e2e mira que compila sin avisos en los tres
+   motores); `EARTH_CHAPTER`, `sunDirection(): ScenePoint`, `SUN` con `satisfies`; tests más estrictos (los dos
+   triángulos, los bordes de la rampa, el Sol con movimiento reducido y en Bajo, `SUN_DIR` leído de la cabecera, el
+   perfil de alfa igual al de las estrellas, una línea propia de cada shader en `budgets.spec`, el Sol en `SceneRoot`
+   en los tres niveles); docs al día. +1 B (257 075 B).
+2. **P3 medido** (viva #7): el escalón que pone el Sol, restando el de un build sin Sol. Desde 1280 px, 0; por debajo de
+   ~1240 px la Tierra ya cruza el panel (no de ~1100, como decía el doc) y el halo también: aceptado como ella. En
+   móvil apaisado, el halo bajo la barra (+9 a +14): **SOL-1-A**, aceptado y escrito; se mira en F6.
+3. **Versión 0.3.0** (PR #120, `00df423`): `package.json` y el lock; `calidad.md` → «Mediciones» → «Cierre de F4»:
+   Lighthouse local 95–100 (igual que en F3 y la fase C), PageSpeed `/` 98 móvil (Speed Index 4,4 s) y 100 escritorio,
+   `/projects/cosmos` 100 y 100; fps 60 en Alto por todo el viaje (con el ahorro de energía, 30 y Bajo). `npm audit`
+   0. Aceptación de los capítulos 0–4: cada criterio con su test o su medida. Roadmap: versión medida.
+4. **AUD-F4-CIERRE lanzada** (base `6b46c7d` · hasta `00df423`; vivas S45 hasta #21): toda F4 transversal, con
+   CF4-1-A como hallazgo esperado y las preguntas AUD-F4-5-P4, CF4-2 y el Speed Index →
+   `_claude/cadena/aud-f4-cierre/auditoria.md`.
+5. **ADR-037** · la luz de la Tierra sale del Sol que se ve (AUD-F4-5-P2-A), en este cierre.
 
 **Incidencias y lecciones:**
-- **F4.5 se fusionó antes que la corrección de AUD-F4-4B** (otra vez, como en S43): sin daño (el squash de #117 tenía
-  el mismo árbol que el commit auditado). La rama de la corrección se puso al día con `git merge main`: tres conflictos
-  (docs del peso y un import de un test) y `stills.json` (las dos ramas lo cambian: se deja el de `main` y se rehace
-  con `npm run stills`). Lección: antes de pulsar «Merge», mirar la cola del tablero; un paso nuevo no se fusiona con
-  una corrección de auditoría pendiente delante.
-- **Una luz que no cuadra con su fuente** solo la vio Víctor mirando la captura: al poner un objeto que «causa» algo
-  en la escena (el Sol y la iluminación), atar las dos cosas a un solo dato y mirarlo en móvil y escritorio.
-- **Partículas aditivas sin profundidad:** una luz desde detrás ilumina la cara de atrás, que se ve a través; un Sol
-  a la izquierda y a la altura de la Tierra cae sobre el panel a 1280. Por eso el Sol va casi a su altura y arriba.
-- **El build de Víctor se cortó** antes del SPA fallback y de `buildEnd` (sin `404.html`) y `budgets.spec` falló:
-  no encadenar `npm run build; npx playwright …` con `;` (si el build falla, el test corre igual). Cada orden en su línea.
-- **El compilador de React** no deja escribir en un objeto de `useState` desde una función del componente
-  (`frame.painted = true`): se hace con una función del módulo (`markPainted`), como `stepSun`.
-- **Contenedor (S44):** `$HOME` es `/root`, el árbol con `git archive` del commit de `main` en `~/repo`, Node 24 del
-  paquete npm (`node@24.22.0`), Chromium 1243 enlazado como 1248 en `~/pwb`, e2e con `--workers=1`; el contenedor se
-  reinició a mitad de una tanda de e2e (se repitió lo que faltaba). Se copió por error `.env` a `_claude/tmp/s44/`
-  (vaciado): nunca copiar `.env` fuera de su sitio; en el contenedor va `.env.example`.
+- **fps con el ahorro de energía:** la primera medida dio 30 clavados y Bajo; con un tope del navegador los frames
+  salen idénticos (p95 = media), no dispersos como con una GPU que no llega. Medir enchufado, sin el ahorro y
+  recargando la página (el nivel se elige al cargar).
+- **Un doc con una cifra sin medir** («~1100 px») salió de medir solo 1440 y 1280: al aceptar algo «entre X e Y»,
+  medir también los extremos. Para aislar lo que pone una pieza (el halo) de lo que ya había (la Tierra), restar el
+  mismo escalón en un build sin esa pieza.
+- **PageSpeed** es una página que pinta con JS: `WebFetch` no ve las notas; se leen con el navegador integrado.
+- **Contenedor (S45):** limpio al empezar. Node 24 del paquete npm (`node@24.22.0`), Chromium 1243 enlazado como 1248
+  en `~/pwb` (`PLAYWRIGHT_BROWSERS_PATH`), Lighthouse 13.6.0 con `CHROME_PATH` al 1243. En la copia con `git init`,
+  `git config core.hooksPath /dev/null`: si no, el commit de la copia corre Husky y lint-staged. Una vez se lanzó
+  `git --no-optional-locks diff --stat` contra el árbol de trabajo del equipo (la regla es no hacerlo): no dejó
+  `index.lock`.
 
 **Deuda anotada:**
 - **Constellations lee `uiStore.activeSkillGroup` dentro de su `useFrame` (AUD-F4-4B-4):** los pins ya leen del
-  frame (`SceneFrame.transmission`, ADR-027); las constelaciones siguen leyendo el store en su frame. Pasarlo por el
-  frame (como `frame.plate`) en un PR aparte o con la auditoría de cierre de F4.
+  frame (`SceneFrame.transmission`, ADR-027); las constelaciones siguen leyendo el store en su frame. Va en
+  AUD-F4-CIERRE como hallazgo esperado (CF4-1-A, viva S45 #14): pasarlo por el frame (como `frame.plate`) en su
+  corrección.
 - **CI · WebKit a ~3 fps (S35):** la traza del CI de C.2 lo midió: WebKit sin GPU pinta unos 3 frames por segundo con
   la página entera, y la detonación pide 15 frames (la carga avanza como mucho 0,1 s por frame). Las esperas de
   detonación de `journey.spec.ts` van a 15 s (`DETONATE_TIMEOUT_MS`); desde S42, la espera a que las etiquetas de las
@@ -63,8 +60,9 @@ en `main`; AUD-F4-5 lanzada y entregada._
   de la prueba y lecciones del shader en `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a
   pantalla completa). La prueba es el artefacto privado «Naves · prueba»; copia del código en `_claude/naves/`. Al
   construir: su ADR (uno nuevo, numerado al escribirlo: mapa de formas `uFrom`/`uTo`/`uT`, que obliga a rehacer sobre él lo del retrato atado a
-  `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: quedan 2 926 B tras F4.5 y la
-  corrección de AUD-F4-4B (antes de corregir AUD-F4-5), así que su ADR subirá el límite con esos números reales.
+  `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: quedan 2 925 B tras F4.5 y las
+  correcciones de AUD-F4-4B y AUD-F4-5 (antes de la de AUD-F4-CIERRE), así que su ADR subirá el límite con esos números
+  reales.
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
   cómo está construido: solo herramientas, para qué y lo hecho (nota de ADR-034; `experiencia.md` → «Regla de
   privacidad», sin ejemplos desde AUD-C2: una lista en un repo público sería la filtración). Las viñetas y la bio van
@@ -103,9 +101,9 @@ en `main`; AUD-F4-5 lanzada y entregada._
   veces; la 5.ª, en el CI de C.2, por tiempo (WebKit a ~3 fps y más enlaces con el Mission log). Desde C.2 lleva
   `test.slow()` en WebKit (90 s). Desde F4.3c, si lo enfocado no se ve, vuelve a mirarlo unos frames antes de darlo
   por tapado. Si vuelve a fallar por algo que no sea tiempo: mirar `scroll-padding` en WebKit.
-- **Contenedor · `recruiter.spec.ts` (S36, S44):** «390 px: the «Projects · Cosmic turtle» dot…» falla en el
-  contenedor también sobre `main`: en S44, 2 de 6 con `--repeat-each=3` (en EN y ahora también en ES); no es de ningún
-  cambio y en el CI pasa. Si sale en el CI, mirarlo (el deslizamiento táctil de `swipeDown` a 390 px).
+- **Contenedor · `recruiter.spec.ts` (S36, S44, S45):** «390 px: the «Projects · Cosmic turtle» dot…» falla en el
+  contenedor también sobre `main`: en S44, 2 de 6 con `--repeat-each=3` (en EN y ahora también en ES); en S45, 1 de 2;
+  no es de ningún cambio y en el CI pasa. Si sale en el CI, mirarlo (el deslizamiento táctil de `swipeDown` a 390 px).
 - **e2e en el equipo de Víctor con varios workers (S43):** `plates.spec.ts` agotó dos tiempos (hover y Tab) y la
   prueba de movimiento reducido tardó 29,9 s de 30: SwiftShader en varias ventanas a la vez satura la máquina (en el
   contenedor, 4 workers sobre 2 núcleos rompen también `constellations.spec.ts`). Los e2e de la escena, en local, con
@@ -116,7 +114,9 @@ en `main`; AUD-F4-5 lanzada y entregada._
   suavizada. Además (AUD-F4-4B): al subir el panel sobre la tortuga, los pins bajo su franja transparente se ven pero
   no se tocan (P1-A, aceptado y escrito en `componentes.md`); el piso del pin puede saltar 30 px sin histéresis (P3-B);
   `-webkit-user-select` en las capas de etiquetas y pins no se pudo confirmar sin Safari (AUD-F4-4B-31). Y el Sol
-  sobre el limbo de la Tierra en un móvil (se ve más pequeño que en escritorio).
+  sobre el limbo de la Tierra en un móvil (se ve más pequeño que en escritorio) y, en apaisado, su halo bajo la barra:
+  un corte plano tenue (+9 a +14 de 255 medido a 800×360, 667×375 y 844×390; aceptado, SOL-1-A, escrito en
+  `04-tierra.md` y en `particulas-y-shaders.md` → «Sol»).
 - **e2e en el equipo de Víctor (S32, S38):** la primera tanda completa de Chromium en Windows sacó dos carreras de
   carga que pasaban solas (el recuento de chunks de `scene.spec.ts`, que contaba la descarga tardía de la página del
   `beforeEach`, y el espaciado del nombre en `journey.spec.ts`, que tardaba más de 5 s con pocos frames). Blindadas
@@ -163,14 +163,16 @@ en `main`; AUD-F4-5 lanzada y entregada._
   desde `SceneRoot`). Lo recuerdan §13, «hecho» y el roadmap.
 - **WebKit y el `<picture>`:** que WebKit pidiera el `src` del `<img>` antes de entrar en el `<picture>` es deducido
   (no hay WebKit en el contenedor); el arreglo lo vigila el e2e de escritorio sin WebGL en el CI.
-- **Peso de la escena:** 257 074 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
-  C.5 −2, C.6a +52, C.6b +967, AUD-C6B +252, F4.4a +391, F4.4b +1 729, AUD-F4-4A +21, AUD-F4-4B +149, F4.5 +444).
-  Quedan 2 926 B para la corrección de AUD-F4-5 y la auditoría de cierre de F4; C.7 subirá el límite. Cada paso
+- **Peso de la escena:** 257 075 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
+  C.5 −2, C.6a +52, C.6b +967, AUD-C6B +252, F4.4a +391, F4.4b +1 729, AUD-F4-4A +21, AUD-F4-4B +149, F4.5 +444,
+  AUD-F4-5 +1). Quedan 2 925 B para la corrección de AUD-F4-CIERRE; C.7 subirá el límite. Cada paso
   apunta lo que pesó en `rendimiento.md`. Por paquete se mide con
   `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F36-5-A):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).
 - **Degradación en caliente:** un navegador que limita los frames a 30 (ahorro de batería) baja a Bajo en
-  escritorio: aceptado y escrito en `rendimiento.md`.
+  escritorio: aceptado y escrito en `rendimiento.md`. Medido en S45 (Brave con el ahorro de energía: 30 fps clavados,
+  p95 33,5 ms, y la escena en Bajo; enchufado, 60 en Alto). Va a AUD-F4-CIERRE como pregunta (CF4-2): si la Mesa no
+  trae nada nuevo, sigue aceptado.
 - **e2e de Chromium:** ~10 min en el contenedor (323), en Bajo en los tres motores (los de la degradación
   arrancan en Alto con los frames retrasados por el test). SwiftShader pinta sin parar mientras la página está a la
   vista: mirar los tiempos del CI. En la tanda completa del contenedor, «1280×720: loading the hero with slow fonts
@@ -192,9 +194,11 @@ en `main`; AUD-F4-5 lanzada y entregada._
 - **Shader medido y aceptado (F3.6c):** `SIZE_MAX_PX = 48`, `MAX_STEP_S = 0,1`, la estela con alfa 0 en Bajo y la
   compilación al primer frame se quedan como están (60 fps estables en Alto, `rendimiento.md` → «Presupuesto»).
   Volver a mirarlo con un móvil real o si F4 baja de los presupuestos.
-- **Fps medidos solo en un equipo** (Brave en Windows, 6 núcleos, ventana 1029×637 a DPR 1,5) y limitados por el
-  refresco de la pantalla (60): falta un móvil real (≥ 30 fps en Bajo), una ventana maximizada y Firefox/Safari
-  (F6). El fragmento de medida está en `_claude/cadena/hecho/2026-10-28/medir-fps.js`.
+- **Fps medidos solo en un equipo** (Brave en Windows, 6 núcleos, DPR 1,5; F3.6c a 1029×637 y el cierre de F4 a
+  1280×800, 60 en Alto por todo el viaje) y limitados por el refresco de la pantalla (60): falta un móvil real
+  (≥ 30 fps en Bajo) y Firefox/Safari (F6). El fragmento de medida está en
+  `_claude/cadena/hecho/2026-11-24/medir-fps.js` (el de F3.6c con el Crew file); medir enchufado, sin el ahorro de
+  energía y recargando la página.
 - **Capturas con tolerancia estrecha (AUD-F3-6-2):** `threshold` 0,05 y 50 píxeles. Pasó dos veces en Docker; si el
   CI da algún fallo suelto de bordes, mirar el informe antes de aflojar.
 - **F6 · alto contraste (AUD-F3-3-P6, A):** con `forced-colors` la escena sigue pintando detrás del texto;
@@ -270,17 +274,17 @@ en `main`; AUD-F4-5 lanzada y entregada._
 - **Fotos fijas en el contenedor (S40):** se pueden sacar sin Docker (`COSMOS_STILLS_DOCKER=1 npx playwright test -c
   playwright.stills.config.ts`) para comprobar o para rehacer solo `stills.json`; las fotos que entran son las de
   Docker (`npm run stills` en el equipo de Víctor).
+- **PageSpeed · Speed Index de la home en móvil (S45):** 4,4 s con FCP y LCP en 0,9 s (Performance 98; la ficha de
+  Cosmos, 1,2 s y 100). Va a AUD-F4-CIERRE como pregunta: qué sigue cambiando en pantalla tras la primera pintura.
 
 **Siguiente paso (próxima sesión, conversación nueva):**
 1. Arrancar con `session-start` (y la skill `taller`).
-2. **AUD-F4-5** (entregada, sin decidir; sello: `f4d4bbe` + vivas S44 hasta #14, releídas hasta #16): Víctor decide
-   (4 recomendados, 19 menores; P1 la Tierra del epílogo sin retrato, P2 ¿ADR para «la luz sale del Sol»?, P3 tamaños
-   sin medir, P4 ¿un test que obligue a apuntar cada pieza nueva de la escena en sus listas?) y se corrige entera en
-   `fix/aud-f4-5` desde `main`. Contrastar antes: desde `f4d4bbe` entró la corrección de AUD-F4-4B (`motionOf`,
-   `SceneFrame.painted`: -1 pide lo mismo para el Sol, ya decidido en la viva S44 #15).
-3. **Cierre de F4:** Lighthouse a mano (`calidad.md` → «Mediciones»), auditoría de cierre de F4 a la Mesa, versión
-   0.3.0 y etiqueta `v0.3.0` sobre el último commit del cierre.
-4. Víctor: mirar `/#crew-file` en Brave en producción (AUD-C6B-5) y el Sol en su pantalla y en el móvil; pegar la
+2. **AUD-F4-CIERRE** (lanzada el 2026-11-24; sello: `00df423` + vivas S45 hasta #21): Víctor decide y se
+   corrige entera en `fix/aud-f4-cierre` desde `main`, con CF4-1-A (las constelaciones leen el grupo del frame). CF4-2
+   ya era deuda aceptada («Degradación en caliente»): si la Mesa no trae nada nuevo, sigue así.
+3. **Etiqueta anotada `v0.3.0`** («v0.3.0: F4, the chapters (audited)») sobre el último commit del cierre en `main`, y
+   en el roadmap «**F4 cerrada**». Después, decidir entre C.7 (Naves) y F5 (transiciones a proyectos).
+4. Víctor: mirar `/#crew-file` en Brave en producción (AUD-C6B-5) y el Sol en su móvil (también apaisado); pegar la
    descripción, la web y los topics de Cosmos en GitHub (`ABOUT_REPOS.md` del Proyecto de claude.ai); suavizar el CV y
    LinkedIn con el chat de mentor (y avisar para volver a copiar el PDF: lo pedirá `content.test.ts`); redirigir el
    portfolio antiguo de Vercel a tortoisecode.dev; mirar las líneas de las constelaciones en su pantalla; revisar los
@@ -289,15 +293,15 @@ en `main`; AUD-F4-5 lanzada y entregada._
 **Dudas abiertas:** D5 · analítica (F7). Tareas de Víctor: script de consola en el README de Chessmate (lo cita el
 «Try it»).
 **Limpieza manual del usuario:**
-- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 44, entre ellas `s37/` a `s44/` —en `s44/`,
+- Todo `_claude/tmp/` (copias del repo y archivos de las sesiones 34 a 45, entre ellas `s37/` a `s45/` —en `s44/`,
   `env.txt`, la copia vaciada de `.env`—, `c3/` y `aud-c2/`) y `_claude/lstree.txt`; `_claude/readme-originales/` si ya
   no hacen falta.
-- Ramas locales ya fusionadas (todas menos `main`, entre ellas `feat/earth-sun`, `fix/aud-f4-4b`, `feat/turtle-plates`,
+- Ramas locales ya fusionadas (todas menos `main`, entre ellas `fix/aud-f4-5`, `chore/release-0.3.0`, `feat/earth-sun`, `fix/aud-f4-4b`, `feat/turtle-plates`,
   `feat/turtle-pins`, `fix/aud-f4-4a`, `fix/aud-c-cierre` y `chore/deps-2026-11`): `git branch` para verlas y
   `git branch -D <rama>`.
 - En el buzón se puede borrar todo lo de `_claude/cadena/tmp/` y, dentro de `_claude/cadena/hecho/`, los
   `arbol*.tar.gz`, `previas.tar.gz` y los `*.diff` (nunca la carpeta `_claude/cadena/`, ni `hecho/2026-10-28/medir-fps.js`
-  ni `hecho/2026-10-28/encuadre/`). Mover a mano a `hecho/` lo que no se pudo desde aquí (`aud-f4-1/` a
+  ni `hecho/2026-10-28/encuadre/` ni `hecho/2026-11-24/medir-fps.js`). Mover a mano a `hecho/` lo que no se pudo desde aquí (`aud-f4-1/` a
   `hecho/2026-11-18/`, `aud-c2/` a `hecho/2026-11-21/` si siguen fuera). No borrar `_claude/diseno/`, `_claude/retrato/`,
   `_claude/naves/` ni `_claude/c3/`.
 - En la raíz del repo, `playwright-report-firefox.zip`, `playwright-report-firefox (1).zip`,

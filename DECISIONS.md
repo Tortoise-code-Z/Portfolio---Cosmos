@@ -914,3 +914,28 @@
     `import()` (con `no-restricted-syntax`), y un test (`scripts/eslintDoors.test.ts`) las comprueba con la
     configuración real.
 - Detalle: `docs/01-contenido/modelo-de-datos.md` y `docs/05-tecnico/arquitectura.md` → «Capas».
+
+## ADR-037 · La luz de la Tierra sale del Sol que se ve
+- Estado: Aceptada
+- Fecha: 2026-11-24
+- Contexto: desde F3 la Tierra se iluminaba con la dirección fija del prototipo, `normalize(-0.72, 0.30, -0.45)`: de la
+  izquierda y casi de lado. F4.5 puso un Sol visible en la escena (`scene/Sun`), y al mirarlo en pantalla la luz no
+  cuadraba con él: el Sol arriba y algo detrás, el lado de día a la izquierda. Una luz que no sale de su fuente se nota,
+  y la posición del Sol aún tenía que moverse por encuadre (el halo no puede marcar el borde del panel ni el de la
+  barra).
+- Decisión: la luz de la Tierra es la dirección hacia el Sol desde el centro de la Tierra (el origen): `SUN_DIR` =
+  `SUN.position` normalizada, calculada en TypeScript y escrita en la cabecera GLSL (`glslHeader`); el shader no lleva
+  ninguna dirección a mano. Un test lee el `#define SUN_DIR` de la cabecera y lo compara con `SUN.position`, y exige
+  que la línea de la luz (`lam`) no lleve números. El Sol va en (−1,4; 2,9; −1), sobre el limbo superior izquierdo:
+  día arriba a la izquierda, noche abajo a la derecha y el amanecer en diagonal.
+- Alternativas descartadas: dejar la luz del prototipo y colocar el Sol donde cuadrara con ella (a la izquierda y a la
+  altura de la Tierra: su halo caía sobre el panel a 1280×720, con un escalón de 56 a 74 de brillo en su borde); el
+  Sol detrás de la Tierra (las partículas suman luz sin profundidad: se ve su cara iluminada a través y parece de día
+  por todas partes); la luz como uniform que siga al Sol en cada frame (más código y peso para un Sol que no se mueve).
+- Consecuencias: cambia el aspecto de la Tierra aprobado en F3 (fotos fijas y capturas rehechas en F4.5). Mover el Sol
+  —por encuadre, en F5 o para el móvil— vuelve a iluminar la Tierra, y el test obliga a que vayan juntos: no se puede
+  mover uno sin el otro. Como `SUN_DIR` se fija al compilar, un Sol que cambiara de sitio según el tamaño de la
+  pantalla pediría pasar la luz a un uniform. La regla del Sol va por capítulo: si el retrato no llega, el epílogo
+  sigue con la Tierra iluminada desde `SUN_DIR`, ya sin Sol (aceptado: solo en ese fallo).
+- Detalle: `docs/04-escena/particulas-y-shaders.md` → «Iluminación de la Tierra» y «Sol»;
+  `docs/02-experiencia/capitulos/04-tierra.md`.
