@@ -65,11 +65,17 @@ describe('shapeMixAt', () => {
     });
   });
 
-  it('el último cambio va de la Tierra al retrato, aunque `s` pida más', () => {
-    const mix = shapeMixAt(7, createShapeMix());
+  it('donde se para la escena, el último cambio casi entero: de la Tierra al retrato', () => {
+    const mix = shapeMixAt(SHAPE_TRACK_END, createShapeMix());
     expect(mix.from).toBe(SHAPE.earth);
     expect(mix.to).toBe(SHAPE.portrait);
     expect(mix.t).toBeCloseTo(0.999, 9);
+  });
+
+  it('en la última forma, o más allá, quieta en ella (la escena no llega: `shapePosition` se para antes)', () => {
+    const portrait = { from: SHAPE.portrait, to: SHAPE.portrait, t: 0 };
+    expect(shapeMixAt(SHAPE_TRACK.length - 1, createShapeMix())).toEqual(portrait);
+    expect(shapeMixAt(7, createShapeMix())).toEqual(portrait);
   });
 
   it('antes del principio o sin número, en la singularidad', () => {

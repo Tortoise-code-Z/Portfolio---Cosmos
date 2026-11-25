@@ -31,7 +31,7 @@ export type ShapeId = (typeof SHAPE)[keyof typeof SHAPE];
  * Las formas por las que pasa el viaje, en orden: la posición `s` en esta lista es la `m` de la forma. Hoy coincide con
  * los capítulos (una forma por capítulo; la del epílogo, el retrato), así que `s` sale de `m` (`shapePosition`).
  */
-export const SHAPE_TRACK: readonly ShapeId[] = [
+export const SHAPE_TRACK: readonly [ShapeId, ...ShapeId[]] = [
   SHAPE.singularity,
   SHAPE.nebula,
   SHAPE.galaxy,
@@ -41,10 +41,18 @@ export const SHAPE_TRACK: readonly ShapeId[] = [
 ];
 
 /**
- * Dónde se para `s`: justo antes de la última forma, como `m` se paraba en el shader. El último cambio va de la
- * penúltima a la última y se queda ahí (`t` 0,999: todas las partículas han llegado, con su retraso).
+ * Dónde se para `s` en la escena (`shapePosition`): justo antes de la última forma, como `m` se paraba en el shader. El
+ * último cambio va de la penúltima a la última y se queda ahí (`t` 0,999: todas las partículas han llegado, con su
+ * retraso).
  */
 export const SHAPE_TRACK_END = SHAPE_TRACK.length - 2 + 0.999;
+
+const LAST_INDEX = SHAPE_TRACK.length - 1;
+
+/** La forma del sitio `index` de `SHAPE_TRACK`, o `past` si se sale de la lista. */
+function trackShape(index: number, past: ShapeId): ShapeId {
+  return SHAPE_TRACK[index] ?? past;
+}
 
 /** Las dos formas que se mezclan y cuánto (0 → 1): lo que recibe el shader. */
 export interface ShapeMix {
@@ -68,14 +76,14 @@ export function shapePosition(m: number): number {
 }
 
 /**
- * Las formas en la posición `s` de `SHAPE_TRACK`: la de `floor(s)`, la siguiente y la fracción. Escribe en `out` (se
- * llama en cada frame: sin objetos nuevos, ADR-004) y lo devuelve.
+ * Las formas en la posición `s` de `SHAPE_TRACK`: la de `floor(s)`, la siguiente y la fracción. En la última (o más
+ * allá), quieta en ella. Escribe en `out` (se llama en cada frame: sin objetos nuevos, ADR-004) y lo devuelve.
  */
 export function shapeMixAt(s: number, out: ShapeMix): ShapeMix {
-  const at = clamp(Number.isNaN(s) ? 0 : s, 0, SHAPE_TRACK_END);
+  const at = clamp(Number.isNaN(s) ? 0 : s, 0, LAST_INDEX);
   const index = Math.floor(at);
-  out.from = SHAPE_TRACK[index] ?? SHAPE.singularity;
-  out.to = SHAPE_TRACK[index + 1] ?? out.from;
+  out.from = trackShape(index, SHAPE_TRACK[0]);
+  out.to = trackShape(index + 1, out.from);
   out.t = at - index;
   return out;
 }
