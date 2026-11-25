@@ -9,6 +9,10 @@ import { LANDING_SELECTOR } from '~/lib/scroll/jumpToChapter/jumpToChapter';
 import { VisuallyHidden } from '~/ui/VisuallyHidden/VisuallyHidden';
 
 import { ChapterJumpLink } from '../ChapterJumpLink/ChapterJumpLink';
+import {
+  isTabFocus,
+  useArrivalChoreography,
+} from '../useArrivalChoreography/useArrivalChoreography';
 import styles from './Transmission.module.css';
 
 /** Canal de color de una transmisión (docs/03-diseno/design-system.md → «Transmisiones»). */
@@ -80,13 +84,19 @@ export const TRANSMISSION_ENTRY: IntersectionObserverInit = {
  * La entrada de la transmisión, una vez: con JavaScript y sin movimiento reducido, la sección se «arma» al montar
  * (`data-armed`: el teletipo esconde sus líneas) y se «enciende» al entrar en la pantalla (`data-on`: barrido y
  * líneas una a una; `TRANSMISSION_ENTRY`). Sin JavaScript o con movimiento reducido no se arma: todo se ve quieto
- * desde el principio. Solo decoración: el texto está entero en el DOM siempre (y al imprimir se ve).
+ * desde el principio. Solo decoración: el texto está entero en el DOM siempre (y al imprimir se ve). Una sección con
+ * llegada no la usa (`enabled`): la arma y la enciende su coreografía, al encajar (`useArrivalChoreography`).
  */
-function useTransmissionEntry(): RefObject<HTMLElement | null> {
+function useTransmissionEntry(enabled: boolean): RefObject<HTMLElement | null> {
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     const section = ref.current;
-    if (section === null || prefersReducedMotion() || typeof IntersectionObserver === 'undefined') {
+    if (
+      !enabled ||
+      section === null ||
+      prefersReducedMotion() ||
+      typeof IntersectionObserver === 'undefined'
+    ) {
       return undefined;
     }
     section.dataset.armed = '';
@@ -102,7 +112,7 @@ function useTransmissionEntry(): RefObject<HTMLElement | null> {
       delete section.dataset.armed;
       delete section.dataset.on;
     };
-  }, []);
+  }, [enabled]);
   return ref;
 }
 
@@ -120,17 +130,6 @@ const ARRIVAL_FOCUS_FRAMES = 30;
 
 /** Lo que hace el usuario que corta esa vigilancia: mover la página o tocar otra cosa (una tecla que no sea Tab). */
 const USER_MOVES = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const;
-
-/**
- * Lo que se enfoca con Tab: alcanzable con el teclado (`tabIndex` ≥ 0) y con el foco a la vista (`:focus-visible`).
- * Fuera quedan los títulos que enfocan los saltos (`tabindex="-1"`: de su scroll ya se encarga `jumpToChapter`) y lo
- * que se enfoca con un clic.
- */
-function isTabFocus(element: Element | null): element is HTMLElement {
-  return (
-    element instanceof HTMLElement && element.tabIndex >= 0 && element.matches(':focus-visible')
-  );
-}
 
 /**
  * El foco con Tab en una sección con llegada (ADR-039): mientras dura la llegada su escenario está pegado bajo la barra
@@ -211,8 +210,9 @@ function useArrivalFocus(ref: RefObject<HTMLElement | null>, arriving: boolean):
  * (`INTERLUDE[id].next`), y le sigue su cola, un tramo vacío y sin puntero en el que la escena cambia a la forma
  * siguiente (`JOURNEY_SEGMENTS`). El epílogo es un capítulo (`data-chapter`): sin salto ni cola, pero con su llegada
  * (ADR-039): su contenido va en un escenario fijo mientras pasa un hueco (la escena trae el retrato) y su ancla está en
- * el marcador del final de la llegada (`data-landing`), donde aterrizan el ancla y los saltos. Es hija
- * directa de `<main>`: recoge el puntero (las estrellas no).
+ * el marcador del final de la llegada (`data-landing`), donde aterrizan el ancla y los saltos. Mientras llega, el haz la
+ * revela y las esquinas se cierran sobre su destino (`useArrivalChoreography`, C.7). Es hija directa de `<main>`:
+ * recoge el puntero (las estrellas no).
  */
 export function Transmission(props: TransmissionProps): ReactNode {
   const {
@@ -227,9 +227,10 @@ export function Transmission(props: TransmissionProps): ReactNode {
     children,
   } = props;
   const t = useT();
-  const ref = useTransmissionEntry();
   const interlude = props.id ?? null;
+  const ref = useTransmissionEntry(interlude !== null);
   useArrivalFocus(ref, interlude === null);
+  useArrivalChoreography(ref, interlude === null);
 
   const content = (
     <>
@@ -320,9 +321,24 @@ export function Transmission(props: TransmissionProps): ReactNode {
               data-landing=""
               aria-hidden="true"
             />
-            {/* La llegada (ADR-039): el escenario se queda fijo mientras pasa el hueco de debajo. */}
+            {/*
+             * La llegada (ADR-039): el escenario se queda fijo mientras pasa el hueco de debajo. Dentro, la pantalla de
+             * la transmisión (lo que el haz revela, `data-screen`) y, encima, lo que pinta la coreografía sin recortarse:
+             * la línea del haz y las esquinas que se cierran sobre el destino (`useArrivalChoreography`).
+             */}
             <div className={styles.stage} data-stage="">
-              {content}
+              <div className={styles.screen} data-screen="">
+                {content}
+              </div>
+              <div className={styles.arrivalMarks} aria-hidden="true">
+                <div className={styles.beam} />
+                <div className={styles.corners}>
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </div>
             </div>
             <div className={styles.arrivalSpace} aria-hidden="true" />
           </>

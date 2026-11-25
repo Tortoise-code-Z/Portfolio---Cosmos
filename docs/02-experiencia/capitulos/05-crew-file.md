@@ -43,10 +43,15 @@ crudo»: ahora la escena trae el epílogo.
   - el haz baja por la pantalla (de `a` = 0,05 a 0,70, hasta 1,025 altos de la ventana: `beamReach`) y enciende lo
     que deja atrás: en la escena, el retrato; la página lo pinta con la misma línea (`arrivalBeamLine`, en
     `lib/scroll/arrivalChoreography`, fuera de la huella de las fotos fijas);
-  - **(PR 2)** en la página, revela la transmisión por encima del haz (franja, aviso, título, cuadrícula, barrido) y
-    deja negro lo de debajo; las cuatro esquinas del visor salen de las de la ventana y se cierran sobre el retrato
-    (0,15 → 0,75); al encajar (0,78) brillan, las líneas guía salen del visor a los recuadros de la ficha
-    (0,78 → 0,92), la ficha aparece con el teletipo y se enciende «Identity verified».
+  - en la página, revela la pantalla de la transmisión por encima del haz (franja, aviso, título, cuadrícula, líneas
+    de barrido) y deja negro lo de debajo, con la línea del haz cruzando la ventana (fina y brillante, a todo el
+    ancho); las cuatro esquinas del visor aparecen en las de lo que se ve del escenario (0,08 → 0,20) y se cierran
+    sobre el marco del visor (0,15 → 0,75, con curva suave); al encajar (0,78) le pasan las suyas al marco con un
+    destello que se apaga en 0,6 s (`--dur-visor-lock`: acaba igual que con movimiento reducido), las líneas guía salen
+    del visor a los recuadros de la ficha (0,78 → 0,92), la ficha se escribe con el teletipo y se enciende «Identity
+    verified». La sección con llegada no lleva el barrido de entrada de las transmisiones: el haz hace de barrido.
+  - Lo pinta un bucle propio (`useArrivalChoreography`, en `Transmission`) que suaviza `m` como la escena y escribe
+    variables CSS en la sección (C.7 · ADR-039). Los cortes, en `ARRIVAL_CHOREOGRAPHY` (`lib/scroll/arrivalChoreography`).
   - Acabada la llegada, el haz pasa en bucle por el retrato y la sección sigue con el scroll.
 - Todo va atado al scroll: subiendo, se deshace.
 - **El ancla y los saltos** (`/#crew-file`, el raíl, el cambio de idioma) aterrizan al final de la llegada (el
@@ -56,15 +61,20 @@ crudo»: ahora la escena trae el epílogo.
 - **Movimiento reducido:** sin llegada (el hueco mide 0), el retrato encendido y sin haz ni fallos de señal; aparece
   solo al pasar al epílogo, con la escena poniéndose al día por su cuenta (estados-y-accesibilidad.md).
 - **Sin WebGL:** también hay llegada; la foto fija pasa de la Tierra al retrato con la forma (cuando cruza la mitad,
-  en `a` ≈ 0,275, como la escena) y, con el PR 2, el haz y el visor de la página revelan la sección igual.
+  en `a` ≈ 0,275, como la escena) y el haz y el visor de la página revelan la sección igual.
 - **El foco con Tab:** mientras dura la llegada, lo que se enfoca con Tab bajo la ventana no subiría con el scroll
   (el escenario está pegado): la página va al final de la llegada y lo justo más allá para enseñarlo entero, con su
   anillo y el aire de abajo (`useArrivalFocus` de `Transmission`, `lib/scroll/stageFocus`). No actúa con el foco de un
   salto (el título, `tabindex="-1"`), con un clic ni sin llegada, y deja de mirar si el usuario mueve la página.
-- **(PR 2) El foco:** si el foco entra en la sección antes de que acabe la llegada (Tab), se revela entera.
-- **(PR 2) Capturas:** las de `npm run visual` van con movimiento reducido, sin llegada: el PR 2 añade una o dos con
-  movimiento y la llegada parada en una `a` fija (p. ej. 0,4 y 1), con el reloj parado.
-- **Alto contraste:** la sección y su escenario, sobre el fondo liso del sistema (`Canvas`), sin cuadrícula ni barrido.
+- **El foco revela:** si el foco entra con Tab en la sección antes de que acabe la llegada (también antes de que
+  empiece), se revela entera al momento: sin recorte, con el visor encajado y la ficha escribiéndose. Sigue así hasta
+  que se vuelve por encima de la llegada; al bajar otra vez, la coreografía vuelve.
+- **Sin JavaScript** (o mientras hidrata) la sección se ve entera y quieta; al imprimir, también.
+- **Capturas:** las de `npm run visual` van con movimiento reducido, sin llegada; dos más, con movimiento y la llegada
+  parada en `a` = 0,4 y 1 (`arrival-40-crew-file.png`, `arrival-100-crew-file.png`), sin WebGL: la página hace lo
+  mismo sobre la foto fija del retrato, y así no hay un reloj de la escena que parar.
+- **Alto contraste:** la sección y su escenario, sobre el fondo liso del sistema (`Canvas`), sin cuadrícula ni barrido;
+  sin la línea del haz (un fondo con brillo) y las esquinas, sin brillo.
 - Si el retrato llega con la escena ya aquí (un salto, entrar por `/#crew-file`), se forma en 0,6 s desde la Tierra
   con el haz bajando por la pantalla, en vez de aparecer de golpe.
 

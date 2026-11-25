@@ -15,9 +15,10 @@
   `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: quedan 2 660 B tras la corrección de la auditoría
   de la llegada (257 340 B), así que su ADR subirá el límite con esos números reales. **Primer paso en marcha (desde S47):** la entrada
   del Crew file (ADR-039; prueba aprobada: artefacto privado «Crew file · entrada», copia en el buzón (`crew-entrada/`, fuera de git)).
-  PR 1 hecho (#124: tramo de llegada, sección fija, saltos, escena) y su auditoría corregida (#126); falta el PR 2 (la
-  coreografía de la página).
-  Mientras no esté, la sección llega revelada entera y fija, sin haz ni visor en el DOM.
+  PR 1 hecho (#124: tramo de llegada, sección fija, saltos, escena) y su auditoría corregida (#126); PR 2 (la
+  coreografía de la página) hecho en S49, falta su auditoría. Mirar en el móvil de Víctor, con WebGL, si el marco del
+  visor de la columna cae sobre la cara: con la foto fija a 390 px cae algo por debajo (de antes de C.7; con la
+  coreografía se nota más, porque las esquinas encajan en él).
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
   cómo está construido: solo herramientas, para qué y lo hecho (nota de ADR-034; `experiencia.md` → «Regla de
   privacidad», sin ejemplos desde la auditoría de C.2: una lista en un repo público sería la filtración). Las viñetas y la bio van
@@ -45,10 +46,9 @@
 - **C.6a · el raíl que encoge:** en una ventana baja las ocho paradas bajan de 44 px hasta 24 px como mínimo (WCAG
   2.5.8; excepción escrita en las reglas, «Accesibilidad común» y ADR-034), sin entrar en las zonas seguras; en una
   ventana ancha pero baja (`height < 30em`), solo los puntos y sin HUD. Mirarlo en un móvil real apaisado (F6).
-- **C.7 · PR 2 (la coreografía de la llegada):** lee `arrivalBeamLine` (`lib/scroll/arrivalChoreography`, fuera de la
-  huella), el escenario por `data-stage` (mide lo visible bajo la barra mientras dura la llegada) y la escala lineal de
-  `a`; añade una o dos capturas con movimiento y la llegada parada en una `a` fija (p. ej. 0,4 y 1), con el reloj
-  parado (`05-crew-file.md` → «Transición»).
+- **C.7 · la coreografía y el alto de la ventana (S49):** la línea del haz de la página se mide con
+  `document.documentElement.clientHeight` (la caja de `position: fixed; inset: 0`, la del lienzo). En un móvil con la
+  barra del navegador que aparece y desaparece, comprobar que la línea de la página y la del shader coinciden (F6).
 
 ## F5
 

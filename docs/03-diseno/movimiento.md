@@ -22,6 +22,7 @@
 | `--dur-sweep` | 1,1 s | Barrido de luz de una transmisión al encenderse (0 con movimiento reducido) |
 | `--dur-teletype-line` · `--dur-teletype-step` | 420 ms · 140 ms | Teletipo de una transmisión: lo que tarda cada línea en escribirse y el paso entre líneas (0 con movimiento reducido: no se arma) |
 | `--dur-blink` | 1,05 s | Un parpadeo del cursor del teletipo de las transmisiones (`BlinkCursor`); parpadea `--blink-count` veces (4: menos de 5 s, WCAG 2.2.2) y se queda quieto. Sin parpadeo con movimiento reducido |
+| `--dur-visor-lock` | 600 ms | El destello de las esquinas del visor al encajar en la llegada del epílogo (C.7): se apaga a su luz de siempre. Solo hay llegada sin movimiento reducido |
 | `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Entradas y vuelos (salida exponencial) |
 | `--ease-in-out` | `cubic-bezier(0.65, 0, 0.35, 1)` | Fundidos simétricos |
 | `--dur-fade-base` | = `--dur-base` | Fundidos de opacidad de duración base (entre ellos, el HUD al esconderse leyendo una transmisión) |
@@ -41,7 +42,7 @@ ese evento para terminar de cerrarse se quedaría colgado con movimiento reducid
 
 | Constante | Valor | Dónde |
 |---|---|---|
-| Suavizado de `m` en la escena y en los efectos del Big Bang `k` (`M_SMOOTHING`, `lib/scroll/smoothM`) | 3,4 (12 con movimiento reducido) | `scroll-y-escena.md` |
+| Suavizado de `m` en la escena, en los efectos del Big Bang y en la coreografía de la llegada del epílogo `k` (`M_SMOOTHING`, `lib/scroll/smoothM`) | 3,4 (12 con movimiento reducido) | `scroll-y-escena.md` |
 | Carga de detonación | 1,5 s para llenar; descarga 1,8/s (también tras detonar) | Capítulo 0 |
 | Gravedad del cursor (`GRAVITY`, `sceneConfig`) | sube y baja a ritmo 10 (≈ 0,25 s; de golpe con frames de 0,1 s); a la mitad sobre la Tierra (`EARTH_GRAVITY`), con la rampa de su capítulo; 0 con movimiento reducido | Capítulo 1 · `particulas-y-shaders.md` |
 | Encendido de una constelación (`CONSTELLATION_LOOK.hotRate`, `scene/config/constellationLayout`) | ritmo 8 (≈ 0,125 s para encenderse o apagarse); instantáneo con movimiento reducido | Capítulo 2 · `constelaciones-y-placas.md` |
@@ -79,3 +80,21 @@ el halo y el nombre vuelven a reposo mientras llega la explosión). Bajando con 
 igual de corto (0,75), al empezar a bajar: aunque el usuario se pare a leer en mitad de la explosión, no se queda
 un velo claro detrás del texto (ADR-031). Sin escena: el nombre y el halo, sí; el destello y el temblor, no. Con movimiento reducido: sin destello, sin temblor y sin vibración; el nombre y el halo siguen
 la carga y el scroll.
+
+## Coreografía de la llegada del epílogo (C.7)
+
+```
+a (llegada)   0 ──── 0,05 ──── 0,15 ──── 0,55 ──── 0,70 ── 0,75 ─ 0,78 ──── 0,92 ──── 1
+forma         Tierra → retrato ──────────► (escena)
+haz           ·······  baja de arriba ──────────────► 1,025 altos de la ventana
+pantalla      negra    revelada por encima del haz ──► entera
+esquinas      (aparecen 0,08–0,20) de la ventana → al visor ──► encajan: destello 0,6 s
+líneas guía                                                    salen del visor ──►
+ficha                                                          teletipo + «Identity verified»
+```
+
+Quién lo pinta (ADR-039): la forma y el haz en las partículas, la escena; lo de la página, el bucle de la llegada
+(`useArrivalChoreography`), que escribe variables CSS privadas en la sección (`--_beam-y`, `--_corners`, `--_guides`…)
+con los cortes de `lib/scroll/arrivalChoreography` y la misma `m` suavizada que la escena. Avanza en línea recta con el
+scroll (`a` es la fracción recorrida de la llegada) y, subiendo, se deshace. Sin escena, igual (sobre la foto fija).
+Con movimiento reducido no hay llegada: la sección se ve entera y quieta (`05-crew-file.md` → «Transición»).

@@ -170,6 +170,7 @@ Escala de base 4 px: `--space-1` 4 · `--space-2` 8 · `--space-3` 12 · `--spac
 | `--rail-half-h` | `--rail-stops` × `--rail-stop` / 2 | Media altura del raíl: lo baja si no cabe bajo la barra, y la escena reserva lo mismo para sus etiquetas (`railHalfHeight`) |
 | `--chapter-end-room` | 12vh | Aire bajo Contacto, antes de la llegada del epílogo |
 | `--arrival-h` | 160svh | Lo que dura de scroll la llegada del epílogo, con la sección fija (ADR-039; 0 con movimiento reducido) |
+| `--arrival-corner-inset` · `--arrival-corner-from` · `--arrival-beam-h` | `--space-4` · 64 px · 2 px | La coreografía de esa llegada (C.7): las esquinas salen a ese margen de las de lo que se ve, con ese largo, y encogen hasta `--visor-corner`; el grueso de la línea del haz |
 | `--hero-room-bottom` | 12vh (< sm: 10vh) | Aire bajo el contenido del hero |
 | `--hero-indent` · `--hero-lead-measure` | 0.6em · 40ch | Sangría de la segunda línea del nombre · ancho de la frase del hero |
 | `--singularity-halo-size` · `--singularity-core-size` | 46vmin · 6 px | Halo y punto de la singularidad en CSS |
