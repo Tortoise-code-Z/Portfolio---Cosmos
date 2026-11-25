@@ -28,7 +28,8 @@ Víctor decide el Visto Bueno entendiendo el paso, no solo leyéndolo.
 ## 3. Contexto en archivos
 
 - Al empezar: leer `CLAUDE.md`, `STATE.md` y estas reglas. Después, solo los docs del Mapa que toque el paso.
-- Al cerrar: `STATE.md` al día (dónde quedamos, qué falta, qué falló) y `DECISIONS.md` si hubo decisión.
+- Al cerrar: `STATE.md` al día (dónde quedamos, qué falta, qué falló), la deuda anotada en
+  `docs/06-roadmap/deuda.md` (lo nuevo, con su sesión; lo resuelto, fuera; ADR-040) y `DECISIONS.md` si hubo decisión.
 - **Dudas de Víctor:** cada duda de concepto se responde y se guarda explicada en cristiano y en detalle
   (comparaciones, paso a paso y el porqué) en `_claude/dudas/AAAA-MM-DD-tema.md`, con una línea en su `README.md`.
 - Si la conversación se satura de errores o iteraciones: guardar estado y abrir una conversación limpia.
@@ -114,7 +115,8 @@ Detalle en `docs/05-tecnico/calidad.md` y `docs/05-tecnico/git-y-despliegue.md`.
   con CI en verde; fusión squash.
 - **Excepción: los commits de solo documentación van directos a `main` (ADR-033).** Solo docs = archivos `.md`
   fuera de `src/`, `tests/` y `public/`; si el commit lleva cualquier otra cosa, va por PR. Uno por push, con
-  mensaje `docs: …`, `npm run check` antes y `git pull --rebase` antes del push. Solo desde el equipo de Víctor con
+  mensaje `docs: …`, `npm run check` antes y `git pull --rebase` después del commit y antes del push (con cambios
+  sin commitear, git no deja hacer el rebase). Solo desde el equipo de Víctor con
   los hooks instalados: **nunca** `--no-verify`, `HUSKY=0` ni el editor web de GitHub (el pre-push es el guardián
   que lo para si se cuela algo que no es doc). Detalle en `docs/05-tecnico/git-y-despliegue.md` → «Ramas y
   commits».
@@ -124,7 +126,7 @@ Detalle en `docs/05-tecnico/calidad.md` y `docs/05-tecnico/git-y-despliegue.md`.
   GitHub, el **título** (formato Conventional Commits, en inglés) y la **descripción** en inglés con: qué cambia,
   por qué (ADR si los hay), cómo probarlo, checklist de la definición de «hecho» y notas o deuda. También da los
   comandos de commit y push. Víctor solo los copia y pega. Con solo docs (ADR-033), en vez del PR: los comandos
-  de `git pull --rebase`, commit y push a `main`.
+  de commit, `git pull --rebase` y push a `main`, en ese orden.
 - Si Claude cambia archivos **después** de dar los comandos de commit, lo avisa y vuelve a dar los comandos;
   ningún commit con mensaje vacío o «.».
 - **Al abrir el PR, se pega siempre el título que da Claude.** Con varios commits, GitHub propone el nombre de la
@@ -188,12 +190,12 @@ Método general en las skills `taller` y `mesa`; aquí, solo lo propio del proye
   prueben lo que dicen, casos límite, sin fragilidad) · documentación y ADR (coherencia entre docs y con el código).
 - **Cada entrega se corrige entera** (desde la sesión 36): recomendados y menores, en su propio PR, justo después de
   decidirla y antes de fusionar el paso siguiente. Solo se aplaza lo que no se puede hacer sin un móvil real, NVDA o
-  producción (F6/F7), y queda en `STATE.md`.
+  producción (F6/F7), y queda en la deuda anotada (`docs/06-roadmap/deuda.md`).
 - **El paso siguiente puede avanzar mientras se audita el anterior** (desde la sesión 39): en su propia rama, sin
   fusionarse hasta que la corrección de la auditoría esté en `main`; después se pone al día sobre ella. Si un hallazgo
   toca algo que el paso nuevo ya cambió, se avisa a Víctor antes de corregirlo. Antes de corregir un hallazgo «sospechado», su test se corre sobre la base para
   confirmarlo.
-- **No es hallazgo:** la deuda anotada en `STATE.md`, lo planificado para pasos o fases posteriores del roadmap y lo
+- **No es hallazgo:** la deuda anotada (`docs/06-roadmap/deuda.md`, ADR-040), lo planificado para pasos o fases posteriores del roadmap y lo
   que las decisiones vivas citadas en el encargo dan por decidido.
 - **Commit del cierre:** directo a `main` (ADR-033): el cierre solo toca docs (`STATE.md`, su historial,
   `DECISIONS.md` y los docs del Mapa), así que no lleva rama ni PR. Si el cierre trae algo que no sea doc (una

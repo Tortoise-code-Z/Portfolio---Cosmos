@@ -29,7 +29,8 @@
   `git push` a `main`, sin rama ni PR. Si lleva cualquier otra cosa, va por PR.
   - Uno por push, con mensaje `docs: …`, después de `npm run check` (los tests leen los docs:
     `src/code-references.test.ts`).
-  - Antes del push, `git pull --rebase`: un merge en el push lo para el guardián.
+  - Después del commit y antes del push, `git pull --rebase` (con cambios sin commitear, git no deja hacer el
+    rebase): un merge en el push lo para el guardián.
   - Solo desde el equipo de Víctor, con los hooks instalados (`npm ci`). **Nunca** `git push --no-verify` ni
     `HUSKY=0`, ni el editor web de GitHub: sin el pre-push no hay guardián.
   - La regla de `main` deja pasar el push porque Víctor es admin (GitHub lo avisa como una regla saltada).

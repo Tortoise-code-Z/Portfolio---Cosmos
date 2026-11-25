@@ -12,7 +12,7 @@
 | `03-diseno/` | Design system: tokens, tipografía, componentes, movimiento | `design-system.md` |
 | `04-escena/` | Motor 3D: partículas, shaders, formas, cámara, constelaciones, placas, rendimiento | `README.md` |
 | `05-tecnico/` | Stack con versiones, arquitectura, calidad, git, CI y despliegue | `README.md` |
-| `06-roadmap/` | Fases F0–F7 (y la fase C, entre F4.3 y F4.4) con su definición de «hecho» y tareas pendientes | `roadmap.md` |
+| `06-roadmap/` | Fases F0–F7 (y la fase C, entre F4.3 y F4.4) con su definición de «hecho» y tareas pendientes; la deuda anotada (`deuda.md`) | `roadmap.md` |
 | `referencia/` | Prototipo v0.1 (referencia visual, no código a copiar) | `prototipo-v0.1.html` |
 | `readme/` | Las capturas del `README.md` del repo (C.5): 1897×955, escena en Alto, sin la barra del navegador | — |
 

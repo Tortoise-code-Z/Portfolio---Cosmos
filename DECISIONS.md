@@ -1037,3 +1037,19 @@
   epílogo (`crew-file.spec.ts`).
 - Detalle: `docs/02-experiencia/capitulos/05-crew-file.md` → «Transición»; `docs/02-experiencia/scroll-y-escena.md`
   → «Tramos del viaje»; `docs/04-escena/particulas-y-shaders.md` → «Forma 5».
+
+## ADR-040 · La deuda anotada vive en su propio doc, fuera de `STATE.md`
+- Estado: Aceptada
+- Fecha: 2026-11-25
+- Contexto: `STATE.md` debía ser la foto del último cierre (unos 5–8 KB), pero en la sesión 47 pesaba 31,5 KB y 24 KB
+  eran la lista de deuda anotada, que crecía en cada cierre. Cada sesión la leía entera al arrancar, y la Mesa la cita
+  como lo que «no es hallazgo».
+- Decisión: la deuda anotada vive en `docs/06-roadmap/deuda.md`, agrupada por tema (los pasos que quedan de la fase C
+  y C.7, F5, F6 por tipo de comprobación, F7, la escena, los tests y el CI, el código), escrita sin claves del buzón
+  como el resto de `docs/`. Cada cierre la pone al día (lo nuevo con su sesión; lo resuelto se quita) y `STATE.md`
+  solo dice qué entró nuevo. En una auditoría, lo que está allí no es hallazgo (`DEVELOPMENT_RULES.md` §13).
+- Alternativas descartadas: dejarla en `STATE.md` más corta (bajaba a 14–16 KB, no a una foto ligera, y seguiría
+  creciendo); un archivo en la raíz junto a `STATE.md` (un archivo más en la raíz para algo que es del roadmap).
+- Consecuencias: `session-start` lee menos al arrancar; quien busque lo pendiente lo encuentra en el roadmap; un cierre
+  que olvide poner al día la deuda la deja desfasada (el cierre lo revisa con el resto de los docs del Mapa).
+- Detalle: `docs/06-roadmap/deuda.md`; `DEVELOPMENT_RULES.md` §3 y §13; `CLAUDE.md` → «Mapa del proyecto».
