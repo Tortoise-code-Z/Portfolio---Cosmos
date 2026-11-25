@@ -66,17 +66,25 @@
     calc(var(--_line) * var(--dur-teletype-step) + var(--dur-teletype-line));
 }
 
+/* Al imprimir, entero: como el teletipo (Transmission.module.css), nada se queda esperando a encenderse. */
+@media print {
+  [data-armed] .verified {
+    opacity: 1;
+  }
+}
+
 /*
- * La llegada (C.7, `data-arrival`: Transmission.module.css): mientras las esquinas que bajan de la ventana se cierran
- * sobre el marco, el marco esconde las suyas; al encajar (`data-locked`) vuelven en el mismo sitio con un destello que
- * se apaga a su luz de siempre.
+ * La llegada (C.7, `data-arrival`: Transmission.module.css): mientras las esquinas que salen de las de lo que se ve del
+ * escenario se cierran sobre el marco, el marco esconde las suyas; al encajar (`data-locked`) vuelven en el mismo sitio
+ * con un destello que se apaga a su luz de siempre. Si el primer frame ya llega encajado (`data-instant`: por el ancla,
+ * al recargar o al cambiar de idioma), sin destello: no ha encajado nada.
  */
 @media screen {
   [data-arrival]:not([data-locked]) .frame {
     background: none;
   }
 
-  [data-arrival][data-locked] .frame {
+  [data-arrival][data-locked]:not([data-instant]) .frame {
     animation: visor-lock var(--dur-visor-lock) var(--ease-out);
   }
 }
@@ -84,7 +92,14 @@
 @keyframes visor-lock {
   from {
     color: var(--_ch-bright);
-    filter: drop-shadow(0 0 var(--space-2) var(--_ch-glow));
+    filter: var(--_ch-visor-lock-glow);
+  }
+}
+
+/* Alto contraste: el marco, sin destello (un `filter` que el sistema no quita). */
+@media (forced-colors: active) {
+  .frame {
+    animation: none;
   }
 }
 
@@ -295,6 +310,17 @@
   .right::after {
     inset-inline-end: 100%;
     transform-origin: left;
+  }
+
+  /*
+   * Escrito, el recuadro abre su recorte a los lados lo que mide su línea guía (el teletipo solo deja `--space-5` de
+   * margen, para los brillos): si no, la guía se queda corta, sin llegar al marco. La guía va dentro del recuadro (una
+   * fila de la lista de definiciones solo admite su término y su valor).
+   */
+  @media screen {
+    [data-armed][data-on] .record .field[data-line] {
+      clip-path: inset(calc(-1 * var(--space-5)) calc(-1 * (var(--space-6) + var(--border-width))));
+    }
   }
 
   /*

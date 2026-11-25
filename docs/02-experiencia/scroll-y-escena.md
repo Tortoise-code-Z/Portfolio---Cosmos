@@ -79,13 +79,17 @@ interludio, `sceneStore.interlude` lo dice y el raíl lo marca. Código: `src/li
   con el mismo `smoothM` y arrancan igual en el objetivo, para ir al paso de la explosión (ADR-030). La persiguen
   también pasado el hero (sin escribir nada: ahí todo está en su valor final), para que al volver vaya con la de la
   escena.
+- La **coreografía de la llegada del epílogo** (el haz que revela la sección, las esquinas del visor, el encaje:
+  `useArrivalChoreography`, C.7 · ADR-039) lleva una tercera copia con el mismo `smoothM`, también desde el objetivo
+  en su primer frame (entrando por el ancla no se repite), para ir a la par que la escena.
 - El suavizado es **casi independiente de los fps** (usa `dt`; `min(1, dt · k)` es la aproximación por pasos de la
   curva exacta). Por debajo de un umbral (`|objetivo − m| < 1e-4`) se iguala para llegar exacta al objetivo.
 - **La interfaz fija no se suaviza:** `sceneStore.m` es el objetivo tal cual, con y sin escena. Quienes lo leen (raíl,
   HUD, idioma y las fotos fijas del modo sin WebGL) cambian a saltos, así que no lo necesitan; durante la inercia van un instante por delante de la
-  escena. Sin escena (WebGL desactivado), solo se suavizan el nombre y el halo del hero.
+  escena. Sin escena (WebGL desactivado), solo se suavizan el nombre y el halo del hero y la coreografía de la
+  llegada del epílogo.
 - No se usa scroll suavizado de terceros (Lenis, etc.): el scroll del navegador se respeta tal cual, solo se
-  suavizan la escena y los efectos del hero. Así no se rompen la accesibilidad, los atajos de teclado ni la restauración del scroll.
+  suavizan la escena, los efectos del hero y la coreografía de la llegada. Así no se rompen la accesibilidad, los atajos de teclado ni la restauración del scroll.
 
 ## Morph entre formas (comportamiento visible)
 

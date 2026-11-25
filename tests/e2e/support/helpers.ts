@@ -208,6 +208,44 @@ export async function forceLowScene(target: Page | BrowserContext): Promise<void
 /** Una línea del teletipo de las transmisiones ya escrita: el recorte se abre más allá de la caja (no corta su brillo). */
 export const TELETYPE_WRITTEN = 'inset(-24px)';
 
+/**
+ * Escrito, un recuadro de la ficha del Crew file desde 1280 px: abre su recorte a los lados lo que mide su línea guía
+ * (`--space-6` + `--border-width`), para que llegue al marco del visor.
+ */
+export const TELETYPE_WRITTEN_WITH_GUIDE = 'inset(-24px -33px)';
+
+/**
+ * Lo que se da a las esperas de la coreografía de una llegada: la `m` de la página va suavizada y WebKit, sin GPU en el
+ * CI, pinta a ~3 fps (llegar a la línea del haz le lleva unos 12 frames, ~4 s, casi el tope de 5 s de `expect`).
+ */
+export const ARRIVAL_TIMEOUT_MS = 15_000;
+
+/**
+ * Dónde empieza una sección con llegada (bajo la barra) y dónde acaba su llegada (el marcador del ancla), en el
+ * documento, y lo que tapa la barra: la `a` de un scroll es `(y − start) / (landed − start)`.
+ */
+export const arrivalGeometry = (
+  section: Locator,
+): Promise<{ start: number; landed: number; bar: number }> =>
+  section.evaluate((element) => {
+    const landing = element.querySelector('[data-landing]');
+    const bar = Number.parseFloat(
+      getComputedStyle(document.documentElement).scrollPaddingBlockStart,
+    );
+    return {
+      start: element.getBoundingClientRect().top + window.scrollY - bar,
+      landed: (landing?.getBoundingClientRect().top ?? 0) + window.scrollY - bar,
+      bar,
+    };
+  });
+
+/** Lleva la página a `y` al momento (sin scroll suave). */
+export async function scrollToY(page: Page, y: number): Promise<void> {
+  await page.evaluate((top) => {
+    window.scrollTo({ top, behavior: 'instant' });
+  }, y);
+}
+
 /** El `clip-path` calculado de cada línea del teletipo de una transmisión (`none` sin armar, o `TELETYPE_WRITTEN`). */
 export const lineClips = (section: Locator): Promise<string[]> =>
   section
