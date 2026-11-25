@@ -280,7 +280,7 @@ export default function SceneRoot({
         degradation.sample(seconds);
         const state = get();
         // Cada store, una vez por frame: los `useFrame` leen el frame, nunca un store (ADR-027).
-        const { mTarget, charge, interlude } = sceneStore.getState();
+        const { mTarget, charge, interlude, portraitShift } = sceneStore.getState();
         const { activeSkillGroup, activeProject } = useUiStore.getState();
         frame.m =
           first || !Number.isFinite(frame.m)
@@ -289,6 +289,8 @@ export default function SceneRoot({
         first = false;
         frame.charge = charge;
         frame.transmission = interlude !== null;
+        frame.portraitShift.x = portraitShift.x;
+        frame.portraitShift.y = portraitShift.y;
         frame.skillGroup = activeSkillGroup;
         frame.time = clock.time;
         frame.delta = clock.delta;

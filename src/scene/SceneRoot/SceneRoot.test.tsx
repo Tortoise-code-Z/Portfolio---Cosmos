@@ -11,6 +11,7 @@ import { BIG_BANG_VARS } from '~/lib/bigBang/bigBang';
 import {
   sceneStore,
   setCharge,
+  setPortraitShift,
   setReadingInterlude,
   setScrollTarget,
 } from '~/stores/sceneStore/sceneStore';
@@ -398,6 +399,7 @@ describe('SceneRoot', () => {
     expect(canvas.closest('[aria-hidden="true"]')).toHaveAttribute('data-particles', 'painted');
     setScrollTarget(2.25);
     setCharge(0.3);
+    setPortraitShift(30, -200);
     // Un hueco de 1 s (más que el tope): el frame lleva el reloj de la escena, no los segundos del bucle.
     frames.tick(1000);
     frames.tick(2000);
@@ -423,6 +425,8 @@ describe('SceneRoot', () => {
       // Ningún grupo de Skills encendido.
       skillGroup: null,
       painted: true,
+      // Dónde está el marco del retrato (lo mide la página): la cámara lo sigue en el epílogo.
+      portraitShift: { x: 30, y: -200 },
     });
     // La cámara y el Sol leen el mismo frame.
     expect(seen.cameraFrame).toBe(seen.frame);

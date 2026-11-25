@@ -58,8 +58,9 @@
   (el haz tras la gravedad, su recorrido desde la cabecera) pesó −27 B: **257 340 B**. El mapa de formas (C.7 · naves,
   ADR-041) pesó 255 B, medido en Linux sobre su base en la rama (257 330 → 257 585 B; 10 B menos que la cifra anterior
   por los nombres con hash de los chunks); medido sobre `main` con él, 257 596 B, y la corrección de su auditoría (una
-  rama por forma en `shape()`) pesó 25 B: **257 621 B**. Quedan 2 379 B de margen; el PR del satélite sube el límite
-  (ADR-041). Los generadores no
+  rama por forma en `shape()`) pesó 25 B: **257 621 B**. La cara que sigue a su marco (ADR-042: la proyección que se
+  descentra, la gravedad que no toca la cara y el giro más corto) pesó 277 B: **257 898 B**. Quedan 2 102 B de margen;
+  el PR del satélite sube el límite (ADR-041). Los generadores no
   cuentan ahí: van en el worker (≤ 10 KB; con el retrato, 6 042 B) y, para el reintento, en su propio chunk (≤ 10 KB;
   el retrato no va en él). Las imágenes del retrato (~150 KB: 152 529 B sin metadatos) las pide el worker, no la página.
 

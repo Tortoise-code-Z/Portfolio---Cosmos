@@ -20,6 +20,13 @@
   keyframe 5 exacto (sin el tope de las formas: `SHAPE_TRACK_END` = 4,999, ADR-041); fuera de 0–5, el capítulo del
   borde. La cámara lee la `m` de la forma (`arrivalShapeM`, ADR-039): en la llegada del epílogo llega al retrato
   cuando el retrato está formado (en el 55 % de la llegada), como el shader.
+- **El retrato sigue a su marco (ADR-042):** la página mide cuánto se separa el centro del marco del Crew file del
+  centro de la ventana (`sceneStore.portraitShift`, en px; `SceneFrame.portraitShift`) y `CameraRig` mueve la imagen
+  entera eso con `setViewOffset` (la proyección se descentra: ni la cámara ni la pose cambian, y no quedan huecos),
+  por la presencia del retrato con la `m` de la forma (`chapterPresence(arrivalShapeM(m), PORTRAIT_CHAPTER)`). Fuera
+  del epílogo, la proyección de siempre (`clearViewOffset`). Solo rehace la proyección cuando cambia lo movido o el
+  tamaño del lienzo. Lo que proyecta con la pose (`math/projection`: las etiquetas, los pins) no ve ese movimiento: en
+  el epílogo no hay ninguno.
 - `shiftX` se suma **a la posición y al objetivo** (desplaza el encuadre sin cambiar el ángulo); lleva la escena
   a la derecha para dejar sitio a los paneles. Solo en escritorio: la misma media query que pone los paneles a un
   lado, `(width >= 900px)` (md; los breakpoints no son tokens: `tokens.css` los lista en su cabecera). Un test la

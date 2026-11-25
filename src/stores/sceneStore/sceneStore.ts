@@ -41,6 +41,12 @@ export interface SceneState {
    * `m`. El raíl lo marca desde que empieza a llegar, aunque `m` aún esté más cerca del capítulo de antes.
    */
   readonly arriving: ChapterIndex | null;
+  /**
+   * Cuánto se separa el marco del retrato del Crew file del centro de la ventana, en px (y, hacia abajo): lo mide la
+   * página (`usePortraitFollow`) y la escena mueve la imagen eso para que la cara vaya en su marco (ADR-042). 0, 0 sin
+   * marco en la maqueta.
+   */
+  readonly portraitShift: { readonly x: number; readonly y: number };
 }
 
 export const sceneStore = createStore<SceneState>()(() => ({
@@ -49,6 +55,7 @@ export const sceneStore = createStore<SceneState>()(() => ({
   charge: 0,
   interlude: null,
   arriving: null,
+  portraitShift: { x: 0, y: 0 },
 }));
 
 /**
@@ -70,6 +77,14 @@ export function setReadingInterlude(interlude: InterludeId | null): void {
 export function setReadingArrival(arriving: ChapterIndex | null): void {
   if (sceneStore.getState().arriving === arriving) return;
   sceneStore.setState({ arriving });
+}
+
+/** Dónde está el marco del retrato (`portraitShift`). Una cifra que no es un número finito cuenta como 0. */
+export function setPortraitShift(x: number, y: number): void {
+  const next = { x: Number.isFinite(x) ? x : 0, y: Number.isFinite(y) ? y : 0 };
+  const { portraitShift } = sceneStore.getState();
+  if (portraitShift.x === next.x && portraitShift.y === next.y) return;
+  sceneStore.setState({ portraitShift: next });
 }
 
 /** La carga de la detonación (se queda entre 0 y 1). */

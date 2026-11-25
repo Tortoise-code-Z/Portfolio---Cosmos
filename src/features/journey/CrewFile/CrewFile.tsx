@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { useRef, type CSSProperties, type ReactNode } from 'react';
 
 import { EPILOGUE } from '~/content/chapters';
 import { profile } from '~/content/profile';
@@ -13,6 +13,7 @@ import { CopyButton } from '~/ui/CopyButton/CopyButton';
 
 import shared from '../shared.module.css';
 import { Transmission } from '../Transmission/Transmission';
+import { usePortraitFollow } from '../usePortraitFollow/usePortraitFollow';
 import styles from './CrewFile.module.css';
 
 const TITLE_ID = 'crew-file-title';
@@ -35,13 +36,16 @@ function lineStyle(line: number): CSSProperties {
  * ficha se reparte a los lados del visor y «Download CV» baja junto al email (CrewFile.module.css). En su llegada
  * (C.7), las esquinas que salen de las de lo que se ve del escenario encajan en el marco del visor
  * (`data-arrival-target`) y, al encajar, la ficha se escribe y las líneas guía salen del visor. La entrada no va en el
- * teletipo: la revela el haz con el título, como en la prueba aprobada; el teletipo empieza en «Download CV».
+ * teletipo: la revela el haz con el título, como en la prueba aprobada; el teletipo empieza en «Download CV». La cara
+ * va en el marco del visor: la página lo mide y la escena se mueve con él (`usePortraitFollow`, ADR-042).
  */
 export function CrewFile(): ReactNode {
   const t = useT();
   const locale = useLocale();
   const { availability, contact, location } = profile;
   const cv = profile.cv[locale];
+  const frameRef = useRef<HTMLDivElement>(null);
+  usePortraitFollow(frameRef);
 
   const record: readonly (readonly [string, ReactNode])[] = [
     [t('crewFile.role'), `${localize(locale, profile.role)}${SEPARATOR}${t('crewFile.stack')}`],
@@ -99,7 +103,7 @@ export function CrewFile(): ReactNode {
       <p className={styles.lead}>{t('crewFile.lead')}</p>
       <div className={styles.visor} aria-hidden="true" data-crew-visor="">
         {/* El destino de la llegada: aquí se cierran las esquinas que viajan. */}
-        <div className={styles.frame} data-arrival-target="">
+        <div ref={frameRef} className={styles.frame} data-arrival-target="">
           {/* Entra con la última línea de la ficha. */}
           <span className={styles.verified} style={lineStyle(record.length)}>
             {t('crewFile.verified')}

@@ -5,6 +5,7 @@ import {
   sceneStore,
   selectActiveStop,
   setCharge,
+  setPortraitShift,
   setReadingArrival,
   setReadingInterlude,
   setScrollTarget,
@@ -22,6 +23,7 @@ describe('sceneStore', () => {
       charge: 0,
       interlude: null,
       arriving: null,
+      portraitShift: { x: 0, y: 0 },
     });
   });
 
@@ -33,6 +35,7 @@ describe('sceneStore', () => {
       charge: 0,
       interlude: null,
       arriving: null,
+      portraitShift: { x: 0, y: 0 },
     });
   });
 
@@ -59,6 +62,7 @@ describe('sceneStore', () => {
       charge: 0,
       interlude: null,
       arriving: null,
+      portraitShift: { x: 0, y: 0 },
     });
     unsubscribe();
   });
@@ -74,6 +78,7 @@ describe('setCharge', () => {
       charge: 0.4,
       interlude: null,
       arriving: null,
+      portraitShift: { x: 0, y: 0 },
     });
   });
 
@@ -120,6 +125,7 @@ describe('selectActiveStop', () => {
     charge: 0,
     interlude,
     arriving,
+    portraitShift: { x: 0, y: 0 },
   });
 
   it('is the chapter while no interlude is read', () => {
@@ -152,6 +158,23 @@ describe('setReadingArrival', () => {
     expect(sceneStore.getState()).toBe(before);
     setReadingArrival(null);
     expect(sceneStore.getState().arriving).toBeNull();
+  });
+});
+
+describe('setPortraitShift', () => {
+  it('writes only when it changes', () => {
+    setPortraitShift(12, -340);
+    expect(sceneStore.getState().portraitShift).toEqual({ x: 12, y: -340 });
+    const before = sceneStore.getState();
+    setPortraitShift(12, -340);
+    expect(sceneStore.getState()).toBe(before);
+    setPortraitShift(12, 5);
+    expect(sceneStore.getState().portraitShift).toEqual({ x: 12, y: 5 });
+  });
+
+  it('a shift that is not a finite number counts as 0', () => {
+    setPortraitShift(Number.NaN, Number.POSITIVE_INFINITY);
+    expect(sceneStore.getState().portraitShift).toEqual({ x: 0, y: 0 });
   });
 });
 

@@ -4,7 +4,7 @@ import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
 import { SHAPE, SHAPE_TRACK, type ShapeId } from '~/lib/scroll/shapeTrack/shapeTrack';
 
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
-import { SUN, TURTLE_SWAY } from '../../config/sceneConfig';
+import { PORTRAIT_TURN, SUN, TURTLE_SWAY } from '../../config/sceneConfig';
 import { SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
 import { EARTH_TAG, PORTRAIT_FRAME, TURTLE_TAG } from '../../shapes/shapeContract/shapeContract';
 import { stripGlslComments } from '../stripGlslComments/stripGlslComments';
@@ -121,6 +121,19 @@ describe('glslHeader', () => {
     expect(Number(value)).toBeCloseTo(PORTRAIT_FRAME.halfHeight, 4);
     const fade = /#define PORTRAIT_FADE_H (\S+)\n/.exec(header)?.[1];
     expect(Number(fade)).toBeCloseTo(PORTRAIT_FRAME.fadeHeight, 4);
+  });
+
+  it('the portrait turns with the mouse by PORTRAIT_TURN, never by a number by hand', () => {
+    expect(header).toContain(`#define PORTRAIT_TURN ${glslFloat(PORTRAIT_TURN)}\n`);
+    expect(particlesCode).toContain(
+      'p = rotY(p, clamp(uMouse.x, -1.0, 1.0) * uGrav * PORTRAIT_TURN);',
+    );
+  });
+
+  it('the cursor gravity leaves the face alone: its pull and glow go by what is still not portrait', () => {
+    expect(particlesCode).toContain(
+      'float f = exp(-dot(d, d) * GRAV_FALLOFF) * uGrav * (1.0 - portraitWeight);',
+    );
   });
 
   it('defines the arrival of the epilogue from the same numbers as the camera and the page (ADR-039)', () => {

@@ -95,12 +95,15 @@ crudo»: ahora la escena trae el epílogo.
   (ADR-032). Si no llega, la forma 5 se queda en la Tierra.
 - Aspecto elegido: holograma de líneas de escáner (una fila de cada tres), luz en pocos niveles, rasgos y borde de
   la silueta encendidos, haz de barrido y fallos de señal ocasionales; en el verde del canal.
-- Giro limitado (~±25°) con el ratón: de una sola foto sale un relieve, no una cabeza completa.
+- Giro limitado con el ratón (~±12,6°, `PORTRAIT_TURN`): de una sola foto sale un relieve, no una cabeza completa;
+  girando poco no se nota que no está completa por los lados ni por detrás (antes, ~±25°).
 
 ## Interacciones
 
-- El retrato gira con el ratón (hasta ~±25°, y vuelve de frente al salir) y la gravedad del cursor aparta partículas.
-  En táctil no gira: la inclinación del móvil pide permiso en iOS y se mira en F6 con un móvil real.
+- El retrato gira con el ratón (hasta ~±12,6°, y vuelve de frente al salir). La gravedad del cursor no toca la cara
+  (ADR-042): la deformaría. Solo aparta las partículas que aún no son retrato, así que en la llegada se va apagando a
+  la vez que la cara se forma. En táctil no gira: la inclinación del móvil pide permiso en iOS y se mira en F6 con un
+  móvil real.
 - Download CV y Copy, como en Contacto.
 
 ## Layout
@@ -109,8 +112,9 @@ crudo»: ahora la escena trae el epílogo.
   retrato se vea; cada bloque de texto lleva el velo detrás, así que el contraste no depende de lo que pase por debajo.
 - **El visor:** cuatro esquinas y, al pie, «Identity verified» (se enciende cuando el teletipo acaba la ficha; repite el
   aviso de arriba, así que es decoración, `aria-hidden`).
-- **Escritorio ancho (desde lg, 1280 px):** el aviso, el título y la entrada arriba a la izquierda; el visor en el
-  centro, centrado en la ventana como el retrato y pegado al centro de la pantalla mientras la ficha pasa; la ficha a
+- **Escritorio ancho (desde lg, 1280 px):** el aviso, el título y la entrada arriba a la izquierda; el visor en la
+  columna del centro (la que cae en el centro de la ventana), del aviso al final de la ficha: el marco queda en el
+  centro de ese bloque y sube con la página como lo demás (ADR-042); la ficha a
   los lados (puesto, base y permiso a la izquierda; disponibilidad, idiomas y formación a la derecha), cada dato en su
   recuadro con una línea guía que llega hasta el marco; abajo, el email a la izquierda y «Download CV» a la derecha.
   La columna del centro cae bajo el visor y la de la derecha es la más estrecha (el raíl ocupa su lado): el email no
@@ -119,6 +123,12 @@ crudo»: ahora la escena trae el epílogo.
 - **Móvil y tableta:** una columna en el orden del DOM: título, entrada, el visor (un hueco del tamaño del retrato en
   pantalla: su alto, `--visor-h`, y su proporción, `--visor-ratio`, centrado con el retrato aunque la columna deje
   sitio al raíl), **Download CV justo debajo** (lo primero que se busca), la ficha y el email.
+- **La cara sigue a su marco (ADR-042), en móvil y en escritorio:** la cámara del capítulo 5 pinta el retrato en el
+  centro de la ventana y la página mide cuánto se separa de él el centro del marco (`usePortraitFollow`, en el scroll,
+  al cambiar de tamaño y al montar; `sceneStore.portraitShift`). La escena mueve su imagen entera eso (la cara, las
+  partículas y las estrellas del fondo; `CameraRig`), con la presencia del retrato: fuera del epílogo, nada; en la
+  llegada, la cara entra en el marco a la vez que se forma. Sin WebGL, la foto del retrato se mueve igual; cuando el
+  marco sube hasta salir de la pantalla, abajo queda el fondo sin foto (aceptado).
 
 ## Accesibilidad y movimiento reducido
 
@@ -128,14 +138,6 @@ crudo»: ahora la escena trae el epílogo.
 
 ## Pendiente
 
-- **Decidido en S50, por construir (su propio PR y un ADR nuevo): la cara sigue a su marco.** Hoy el retrato está fijo
-  en el lienzo y el marco del visor es de la página: en móvil el marco sube con el scroll y la cara se queda atrás, por
-  detrás de la ficha; en escritorio el marco va pegado al centro de la pantalla y, al final, la cara pisa el pie. Lo
-  decidido: la escena se desplaza con el marco (la página mide dónde está y la cámara lo sigue), así que la cara va
-  siempre dentro de él, en móvil y en escritorio, también durante la llegada; sin WebGL, la foto fija igual. En
-  escritorio el marco deja de ir pegado al centro de la pantalla: queda en el centro de la ficha y sube con la página
-  como lo demás. Las estrellas del fondo se mueven con él en el Crew file (un paralaje suave). Se prueba con un e2e de
-  que retrato y marco coinciden (±2 px) al hacer scroll y con capturas nuevas.
 - F6: la inclinación del móvil (con su permiso en iOS) y mirar el retrato en un móvil real.
 - Decidido en C.6: solo los idiomas, sin el nivel de inglés; la foto de la prueba de la sesión 34 y sus datos, en el
   repo público.

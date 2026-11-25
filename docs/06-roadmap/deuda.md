@@ -12,13 +12,14 @@
   de la prueba y lecciones del shader en `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a
   pantalla completa). La prueba es el artefacto privado «Naves · prueba»; copia del código en el buzón (`naves/`, fuera de git). Su ADR es
   el ADR-041 (el mapa de formas, `uFrom`/`uTo`/`uT`, en su primer PR, sin cambio visible). Falta el peso: el mapa de
-  formas y la corrección de su auditoría dejan la escena en **257 621 B** (quedan 2 379 B; «Peso de la escena», abajo),
-  así que el PR del satélite subirá el límite con sus números reales. **Primer paso en marcha (desde S47):** la entrada
+  formas, la corrección de su auditoría y la cara que sigue a su marco dejan la escena en **257 898 B** (quedan
+  2 102 B; «Peso de la escena», abajo), así que el PR del satélite subirá el límite con sus números reales.
+  **Primer paso en marcha (desde S47):** la entrada
   del Crew file (ADR-039; prueba aprobada: artefacto privado «Crew file · entrada», copia en el buzón (`crew-entrada/`, fuera de git)).
   PR 1 hecho (#124: tramo de llegada, sección fija, saltos, escena) y su auditoría corregida (#126); PR 2 (la
-  coreografía de la página) hecho en S49 (#127) y su auditoría corregida en S50. Mirar en el móvil de Víctor, con WebGL, si el marco del
-  visor de la columna cae sobre la cara: con la foto fija a 390 px cae algo por debajo (de antes del PR 2; con la
-  coreografía se nota más, porque las esquinas encajan en él).
+  coreografía de la página) hecho en S49 (#127) y su auditoría corregida en S50. Desde S51 la cara sigue a su marco
+  (ADR-042): mirar en el móvil de Víctor, con WebGL, que va dentro al hacer scroll, también con la barra del navegador
+  que aparece y desaparece (el centro de la ventana se mide con `clientHeight`) (F6).
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
   cómo está construido: solo herramientas, para qué y lo hecho (nota de ADR-034; `experiencia.md` → «Regla de
   privacidad», sin ejemplos desde la auditoría de C.2: una lista en un repo público sería la filtración). Las viñetas y la bio van
@@ -36,11 +37,11 @@
 - **C.6b · Brave:** Víctor vio los puntos sueltos en Brave (no tiene Firefox); el arreglo (canal R de 3 a 255,
   `PORTRAIT.depthFloor`) solo lo cubre un unitario: **mirar `/#crew-file` en Brave en producción** (o en la preview)
   y, si se puede, en la ventana privada de Firefox o Safari.
-- **C.6b · el retrato:** de una sola foto sale un relieve (giro limitado, ~±25°, solo con ratón). En táctil no gira:
-  la inclinación del móvil pide permiso en iOS (F6, con un móvil real, y mirar allí los fps con el atributo de más,
-  `pPor`). Entre md y lg (900–1279 px) va la columna de móvil: el retrato se ve por el hueco del visor al pasar, no
-  junto a la ficha. Mejora posible: un escaneo 3D (KIRI Engine o Scaniverse) convertido a partículas. El README no
-  tiene captura del Crew file (si Víctor la quiere, la hace como las otras y Claude la recorta).
+- **C.6b · el retrato:** de una sola foto sale un relieve (giro limitado, ~±12,6° desde S51, solo con ratón). En
+  táctil no gira: la inclinación del móvil pide permiso en iOS (F6, con un móvil real, y mirar allí los fps con el
+  atributo de más, `pPor`). Entre md y lg (900–1279 px) va la columna de móvil: el retrato va en el hueco del visor
+  al pasar, no junto a la ficha. Mejora posible: un escaneo 3D (KIRI Engine o Scaniverse) convertido a partículas. El
+  README no tiene captura del Crew file (si Víctor la quiere, la hace como las otras y Claude la recorta).
 - **Transmisiones entre md y lg (S42):** de 900 a 1279 px, el Mission log y Mission control van en la columna de
   móvil, como el Crew file (antes partían palabras): mirarlo en una tableta apaisada real (F6).
 - **C.6a · el raíl que encoge:** en una ventana baja las ocho paradas bajan de 44 px hasta 24 px como mínimo (WCAG
@@ -179,9 +180,9 @@
   `npm run stills` en el mismo PR. Desde el cierre de F4, la parte de `scene/` de `STILLS_SOURCES` sale de la tabla
   única de la escena (`scripts/sceneModules.ts`: una carpeta nueva se clasifica allí y su test lo exige); fuera de
   `scene/`, la lista de `tests/stills/fingerprint.ts` sigue a mano (mirar los imports relativos de lo que se añada).
-- **Peso de la escena:** 257 621 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
+- **Peso de la escena:** 257 898 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
   C.5 −2, C.6a +52, C.6b +967, su corrección +252, F4.4a +391, F4.4b +1 729, corrección de F4.4a +21, de F4.4b +149, F4.5 +444,
-  corrección de F4.5 +1, del cierre de F4 +52, C.7 PR 1 +185; 257 367 medidos en `main` sin cambios en la escena, los nombres con hash de los chunks; su corrección −27; el mapa de formas +255 en su rama y 257 596 medidos en `main` con él; su corrección +25): **257 621 B**. Quedan 2 379 B; el PR del satélite subirá el límite (ADR-041). Cada paso
+  corrección de F4.5 +1, del cierre de F4 +52, C.7 PR 1 +185; 257 367 medidos en `main` sin cambios en la escena, los nombres con hash de los chunks; su corrección −27; el mapa de formas +255 en su rama y 257 596 medidos en `main` con él; su corrección +25; la cara que sigue a su marco +277): **257 898 B**. Quedan 2 102 B; el PR del satélite subirá el límite (ADR-041). Cada paso
   apunta lo que pesó en `rendimiento.md`. Por paquete se mide con
   `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F3.6):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).

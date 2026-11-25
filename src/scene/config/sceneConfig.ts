@@ -156,3 +156,17 @@ export const HOT_DEGRADATION = {
  * partícula pasa con su retraso del morph y el haz de barrido baja con la subida. Con movimiento reducido, de golpe.
  */
 export const PORTRAIT_FADE_IN_S = 0.6;
+
+/**
+ * El capítulo del retrato (forma 7 del mapa de formas; el epílogo): donde la escena se mueve con el marco del Crew file
+ * (`CameraRig`, ADR-042), con su presencia (`math/chapterPresence`). Uno solo, como `EARTH_CHAPTER` (`config` no
+ * importa de `content`).
+ */
+export const PORTRAIT_CHAPTER = 5;
+
+/**
+ * Lo que gira el retrato con el ratón, en radianes, con el puntero en un borde de la ventana (`PORTRAIT_TURN` en la
+ * cabecera de los shaders; docs/04-escena/particulas-y-shaders.md → «Retrato»): ~±12,6°. Poco: la cara sale de una
+ * sola foto y por los lados y por detrás no está completa (antes, 0,44: ~±25°).
+ */
+export const PORTRAIT_TURN = 0.22;
