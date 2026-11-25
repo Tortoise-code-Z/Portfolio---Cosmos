@@ -9,6 +9,9 @@
 > Los números que este documento no da salen del prototipo y viven, con nombre, al principio de cada
 > generador (`NEBULA`, `GALAXY`, `TURTLE`, `EARTH`, `PORTRAIT`): son el aspecto que ya se aprobó. El retrato
 > (forma 5) llega aparte, con sus imágenes: «Forma 5 · Retrato».
+> El número de cada forma aquí es su sitio en el viaje (un capítulo por forma). El shader las elige por un id fijo
+> (`SHAPE`: el retrato es el 7, detrás de las naves), el mapa de formas (`particulas-y-shaders.md` → «Mapa de
+> formas», ADR-041).
 
 ## Utilidades compartidas
 
@@ -90,7 +93,7 @@ placas cambian cuántos números gasta el caparazón); las demás formas y `aR.x
 Un relieve sacado de una sola foto (`docs/02-experiencia/capitulos/05-crew-file.md`), como holograma de escáner. No se
 genera con las demás: es un encargo aparte al worker (`rendimiento.md` → «Worker de las formas») que se pide al llegar
 a la tortuga, un tramo antes de la Tierra (`PORTRAIT_LOAD_FROM_M` = 3: la descarga tiene ese margen; no subirla a 4).
-Hasta que llega, o si falla, la forma 5 es la Tierra (`uPor` 0). Al llegar, `uPor` sube a 1 en 0,6 s
+Hasta que llega, o si falla, el retrato es la Tierra (`uPor` 0). Al llegar, `uPor` sube a 1 en 0,6 s
 (`PORTRAIT_FADE_IN_S`; de golpe con movimiento reducido) y cada partícula pasa de la Tierra al retrato con su retraso
 del morph: quien salta al final por el raíl o la misión rápida, o entra por `/#crew-file`, lo ve formarse, con el haz
 de barrido bajando con esa subida, en vez de un cambio seco. Sin retrato, el tramo del 4 al 5 lleva a la Tierra a sí
@@ -115,7 +118,7 @@ misma sin la dispersión del morph (no se hincha).
 - **Luz (`pPor.w`):** la del holograma, ya calculada: el gris de la foto entre 4 niveles y continuo (robot ↔ realista
   74 %), más los contornos y el borde de la silueta (a menos de ~3,6 px), y fundida en los últimos 165 px de abajo (la
   foto corta el busto). El shader suma el haz de barrido, el parpadeo y los fallos de señal
-  (`particulas-y-shaders.md` → «Forma 5»).
+  (`particulas-y-shaders.md` → «Retrato»).
 - Las cifras son las de la prueba de la sesión 34 con los ajustes que eligió Víctor; viven en `PORTRAIT`
   (`src/scene/shapes/portrait`).
 

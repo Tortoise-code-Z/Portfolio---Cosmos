@@ -17,7 +17,7 @@ export interface ParticlesProps {
   readonly frame: Readonly<SceneFrame>;
   /** Su primer frame: a partir de aquí la escena pinta algo (el relevo del punto del hero). */
   readonly onFirstFrame: () => void;
-  /** El retrato (`pPor`) para estas formas, o `null` mientras no llega: la forma 5 es la Tierra. */
+  /** El retrato (`pPor`) para estas formas, o `null` mientras no llega: el retrato pinta la Tierra. */
   readonly portrait?: Float32Array | null;
   /** La `m` de la escena llega a `PORTRAIT_LOAD_FROM_M`: hay que pedir el retrato (se llama una vez). */
   readonly onPortraitWanted?: () => void;

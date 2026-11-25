@@ -13,7 +13,7 @@
 | `pGal` | vec3 | Forma 2 · galaxia |
 | `pTur` | vec3 | Forma 3 · tortuga |
 | `pEar` | vec3 | Forma 4 · Tierra |
-| `pPor` | vec4 | Forma 5 · retrato: posición y, en `w`, su luz. Llega después que las demás (`usePortrait`) y se añade entonces a la geometría; hasta entonces no existe |
+| `pPor` | vec4 | Retrato: posición y, en `w`, su luz. Llega después que las demás (`usePortrait`) y se añade entonces a la geometría; hasta entonces no existe |
 | `aR` | vec4 | `x` aleatorio 0–1 (retraso, brillo) · `y` etiqueta de la tortuga · `z` etiqueta de la Tierra · `w` aleatorio 0–1 (tamaño, tono) |
 
 Memoria: 16 floats por partícula → 60.000 partículas ≈ 3,8 MB; con el retrato, 20 (≈ 4,8 MB). La forma 0 (singularidad) no ocupa memoria: es
@@ -23,7 +23,9 @@ la dirección de `position` escalada a casi cero.
 
 | Uniform | Tipo | Origen |
 |---|---|---|
-| `uM` | float | `m` suavizado por la escena (0–5; `SceneFrame.m`, ADR-028) |
+| `uM` | float | `m` suavizado por la escena (0–5; `SceneFrame.m`, ADR-028). La forma no sale de aquí: solo lo lee el haz de la llegada del epílogo |
+| `uFrom`, `uTo` | float | las dos formas que se mezclan, por su id (`SHAPE`: «Mapa de formas», ADR-041) |
+| `uT` | float | cuánto lleva de `uFrom` a `uTo` (0 → 1; 0, quieta en `uFrom`: el shader evalúa una sola forma) |
 | `uTime` | float | reloj de animación de la escena (`scene/sceneClock`): segundos que avanzan con los frames, como mucho 0,1 s de uno a otro (una pestaña que vuelve no salta) y congelados con movimiento reducido |
 | `uCharge` | float | carga de la detonación (0–1) |
 | `uPR` | float | pixel ratio efectivo |
@@ -33,7 +35,7 @@ la dirección de `position` escalada a casi cero.
 | `uMouse` | vec2 | dónde tira la gravedad, en NDC (el ratón o, al apagarse, el último punto donde estuvo) |
 | `uMotion` | float | 1 normal · 0 movimiento reducido (anula oscilaciones autónomas): `motionOf(frame)` de `sceneMaterials`, la misma que usan los pins con el balanceo |
 | `uExtras` | float | 1 · 0 en Bajo: esconde la estela de la tortuga (alfa 0) y apaga las luces de ciudad |
-| `uPor` | float | 0 hasta que el retrato está en la geometría (`pPor`; la forma 5 pinta la Tierra); entonces sube a 1 en 0,6 s (`PORTRAIT_FADE_IN_S`, de golpe con movimiento reducido) y la Tierra pasa a retrato |
+| `uPor` | float | 0 hasta que el retrato está en la geometría (`pPor`; el retrato pinta la Tierra); entonces sube a 1 en 0,6 s (`PORTRAIT_FADE_IN_S`, de golpe con movimiento reducido) y la Tierra pasa a retrato |
 
 `uCharge` lo conecta F4.1: la carga del botón del hero (`sceneStore.charge`, copiada en `SceneFrame.charge`) hincha
 el punto y lo hace vibrar; con movimiento reducido, `uTime` se congela y la vibración no se mueve (`scene/sceneClock`).
@@ -49,12 +51,13 @@ compartido que rellena el bucle antes de cada frame: ningún objeto nuevo por fr
 
 Ninguna etiqueta ni color se escribe a mano en el GLSL. `scene/shaders/glslHeader` genera una cabecera que se
 antepone a cada shader de vértices:
-- `#define TURTLE_<PARTE>` y `EARTH_<CAPA>` desde `TURTLE_TAG` y `EARTH_TAG` (`shapes/shapeContract`, el mismo
+- `#define SHAPE_<FORMA>`, el id de cada forma (`SHAPE` de `lib/scroll/shapeTrack`, el de `uFrom`/`uTo`: ADR-041),
+  `#define TURTLE_<PARTE>` y `EARTH_<CAPA>` desde `TURTLE_TAG` y `EARTH_TAG` (`shapes/shapeContract`, el mismo
   contrato que escribe el generador), `TURTLE_FLIPPERS`, el rango de placas `PLATE_FIRST`..`PLATE_LAST` (20..26,
   `config/plateSlots`), el balanceo de la tortuga `TURTLE_SWAY_*` (`TURTLE_SWAY` de `sceneConfig`, la misma cuenta que
   los pins), la dirección del Sol `SUN_DIR` (`SUN.position` normalizada: la luz de la Tierra, «Iluminación de la
   Tierra»), la mitad del alto del retrato, `PORTRAIT_HALF_H`, y lo que mide su fundido de abajo, `PORTRAIT_FADE_H`
-  (`PORTRAIT_FRAME`), y la llegada del epílogo `ARRIVAL_BASE`, `ARRIVAL_MORPH_END`, `ARRIVAL_BEAM_START`,
+  (`PORTRAIT_FRAME`), y la llegada del epílogo `ARRIVAL_BASE`, `ARRIVAL_BEAM_START`,
   `ARRIVAL_BEAM_END` y `ARRIVAL_BEAM_REACH` (`EPILOGUE_ARRIVAL` de `lib/scroll/arrival`, ADR-039).
 - `const vec3 COLOR_<NOMBRE>` desde `config/scenePalette`, que tiene todos los colores principales del design
   system, cada uno en su papel (lo comprueba su test con la tabla), y los matices del prototipo que la tabla no
@@ -62,32 +65,30 @@ antepone a cada shader de vértices:
 
 La cabecera solo va en los shaders de vértices: los de fragmentos no la llevan y no pueden usar sus nombres. Su
 test comprueba que todo nombre `TURTLE_*` (también `TURTLE_SWAY_*`), `EARTH_*`, `PLATE_*`, `SUN_*`, `PORTRAIT_*` o `COLOR_*` que usan los shaders de vértices
-existe, que los de fragmentos no usan ninguno, y que ni las etiquetas (comparaciones, `abs(tag - …)`, `aR.y`/`aR.z`,
+existe (y un `SHAPE_*` por forma), que los de fragmentos no usan ninguno, y que ni las etiquetas (comparaciones, `abs(tag - …)`, `aR.y`/`aR.z`,
 un nombre desplazado más allá del ±0,5 de redondeo) ni los colores (`c = vec3(…)`) llevan números escritos a mano.
 Las potencias del GLSL nunca llevan base negativa (indefinido en GLSL ES): `exp(-q * q)` y un `rim` que no baja
 de 0. Lo vigila el test de la cabecera: solo deja los `pow(` cuya base se sabe ≥ 0 (`rim`, `2.0`, `1.0 - d * 2.0`);
-otro, a escribirse como producto. El mismo test ata `LAST_M` (donde se para `m` en el shader) a la última forma. Las placas se comparan con `uPlate` **dentro**
+otro, a escribirse como producto. El mismo test comprueba que la forma se elige por su id (nunca `uFrom < …`) y que el
+mapa de formas tiene una forma por pose de la cámara (`SHAPE_TRACK`; lo cambiarán las naves). Las placas se comparan con `uPlate` **dentro**
 de su rama (`PLATE_FIRST`..`PLATE_LAST`): `uPlate = 0` («ninguna») no casa nunca con la base del caparazón
 (etiqueta 0).
 
 ## Shader de vértices (estructura)
 
 ```glsl
-void shape(float k, out vec3 P, out vec3 C, out float S, out float A);  // posición, color, tamaño, alfa de la forma k
+void shape(float id, out vec3 P, out vec3 C, out float S, out float A);  // posición, color, tamaño, alfa de la forma id
 
 void main() {
-  float m  = clamp(uM, 0.0, 4.999);
-  float k  = floor(m);
-  float t  = m - k;
-  float tt = smoothstep(0.0, 1.0, clamp((t - aR.x * 0.25) / 0.75, 0.0, 1.0)); // retraso por partícula
+  float tt = smoothstep(0.0, 1.0, clamp((uT - aR.x * 0.25) / 0.75, 0.0, 1.0)); // retraso por partícula
 
-  shape(k, PA, CA, SA, AA);
-  shape(k + 1.0, PB, CB, SB, AB);
+  shape(uFrom, PA, CA, SA, AA);
+  if (uT > 0.0) shape(uTo, PB, CB, SB, AB); else PB = PA; …  // quieta: una sola forma
 
-  if (k < 0.5) {            // explosión: salida exponencial + rebasamiento + color incandescente
+  if (isTag(uFrom, SHAPE_SINGULARITY)) {  // explosión: salida exponencial + rebasamiento + color incandescente
     P = mix(PA, PB, 1.0 - pow(2.0, -9.0 * tt)) + PB * sin(tt * PI) * 0.55;
     C = mix(WHITE_HOT * 2.2, CB, smoothstep(0.05, 0.85, tt));
-  } else {                  // morph normal con dispersión a mitad de camino
+  } else {                                 // morph normal con dispersión a mitad de camino
     P = mix(PA, PB, tt) + jitter(aR) * sin(tt * PI) * 1.1;
     C = mix(CA, CB, tt);
   }
@@ -95,7 +96,25 @@ void main() {
 }
 ```
 
-- Solo se evalúan **dos formas** por vértice (la actual y la siguiente).
+- Solo se evalúan **dos formas** por vértice (`uFrom` y `uTo`), y **una** con la escena quieta en una forma (`uT` 0:
+  una condición sobre un uniform, así que la GPU se salta la segunda rama entera).
+
+### Mapa de formas (C.7 · ADR-041)
+
+La escena no deduce la forma de `m`: recibe qué dos formas mezcla y cuánto (`uFrom`, `uTo`, `uT`). Las calcula
+`lib/scroll/shapeTrack`, en `updateParticleUniforms`, sin objetos nuevos por frame:
+- **`SHAPE`:** un id fijo por forma: 0 singularidad · 1 nebulosa · 2 galaxia · 3 tortuga · 4 Tierra · 5 satélite ·
+  6 nave nodriza · 7 retrato. Las naves (`transiciones-naves.md`) aún no se pintan.
+- **`SHAPE_TRACK`:** las formas por las que pasa el viaje, en orden. La posición `s` en esta lista es la «`m` de la
+  forma»: hoy, una forma por capítulo (y por pose de la cámara), así que `s` sale de `m` (`shapePosition`: la de
+  la forma en la llegada del epílogo, `arrivalShapeM`, la misma que la cámara, el Sol y la gravedad) y se para en
+  `SHAPE_TRACK_END`, justo antes de la última forma (el último cambio casi entero, como hacía `m` en el shader).
+- **`shapeMixAt(s)`:** la forma de `floor(s)`, la siguiente y la fracción.
+
+Así la escena puede ir de una forma a cualquier otra, no solo a la del capítulo siguiente: las naves de las
+transmisiones entrarán en `SHAPE_TRACK` entre la nebulosa y la galaxia y entre la tortuga y la Tierra, con su propia
+posición en los interludios (donde `m` se para). El retrato es la forma a la que se llega (`uTo`): su dispersión y su
+haz pesan con `uPor` y con su parte en la mezcla (`tt`).
 - Animaciones propias de cada forma dentro de `shape()`: giro lento (nebulosa, galaxia, Tierra), aletas,
   balanceo y estela de la tortuga, iluminación de la Tierra. Las oscilaciones (aletas, balanceo, cabeceo,
   estela, el pulso de la placa encendida) van multiplicadas por `uMotion`; los giros no: se paran porque `uTime` se congela con movimiento
@@ -140,13 +159,13 @@ paleta. **No** `new Color(token)`: toma el hex como sRGB y lo linealiza, y con l
 pintaría casi negro. Al recuperar el contexto WebGL, Three rehace su fondo en negro y `SceneRoot` lo vuelve a
 poner (`rendimiento.md` → «Robustez»).
 
-### Forma 5 · retrato
+### Retrato
 
 Holograma de escáner en el verde del canal del epílogo (`COLOR_PORTRAIT_DEEP` → `_GLOW` → `_HOT`, los dos últimos
-son `--color-channel-green` y `-bright`). La luz de cada partícula llega en `pPor.w` (`formas.md` → «Forma 5»); el
+son `--color-channel-green` y `-bright`). La luz de cada partícula llega en `pPor.w` (`formas.md` → «Forma 5 · Retrato»); el
 shader le suma:
 - **Haz de la llegada, en pantalla** (C.7 · ADR-039). En la llegada del epílogo, el retrato se forma en
-  `ARRIVAL_MORPH_END` (la `m` de la forma se remapea en el shader como en la cámara, `arrivalShapeM`) y el haz baja
+  `EPILOGUE_ARRIVAL.morphEnd` (ya viene en `uT`: `shapePosition`, la misma cuenta que la cámara) y el haz baja
   por la **pantalla**, de arriba abajo, entre `ARRIVAL_BEAM_START` y `ARRIVAL_BEAM_END` (`arrivalBeam()`, la misma
   cuenta que la página: `lib/scroll/arrivalChoreography`), hasta `ARRIVAL_BEAM_REACH` altos de la ventana (1,025: algo
   más allá del borde de abajo, para que su brillo salga entero; la página usa la misma línea, `arrivalBeamLine`). Tras

@@ -122,9 +122,9 @@ export const JOURNEY_SEGMENTS: readonly (JourneySegment & {
   { kind: 'interlude', interlude: 'mission-control', base: 3, morphStart: null },
   { kind: 'interlude-tail', interlude: 'mission-control', base: 3, morphStart: 0 },
   { kind: 'chapter', chapter: 4, base: 4, morphStart: null },
-  // La llegada del epílogo: la Tierra pasa al retrato (la forma 5) mientras la sección se queda fija, al ritmo del
-  // scroll (`linear`: sus cortes se cuentan en scroll, ADR-039). Si el retrato aún no ha llegado, con `m` entre 4 y 5
-  // la escena se queda en la Tierra (docs/04-escena/formas.md → «Retrato»).
+  // La llegada del epílogo: la Tierra pasa al retrato (la última forma del mapa de formas, ADR-041) mientras la
+  // sección se queda fija, al ritmo del scroll (`linear`: sus cortes se cuentan en scroll, ADR-039). Si el retrato aún
+  // no ha llegado, con `m` entre 4 y 5 la escena se queda en la Tierra (docs/04-escena/formas.md → «Retrato»).
   { kind: 'arrival', chapter: 5, base: 4, morphStart: 0, linear: true },
   { kind: 'chapter', chapter: 5, base: 5, morphStart: null },
 ];

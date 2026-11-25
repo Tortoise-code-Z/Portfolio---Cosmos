@@ -150,7 +150,7 @@ una degradación en caliente, que las trajo antes de bajar el nivel).
   (`decodePortrait`: `fetch`, `createImageBitmap` sin gestión de color para el paquete de profundidad y un
   `OffscreenCanvas`), lo genera (`handlePortraitRequest`) y devuelve `pPor` transferido. El mensaje lleva
   `kind: 'portrait'` (el de las formas va sin él) y se valida a los dos lados como el de las formas. Plazo: **15 s**
-  (descarga ~150 KB). Si falla, `console.warn` y la forma 5 se queda en la Tierra (`uPor` 0): sin reintento ni
+  (descarga ~150 KB). Si falla, `console.warn` y el retrato se queda en la Tierra (`uPor` 0): sin reintento ni
   Apagado. **Un solo encargo por visita**, con el `count` de ese momento: con la degradación en caliente no se vuelve a
   pedir ni se cancela el que está en marcha (el retrato de `n` partículas es el principio del de más: `formas.md` →
   «Forma 5»); solo se cancela al desmontar. Las formas nuevas y su trozo llegan en el mismo render y `pPor` entra en la

@@ -1,5 +1,6 @@
 // Partículas de la escena (docs/04-escena/particulas-y-shaders.md). Un vértice por partícula: se evalúan solo
-// la forma actual y la siguiente (`m`) y se mezclan. Las etiquetas (TURTLE_*, EARTH_*, PLATE_*), el balanceo de la
+// las dos formas que se mezclan (`uFrom` y `uTo`, con `uT`: el mapa de formas, ADR-041), y una sola con `uT` 0. Los
+// ids de las formas (SHAPE_*), las etiquetas (TURTLE_*, EARTH_*, PLATE_*), el balanceo de la
 // tortuga (también TURTLE_*), las medidas del retrato (PORTRAIT_*) y los colores (COLOR_*) llegan en la cabecera que
 // genera `scene/shaders/glslHeader` desde TypeScript.
 // Tres.js añade `position`, las matrices, `cameraPosition` y la precisión (ShaderMaterial).
@@ -11,6 +12,9 @@ attribute vec4 pPor;
 attribute vec4 aR;
 
 uniform float uM;
+uniform float uFrom;
+uniform float uTo;
+uniform float uT;
 uniform float uTime;
 uniform float uCharge;
 uniform float uPR;
@@ -26,7 +30,6 @@ varying vec3 vCol;
 varying float vA;
 
 const float PI = 3.14159265;
-const float LAST_M = 4.999;
 
 // Retraso por partícula del morph (aR.x) y dispersión a mitad de camino.
 const float MORPH_DELAY = 0.25;
@@ -71,7 +74,7 @@ bool isTag(float tag, float value) {
   return abs(tag - value) < 0.5;
 }
 
-// Forma 0 · singularidad: la dirección de `position` escalada casi a cero; la carga la hincha y la hace vibrar.
+// Singularidad (SHAPE_SINGULARITY): la dirección de `position` escalada casi a cero; la carga la hincha y la hace vibrar.
 void singularity(out vec3 P, out vec3 C, out float S, out float A) {
   vec3 dir = normalize(position + vec3(0.0001));
   float r = 0.025 + uCharge * 0.5 * aR.x;
@@ -82,7 +85,7 @@ void singularity(out vec3 P, out vec3 C, out float S, out float A) {
   A = 0.2 + uCharge * 0.2;
 }
 
-// Forma 1 · nebulosa: giro lento, deriva por partícula y color por ruido; núcleo caliente en el centro.
+// Nebulosa (SHAPE_NEBULA): giro lento, deriva por partícula y color por ruido; núcleo caliente en el centro.
 void nebula(out vec3 P, out vec3 C, out float S, out float A) {
   vec3 p = rotY(position, uTime * 0.018);
   p += 0.06 * uMotion * vec3(
@@ -100,7 +103,7 @@ void nebula(out vec3 P, out vec3 C, out float S, out float A) {
   A = 0.5;
 }
 
-// Forma 2 · galaxia: giro lento; núcleo cálido que pasa a los brazos (algunos con toque rosa).
+// Galaxia (SHAPE_GALAXY): giro lento; núcleo cálido que pasa a los brazos (algunos con toque rosa).
 void galaxy(out vec3 P, out vec3 C, out float S, out float A) {
   float rr = length(pGal.xz) / 8.0;
   vec3 arm = mix(COLOR_GALAXY_ARM, COLOR_GALAXY_ARM_PINK, step(0.84, aR.w));
@@ -110,7 +113,7 @@ void galaxy(out vec3 P, out vec3 C, out float S, out float A) {
   A = 0.6;
 }
 
-// Forma 3 · tortuga: aletas (delanteras y traseras en contrafase), cabeza y ojos que asienten, estela que fluye
+// Tortuga (SHAPE_TURTLE): aletas (delanteras y traseras en contrafase), cabeza y ojos que asienten, estela que fluye
 // hacia atrás (escondida en Bajo), balanceo de todo el cuerpo; color por parte y placas con proyecto.
 void turtle(out vec3 P, out vec3 C, out float S, out float A) {
   vec3 p = pTur;
@@ -170,7 +173,7 @@ void turtle(out vec3 P, out vec3 C, out float S, out float A) {
   A = a;
 }
 
-// Forma 4 · Tierra: giro lento, luz del Sol fija, desde donde está el Sol (`SUN_DIR`: día, noche y amanecer), luces de ciudad en la tierra de noche
+// Tierra (SHAPE_EARTH): giro lento, luz del Sol fija, desde donde está el Sol (`SUN_DIR`: día, noche y amanecer), luces de ciudad en la tierra de noche
 // (no en Bajo) y atmósfera con Fresnel según la cámara.
 void earth(out vec3 P, out vec3 C, out float S, out float A) {
   vec3 p = rotY(pEar, uTime * 0.05);
@@ -208,7 +211,7 @@ float arrivalBeam() {
   return min(clamp((a - ARRIVAL_BEAM_START) / (ARRIVAL_BEAM_END - ARRIVAL_BEAM_START), 0.0, 1.0), uPor);
 }
 
-// Forma 5 · retrato: holograma de escáner con la luz de la foto (pPor.w), fallos de señal (una franja salta de
+// Retrato (SHAPE_PORTRAIT): holograma de escáner con la luz de la foto (pPor.w), fallos de señal (una franja salta de
 // lado un instante) y giro limitado con el ratón. Llega apagado: el haz de la llegada baja por la pantalla y enciende
 // lo que deja atrás (main, tras proyectar); después pasa en bucle. Con movimiento reducido, encendido y sin haz ni
 // fallos. Hasta que llega el retrato (uPor 0), la Tierra; al llegar, uPor sube a 1 en un instante y cada partícula
@@ -245,30 +248,34 @@ void portrait(out vec3 P, out vec3 C, out float S, out float A) {
   }
 }
 
-void shape(float k, out vec3 P, out vec3 C, out float S, out float A) {
-  if (k < 0.5) singularity(P, C, S, A);
-  else if (k < 1.5) nebula(P, C, S, A);
-  else if (k < 2.5) galaxy(P, C, S, A);
-  else if (k < 3.5) turtle(P, C, S, A);
-  else if (k < 4.5) earth(P, C, S, A);
+// La forma de id `id` (SHAPE_*). Las naves (SHAPE_SATELLITE, SHAPE_MOTHERSHIP) aún no están en el viaje.
+void shape(float id, out vec3 P, out vec3 C, out float S, out float A) {
+  if (isTag(id, SHAPE_SINGULARITY)) singularity(P, C, S, A);
+  else if (isTag(id, SHAPE_NEBULA)) nebula(P, C, S, A);
+  else if (isTag(id, SHAPE_GALAXY)) galaxy(P, C, S, A);
+  else if (isTag(id, SHAPE_TURTLE)) turtle(P, C, S, A);
+  else if (isTag(id, SHAPE_EARTH)) earth(P, C, S, A);
   else portrait(P, C, S, A);
 }
 
 void main() {
-  float m = clamp(uM, 0.0, LAST_M);
-  // La llegada del epílogo: el retrato está formado en ARRIVAL_MORPH_END y se queda quieto el resto de la llegada (la
-  // misma cuenta que la cámara: arrivalShapeM).
-  if (m > ARRIVAL_BASE) m = min(ARRIVAL_BASE + (m - ARRIVAL_BASE) / ARRIVAL_MORPH_END, LAST_M);
-  float k = floor(m);
-  float tt = smoothstep(0.0, 1.0, clamp((m - k - aR.x * MORPH_DELAY) / MORPH_SPAN, 0.0, 1.0));
+  // El paso de uFrom a uTo, con el retraso de cada partícula. La llegada del epílogo (el retrato, formado antes de
+  // acabar el tramo: ADR-039) ya viene en uT (lib/scroll/shapeTrack, la misma cuenta que la cámara).
+  float tt = smoothstep(0.0, 1.0, clamp((uT - aR.x * MORPH_DELAY) / MORPH_SPAN, 0.0, 1.0));
+  bool toPortrait = isTag(uTo, SHAPE_PORTRAIT);
 
   vec3 PA; vec3 PB; vec3 CA; vec3 CB; float SA; float SB; float AA; float AB;
-  shape(k, PA, CA, SA, AA);
-  shape(k + 1.0, PB, CB, SB, AB);
+  shape(uFrom, PA, CA, SA, AA);
+  // Quieta en una forma (uT 0, un uniform: la GPU se salta la rama entera), una sola: con tt 0 la mezcla es la de uFrom.
+  if (uT > 0.0) {
+    shape(uTo, PB, CB, SB, AB);
+  } else {
+    PB = PA; CB = CA; SB = SA; AB = AA;
+  }
 
   vec3 P;
   vec3 C;
-  if (k < 0.5) {
+  if (isTag(uFrom, SHAPE_SINGULARITY)) {
     P = mix(PA, PB, 1.0 - pow(2.0, -BANG_EASE * tt)) + PB * sin(tt * PI) * BANG_OVERSHOOT;
     C = mix(COLOR_FLASH * FLASH_GAIN, CB, smoothstep(0.05, 0.85, tt));
   } else {
@@ -277,8 +284,9 @@ void main() {
       cos(aR.w * 29.0 + uTime * 0.4),
       sin(aR.w * 23.0 - uTime * 0.3)
     );
-    // Sin retrato, del 4 al 5 la Tierra va a sí misma: sin dispersión (no se hincha); con él, a la vez que sube.
-    P = mix(PA, PB, tt) + jitter * sin(tt * PI) * MORPH_SCATTER * (k > 3.5 ? uPor : 1.0);
+    // Sin retrato, de la Tierra al retrato la Tierra va a sí misma: sin dispersión (no se hincha); con él, a la vez
+    // que sube.
+    P = mix(PA, PB, tt) + jitter * sin(tt * PI) * MORPH_SCATTER * (toPortrait ? uPor : 1.0);
     C = mix(CA, CB, tt);
   }
   float S = mix(SA, SB, tt);
@@ -300,7 +308,7 @@ void main() {
   // pinta cada partícula (después de la gravedad). Lo que queda por encima se enciende y brilla al pasar; por debajo,
   // llega apagado. Toca la mezcla entera con el peso del retrato en ella (tt · uPor): sin retrato, nada; a mitad del
   // cambio, por debajo de la línea se oscurece también la Tierra que se va.
-  if (k > 3.5) {
+  if (toPortrait) {
     float y = gl_Position.y / gl_Position.w;
     float down = arrivalBeam();
     float b = 1.0 - 2.0 * ARRIVAL_BEAM_REACH * down;

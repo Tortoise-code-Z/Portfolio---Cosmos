@@ -32,7 +32,8 @@ export function arrivalProgress(m: number): number {
 /**
  * La `m` de la forma (y de la cámara): la de la escena, salvo en la llegada, donde el cambio de la Tierra al retrato
  * acaba en `morphEnd` en vez de al final del tramo. La escena la usa para la cámara, el Sol y la gravedad, y el modo
- * sin WebGL para elegir la foto fija; el shader hace la misma cuenta con sus constantes (`ARRIVAL_MORPH_END`).
+ * sin WebGL para elegir la foto fija; el shader la recibe en sus formas (`uFrom`, `uTo`, `uT`: `lib/scroll/shapeTrack`,
+ * ADR-041).
  */
 export function arrivalShapeM(m: number): number {
   if (!(m > EPILOGUE_ARRIVAL.base)) return m;

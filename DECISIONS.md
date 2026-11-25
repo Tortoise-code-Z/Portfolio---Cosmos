@@ -1060,3 +1060,40 @@
 - Consecuencias: `session-start` lee menos al arrancar; quien busque lo pendiente lo encuentra en el roadmap; un cierre
   que olvide poner al día la deuda la deja desfasada (el cierre lo revisa con el resto de los docs del Mapa).
 - Detalle: `docs/06-roadmap/deuda.md`; `DEVELOPMENT_RULES.md` §3 y §13; `CLAUDE.md` → «Mapa del proyecto».
+
+## ADR-041 · El mapa de formas: la escena recibe qué dos formas mezcla, no las saca de `m`
+- Estado: Aceptada
+- Fecha: 2026-11-25
+- Contexto: hasta ahora `m` era a la vez el capítulo y la forma: el shader de las partículas evaluaba `floor(m)` y la
+  forma siguiente, así que solo sabía ir de una forma a la contigua (nebulosa → galaxia). Las naves de las
+  transmisiones (`docs/02-experiencia/transiciones-naves.md`, versión 8) necesitan ir de la nebulosa a un satélite y
+  del satélite a la galaxia, y de la tortuga a una nave nodriza, sin mover `m`, que en los interludios se para (la
+  cámara, el HUD, el raíl y las fotos fijas la siguen leyendo). Además lo del retrato estaba atado a «la forma 5»
+  (`m − 4`, la dispersión con `k > 3.5`, `LAST_M`) y la llegada del epílogo remapeaba la forma dentro del shader
+  (ADR-039).
+- Decisión:
+  - El shader recibe **`uFrom`, `uTo` y `uT`**: las dos formas que mezcla, por un **id fijo** (`SHAPE` en
+    `lib/scroll/shapeTrack`: 0 singularidad · 1 nebulosa · 2 galaxia · 3 tortuga · 4 Tierra · 5 satélite · 6 nave
+    nodriza · 7 retrato), y cuánto lleva de una a otra. Los ids llegan a la cabecera de los shaders (`SHAPE_*`), como
+    las etiquetas. `uM` se queda solo para el haz de la llegada del epílogo.
+  - **`SHAPE_TRACK`** es el orden de las formas en el viaje, y la posición en él, la «`m` de la forma». Con este ADR
+    coincide con los capítulos (sin naves), así que la posición sale de la `m` de la escena: `shapePosition`, que es la
+    de la forma en la llegada del epílogo (`arrivalShapeM`, la misma que la cámara, el Sol y la gravedad) y se para
+    justo antes de la última forma. El remapeo de la llegada y `LAST_M` salen del shader.
+  - Lo del retrato se ata a «llegar al retrato» (`uTo` es el retrato), no a un número de forma: su dispersión, que
+    espera a `uPor`, y el haz de la llegada, que pesa con su parte en la mezcla.
+  - Con la escena quieta en una forma (`uT` = 0), el shader evalúa **una sola** (una condición sobre un uniform): la
+    lección de la prueba de las naves, que iban a tirones al calcularse dos veces en cada frame.
+  - Primero el mapa, sin ningún cambio visible (las fotos fijas y las capturas, iguales); las naves van después, cada
+    una en su propio cambio: el satélite en el Mission log, la nave nodriza en el Mission control y, al final, la
+    coreografía de la página de las transmisiones. Las naves dan a las formas su propia posición en los interludios
+    (una segunda coordenada junto a `m`, medida y suavizada como ella) y suben el tope de peso de la escena (ADR-032)
+    con la cifra que midan; ese tope se decide al construir el satélite.
+- Alternativas descartadas: seguir con `floor(m)` y meter las naves como capítulos (`m` dejaría de ser el capítulo y
+  habría que mover la cámara, el HUD, el raíl y las fotos fijas); dar ya en este cambio la segunda coordenada de las
+  formas (sin naves no hay tramo que la use, y sus tramos dependen de cómo lleguen las naves).
+- Consecuencias: el shader ya no sabe de capítulos; añadir una forma es darle un id y un sitio en `SHAPE_TRACK`. La
+  posición de las formas entra en la huella de las fotos fijas (`lib/scroll/shapeTrack`). Hay que vigilar que la
+  cámara (`arrivalShapeM`) y las formas sigan yendo a la par: hoy salen de la misma cuenta; con las naves, la cámara
+  seguirá a `m` y las formas a su propia posición.
+- Detalle: `docs/04-escena/particulas-y-shaders.md` → «Mapa de formas»; `docs/02-experiencia/transiciones-naves.md`.
