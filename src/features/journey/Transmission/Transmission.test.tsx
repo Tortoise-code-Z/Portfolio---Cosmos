@@ -316,6 +316,43 @@ describe('Transmission', () => {
       expect(space).toHaveAttribute('aria-hidden', 'true');
     });
 
+    it('the stage holds the screen of the transmission (what the beam reveals) and, over it, the beam and the corners', () => {
+      const { region } = renderEpilogue();
+      const { stage } = partsOf(region);
+      const [screenPart, marks] = [...stage.children];
+      expect(screenPart).toHaveAttribute('data-screen', '');
+      expect(screenPart).toHaveTextContent('Channel 03 · green');
+      expect(screenPart).toHaveTextContent('End of journey');
+      expect(marks).toHaveAttribute('aria-hidden', 'true');
+      expect(marks?.children).toHaveLength(2);
+      expect(marks?.lastElementChild?.children).toHaveLength(4);
+      // Un interludio no tiene llegada: ni escenario ni pantalla.
+      document.body.replaceChildren();
+      expect(renderTransmission().querySelector('[data-stage], [data-screen]')).toBeNull();
+    });
+
+    it('its teletype is armed and switched on by its choreography (on locking), not by coming into view', () => {
+      reducedMotion(false);
+      vi.stubGlobal('IntersectionObserver', FakeObserver);
+      const frames = manualFrames();
+      const { region } = renderEpilogue();
+      expect(FakeObserver.last).toBeNull();
+      // Hasta su primer frame, nada (se ve entera, como sin JavaScript).
+      expect(region).not.toHaveAttribute('data-armed');
+      frames.run();
+      expect(region).toHaveAttribute('data-arrival', '');
+      expect(region).toHaveAttribute('data-armed', '');
+      // Antes de la llegada (la `m` del store, 0), sin encajar: las líneas esperan.
+      expect(region).not.toHaveAttribute('data-on');
+    });
+
+    it('with reduced motion, no choreography: nothing armed, nothing hidden', () => {
+      reducedMotion(true);
+      const { region } = renderEpilogue();
+      expect(region).not.toHaveAttribute('data-arrival');
+      expect(region).not.toHaveAttribute('data-armed');
+    });
+
     it('what takes the focus with Tab below the window, while the stage is held, is brought into view past the arrival', () => {
       const scrollTo = setUpWindow();
       const { region, link } = renderEpilogue();
@@ -486,6 +523,8 @@ describe('Transmission', () => {
       const scrollTo = setUpViewport();
       const { region, link, unmount } = renderEpilogue();
       layOut(region, link, 760);
+      // El primer frame de la coreografía de la llegada (la suya).
+      frames.run();
       act(() => {
         link.focus();
       });

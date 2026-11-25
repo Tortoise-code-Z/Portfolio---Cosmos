@@ -160,6 +160,10 @@ describe('CrewFile', () => {
     ).toBeTruthy();
     // La transmisión va abierta: sin velo sobre la escena, el retrato se ve.
     expect(region.className).toMatch(/open/);
+    // En la llegada, las esquinas que bajan de la ventana se cierran sobre su marco: uno solo, dentro del visor.
+    const targets = region.querySelectorAll('[data-arrival-target]');
+    expect(targets).toHaveLength(1);
+    expect(visor?.contains(targets[0] ?? null)).toBe(true);
   });
 
   it('without a CV, no download link', () => {

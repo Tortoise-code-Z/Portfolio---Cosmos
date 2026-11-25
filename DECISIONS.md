@@ -1014,9 +1014,15 @@
     baja por la **pantalla**, hasta `beamReach` (1,025) altos de la ventana: el shader compara la `y` proyectada de
     cada partícula (tras la gravedad del cursor) con la línea y la página usará la misma (`arrivalBeamLine`), así que
     coincidirán al píxel. Lo que lee la escena va en `lib/scroll/arrival`, en la huella de las fotos fijas; lo que solo
-    pinta la página, en `lib/scroll/arrivalChoreography`, fuera de ella. La coreografía de la página (el recorte que revela la sección, las esquinas, el
-    encaje y las líneas guía) llega en un segundo PR, con un bucle propio que suaviza `m` como la escena (como el Big
-    Bang, ADR-030).
+    pinta la página, en `lib/scroll/arrivalChoreography`, fuera de ella.
+  - **La coreografía de la página** (segundo PR) la pinta un bucle propio de la sección (`useArrivalChoreography`) que
+    suaviza `m` como la escena (como el Big Bang, ADR-030) y escribe variables CSS en la sección, con los cortes de
+    `ARRIVAL_CHOREOGRAPHY`: el haz recorta la pantalla de la transmisión (`data-screen`) por debajo de su línea, la
+    misma del shader; encima (sin recortarse) van la línea del haz y cuatro esquinas que salen de las de lo que se ve y
+    se cierran sobre un destino (`data-arrival-target`: el marco del visor), donde al encajar le pasan las suyas con un
+    destello; al encajar se enciende el teletipo (la sección con llegada no usa el `IntersectionObserver` ni el barrido
+    de entrada: el haz hace de barrido). Un Tab dentro antes de que acabe la revela entera hasta volver por encima de
+    la llegada. Sin JavaScript, con movimiento reducido o al imprimir, la sección se ve entera y quieta.
   - **Con movimiento reducido no hay llegada:** el hueco mide 0 por CSS (sin saltos de alto) y el tramo no dura
     nada; el retrato llega solo al pasar al epílogo (la escena se pone al día por su cuenta, como tras un salto del
     raíl): la excepción a «morph ligado al scroll» de `estados-y-accesibilidad.md`. Al imprimir, tampoco hay hueco. **Sin WebGL sí la hay**: la foto fija pasa de la Tierra al retrato y la página revela la sección
@@ -1033,8 +1039,9 @@
   mirar si el usuario mueve la página. Pesa unos bytes de GLSL y de JavaScript (`rendimiento.md` → «Presupuesto»). Lo
   vigilan los tests de `arrival`, `arrivalChoreography`, `stageFocus` y `mapM`, el orden de los tramos del DOM y el
   puente con y sin llegada (`journey.test.tsx`), el ancla en el marcador (`CrewFile.test.tsx`), los casos del foco de
-  `Transmission.test.tsx`, la cámara (`CameraRig.test.tsx`), la foto fija (`SceneStills.test.tsx`) y los e2e del
-  epílogo (`crew-file.spec.ts`).
+  `Transmission.test.tsx`, la cámara (`CameraRig.test.tsx`), la foto fija (`SceneStills.test.tsx`), la coreografía
+  (`useArrivalChoreography.test.tsx`), los e2e del epílogo (`crew-file.spec.ts`) y dos capturas de la llegada con
+  movimiento, parada en `a` = 0,4 y 1 (sin WebGL: no queda un reloj de la escena que parar).
 - Detalle: `docs/02-experiencia/capitulos/05-crew-file.md` → «Transición»; `docs/02-experiencia/scroll-y-escena.md`
   → «Tramos del viaje»; `docs/04-escena/particulas-y-shaders.md` → «Forma 5».
 

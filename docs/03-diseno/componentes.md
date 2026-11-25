@@ -125,8 +125,14 @@
 - Dos variantes (props exclusivas: el tipo no deja mezclarlas): un **interludio** (`id`, `clock`) o el **epílogo**,
   un capítulo que se lee como transmisión (`chapter`, que solo puede ser el 5; `stripEnd`, `footer`): lleva
   `data-chapter` y no tiene cola, pero sí **llegada** (ADR-039): lo que se ve va en un escenario (`data-stage`) pegado
-  bajo la barra (con el fondo, el barrido y la banda de entrada) mientras pasa un hueco de `--arrival-h` (0 con
-  movimiento reducido y al imprimir); mientras dura, el escenario mide justo lo que se ve bajo la barra. Su ancla
+  bajo la barra mientras pasa un hueco de `--arrival-h` (0 con movimiento reducido y al imprimir); mientras dura, el
+  escenario mide justo lo que se ve bajo la barra. Dentro, la pantalla de la transmisión (`data-screen`: franja,
+  cuerpo y pie, con el fondo y las líneas de barrido) y, encima, las marcas de la llegada (decorativas): la línea del
+  haz y cuatro esquinas. Su coreografía (C.7, `useArrivalChoreography`): el haz revela la pantalla por encima de su
+  línea, las esquinas se cierran sobre el destino que marque quien la usa (`data-arrival-target`; el Crew file, el
+  marco del visor) y, al encajar, el teletipo se enciende (sin el barrido de entrada: el haz hace de barrido). Solo
+  con JavaScript, sin movimiento reducido y en pantalla; un Tab dentro antes de que acabe la revela entera
+  (`05-crew-file.md` → «Transición»). Su ancla
   (`CHAPTER_ANCHORS`) está en el marcador del final de la llegada (`data-landing`), que va el primero en el DOM (su sitio
   lo pone el CSS): quien entra por el ancla sigue con Tab por el escenario. Si lo enfocado con Tab cae en el escenario
   fuera de la vista (la ventana más baja que él), se va al final de la llegada y lo justo más allá para enseñarlo con

@@ -66,6 +66,28 @@
     calc(var(--_line) * var(--dur-teletype-step) + var(--dur-teletype-line));
 }
 
+/*
+ * La llegada (C.7, `data-arrival`: Transmission.module.css): mientras las esquinas que bajan de la ventana se cierran
+ * sobre el marco, el marco esconde las suyas; al encajar (`data-locked`) vuelven en el mismo sitio con un destello que
+ * se apaga a su luz de siempre.
+ */
+@media screen {
+  [data-arrival]:not([data-locked]) .frame {
+    background: none;
+  }
+
+  [data-arrival][data-locked] .frame {
+    animation: visor-lock var(--dur-visor-lock) var(--ease-out);
+  }
+}
+
+@keyframes visor-lock {
+  from {
+    color: var(--_ch-bright);
+    filter: drop-shadow(0 0 var(--space-2) var(--_ch-glow));
+  }
+}
+
 .cv {
   justify-self: start;
   margin: 0;
@@ -251,7 +273,10 @@
     grid-column: 3;
   }
 
-  /* Las líneas guía: de cada dato hasta el marco del visor, el hueco entre pistas (decoración). */
+  /*
+   * Las líneas guía: de cada dato hasta el marco del visor, el hueco entre pistas (decoración). En la llegada salen del
+   * visor hacia el dato al encajar (`--_guides`, de 0 a 1; sin llegada, enteras).
+   */
   .field::after {
     position: absolute;
     inset-block-start: calc(var(--space-3) + 0.5lh);
@@ -259,14 +284,17 @@
     block-size: var(--border-width);
     background: var(--_ch-line);
     content: '';
+    scale: var(--_guides, 1) 1;
   }
 
   .left::after {
     inset-inline-start: 100%;
+    transform-origin: right;
   }
 
   .right::after {
     inset-inline-end: 100%;
+    transform-origin: left;
   }
 
   /*

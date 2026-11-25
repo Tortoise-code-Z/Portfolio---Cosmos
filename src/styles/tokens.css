@@ -287,6 +287,14 @@
   --interlude-tail: 100vh;
   /* La llegada del epílogo (ADR-039): lo que dura de scroll, con la sección fija (sin movimiento reducido). */
   --arrival-h: 160svh;
+  /*
+   * Lo que pinta la página en esa llegada (C.7): las esquinas que viajan salen a `--arrival-corner-inset` de las de la
+   * ventana, con `--arrival-corner-from` de largo, y encogen hasta las del visor (`--visor-corner`); la línea del haz
+   * mide `--arrival-beam-h` de grueso.
+   */
+  --arrival-corner-inset: var(--space-4);
+  --arrival-corner-from: 64px;
+  --arrival-beam-h: 2px;
   /* Lo que ocupa el raíl a la derecha (con su texto en escritorio): una transmisión a todo el ancho lo deja libre. */
   --rail-room: 160px;
   /*
@@ -443,6 +451,8 @@
   --dur-teletype-line: 420ms;
   --dur-teletype-step: 140ms;
   --dur-blink: 1.05s;
+  /* El destello de las esquinas del visor al encajar, en la llegada del epílogo (C.7). */
+  --dur-visor-lock: 600ms;
   --dur-fade-base: var(--dur-base);
   --dur-fade-slow: var(--dur-slow);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);

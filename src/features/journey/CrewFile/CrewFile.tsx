@@ -32,7 +32,9 @@ function lineStyle(line: number): CSSProperties {
  * y «Identity verified», que ya dice el aviso de arriba). La ficha (puesto, base, permiso de trabajo, disponibilidad,
  * idiomas y formación) es una lista de definiciones real; en el DOM, «Download CV» va justo después del visor (lo
  * primero que se busca en móvil), y después la ficha, el email con «Copy» y el pie del sitio. En escritorio ancho la
- * ficha se reparte a los lados del visor y «Download CV» baja junto al email (CrewFile.module.css).
+ * ficha se reparte a los lados del visor y «Download CV» baja junto al email (CrewFile.module.css). En su llegada
+ * (C.7), las esquinas que bajan de la ventana encajan en el marco del visor (`data-arrival-target`) y, al encajar, la
+ * ficha se escribe y las líneas guía salen del visor.
  */
 export function CrewFile(): ReactNode {
   const t = useT();
@@ -97,7 +99,8 @@ export function CrewFile(): ReactNode {
         {t('crewFile.lead')}
       </p>
       <div className={styles.visor} aria-hidden="true" data-crew-visor="">
-        <div className={styles.frame}>
+        {/* El destino de la llegada: las esquinas que bajan de la ventana se cierran sobre este marco. */}
+        <div className={styles.frame} data-arrival-target="">
           <span className={styles.verified} style={lineStyle(1 + record.length)}>
             {t('crewFile.verified')}
           </span>

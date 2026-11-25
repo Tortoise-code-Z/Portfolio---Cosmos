@@ -2,6 +2,7 @@ import { expect, type Page } from '@playwright/test';
 
 import { profile } from '../../src/content/profile.ts';
 import { CHAPTER_INDICES, INTERLUDES } from '../../src/content/chapters.ts';
+import { arrivalBeamLine } from '../../src/lib/scroll/arrivalChoreography/arrivalChoreography.ts';
 import { PORTRAIT_FRAME } from '../../src/scene/shapes/shapeContract/shapeContract.ts';
 import {
   collectErrors,
@@ -212,10 +213,10 @@ test.describe('Crew file', () => {
     await page.evaluate(() => {
       window.scrollTo(0, document.documentElement.scrollHeight);
     });
-    // El pie de la transmisión (el del escenario), no el fondo de la sección: con la llegada, la sección es escenario
-    // más hueco, y un escenario que no llegara al fondo dejaría el hueco vacío debajo del pie.
+    // El pie de la transmisión (el de su pantalla, en el escenario), no el fondo de la sección: con la llegada, la
+    // sección es escenario más hueco, y un escenario que no llegara al fondo dejaría el hueco vacío debajo del pie.
     const [footer, end] = await Promise.all([
-      crewFile(page).locator('[data-stage] > footer').boundingBox(),
+      crewFile(page).locator('[data-screen] > footer').boundingBox(),
       page.evaluate(() => window.innerHeight),
     ]);
     const bottom = Math.round((footer?.y ?? 0) + (footer?.height ?? 0));
@@ -269,11 +270,12 @@ test.describe('Crew file', () => {
         await page.evaluate(() => {
           document.documentElement.style.fontSize = '200%';
         });
-        // El texto del cuerpo, los botones («Copy») y la franja del canal (el primer hijo de su escenario, ADR-039).
+        // El texto del cuerpo, los botones («Copy») y la franja del canal (el primer hijo de la pantalla de su
+        // escenario, ADR-039).
         const { strip, cut } = await crewFile(page).evaluate((section) => {
           const stripParts = [
             ...section.querySelectorAll(
-              '[data-stage] > :first-child, [data-stage] > :first-child *',
+              '[data-screen] > :first-child, [data-screen] > :first-child *',
             ),
           ];
           return {
@@ -344,6 +346,178 @@ test.describe('Crew file', () => {
       window.scrollTo({ top, behavior: 'instant' });
     }, y);
   };
+  /**
+   * Lo que lleva la llegada según la página: de la línea del haz (`--_beam-y`, desde arriba del escenario) a la parte
+   * de la ventana, y de ahí a `a` con `arrivalBeamLine`. Se espera a ella: la `m` de la página va suavizada.
+   */
+  const beamLineAt = (page: Page) =>
+    crewFile(page).evaluate((section) => {
+      const stage = section.querySelector('[data-stage]');
+      const y = Number.parseFloat(section.style.getPropertyValue('--_beam-y'));
+      return (
+        ((stage?.getBoundingClientRect().top ?? 0) + y) / document.documentElement.clientHeight
+      );
+    });
+  /** Lo que lleva la llegada en el scroll (`a` del tramo, sin suavizar): la `m` de la página acaba ahí. */
+  const arrivalAt = async (page: Page) => {
+    const { start, landed } = await arrivalGeometry(page);
+    const y = await page.evaluate(() => window.scrollY);
+    return (y - start) / (landed - start);
+  };
+  /** El recorte de la pantalla mientras el haz no ha acabado de bajar: tapa lo de debajo de su línea. */
+  const COVERED = /^inset\(0px 0px max\(0px, 100%/;
+  /** El recorte de la pantalla de la transmisión (lo que revela el haz). */
+  const screenClip = (page: Page) =>
+    crewFile(page).evaluate(
+      (section) => getComputedStyle(section.querySelector('[data-screen]') ?? section).clipPath,
+    );
+  /** Una caja en la ventana, redondeada. */
+  const boxOf = (page: Page, selector: string) =>
+    crewFile(page).evaluate((section, inside) => {
+      const box = section.querySelector(inside)?.getBoundingClientRect();
+      return box === undefined
+        ? null
+        : [box.left, box.top, box.width, box.height].map((value) => Math.round(value));
+    }, selector);
+
+  test('its choreography (C.7): the beam reveals the screen down to its line, the shader’s, and the rest stays dark', async ({
+    page,
+  }) => {
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    await settleScene(page);
+    await expect(crewFile(page)).toHaveAttribute('data-arrival', '');
+    const { start, landed } = await arrivalGeometry(page);
+    await scrollToY(page, start + 0.4 * (landed - start));
+    const a = await arrivalAt(page);
+    // La línea de la página es la del shader: `arrivalBeamLine` altos de la ventana, ya con la `m` en su sitio.
+    await expect.poll(() => beamLineAt(page)).toBeCloseTo(arrivalBeamLine(a), 2);
+    // Tapado todo lo que queda por debajo de la línea (el navegador deja la cuenta en el valor calculado), y la línea del
+    // haz encendida en ella, a todo el ancho de la sección (la ventana menos la barra de scroll). Todo en la misma
+    // lectura: la `m` de la página aún se asienta en sus últimas décimas.
+    const look = await crewFile(page).evaluate((section) => {
+      const stage = section.querySelector('[data-stage]')?.getBoundingClientRect();
+      const beam = section.querySelector('[data-stage] > [aria-hidden] > :first-child');
+      const line = beam?.getBoundingClientRect();
+      return {
+        written: section.style.getPropertyValue('--_beam-y'),
+        clip: getComputedStyle(section.querySelector('[data-screen]') ?? section).clipPath,
+        opacity: beam === null ? '' : getComputedStyle(beam).opacity,
+        middle: (line?.top ?? 0) + (line?.height ?? 0) / 2 - (stage?.top ?? 0),
+        width: [Math.round(line?.width ?? 0), Math.round(stage?.width ?? -1)],
+      };
+    });
+    expect(look.clip).toBe(`inset(0px 0px max(0px, 100% - ${look.written}))`);
+    expect(look.opacity).toBe('1');
+    expect(look.middle).toBeCloseTo(Number.parseFloat(look.written), 0);
+    expect(look.width[0]).toBe(look.width[1]);
+    await expect(crewFile(page)).not.toHaveAttribute('data-locked');
+  });
+
+  test('its choreography (C.7): the corners close from the window onto the visor, lock there and hand over to it', async ({
+    page,
+  }) => {
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    await settleScene(page);
+    const { start, landed } = await arrivalGeometry(page);
+    const corners = '[data-stage] > [aria-hidden] > :last-child';
+    // Al empezar, cerca de las de lo que se ve del escenario (a `--arrival-corner-inset` de ellas).
+    await scrollToY(page, start + 0.2 * (landed - start));
+    await expect.poll(() => arrivalAt(page)).toBeCloseTo(0.2, 2);
+    await expect.poll(() => beamLineAt(page)).toBeCloseTo(arrivalBeamLine(0.2), 2);
+    const [left = 0, top = 0, width = 0] = (await boxOf(page, corners)) ?? [];
+    const stageTop = (await boxOf(page, '[data-stage]'))?.[1] ?? 0;
+    const viewport = page.viewportSize()?.width ?? 0;
+    expect(left).toBeLessThan(40);
+    expect(top - stageTop).toBeLessThan(40);
+    expect(width).toBeGreaterThan(viewport - 80);
+    // Cerradas antes de encajar (0,76): justo sobre el marco del visor.
+    await scrollToY(page, start + 0.76 * (landed - start));
+    await expect
+      .poll(async () => JSON.stringify(await boxOf(page, corners)))
+      .toBe(JSON.stringify(await boxOf(page, '[data-arrival-target]')));
+    await expect(crewFile(page)).not.toHaveAttribute('data-locked');
+    // Al marco no se le ven las suyas mientras tanto.
+    await expect(crewFile(page).locator('[data-arrival-target]')).toHaveCSS(
+      'background-image',
+      'none',
+    );
+    // Encajadas: se esconden y el marco enseña las suyas, en el mismo sitio; la sección entera, sin recorte.
+    await scrollToY(page, landed);
+    await expect(crewFile(page)).toHaveAttribute('data-locked', '');
+    await expect(crewFile(page)).toHaveAttribute('data-revealed', '');
+    await expect(crewFile(page).locator(corners)).toHaveCSS('visibility', 'hidden');
+    await expect(crewFile(page).locator('[data-arrival-target]')).not.toHaveCSS(
+      'background-image',
+      'none',
+    );
+    expect(await screenClip(page)).toBe('none');
+  });
+
+  test('its choreography (C.7): entering by its anchor it is not played again, the first thing painted is the visor locked', async ({
+    page,
+  }) => {
+    // Lo que pinta la página, cambio a cambio, desde antes de hidratar.
+    await page.addInitScript(() => {
+      const seen: string[] = [];
+      Object.assign(window, { arrivalPainted: seen });
+      new MutationObserver(() => {
+        const section = document.querySelector('[data-chapter="5"]');
+        const corners =
+          section instanceof HTMLElement ? section.style.getPropertyValue('--_corners') : '';
+        if (corners !== '') seen.push(`${String(section?.hasAttribute('data-locked'))} ${corners}`);
+      }).observe(document, { attributes: true, subtree: true, attributeFilter: ['style'] });
+    });
+    await page.goto('/#crew-file', { waitUntil: 'networkidle' });
+    await expect(crewFile(page)).toHaveAttribute('data-locked', '');
+    const painted = await page.evaluate(
+      () => (window as unknown as { arrivalPainted: string[] }).arrivalPainted,
+    );
+    expect(new Set(painted)).toEqual(new Set(['true 1.0000']));
+  });
+
+  test('its choreography (C.7): scrolling back up undoes it, down to the screen dark again before the arrival', async ({
+    page,
+  }) => {
+    await page.goto('/#crew-file', { waitUntil: 'networkidle' });
+    await expect(crewFile(page)).toHaveAttribute('data-locked', '');
+    const { start, landed } = await arrivalGeometry(page);
+    await scrollToY(page, start + 0.3 * (landed - start));
+    await expect(crewFile(page)).not.toHaveAttribute('data-locked');
+    await expect(crewFile(page)).not.toHaveAttribute('data-on');
+    await expect(crewFile(page)).not.toHaveAttribute('data-revealed');
+    await scrollToY(page, start - 200);
+    await expect.poll(() => screenClip(page)).toMatch(COVERED);
+  });
+
+  test('its choreography (C.7): a Tab into it during the arrival shows it whole at once', async ({
+    page,
+  }) => {
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    await settleScene(page);
+    const { start, landed } = await arrivalGeometry(page);
+    await scrollToY(page, start + 0.3 * (landed - start));
+    await expect.poll(() => beamLineAt(page)).toBeCloseTo(arrivalBeamLine(0.3), 1);
+    await expect(crewFile(page)).not.toHaveAttribute('data-revealed');
+    await page.getByRole('region', { name: 'Touchdown' }).getByRole('link').last().focus();
+    await page.keyboard.press('Tab');
+    await expect(page.locator(':focus')).toHaveAccessibleName(/^Download CV/);
+    await expect(crewFile(page)).toHaveAttribute('data-revealed', '');
+    await expect(crewFile(page)).toHaveAttribute('data-locked', '');
+    expect(await screenClip(page)).toBe('none');
+  });
+
+  test('its choreography (C.7) runs without WebGL too: the page reveals it over the still photo', async ({
+    page,
+  }) => {
+    await withoutWebGL(page);
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    const { start, landed } = await arrivalGeometry(page);
+    await scrollToY(page, start + 0.4 * (landed - start));
+    await expect(crewFile(page)).toHaveAttribute('data-arrival', '');
+    await expect.poll(() => screenClip(page)).toMatch(COVERED);
+    await scrollToY(page, landed);
+    await expect(crewFile(page)).toHaveAttribute('data-revealed', '');
+  });
 
   test('its arrival (ADR-039): it holds still under the bar while it arrives, the rail marks it from the start, and then it scrolls on', async ({
     page,
@@ -462,7 +636,8 @@ test.describe('Crew file', () => {
     await page.emulateMedia({ forcedColors: 'active' });
     await page.goto('/#crew-file', { waitUntil: 'networkidle' });
     const look = await crewFile(page).evaluate((section) => {
-      const stage = section.querySelector('[data-stage]');
+      // La pantalla de la transmisión, en el escenario: lleva el fondo (lo que revela el haz).
+      const screen = section.querySelector('[data-screen]');
       const of = (element: Element | null, pseudo?: string) =>
         element === null ? 'none' : getComputedStyle(element, pseudo);
       const style = (element: Element | null, pseudo?: string) => {
@@ -473,20 +648,24 @@ test.describe('Crew file', () => {
       };
       return {
         section: style(section),
-        stage: style(stage),
-        sweep: style(stage, '::before'),
-        lines: style(stage, '::after'),
+        screen: style(screen),
+        lines: style(screen, '::after'),
+        beam: (() => {
+          const beam = section.querySelector('[data-stage] > [aria-hidden] > :first-child');
+          return beam === null ? 'missing' : getComputedStyle(beam).display;
+        })(),
         canvas: getComputedStyle(document.body).backgroundColor,
       };
     });
     // Opaco (`rgb(…)`): sin la regla, el sistema pinta `Canvas` con el alfa del CSS, transparente.
-    for (const part of [look.section, look.stage]) {
+    for (const part of [look.section, look.screen]) {
       expect(part.color).toMatch(/^rgb\(/);
       expect(part.color).toBe(look.canvas);
       expect(part.image).toBe('none');
     }
-    expect(look.sweep.image).toBe('none');
     expect(look.lines.image).toBe('none');
+    // La línea del haz es un fondo con brillo: fuera.
+    expect(look.beam).toBe('none');
   });
 
   test('with reduced motion it has no arrival: it is read as soon as it comes', async ({
@@ -505,15 +684,23 @@ test.describe('Crew file', () => {
     await page.goto('/#crew-file', { waitUntil: 'networkidle' });
     await settleScene(page);
     await expect(crewFile(page)).not.toHaveAttribute('data-armed');
+    // Sin coreografía: nada tapado por el haz.
+    await expect(crewFile(page)).not.toHaveAttribute('data-arrival');
+    expect(await screenClip(page)).toBe('none');
     expect(new Set(await lineClips(crewFile(page)))).toEqual(new Set(['none']));
   });
 
-  test('with motion, it switches on when it comes into view and the teletype ends with every line written', async ({
+  test('with motion, the teletype waits for the visor to lock and then ends with every line written', async ({
     page,
   }) => {
     await page.goto('/#contact', { waitUntil: 'networkidle' });
     await expect(crewFile(page)).toHaveAttribute('data-armed', '');
-    await crewFile(page).scrollIntoViewIfNeeded();
+    const { start, landed } = await arrivalGeometry(page);
+    // A mitad de la llegada, aún sin encajar: las líneas esperan.
+    await scrollToY(page, start + 0.5 * (landed - start));
+    await expect.poll(() => arrivalAt(page)).toBeCloseTo(0.5, 2);
+    await expect(crewFile(page)).not.toHaveAttribute('data-on');
+    await scrollToY(page, landed);
     await expect(crewFile(page)).toHaveAttribute('data-on', '');
     // La ficha, el email y «Download CV»: ninguna línea se queda tapada (su numeración `--_line` crece con la ficha).
     await expect

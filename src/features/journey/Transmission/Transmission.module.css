@@ -81,7 +81,7 @@
 
 /* Líneas de barrido finas sobre el fondo (decoración: sin puntero). La franja, el cuerpo y el pie van por encima. */
 .transmission::after,
-.stage::after {
+.screen::after {
   position: absolute;
   inset: 0;
   background: var(--gradient-scanlines);
@@ -89,9 +89,11 @@
   pointer-events: none;
 }
 
-/* El barrido de entrada: una banda de luz que baja una vez al encenderse. */
-.transmission::before,
-.stage::before {
+/*
+ * El barrido de entrada: una banda de luz que baja una vez al encenderse. Una sección con llegada no lo lleva: el haz
+ * de su llegada hace de barrido.
+ */
+.transmission::before {
   position: absolute;
   z-index: 2;
   inset-inline: 0;
@@ -104,8 +106,7 @@
   visibility: hidden;
 }
 
-.transmission[data-on]::before,
-.transmission[data-on] .stage::before {
+.transmission[data-on]::before {
   visibility: visible;
   animation: transmission-sweep var(--dur-sweep) var(--ease-in-out) both;
 }
@@ -325,7 +326,15 @@
   isolation: isolate;
 }
 
-.open .stage {
+/* La pantalla de la transmisión dentro del escenario: lo que revela el haz, con su fondo y sus líneas de barrido. */
+.screen {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.open .screen {
   background: var(--_ch-grid-bg);
 }
 
@@ -346,6 +355,104 @@
   inset-block-start: var(--_arrival);
   inset-inline: 0;
   block-size: 0;
+}
+
+/*
+ * Lo que pinta la página en la llegada (C.7; 05-crew-file.md → «Transición»), con lo que escribe su bucle en la sección
+ * (`useArrivalChoreography`: las medidas en px desde arriba del escenario y los avances de 0 a 1). Solo con él en
+ * marcha (`data-arrival`: con JavaScript y sin movimiento reducido) y en pantalla: sin él, al imprimir o sin
+ * JavaScript, la sección se ve entera y quieta.
+ *
+ * - el haz revela la pantalla por encima de su línea (la misma que el shader) hasta acabar de bajar (`data-revealed`);
+ * - la línea del haz cruza la ventana encima de todo;
+ * - las esquinas salen de las de lo que se ve del escenario y se cierran sobre el destino (`--_target-*`; el marco del
+ *   visor), encogiendo de `--arrival-corner-from` al largo de las del visor; al encajar (`data-locked`) se esconden y
+ *   el destino enseña las suyas, en el mismo sitio.
+ */
+.arrivalMarks {
+  display: none;
+}
+
+@media screen {
+  .arriving[data-arrival]:not([data-revealed]) .screen {
+    clip-path: inset(0 0 max(0px, calc(100% - var(--_beam-y, 0px))) 0);
+  }
+
+  .arriving[data-arrival] .arrivalMarks {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+  }
+}
+
+.beam {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: var(--_beam-y, 0px);
+  block-size: var(--arrival-beam-h);
+  translate: 0 -50%;
+  background: var(--_ch-bright);
+  box-shadow: 0 0 var(--space-4) var(--space-1) var(--_ch-glow);
+  opacity: var(--_beam-on, 0);
+}
+
+.corners {
+  --_inset: var(--arrival-corner-inset);
+  --_t: var(--_corners, 1);
+  --_from-w: calc(100% - 2 * var(--_inset));
+  --_from-h: calc(var(--_visible-h, 100%) - 2 * var(--_inset));
+  --_size: calc(
+    var(--arrival-corner-from) + (var(--visor-corner) - var(--arrival-corner-from)) * var(--_t)
+  );
+
+  position: absolute;
+  inset-block-start: calc(var(--_inset) + (var(--_target-y, 0px) - var(--_inset)) * var(--_t));
+  inset-inline-start: calc(var(--_inset) + (var(--_target-x, 0px) - var(--_inset)) * var(--_t));
+  inline-size: calc(var(--_from-w) + (var(--_target-w, 0px) - var(--_from-w)) * var(--_t));
+  block-size: calc(var(--_from-h) + (var(--_target-h, 0px) - var(--_from-h)) * var(--_t));
+  opacity: var(--_corners-show, 0);
+}
+
+.arriving[data-locked] .corners {
+  visibility: hidden;
+}
+
+.corners > span {
+  position: absolute;
+  inline-size: var(--_size);
+  block-size: var(--_size);
+  border: 0 solid var(--_ch-bright);
+  filter: drop-shadow(0 0 var(--space-1) var(--_ch-glow));
+}
+
+.corners > :nth-child(1) {
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  border-block-start-width: var(--border-width);
+  border-inline-start-width: var(--border-width);
+}
+
+.corners > :nth-child(2) {
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  border-block-start-width: var(--border-width);
+  border-inline-end-width: var(--border-width);
+}
+
+.corners > :nth-child(3) {
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  border-block-end-width: var(--border-width);
+  border-inline-start-width: var(--border-width);
+}
+
+.corners > :nth-child(4) {
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  border-block-end-width: var(--border-width);
+  border-inline-end-width: var(--border-width);
 }
 
 /* La cola: recorrido vacío en el que la escena cambia de forma. Sin puntero: las estrellas de debajo lo reciben. */
@@ -398,15 +505,23 @@
 @media (forced-colors: active) {
   .transmission,
   .arriving.open,
-  .open .stage {
+  .open .screen {
     background: Canvas;
   }
 
   .transmission::after,
   .transmission::before,
-  .stage::after,
-  .stage::before {
+  .screen::after {
     background: none;
+  }
+
+  /* La línea del haz es un fondo con brillo (el sistema la borraría): fuera. Las esquinas, sin brillo. */
+  .beam {
+    display: none;
+  }
+
+  .corners > span {
+    filter: none;
   }
 
   .title {
