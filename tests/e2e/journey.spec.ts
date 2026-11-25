@@ -296,6 +296,17 @@ test.describe('the journey (home)', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     // Con la escena decidida: con ella, los grupos de Skills entran en el Tab (F4.3c); sin ella, no.
     await settleScene(page);
+    // El escenario del Crew file mide más que lo que se ve bajo la barra: lo de su fondo cae fuera mientras dura la
+    // llegada, y este recorrido prueba que el Tab lo trae (ADR-039). Si encogiera, el test dejaría de probarlo.
+    const crewStage = await page.evaluate(() => ({
+      stage:
+        document.querySelector('[data-chapter="5"] [data-stage]')?.getBoundingClientRect().height ??
+        0,
+      visible:
+        window.innerHeight -
+        Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart),
+    }));
+    expect(crewStage.stage).toBeGreaterThan(crewStage.visible);
     // Se marca cada enlace, botón y grupo enfocable de main para saber cuáles visita el Tab (con lo que haya
     // delante, como la barra superior de F2.5, el recorrido sigue hasta salir de main).
     const total = await page.evaluate(() => {
@@ -748,6 +759,28 @@ test.describe('without JavaScript', () => {
     ).toBeVisible();
     await expect(page.getByRole('button', { name: 'Hold to detonate' })).toBeVisible();
     await expect(page.locator('[data-singularity="core"]')).toBeVisible();
+  });
+
+  test('the rail stop of the Crew file takes you to the end of its arrival (its marker has the anchor)', async ({
+    page,
+  }) => {
+    await page.goto('/#contact');
+    await page
+      .getByRole('navigation', { name: 'Chapters' })
+      .getByRole('link', { name: 'Crew file · Epilogue' })
+      .click();
+    await expect(page).toHaveURL(/#crew-file$/);
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const landing = document.querySelector('[data-landing]')?.getBoundingClientRect().top;
+          const bar = Number.parseFloat(
+            getComputedStyle(document.documentElement).scrollPaddingBlockStart,
+          );
+          return Math.abs((landing ?? Number.NaN) - bar);
+        }),
+      )
+      .toBeLessThanOrEqual(1);
   });
 
   test('the dark background does not depend on JavaScript (P1)', async ({ page }) => {

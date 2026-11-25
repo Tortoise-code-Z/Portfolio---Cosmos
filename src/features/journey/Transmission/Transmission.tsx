@@ -112,59 +112,94 @@ function cssNumber(value: string): number {
   return Number.isFinite(number) ? number : 0;
 }
 
-/**
- * El foco en una sección con llegada (ADR-039): mientras dura la llegada su escenario está pegado bajo la barra y lo
- * que cae por debajo de la ventana no sube con el scroll, así que el navegador no consigue enseñar lo que se enfoca
- * allí con Tab. Si queda fuera de la vista, se va al final de la llegada (donde el escenario se suelta) y lo justo más
- * allá para que se vea entero con su anillo (`stageFocusScroll`). Se mira en los frames que siguen al foco
- * (`ARRIVAL_FOCUS_FRAMES`: medio segundo a 60 fps), no solo en el primero: WebKit hace su propio scroll del foco
- * después (en el CI, a ~3 fps, lo dejaba justo en el borde de abajo, con el anillo fuera).
- */
+/** Cómo se encuentra el escenario de una sección con llegada (lo que se queda fijo mientras dura). */
+const STAGE_SELECTOR = '[data-stage]';
+
+/** Cuántos frames se mira después del foco (medio segundo a 60 fps): ver `useArrivalFocus`. */
 const ARRIVAL_FOCUS_FRAMES = 30;
 
+/** Lo que hace el usuario que corta esa vigilancia: mover la página o tocar otra cosa (una tecla que no sea Tab). */
+const USER_MOVES = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const;
+
+/**
+ * Lo que se enfoca con Tab: alcanzable con el teclado (`tabIndex` ≥ 0) y con el foco a la vista (`:focus-visible`).
+ * Fuera quedan los títulos que enfocan los saltos (`tabindex="-1"`: de su scroll ya se encarga `jumpToChapter`) y lo
+ * que se enfoca con un clic.
+ */
+function isTabFocus(element: Element | null): element is HTMLElement {
+  return (
+    element instanceof HTMLElement && element.tabIndex >= 0 && element.matches(':focus-visible')
+  );
+}
+
+/**
+ * El foco con Tab en una sección con llegada (ADR-039): mientras dura la llegada su escenario está pegado bajo la barra
+ * y lo que cae por debajo de la ventana no sube con el scroll, así que el navegador no consigue enseñar lo que se
+ * enfoca allí. Si queda fuera de la vista (con su anillo y el `scroll-padding` de arriba y de abajo), se va al final de
+ * la llegada (donde el escenario se suelta) y lo justo más allá para que se vea entero (`stageFocusScroll`). Se mira en
+ * los frames que siguen al foco (`ARRIVAL_FOCUS_FRAMES`), no solo en el primero: WebKit hace su propio scroll del foco
+ * después (en el CI, a ~3 fps, lo dejaba justo en el borde de abajo, con el anillo fuera). Si el usuario mueve la
+ * página entre tanto (`USER_MOVES`), se deja de mirar. Solo actúa con el Tab (`isTabFocus`) y si hay llegada: con
+ * movimiento reducido el hueco mide 0 (lo decide el CSS) y el escenario nunca se pega.
+ */
 function useArrivalFocus(ref: RefObject<HTMLElement | null>, arriving: boolean): void {
   useEffect(() => {
     const section = ref.current;
     if (!arriving || section === null) return undefined;
     let frame = 0;
+    const stop = (): void => {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    };
     const place = (): void => {
       const element = document.activeElement;
-      const stage = section.firstElementChild;
+      const stage = section.querySelector<HTMLElement>(STAGE_SELECTOR);
       const landing = section.querySelector<HTMLElement>(LANDING_SELECTOR);
-      if (!(element instanceof HTMLElement) || stage === null || landing === null) return;
-      if (!stage.contains(element)) return;
+      if (!isTabFocus(element) || stage === null || landing === null) return;
+      if (!stage.contains(element) || landing.offsetTop === 0) return;
       const root = getComputedStyle(document.documentElement);
       const bar = cssNumber(root.scrollPaddingBlockStart);
+      const end = cssNumber(root.scrollPaddingBlockEnd);
       const margin =
         cssNumber(root.getPropertyValue('--focus-offset')) +
         cssNumber(root.getPropertyValue('--focus-width'));
       const box = element.getBoundingClientRect();
-      if (box.top - margin >= bar && box.bottom + margin <= window.innerHeight) return;
+      if (box.top - margin >= bar && box.bottom + margin <= window.innerHeight - end) return;
       const top = stageFocusScroll({
         landingY: landing.getBoundingClientRect().top + window.scrollY,
         offset: box.top - stage.getBoundingClientRect().top,
         height: box.height,
         bar,
+        end,
         viewport: window.innerHeight,
         margin,
       });
       // `auto` y no `instant` (que no todos los motores entienden): el CSS no pide scroll suave.
       window.scrollTo({ top, behavior: 'auto' });
     };
-    const onFocus = (): void => {
-      cancelAnimationFrame(frame);
+    const onFocus = (event: FocusEvent): void => {
+      stop();
+      if (!isTabFocus(event.target instanceof Element ? event.target : null)) return;
       let left = ARRIVAL_FOCUS_FRAMES;
       const tick = (): void => {
         place();
         left -= 1;
-        if (left > 0) frame = requestAnimationFrame(tick);
+        frame = left > 0 ? requestAnimationFrame(tick) : 0;
       };
       frame = requestAnimationFrame(tick);
     };
+    const onUserMove = (event: Event): void => {
+      if (event instanceof KeyboardEvent && event.key === 'Tab') return;
+      stop();
+    };
     section.addEventListener('focusin', onFocus);
+    for (const type of USER_MOVES) {
+      window.addEventListener(type, onUserMove, { passive: true });
+    }
     return () => {
       section.removeEventListener('focusin', onFocus);
-      cancelAnimationFrame(frame);
+      for (const type of USER_MOVES) window.removeEventListener(type, onUserMove);
+      stop();
     };
   }, [ref, arriving]);
 }
@@ -274,16 +309,22 @@ export function Transmission(props: TransmissionProps): ReactNode {
           content
         ) : (
           <>
-            {/* La llegada (ADR-039): el escenario se queda fijo mientras pasa el hueco de debajo. */}
-            <div className={styles.stage}>{content}</div>
-            <div className={styles.arrivalSpace} aria-hidden="true" />
-            {/* El final de la llegada, con el ancla del capítulo: aquí aterrizan el ancla y los saltos. */}
+            {/*
+             * El final de la llegada, con el ancla del capítulo: aquí aterrizan el ancla y los saltos. Cae donde acaba
+             * el hueco (posición absoluta), pero va primero en el DOM: quien entra por el ancla (`/#crew-file`) sigue con
+             * Tab por el escenario, no después de él.
+             */}
             <span
               id={CHAPTER_ANCHORS[props.chapter] ?? undefined}
               className={styles.landing}
               data-landing=""
               aria-hidden="true"
             />
+            {/* La llegada (ADR-039): el escenario se queda fijo mientras pasa el hueco de debajo. */}
+            <div className={styles.stage} data-stage="">
+              {content}
+            </div>
+            <div className={styles.arrivalSpace} aria-hidden="true" />
           </>
         )}
       </section>

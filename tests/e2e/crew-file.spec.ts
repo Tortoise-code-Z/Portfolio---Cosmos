@@ -26,6 +26,26 @@ const STOPS = CHAPTER_INDICES.length + INTERLUDES.length;
 
 const rail = (page: Page) => page.getByRole('navigation', { name: /^(?:Chapters|Capítulos)$/ });
 
+/**
+ * Si lo enfocado se ve entero con su anillo (`--focus-offset` + `--focus-width`), sin quedar bajo la barra
+ * (`scroll-padding-block-start`), como `readFocused` de `journey.spec.ts`. El aire de abajo no se exige: al final de
+ * la página no siempre cabe.
+ */
+const focusedInView = (page: Page) =>
+  page.evaluate(() => {
+    const element = document.activeElement;
+    if (element === null || element === document.body) return false;
+    const root = getComputedStyle(document.documentElement);
+    const ring =
+      Number.parseFloat(root.getPropertyValue('--focus-offset')) +
+      Number.parseFloat(root.getPropertyValue('--focus-width'));
+    const box = element.getBoundingClientRect();
+    return (
+      box.top - ring >= Number.parseFloat(root.scrollPaddingBlockStart) - 0.5 &&
+      box.bottom + ring <= window.innerHeight + 0.5
+    );
+  });
+
 test.describe('Crew file', () => {
   for (const { path, title, stop, closed, footer } of [
     {
@@ -192,11 +212,13 @@ test.describe('Crew file', () => {
     await page.evaluate(() => {
       window.scrollTo(0, document.documentElement.scrollHeight);
     });
-    const [section, end] = await Promise.all([
-      crewFile(page).boundingBox(),
+    // El pie de la transmisión (el del escenario), no el fondo de la sección: con la llegada, la sección es escenario
+    // más hueco, y un escenario que no llegara al fondo dejaría el hueco vacío debajo del pie.
+    const [footer, end] = await Promise.all([
+      crewFile(page).locator('[data-stage] > footer').boundingBox(),
       page.evaluate(() => window.innerHeight),
     ]);
-    const bottom = Math.round((section?.y ?? 0) + (section?.height ?? 0));
+    const bottom = Math.round((footer?.y ?? 0) + (footer?.height ?? 0));
     // Las dos: no se sale por abajo y no hay nada debajo (con el scroll al final, el `≤` solo se cumple siempre).
     expect(bottom).toBeLessThanOrEqual(end);
     expect(bottom).toBeGreaterThanOrEqual(end - 1);
@@ -248,14 +270,20 @@ test.describe('Crew file', () => {
           document.documentElement.style.fontSize = '200%';
         });
         // El texto del cuerpo, los botones («Copy») y la franja del canal (el primer hijo de su escenario, ADR-039).
-        const cut = await crewFile(page).evaluate((section) =>
-          [
-            ...section.querySelectorAll('h2, li, dd, dt, p, a, button'),
-            ...(section.firstElementChild?.firstElementChild?.querySelectorAll('*') ?? []),
-          ]
-            .filter((element) => element.scrollWidth > element.clientWidth)
-            .map((element) => element.textContent.slice(0, 40)),
-        );
+        const { strip, cut } = await crewFile(page).evaluate((section) => {
+          const stripParts = [
+            ...section.querySelectorAll(
+              '[data-stage] > :first-child, [data-stage] > :first-child *',
+            ),
+          ];
+          return {
+            strip: stripParts.length,
+            cut: [...section.querySelectorAll('h2, li, dd, dt, p, a, button'), ...stripParts]
+              .filter((element) => element.scrollWidth > element.clientWidth)
+              .map((element) => element.textContent.slice(0, 40)),
+          };
+        });
+        expect(strip).toBeGreaterThan(0);
         expect(cut).toEqual([]);
         // La sección entera, no la página: a 200 % las filas de Proyectos ya se salen (deuda de F6, STATE.md).
         const section = await crewFile(page).evaluate((element) => ({
@@ -306,10 +334,10 @@ test.describe('Crew file', () => {
         bar,
       };
     });
-  /** Dónde está el borde de arriba del escenario (el primer hijo de la sección) en la ventana. */
+  /** Dónde está el borde de arriba del escenario (`data-stage`) en la ventana. */
   const stageTop = (page: Page) =>
     crewFile(page).evaluate((section) =>
-      Math.round(section.firstElementChild?.getBoundingClientRect().top ?? Number.NaN),
+      Math.round(section.querySelector('[data-stage]')?.getBoundingClientRect().top ?? Number.NaN),
     );
   const scrollToY = async (page: Page, y: number) => {
     await page.evaluate((top) => {
@@ -324,7 +352,9 @@ test.describe('Crew file', () => {
     const { start, landed, bar } = await arrivalGeometry(page);
     // 160 svh de llegada (`--arrival-h`).
     expect(landed - start).toBeCloseTo((await page.evaluate(() => window.innerHeight)) * 1.6, -1);
-    for (const at of [0.05, 0.5, 1]) {
+    // Hasta casi el final (0,98): justo en el final el escenario se suelta, y un motor que redondee el scroll hacia
+    // abajo lo dejaría un píxel más arriba.
+    for (const at of [0.05, 0.5, 0.98]) {
       await scrollToY(page, start + at * (landed - start));
       expect(await stageTop(page)).toBe(Math.round(bar));
       await expect(rail(page).locator('[aria-current="step"]')).toHaveAccessibleName(
@@ -340,17 +370,111 @@ test.describe('Crew file', () => {
     expect(await stageTop(page)).toBe(Math.round(bar) - 100);
   });
 
-  test('its anchor and the rail land where its arrival ends, with the epilogue already brought in', async ({
+  test('its anchor and the rail land where its arrival ends: the stage released under the bar and the rail on it', async ({
     page,
   }) => {
-    // A un par de píxeles: Firefox redondea el scroll de un salto a su manera (en el CI, 1 px de más).
+    // A un píxel: el navegador redondea el scroll y el marcador puede caer en decimales.
     const offLanding = async () =>
       Math.abs((await page.evaluate(() => window.scrollY)) - (await arrivalGeometry(page)).landed);
+    const landedOn = async () => {
+      expect(await stageTop(page)).toBe(Math.round((await arrivalGeometry(page)).bar));
+      await expect(rail(page).locator('[aria-current="step"]')).toHaveAccessibleName(
+        'Crew file · Epilogue',
+      );
+    };
     await page.goto('/#crew-file', { waitUntil: 'networkidle' });
-    await expect.poll(offLanding).toBeLessThanOrEqual(2);
+    await expect.poll(offLanding).toBeLessThanOrEqual(1);
+    await landedOn();
     await page.goto('/#contact', { waitUntil: 'networkidle' });
     await rail(page).getByRole('link', { name: 'Crew file · Epilogue' }).click();
-    await expect.poll(offLanding, { timeout: 10_000 }).toBeLessThanOrEqual(2);
+    await expect.poll(offLanding, { timeout: 10_000 }).toBeLessThanOrEqual(1);
+    await landedOn();
+  });
+
+  test('the rail travels to it smoothly: the jump to the end of the arrival is not cut short by the focus', async ({
+    page,
+  }) => {
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    const { landed } = await arrivalGeometry(page);
+    const from = await page.evaluate(() => window.scrollY);
+    // Cada scroll del viaje, guardado en la página.
+    await page.evaluate(() => {
+      const seen: number[] = [];
+      Object.assign(window, { seenScroll: seen });
+      window.addEventListener('scroll', () => seen.push(window.scrollY), { passive: true });
+    });
+    await rail(page).getByRole('link', { name: 'Crew file · Epilogue' }).click();
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY), { timeout: 10_000 })
+      .toBeGreaterThanOrEqual(landed - 1);
+    const seen = await page.evaluate(
+      () => (window as unknown as { seenScroll: number[] }).seenScroll,
+    );
+    // Un salto de golpe dejaría uno o dos valores; el viaje suave pasa por muchos entre medias.
+    const between = seen.filter((y) => y > from + 10 && y < landed - 10);
+    expect(between.length).toBeGreaterThanOrEqual(3);
+  });
+
+  test('entering by its anchor, the first Tab goes into it: «Download CV», not past the Crew file', async ({
+    page,
+  }) => {
+    await page.goto('/#crew-file', { waitUntil: 'networkidle' });
+    await page.keyboard.press('Tab');
+    await expect(page.locator(':focus')).toHaveAccessibleName(/^Download CV/);
+  });
+
+  test('changing the language halfway through the arrival lands on the Crew file, already brought in', async ({
+    page,
+  }) => {
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    const { start, landed } = await arrivalGeometry(page);
+    await scrollToY(page, start + 0.1 * (landed - start));
+    const spanish = page.getByRole('banner').getByRole('link', { name: 'Español' });
+    await expect(spanish).toHaveAttribute('href', '/es#crew-file');
+    await spanish.click();
+    await expect(page).toHaveURL(/\/es#crew-file$/);
+    await expect
+      .poll(async () =>
+        Math.abs(
+          (await page.evaluate(() => window.scrollY)) - (await arrivalGeometry(page)).landed,
+        ),
+      )
+      .toBeLessThanOrEqual(1);
+  });
+
+  test('in Windows high contrast it lies on the plain system background, not on the scene', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== 'chromium', 'Only Chromium emulates forced colors.');
+    await page.emulateMedia({ forcedColors: 'active' });
+    await page.goto('/#crew-file', { waitUntil: 'networkidle' });
+    const look = await crewFile(page).evaluate((section) => {
+      const stage = section.querySelector('[data-stage]');
+      const of = (element: Element | null, pseudo?: string) =>
+        element === null ? 'none' : getComputedStyle(element, pseudo);
+      const style = (element: Element | null, pseudo?: string) => {
+        const computed = of(element, pseudo);
+        return computed === 'none'
+          ? { color: 'none', image: 'none' }
+          : { color: computed.backgroundColor, image: computed.backgroundImage };
+      };
+      return {
+        section: style(section),
+        stage: style(stage),
+        sweep: style(stage, '::before'),
+        lines: style(stage, '::after'),
+        canvas: getComputedStyle(document.body).backgroundColor,
+      };
+    });
+    // Opaco (`rgb(…)`): sin la regla, el sistema pinta `Canvas` con el alfa del CSS, transparente.
+    for (const part of [look.section, look.stage]) {
+      expect(part.color).toMatch(/^rgb\(/);
+      expect(part.color).toBe(look.canvas);
+      expect(part.image).toBe('none');
+    }
+    expect(look.sweep.image).toBe('none');
+    expect(look.lines.image).toBe('none');
   });
 
   test('with reduced motion it has no arrival: it is read as soon as it comes', async ({
@@ -434,6 +558,20 @@ test.describe('Crew file', () => {
     );
   });
 
+  test('without WebGL, the still photo turns from the Earth to the portrait with the shape, early in the arrival', async ({
+    page,
+  }) => {
+    await withoutWebGL(page);
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    const { start, landed } = await arrivalGeometry(page);
+    const shown = page.locator('[data-scene-stills] img[data-visible="true"]');
+    // La forma cruza la mitad en el 27,5 % de la llegada (`morphEnd` 0,55): antes, la Tierra; pasado, el retrato.
+    await scrollToY(page, start + 0.2 * (landed - start));
+    await expect(shown).toHaveAttribute('data-still-chapter', '4');
+    await scrollToY(page, start + 0.35 * (landed - start));
+    await expect(shown).toHaveAttribute('data-still-chapter', '5');
+  });
+
   test('with the keyboard, what takes the focus is never hidden by the teletype', async ({
     page,
   }) => {
@@ -445,13 +583,53 @@ test.describe('Crew file', () => {
     await page.keyboard.press('Tab');
     const focused = page.locator(':focus');
     await expect(focused).toHaveAccessibleName(/^Download CV/);
-    await expect(focused).toBeInViewport();
+    // Entero y con su anillo, sin quedar bajo la barra (no basta con un píxel a la vista).
+    await expect(focused).toBeInViewport({ ratio: 1 });
+    await expect.poll(() => focusedInView(page)).toBe(true);
     expect(
       await focused.evaluate((element) => {
         const line = element.closest('[data-line]');
         return line === null ? 'no line' : getComputedStyle(line).clipPath;
       }),
     ).toBe('none');
+  });
+
+  test('390×844: Tab and Shift+Tab through the Crew file show every control whole, with its ring', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    await settleScene(page);
+    // El escenario es mucho más alto que la ventana: lo de abajo cae fuera mientras dura la llegada.
+    const { stage, visible } = await crewFile(page).evaluate((section) => ({
+      stage: section.querySelector('[data-stage]')?.getBoundingClientRect().height ?? 0,
+      visible:
+        window.innerHeight -
+        Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart),
+    }));
+    expect(stage).toBeGreaterThan(visible);
+    const controls = await crewFile(page)
+      .locator('[data-stage] :is(a[href], button)')
+      .evaluateAll((elements) => elements.length);
+    expect(controls).toBeGreaterThan(2);
+    await page.getByRole('region', { name: 'Touchdown' }).getByRole('link').last().focus();
+    const inCrewFile = () =>
+      crewFile(page).evaluate((section) => section.contains(document.activeElement));
+    const names: string[] = [];
+    for (let tab = 0; tab < controls; tab += 1) {
+      await page.keyboard.press('Tab');
+      expect(await inCrewFile()).toBe(true);
+      await expect.poll(() => focusedInView(page)).toBe(true);
+      names.push(await page.locator(':focus').evaluate((element) => element.textContent.trim()));
+    }
+    for (let tab = 1; tab < controls; tab += 1) {
+      await page.keyboard.press('Shift+Tab');
+      expect(await inCrewFile()).toBe(true);
+      await expect.poll(() => focusedInView(page)).toBe(true);
+    }
+    expect(await page.locator(':focus').evaluate((element) => element.textContent.trim())).toBe(
+      names[0],
+    );
   });
 
   test('915×412 (a big phone on its side): the rail keeps only its dots and the HUD steps aside', async ({

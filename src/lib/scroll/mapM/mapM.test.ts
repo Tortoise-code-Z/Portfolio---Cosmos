@@ -118,6 +118,28 @@ describe('mapM', () => {
     expect(segmentAt(4600, layout)).toBe(3);
   });
 
+  it('a linear step morphs at the pace of the scroll, from its window to its end (the arrival, ADR-039)', () => {
+    const layout: ChapterLayout = [
+      { top: 0, height: 1000 },
+      { top: 1000, height: 1600 },
+      { top: 2600, height: 1000 },
+    ];
+    const earth = { base: 4, morphStart: null };
+    const crewFile = { base: 5, morphStart: null };
+    const steps = [earth, { base: 4, morphStart: 0, linear: true }, crewFile];
+    expect(mapM(1000, layout, steps)).toBe(4);
+    expect(mapM(1000 + 160, layout, steps)).toBeCloseTo(4.1, 10);
+    expect(mapM(1000 + 880, layout, steps)).toBeCloseTo(4.55, 10);
+    expect(mapM(lastOfSegmentBefore(2600), layout, steps)).toBeCloseTo(5, 2);
+    expect(mapM(2600, layout, steps)).toBe(5);
+    // Con ventana, quieta hasta ella y lineal después; con la ventana al final, ya en la siguiente.
+    const late = [earth, { base: 4, morphStart: 0.5, linear: true }, crewFile];
+    expect(mapM(1000 + 400, layout, late)).toBe(4);
+    expect(mapM(1000 + 1200, layout, late)).toBeCloseTo(4.5, 10);
+    const edge = [earth, { base: 4, morphStart: 1, linear: true }, crewFile];
+    expect(mapM(1000 + 400, layout, edge)).toBe(5);
+  });
+
   it('a chapter of height 0 counts as fully travelled', () => {
     const flat: ChapterLayout = [
       { top: 0, height: 0 },

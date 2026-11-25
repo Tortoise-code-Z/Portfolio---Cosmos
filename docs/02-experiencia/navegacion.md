@@ -26,6 +26,8 @@
 - El selector EN/ES de la barra superior lleva a la **misma página** en el otro idioma, conservando el capítulo en
   el que estás (el activo según el scroll, aunque la URL no lleve su ancla), el interludio si lo estás leyendo (el
   que marca el raíl con su rombo: `/es#mission-log`) o el proyecto abierto. La sugerencia de idioma hace lo mismo.
+  Durante la llegada del epílogo el raíl ya marca el Crew file, así que cambiar de idioma lleva a `/es#crew-file`, al
+  final de la llegada, con el epílogo ya traído (como el ancla y el raíl; ADR-039).
 - `lang` del documento correcto en cada página (`en` / `es`).
 
 ## Barra superior (fija)

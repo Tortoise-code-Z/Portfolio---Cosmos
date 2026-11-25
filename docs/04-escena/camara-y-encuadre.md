@@ -17,7 +17,9 @@
 | 5 · Retrato (epílogo) | (0, 0, 8,2) | (0, 0, 0) | 0 (centrado: el visor del Crew file está en el centro de la ventana) |
 
 - Entre keyframes: interpolación lineal de posición y objetivo con `t = smoothstep(fract(m))`. En `m = 5`, el
-  keyframe 5 exacto (sin el `4,999` del shader); fuera de 0–5, el capítulo del borde.
+  keyframe 5 exacto (sin el `4,999` del shader); fuera de 0–5, el capítulo del borde. La cámara lee la `m` de la forma
+  (`arrivalShapeM`, ADR-039): en la llegada del epílogo llega al retrato cuando el retrato está formado (en el 55 % de
+  la llegada), como el shader.
 - `shiftX` se suma **a la posición y al objetivo** (desplaza el encuadre sin cambiar el ángulo); lleva la escena
   a la derecha para dejar sitio a los paneles. Solo en escritorio: la misma media query que pone los paneles a un
   lado, `(width >= 900px)` (md; los breakpoints no son tokens: `tokens.css` los lista en su cabecera). Un test la

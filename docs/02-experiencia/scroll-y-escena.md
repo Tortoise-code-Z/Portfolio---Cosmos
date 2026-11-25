@@ -27,7 +27,7 @@ cabe, la sección crece y nunca lo recorta (P1); `useChapterLayout` mide la altu
 | 3 · Tortuga | 240 vh | 260 vh | — (quieta: cambia en la cola de Mission control) |
 | ✦ Mission control | ≥ 100 svh (según contenido) + cola de 100 vh | igual | en la cola, del 0 % al 100 % |
 | 4 · Tierra | ≥ 130 vh (según contenido) | ≥ 130 vh | — (quieta: cambia en la llegada del epílogo) |
-| ✦ Llegada del Crew file | 160 svh (`--arrival-h`; 0 con movimiento reducido), con la sección fija | igual | del 0 % al 100 % (la forma, del 0 % al 55 %) |
+| ✦ Llegada del Crew file | 160 svh (`--arrival-h`; 0 con movimiento reducido), con la sección fija | igual | del 0 % al 100 %, en línea recta (la forma, del 0 % al 55 %; el haz, del 5 % al 70 %) |
 | 5 · Crew file (epílogo) | ≥ 100 svh (según contenido) | igual | — (último) |
 
 ### Tramos del viaje
@@ -40,12 +40,16 @@ vacía y sin puntero, la nebulosa cambia a galaxia, y Skills llega con la galaxi
 Mission control (desde C.4): la tortuga se queda quieta (`m` = 3) y cambia a la Tierra en la cola, y Contact llega
 con la Tierra formada. El epílogo (desde C.6) es un capítulo, no un interludio, y desde C.7 tiene **llegada**
 (ADR-039): Contacto se queda en la Tierra y, al acabar, la sección del Crew file se queda fija bajo la barra (un
-escenario `sticky`) mientras pasa un hueco de `--arrival-h`. Ese tramo (`kind: 'arrival'`) se mide en la propia
-sección; en él la Tierra pasa al retrato (formado al 55 % de la llegada: `EPILOGUE_ARRIVAL.morphEnd`, la misma cuenta
-en la cámara y en el shader) y el haz baja por la pantalla. El epílogo se lee desde el marcador del final de la
-llegada (`data-landing`), que lleva el ancla `#crew-file`: ahí aterrizan el ancla y los saltos (raíl, misión rápida).
-El raíl marca el Crew file durante toda la llegada (`sceneStore.arriving`), no desde la mitad del cambio de forma
-(`round(m)`). Con movimiento reducido el hueco mide 0: el tramo no dura nada y la sección se lee como antes.
+escenario `sticky` que, mientras dura, mide justo lo que se ve bajo la barra) mientras pasa un hueco de
+`--arrival-h`. Ese tramo (`kind: 'arrival'`) se mide en la propia sección y avanza **en línea recta** con el scroll
+(`linear`, sin `smoothstep`): sus cortes se cuentan en el avance del scroll, como en la prueba aprobada. En él la
+Tierra pasa al retrato (formado al 55 % de la llegada: `EPILOGUE_ARRIVAL.morphEnd`, la misma cuenta en la cámara, el
+Sol, la gravedad, el shader y la foto fija sin WebGL) y el haz baja por la pantalla (del 5 % al 70 %). El epílogo se
+lee desde el marcador del final de la llegada (`data-landing`), que lleva el ancla `#crew-file`: ahí aterrizan el
+ancla, los saltos del raíl y el cambio de idioma. El raíl marca el Crew file durante toda la llegada
+(`sceneStore.arriving`), no desde la mitad del cambio de forma (`round(m)`). Con movimiento reducido el hueco mide 0:
+el tramo no dura nada, la sección se lee en cuanto llega y el retrato aparece solo al pasar al epílogo (la escena se
+pone al día por su cuenta, como con un salto del raíl: estados-y-accesibilidad.md).
 
 **Cálculo de `m`** (función pura, testeable):
 
@@ -53,6 +57,7 @@ El raíl marca el Crew file durante toda la llegada (`sceneStore.arriving`), no 
 para el tramo k que contiene la posición y:
   f = (y − inicio_k) / altura_k
   m = base_k + smoothstep(ventana_k, 1, f)      (o base_k si el tramo no cambia o es el último)
+  (un tramo `linear`, la llegada del epílogo: m = base_k + f, sin suavizar)
 ```
 
 Así, cada forma **se queda quieta** mientras lees la primera parte de su capítulo y solo cambia en la segunda (o en la
@@ -94,7 +99,7 @@ interludio, `sceneStore.interlude` lo dice y el raíl lo marca. Código: `src/li
 
 | Elemento | Comportamiento |
 |---|---|
-| Raíl | Capítulo activo = `round(m)`; un interludio, mientras se lee y `round(m)` es aún el capítulo de antes |
+| Raíl | Capítulo activo = `round(m)`; un interludio, mientras se lee y `round(m)` es aún el capítulo de antes; el capítulo que llega, durante toda su llegada (`arriving`) |
 | HUD · reloj | `t = 0 s` hasta `m` 0,004; después, tiempo cósmico interpolado en escala logarítmica entre capítulos (0 → 1 → 2): del tiempo de Planck (10⁻⁴³ s) a 200 Ma y a 1000 Ma. Se cuenta en segundos (potencias de 10) mientras el valor redondeado no llegue a 2 años (nunca «1 years»); después, años y millones con 2 cifras significativas, y la unidad se elige con el valor ya redondeado (999.999 años ya es «1 million»); 1000 Ma hasta `m` 2,5; `∞` de 2,5 a 3,5 (la tortuga es el capítulo activo); 13.800 Ma desde 3,5 |
 | HUD · escala | La del capítulo activo |
 | Hero · nombre | Ancho tipográfico (eje `wdth`): la carga lo comprime de 62 a 50; la explosión lo ensancha hasta 150 (`m` de 0 a 0,35) y separa sus letras (hasta 0,25 em en `m` 1); se va con el scroll. Con la `m` suavizada del hero (ADR-030), también sin WebGL |

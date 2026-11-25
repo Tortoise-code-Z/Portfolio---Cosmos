@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { arrivalBeam, arrivalProgress, arrivalShapeM, EPILOGUE_ARRIVAL } from './arrival';
+import { arrivalProgress, arrivalShapeM, EPILOGUE_ARRIVAL } from './arrival';
 
 describe('arrivalProgress', () => {
   it('0 antes de la llegada, lo que lleva dentro y 1 desde el epílogo', () => {
@@ -36,20 +36,16 @@ describe('arrivalShapeM', () => {
   });
 });
 
-describe('arrivalBeam', () => {
-  it('arriba hasta que empieza, abajo desde que acaba y lineal entre medias', () => {
-    const [start, end] = EPILOGUE_ARRIVAL.beam;
-    expect(arrivalBeam(0)).toBe(0);
-    expect(arrivalBeam(start)).toBe(0);
-    expect(arrivalBeam((start + end) / 2)).toBeCloseTo(0.5);
-    expect(arrivalBeam(end)).toBe(1);
-    expect(arrivalBeam(1)).toBe(1);
-  });
-
+describe('EPILOGUE_ARRIVAL', () => {
   it('el haz baja después de que empiece a formarse el retrato y acaba después de que esté formado', () => {
     const [start, end] = EPILOGUE_ARRIVAL.beam;
     expect(start).toBeGreaterThan(0);
     expect(end).toBeGreaterThan(EPILOGUE_ARRIVAL.morphEnd);
     expect(end).toBeLessThan(1);
+  });
+
+  it('la línea del haz acaba algo más allá del borde de abajo de la ventana, no lejos', () => {
+    expect(EPILOGUE_ARRIVAL.beamReach).toBeGreaterThan(1);
+    expect(EPILOGUE_ARRIVAL.beamReach).toBeLessThan(1.1);
   });
 });

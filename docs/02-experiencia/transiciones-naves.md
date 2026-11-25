@@ -197,7 +197,8 @@ se lee → galaxia, con el scroll, y un botón para cambiar de satélite a nave 
 Al construir C.4 (Mission control) y C.6 (Crew file) no se cerró nada de esto: los tramos y el componente
 `Transmission` admiten un tramo de llegada y un marco más estrecho sin rehacerse. Lo que sí hay que rehacer sobre el
 mapa de formas es lo del retrato: lo atado a `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`
-(ADR-034, nota del cierre de la fase C).
+(ADR-034, nota del cierre de la fase C), y el remapeo de la llegada (ADR-039): `ARRIVAL_MORPH_END` en el shader y
+`arrivalShapeM` en la cámara, el Sol, la gravedad y la foto fija sin WebGL.
 
 ## En cristiano
 

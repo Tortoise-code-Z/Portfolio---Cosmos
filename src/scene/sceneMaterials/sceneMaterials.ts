@@ -2,8 +2,8 @@ import { AdditiveBlending, ShaderMaterial, Vector2, type IUniform } from 'three'
 
 import type { SkillGroupId } from '~/content/types';
 import { lerp } from '~/lib/math/lerp/lerp';
-import { arrivalShapeM } from '~/lib/scroll/arrival/arrival';
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
+import { arrivalShapeM } from '~/lib/scroll/arrival/arrival';
 
 import { NO_PLATE } from '../config/plateSlots/plateSlots';
 import { EARTH_GRAVITY, PORTRAIT_FADE_IN_S, SUN } from '../config/sceneConfig';

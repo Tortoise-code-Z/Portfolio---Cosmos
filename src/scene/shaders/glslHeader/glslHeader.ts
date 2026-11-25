@@ -75,6 +75,7 @@ export function glslHeader(): string {
     `#define ARRIVAL_MORPH_END ${glslFloat(EPILOGUE_ARRIVAL.morphEnd)}`,
     `#define ARRIVAL_BEAM_START ${glslFloat(EPILOGUE_ARRIVAL.beam[0])}`,
     `#define ARRIVAL_BEAM_END ${glslFloat(EPILOGUE_ARRIVAL.beam[1])}`,
+    `#define ARRIVAL_BEAM_REACH ${glslFloat(EPILOGUE_ARRIVAL.beamReach)}`,
     ...colours(),
     '',
   ].join('\n');

@@ -193,7 +193,7 @@ describe('contenido', () => {
     });
   });
 
-  it('la llegada del epílogo (ADR-039): justo antes de leerlo, desde la forma de antes y y desde la Tierra', () => {
+  it('la llegada del epílogo (ADR-039): justo antes de leerlo, desde la forma de antes y desde la Tierra', () => {
     const arrivals = JOURNEY_SEGMENTS.flatMap((segment, index) =>
       segment.kind === 'arrival' ? [{ segment, index }] : [],
     );

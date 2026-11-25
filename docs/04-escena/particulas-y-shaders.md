@@ -54,7 +54,8 @@ antepone a cada shader de vértices:
   `config/plateSlots`), el balanceo de la tortuga `TURTLE_SWAY_*` (`TURTLE_SWAY` de `sceneConfig`, la misma cuenta que
   los pins), la dirección del Sol `SUN_DIR` (`SUN.position` normalizada: la luz de la Tierra, «Iluminación de la
   Tierra»), la mitad del alto del retrato, `PORTRAIT_HALF_H`, y lo que mide su fundido de abajo, `PORTRAIT_FADE_H`
-  (`PORTRAIT_FRAME`).
+  (`PORTRAIT_FRAME`), y la llegada del epílogo `ARRIVAL_BASE`, `ARRIVAL_MORPH_END`, `ARRIVAL_BEAM_START`,
+  `ARRIVAL_BEAM_END` y `ARRIVAL_BEAM_REACH` (`EPILOGUE_ARRIVAL` de `lib/scroll/arrival`, ADR-039).
 - `const vec3 COLOR_<NOMBRE>` desde `config/scenePalette`, que tiene todos los colores principales del design
   system, cada uno en su papel (lo comprueba su test con la tabla), y los matices del prototipo que la tabla no
   lista (los ojos de la tortuga son `COLOR_TURTLE_EYES` × 2: más brillantes que el blanco).
@@ -116,11 +117,13 @@ barra de scroll). Con frames de 0,1 s (el tope del reloj: ≤ 10 fps, un frame a
 por otro antes de apagarse, lo que queda del remolino salta al punto nuevo: aceptado, como un movimiento rápido. La misma intensidad en todos los capítulos salvo la Tierra: desde F4.5, `uGrav` se
 multiplica por `lerp(1; 0,5; presencia del capítulo 4)` (`EARTH_GRAVITY` en `sceneConfig`; `chapterPresence`), así que
 sobre la Tierra el remolino y el brillo extra van a la mitad, y entre la tortuga y la Tierra se suaviza poco a poco. En
-el retrato (m = 5) la presencia ya es 0: su giro con el ratón, que también lee `uGrav`, no cambia. A medio morph hacia él
-(de m = 4 a ~4,56, cuando la presencia llega a 0) va suavizado igual: el retrato a medio formar gira algo menos y ese
-giro crece con el scroll aunque el ratón esté quieto. No se nota y separar el giro del remolino costaría un uniform más:
-aceptado. La regla va por capítulo, no por la forma que se ve: si el retrato no llega, en m = 5 se sigue viendo la Tierra
-(«Retrato») con la gravedad entera; solo pasa si falla el retrato, aceptado. Las constelaciones (F4.3) y el Sol (F4.5)
+el retrato (m = 5) la presencia ya es 0: su giro con el ratón, que también lee `uGrav`, no cambia. La presencia se mide
+con la `m` de la forma (`arrivalShapeM`, ADR-039): en la llegada del epílogo, la Tierra se va con el morph, que acaba
+en el 55 % de la llegada. A medio morph hacia el retrato (de la forma 4 a la ~4,56, cuando la presencia llega a 0; de
+`m` 4 a ~4,31 en la llegada) va suavizado igual: el retrato a medio formar gira algo menos y ese giro crece con el
+scroll aunque el ratón esté quieto. No se nota y separar el giro del remolino costaría un uniform más: aceptado. La regla
+va por la forma que toca, no por la que se ve: si el retrato no llega, en m = 5 se sigue viendo la Tierra («Retrato»)
+con la gravedad entera; solo pasa si falla el retrato, aceptado. Las constelaciones (F4.3) y el Sol (F4.5)
 no son partículas: la gravedad no los mueve.
 
 ### Colores
@@ -145,9 +148,12 @@ shader le suma:
 - **Haz de la llegada, en pantalla** (C.7 · ADR-039). En la llegada del epílogo, el retrato se forma en
   `ARRIVAL_MORPH_END` (la `m` de la forma se remapea en el shader como en la cámara, `arrivalShapeM`) y el haz baja
   por la **pantalla**, de arriba abajo, entre `ARRIVAL_BEAM_START` y `ARRIVAL_BEAM_END` (`arrivalBeam()`, la misma
-  cuenta que la página: `lib/scroll/arrival`). Tras proyectar, la `y` de cada partícula (NDC) se compara con la línea:
-  por encima se enciende y brilla al pasar; por debajo llega apagada (12 % de su luz). Solo toca la parte del retrato
-  en la mezcla (`tt · uPor`). Si el retrato llega con la escena ya ahí, el haz baja con la subida de `uPor`
+  cuenta que la página: `lib/scroll/arrivalChoreography`), hasta `ARRIVAL_BEAM_REACH` altos de la ventana (1,025: algo
+  más allá del borde de abajo, para que su brillo salga entero; la página usa la misma línea, `arrivalBeamLine`). Tras
+  proyectar y tras la gravedad del cursor (donde se pinta cada partícula), la `y` de cada partícula (NDC) se compara
+  con la línea: por encima se enciende y brilla al pasar; por debajo llega apagada (12 % de su luz). Pesa con la parte
+  del retrato en la mezcla (`tt · uPor`): toca la mezcla entera, así que a medio cambio, por debajo de la línea, también
+  se oscurece la Tierra que se va (por debajo del haz, negro). Si el retrato llega con la escena ya ahí, el haz baja con la subida de `uPor`
   (`min(haz, uPor)`). Al acabar, entra el haz en bucle por la cara, fundido (en el último 20 % de la bajada). Ni el haz ni los fallos encienden
   lo que la foto funde (el corte del busto): se apagan con el mismo fundido, sacado de la altura (`PORTRAIT_FADE_H`).
 - **Fallos de señal:** cada 0,2 s, una franja horizontal de cada 100 salta de lado y brilla. El tick se acota
@@ -216,11 +222,12 @@ las constelaciones.
   como el de la Tierra. En un móvil apaisado (800×360, 667×375, 844×390) el halo pasa bajo la barra de arriba con un
   escalón de +9 a +14 y se ve un corte plano en su borde (la Tierra no la toca): aceptado, por ser un tamaño raro; un
   Sol más pequeño solo ahí dependería del alto de la barra. Se mira en un móvil real (F6).
-- **Cuándo:** `uOpacity` = presencia del capítulo 4 · 0,95 (`chapterPresence`, la rampa de las placas): entero en la
-  Tierra y apagado antes de llegar al retrato. Nada antes de que las partículas se pinten (`SceneFrame.painted`, como
+- **Cuándo:** `uOpacity` = presencia del capítulo 4 · 0,95 (`chapterPresence`, la rampa de las placas), con la `m` de
+  la forma (`arrivalShapeM`, ADR-039): entero en la Tierra y apagado antes de llegar al retrato (en la llegada del
+  epílogo, entre `m` 4,30 y 4,31, con la Tierra que se va). Nada antes de que las partículas se pinten (`SceneFrame.painted`, como
   los pins): entrando por `/#contact`, mientras llegan las formas, brillaría sobre el vacío. Con opacidad 0 no se pinta
-  (`material.visible`): un cuadrado tan grande costaría píxeles en cada frame aunque no se viera. La regla va por
-  capítulo, no por la forma que se ve: si el retrato no llega, en m = 5 se sigue viendo la Tierra («Retrato»), ya sin
+  (`material.visible`): un cuadrado tan grande costaría píxeles en cada frame aunque no se viera. La regla va por la
+  forma que toca, no por la que se ve: si el retrato no llega, en m = 5 se sigue viendo la Tierra («Retrato»), ya sin
   Sol pero iluminada desde `SUN_DIR`; solo pasa si falla el retrato, aceptado. No lee `SceneFrame.transmission`: va
   detrás de Mission control y entra en su cola; al saltar con el raíl al interludio, se apaga con la rampa (~0,24 s),
   como se aceptó para los pins.

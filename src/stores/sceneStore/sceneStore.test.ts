@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   activeChapter,
   sceneStore,
-  selectActiveChapter,
   selectActiveStop,
   setCharge,
   setReadingArrival,
@@ -111,14 +110,6 @@ describe('activeChapter', () => {
     expect(activeChapter(-1)).toBe(0);
     expect(activeChapter(9)).toBe(5);
     expect(activeChapter(Number.NaN)).toBe(0);
-  });
-});
-
-describe('selectActiveChapter', () => {
-  it('reads the active chapter from the state', () => {
-    expect(
-      selectActiveChapter({ mTarget: 3.2, m: 3.2, charge: 0, interlude: null, arriving: null }),
-    ).toBe(3);
   });
 });
 

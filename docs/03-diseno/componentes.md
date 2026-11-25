@@ -101,7 +101,8 @@
 - Columna de enlaces alineados a la derecha, uno por capítulo y uno por interludio en su sitio (fase C: el Mission
   log, entre About y Skills, y Mission control, entre Projects y Contact): texto (sección en Geologica 500 a 13 px + escena en mono 10 px, `--text-nano`) y punto de
   7 px; el de un interludio, un rombo del mismo tamaño. Los enlaces miden lo que el más ancho: los puntos forman una
-  columna. Un interludio es el activo mientras se lee (su pantalla y la primera mitad de su cola).
+  columna. Un interludio es el activo mientras se lee (su pantalla y la primera mitad de su cola), y el Crew file, durante
+  toda su llegada (`arriving`, ADR-039).
 - Centrado en vertical; si no cabe entero bajo la barra (un móvil apaisado), baja lo justo para que su primera parada
   empiece debajo (`--rail-half-h`; la escena reserva lo mismo para sus etiquetas, `keepOutZones`). Desde C.6 son ocho
   paradas: en una ventana baja (390 o 360 px de alto) no caben ocho de 44 px bajo la barra, así que encogen lo justo
@@ -123,11 +124,14 @@
   200 %.
 - Dos variantes (props exclusivas: el tipo no deja mezclarlas): un **interludio** (`id`, `clock`) o el **epílogo**,
   un capítulo que se lee como transmisión (`chapter`, que solo puede ser el 5; `stripEnd`, `footer`): lleva
-  `data-chapter` y no tiene cola, pero sí **llegada** (ADR-039): lo que se ve va en un escenario pegado bajo la barra
-  (con el fondo, el barrido y la banda de entrada) mientras pasa un hueco de `--arrival-h` (0 con movimiento
-  reducido), y su ancla (`CHAPTER_ANCHORS`) está en el marcador del final de la llegada (`data-landing`). Si el foco
-  cae en el escenario fuera de la vista (Tab, con la ventana más baja que él), se va al final de la llegada y lo justo
-  más allá para enseñarlo.
+  `data-chapter` y no tiene cola, pero sí **llegada** (ADR-039): lo que se ve va en un escenario (`data-stage`) pegado
+  bajo la barra (con el fondo, el barrido y la banda de entrada) mientras pasa un hueco de `--arrival-h` (0 con
+  movimiento reducido y al imprimir); mientras dura, el escenario mide justo lo que se ve bajo la barra. Su ancla
+  (`CHAPTER_ANCHORS`) está en el marcador del final de la llegada (`data-landing`), que va el primero en el DOM (su sitio
+  lo pone el CSS): quien entra por el ancla sigue con Tab por el escenario. Si lo enfocado con Tab cae en el escenario
+  fuera de la vista (la ventana más baja que él), se va al final de la llegada y lo justo más allá para enseñarlo con
+  su anillo y el aire de abajo (`scroll-padding`); no con el foco de un salto, un clic o sin llegada, y deja de mirar
+  si el usuario mueve la página. En alto contraste, la sección y el escenario van sobre `Canvas`, sin la escena.
 - Franja del canal arriba, con aire arriba y abajo (`--space-2`: el anillo de foco no se corta): indicador de señal
   y nombre del canal, y «Skip transmission ↓», un enlace de verdad al capítulo siguiente (`INTERLUDE[id].next`; salta
   con el foco en su título, como el raíl; ≥ 44 px). El enlace es `ChapterJumpLink`, el mismo de «Touchdown» en
