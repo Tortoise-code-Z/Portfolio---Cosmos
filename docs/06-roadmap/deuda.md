@@ -19,7 +19,8 @@
   PR 1 hecho (#124: tramo de llegada, sección fija, saltos, escena) y su auditoría corregida (#126); PR 2 (la
   coreografía de la página) hecho en S49 (#127) y su auditoría corregida en S50. Desde S51 la cara sigue a su marco
   (ADR-042): mirar en el móvil de Víctor, con WebGL, que va dentro al hacer scroll, también con la barra del navegador
-  que aparece y desaparece (el centro de la ventana se mide con `clientHeight`) (F6).
+  que aparece y desaparece (el centro de la ventana se mide con `clientHeight`), y en Safari: el e2e que lo mide con
+  WebGL solo corre en Chromium (en WebKit, en el CI, la captura no sale al día) (F6).
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
   cómo está construido: solo herramientas, para qué y lo hecho (nota de ADR-034; `experiencia.md` → «Regla de
   privacidad», sin ejemplos desde la auditoría de C.2: una lista en un repo público sería la filtración). Las viñetas y la bio van
