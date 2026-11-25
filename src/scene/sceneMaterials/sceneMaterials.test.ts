@@ -2,6 +2,7 @@ import { AdditiveBlending } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
+import { SHAPE } from '~/lib/scroll/shapeTrack/shapeTrack';
 
 import {
   CHAPTER_PRESENCE_FADE,
@@ -87,6 +88,27 @@ describe('particle uniforms', () => {
     expect(uniforms.uMouse.value.toArray()).toEqual([POINTER_AWAY, POINTER_AWAY]);
   });
 
+  it('start still in the singularity (the shape map, ADR-041)', () => {
+    const uniforms = createParticleUniforms();
+    expect(uniforms.uFrom.value).toBe(SHAPE.singularity);
+    expect(uniforms.uTo.value).toBe(SHAPE.nebula);
+    expect(uniforms.uT.value).toBe(0);
+  });
+
+  it('take the shapes from the m of the shape: the portrait is formed before the arrival ends (ADR-039)', () => {
+    const uniforms = createParticleUniforms();
+    const { base, morphEnd } = EPILOGUE_ARRIVAL;
+    updateParticleUniforms(uniforms, { ...frame, m: base + morphEnd / 2 });
+    expect(uniforms.uFrom.value).toBe(SHAPE.earth);
+    expect(uniforms.uTo.value).toBe(SHAPE.portrait);
+    expect(uniforms.uT.value).toBeCloseTo(0.5);
+    updateParticleUniforms(uniforms, { ...frame, m: base + 1 });
+    expect(uniforms.uM.value).toBe(base + 1);
+    expect(uniforms.uFrom.value).toBe(SHAPE.earth);
+    expect(uniforms.uTo.value).toBe(SHAPE.portrait);
+    expect(uniforms.uT.value).toBeCloseTo(0.999, 9);
+  });
+
   it('take the frame in place (the same objects every frame)', () => {
     const uniforms = createParticleUniforms();
     const before = { ...uniforms };
@@ -94,6 +116,9 @@ describe('particle uniforms', () => {
     updateParticleUniforms(uniforms, frame);
     expect(uniforms).toEqual(before);
     expect(uniforms.uM.value).toBe(2.5);
+    expect(uniforms.uFrom.value).toBe(SHAPE.galaxy);
+    expect(uniforms.uTo.value).toBe(SHAPE.turtle);
+    expect(uniforms.uT.value).toBe(0.5);
     expect(uniforms.uCharge.value).toBe(0.4);
     expect(uniforms.uPlate.value).toBe(21);
     expect(uniforms.uTime.value).toBe(12);

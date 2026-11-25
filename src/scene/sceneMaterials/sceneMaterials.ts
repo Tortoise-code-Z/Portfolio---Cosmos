@@ -4,6 +4,12 @@ import type { SkillGroupId } from '~/content/types';
 import { lerp } from '~/lib/math/lerp/lerp';
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
 import { arrivalShapeM } from '~/lib/scroll/arrival/arrival';
+import {
+  createShapeMix,
+  shapeMixAt,
+  shapePosition,
+  type ShapeId,
+} from '~/lib/scroll/shapeTrack/shapeTrack';
 
 import { NO_PLATE } from '../config/plateSlots/plateSlots';
 import { EARTH_GRAVITY, PORTRAIT_FADE_IN_S, SUN } from '../config/sceneConfig';
@@ -29,8 +35,15 @@ import sunVertex from '../shaders/sun/sun.vert.glsl?raw';
  */
 
 export interface ParticleUniforms {
-  /** `m` (0–5). */
+  /** `m` (0–5): la de la llegada del epílogo (su haz). La forma va en `uFrom`, `uTo` y `uT`. */
   readonly uM: IUniform<number>;
+  /**
+   * El mapa de formas (ADR-041): la forma de la que sale (`SHAPE`), a la que va y cuánto lleva (0 → 1; 0, quieta en
+   * `uFrom`, y el shader evalúa una sola).
+   */
+  readonly uFrom: IUniform<ShapeId>;
+  readonly uTo: IUniform<ShapeId>;
+  readonly uT: IUniform<number>;
   /** Segundos de animación (congelados con movimiento reducido). */
   readonly uTime: IUniform<number>;
   /** Carga de la detonación (0–1): el punto crece y vibra (la vibración, sin movimiento reducido). */
@@ -52,7 +65,7 @@ export interface ParticleUniforms {
   /** 1 · 0 en Bajo: sin estela de la tortuga ni luces de ciudad. */
   readonly uExtras: IUniform<number>;
   /**
-   * El retrato (`pPor`): 0 hasta que está en la geometría (la forma 5 es la Tierra); entonces sube a 1 en
+   * El retrato (`pPor`): 0 hasta que está en la geometría (el retrato es la Tierra); entonces sube a 1 en
    * `PORTRAIT_FADE_IN_S` (de golpe con movimiento reducido) y la Tierra pasa a retrato.
    */
   readonly uPor: IUniform<number>;
@@ -93,8 +106,12 @@ export const STARS_VISIBLE_FROM = 0.02;
 export const STARS_VISIBLE_AT = 0.4;
 
 export function createParticleUniforms(): ParticleUniforms {
+  const { from, to, t } = createShapeMix();
   return {
     uM: { value: 0 },
+    uFrom: { value: from },
+    uTo: { value: to },
+    uT: { value: t },
     uTime: { value: 0 },
     uCharge: { value: 0 },
     uPR: { value: 1 },
@@ -211,7 +228,11 @@ export function motionOf(frame: Readonly<SceneFrame>): number {
   return frame.reducedMotion ? 0 : 1;
 }
 
+/** Las formas de este frame (un solo objeto para toda la visita: ADR-004). */
+const shapeMix = createShapeMix();
+
 /**
+ * Las formas salen de la `m` de la escena por el mapa de formas (`shapePosition`, `shapeMixAt`: ADR-041).
  * `portrait`: el retrato ya está en la geometría (`pPor`). `uPor` sube desde lo que valía (los uniforms duran toda la
  * visita, también al cambiar las formas): solo vuelve a 0 sin retrato.
  */
@@ -221,6 +242,10 @@ export function updateParticleUniforms(
   portrait = false,
 ): void {
   uniforms.uM.value = frame.m;
+  shapeMixAt(shapePosition(frame.m), shapeMix);
+  uniforms.uFrom.value = shapeMix.from;
+  uniforms.uTo.value = shapeMix.to;
+  uniforms.uT.value = shapeMix.t;
   uniforms.uPor.value = !portrait
     ? 0
     : frame.reducedMotion

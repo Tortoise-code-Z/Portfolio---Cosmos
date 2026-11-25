@@ -1,6 +1,8 @@
 import { renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { SHAPE } from '~/lib/scroll/shapeTrack/shapeTrack';
+
 import { PORTRAIT_FADE_IN_S } from '../config/sceneConfig';
 import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
 import { generateShapes } from '../shapes/generateShapes/generateShapes';
@@ -52,11 +54,13 @@ describe('useParticles', () => {
     frame.time = 1.25;
     paintFrame();
     expect(result.current.material.uniforms.uM?.value).toBe(2.5);
+    expect(result.current.material.uniforms.uT?.value).toBe(0.5);
     expect(result.current.material.uniforms.uTime?.value).toBe(1.25);
     frame.m = 3.5;
     frame.time = 2;
     paintFrame();
     expect(result.current.material.uniforms.uM?.value).toBe(3.5);
+    expect(result.current.material.uniforms.uFrom?.value).toBe(SHAPE.turtle);
     expect(result.current.material.uniforms.uTime?.value).toBe(2);
   });
 

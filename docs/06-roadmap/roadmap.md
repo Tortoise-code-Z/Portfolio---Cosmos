@@ -194,7 +194,11 @@ por paso, en este orden:
    transmisión: la nebulosa se convierte en un satélite que se acerca hasta que su pantalla llena la vista; la
    transmisión se lee a pantalla completa, como hoy, y al salir el satélite se aleja llevándose la pantalla con el
    texto. En Mission control, una nave nodriza; el retrato llega directo desde la Tierra. Prueba fuera del repo hecha
-   (versión 8); faltan su ADR (un ADR nuevo, numerado al escribirlo) y un PR: `docs/02-experiencia/transiciones-naves.md`.
+   (versión 8): `docs/02-experiencia/transiciones-naves.md`. Se construye en cuatro PR (ADR-041): el **mapa de formas**,
+   sin ningún cambio visible (la escena recibe qué dos formas mezcla, `uFrom`/`uTo`/`uT`, en vez de sacarlas de `m`; en
+   curso); el **satélite** en el Mission log (con el tope de peso de la escena que mida); la **nave nodriza** en el
+   Mission control, y la **coreografía de la página** de las transmisiones (el marco encajado, la vista llena y la
+   salida con la pantalla).
    **Primer paso (sesión 47, antes de las naves): la entrada del Crew file** (prueba aprobada): la
    sección se queda fija mientras la Tierra se deshace en el retrato, el haz baja revelándola y el visor se cierra
    (`05-crew-file.md` → «Transición», ADR-039). En dos PR: el tramo de llegada, la sección fija, los saltos y la

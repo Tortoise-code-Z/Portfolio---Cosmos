@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
+import { SHAPE, SHAPE_TRACK } from '~/lib/scroll/shapeTrack/shapeTrack';
 
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
 import { CAMERA_KEYFRAMES, SUN, TURTLE_SWAY } from '../../config/sceneConfig';
@@ -109,20 +110,28 @@ describe('glslHeader', () => {
     const define = (name: string): number =>
       Number(new RegExp(`#define ${name} (\\S+)\\n`).exec(header)?.[1]);
     expect(define('ARRIVAL_BASE')).toBe(EPILOGUE_ARRIVAL.base);
-    expect(define('ARRIVAL_MORPH_END')).toBe(EPILOGUE_ARRIVAL.morphEnd);
     expect(define('ARRIVAL_BEAM_START')).toBe(EPILOGUE_ARRIVAL.beam[0]);
     expect(define('ARRIVAL_BEAM_END')).toBe(EPILOGUE_ARRIVAL.beam[1]);
     expect(define('ARRIVAL_BEAM_REACH')).toBe(EPILOGUE_ARRIVAL.beamReach);
-    // El shader los usa: la forma acaba en ARRIVAL_MORPH_END y la línea del haz baja hasta ARRIVAL_BEAM_REACH altos de
-    // la ventana (en NDC, de 1 arriba a −1 abajo: el doble), como `arrivalBeamLine` de la página.
-    expect(particlesVertex).toContain('(m - ARRIVAL_BASE) / ARRIVAL_MORPH_END');
+    // El shader los usa: la línea del haz baja hasta ARRIVAL_BEAM_REACH altos de la ventana (en NDC, de 1 arriba a −1
+    // abajo: el doble), como `arrivalBeamLine` de la página. Dónde está formado el retrato no: llega en `uT`
+    // (`shapePosition`, la misma cuenta que la cámara).
+    expect(header).not.toContain('ARRIVAL_MORPH_END');
     expect(particlesVertex).toContain('float b = 1.0 - 2.0 * ARRIVAL_BEAM_REACH * down;');
   });
 
-  it('LAST_M of the particles shader stops just short of the last shape (one per camera keyframe)', () => {
-    // El último morph va de la penúltima forma a la última: `floor(m)` llega a la penúltima y `k + 1` es la última.
-    const value = /const float LAST_M = (\S+);/.exec(particlesVertex)?.[1];
-    expect(Number(value)).toBeCloseTo(CAMERA_KEYFRAMES.length - 2 + 0.999, 6);
+  it('defines an id per shape, the ones of uFrom/uTo (the shape map, ADR-041)', () => {
+    for (const [key, id] of Object.entries(SHAPE)) {
+      expect(header).toContain(`#define SHAPE_${constantName(key)} ${glslFloat(id)}\n`);
+    }
+    // El shader elige la forma por su id, nunca por un número escrito a mano.
+    expect(particlesVertex).not.toMatch(/\b(?:uFrom|uTo|id) [<>]/);
+  });
+
+  it('the shape track has a shape per camera keyframe: m and the shape still go together (ADR-041)', () => {
+    // Hoy la `m` de la forma es la de los capítulos: una forma por pose de la cámara. Las naves (C.7) cambian esto.
+    expect(SHAPE_TRACK).toHaveLength(CAMERA_KEYFRAMES.length);
+    expect(particlesVertex).not.toContain('LAST_M');
   });
 
   it('no pow() whose base can be negative (undefined in GLSL ES): only the bases known to be ≥ 0', () => {

@@ -10,10 +10,10 @@
 
 - **C.7 · Naves** (fuera del cierre de la fase C: después de F4.5 o en el pulido): estudio, versiones
   de la prueba y lecciones del shader en `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a
-  pantalla completa). La prueba es el artefacto privado «Naves · prueba»; copia del código en el buzón (`naves/`, fuera de git). Al
-  construir: su ADR (uno nuevo, numerado al escribirlo: mapa de formas `uFrom`/`uTo`/`uT`, que obliga a rehacer sobre él lo del retrato atado a
-  `m − 4`, la dispersión de `k > 3.5`, `LAST_M` y la subida de `uPor`) y el peso: quedan 2 660 B tras la corrección de la auditoría
-  de la llegada (257 340 B), así que su ADR subirá el límite con esos números reales. **Primer paso en marcha (desde S47):** la entrada
+  pantalla completa). La prueba es el artefacto privado «Naves · prueba»; copia del código en el buzón (`naves/`, fuera de git). Su ADR es
+  el ADR-041 (el mapa de formas, `uFrom`/`uTo`/`uT`, en su primer PR, sin cambio visible). Falta el peso: el mapa de formas
+  suma ~255 B (257 330 → 257 585 B, medido en Linux; quedan ~2 415 B), así que el PR del satélite subirá el límite con
+  sus números reales. **Primer paso en marcha (desde S47):** la entrada
   del Crew file (ADR-039; prueba aprobada: artefacto privado «Crew file · entrada», copia en el buzón (`crew-entrada/`, fuera de git)).
   PR 1 hecho (#124: tramo de llegada, sección fija, saltos, escena) y su auditoría corregida (#126); PR 2 (la
   coreografía de la página) hecho en S49 (#127) y su auditoría corregida en S50. Mirar en el móvil de Víctor, con WebGL, si el marco del

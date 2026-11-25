@@ -4,13 +4,13 @@ import { SCENE_SEED } from '../config/sceneConfig';
 import { loadPortrait } from '../worker/loadShapes/loadShapes';
 
 /**
- * El retrato de la escena (forma 5, docs/04-escena/formas.md → «Retrato»): no se pide con las demás formas, sino
- * cuando `want()` lo pide (`Particles`, al llegar a la tortuga, un tramo antes de la Tierra: `PORTRAIT_LOAD_FROM_M`),
- * en un encargo aparte al worker que descarga sus imágenes. **Un solo encargo por visita**, con el `count` de las
- * formas que había al pedirlo: si después bajan (la degradación en caliente), también con el encargo en marcha, no se
- * pide otra vez ni se cancela; el retrato de `n` partículas es el principio del de más (`generatePortrait`), así que
- * se usa ese trozo. Si falla, no se reintenta: la forma 5 se queda en la Tierra (`uPor` 0). Solo se cancela al
- * desmontar.
+ * El retrato de la escena (`SHAPE.portrait`, docs/04-escena/formas.md → «Retrato»): no se pide con las demás formas,
+ * sino cuando `want()` lo pide (`Particles`, al llegar a la tortuga, un tramo antes de la Tierra:
+ * `PORTRAIT_LOAD_FROM_M`), en un encargo aparte al worker que descarga sus imágenes. **Un solo encargo por visita**,
+ * con el `count` de las formas que había al pedirlo: si después bajan (la degradación en caliente), también con el
+ * encargo en marcha, no se pide otra vez ni se cancela; el retrato de `n` partículas es el principio del de más
+ * (`generatePortrait`), así que se usa ese trozo. Si falla, no se reintenta: el retrato se queda en la Tierra (`uPor`
+ * 0). Solo se cancela al desmontar.
  */
 export interface ScenePortrait {
   /** `pPor` para el `count` de las formas que se pintan, o `null` (aún no, o falló). */
@@ -47,7 +47,7 @@ export function usePortrait(count: number | null): ScenePortrait {
         if (result.ok) {
           setLoaded({ count: requested, data: result.value });
         } else if (result.reason !== 'aborted') {
-          // Degradación prevista: la forma 5 se queda en la Tierra (docs/04-escena/rendimiento.md).
+          // Degradación prevista: el retrato se queda en la Tierra (docs/04-escena/rendimiento.md).
           console.warn(
             '[scene] The portrait did not arrive; keeping the Earth',
             result.reason,

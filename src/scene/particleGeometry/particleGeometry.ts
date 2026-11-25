@@ -20,7 +20,7 @@ export const SHAPE_ATTRIBUTES = {
 /** `aR`: 4 por partícula. */
 export const RAND_ATTRIBUTE = 'aR';
 
-/** El retrato (forma 5): 4 por partícula. Llega después que las demás (`usePortrait`) y se añade entonces. */
+/** El retrato (`SHAPE.portrait`): 4 por partícula. Llega después que las demás (`usePortrait`) y se añade entonces. */
 export const PORTRAIT_ATTRIBUTE = 'pPor';
 
 /**
