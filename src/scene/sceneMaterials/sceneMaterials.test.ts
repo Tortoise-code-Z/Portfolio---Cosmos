@@ -150,6 +150,10 @@ describe('particle uniforms', () => {
     }
     // A medio morph hacia el retrato, aún suavizada; en la tortuga y en el retrato, entera.
     expect(at(fromShapeM(EARTH_GRAVITY.chapter + 0.25))).toBeLessThan(whole);
+    // Con números fijos, sin la cuenta de `fromShapeM`: en la llegada la Tierra se va con la forma (ADR-039), y la
+    // rampa acaba entre `m` 4,30 y 4,31 (forma en 4 + 1/1,8 ≈ 4,556; × `morphEnd` 0,55 ≈ 4,306), no en 4,556.
+    expect(at(4.3)).toBeLessThan(whole);
+    expect(at(4.31)).toBe(whole);
     expect(at(EARTH_GRAVITY.chapter - 1)).toBe(whole);
     expect(at(EARTH_GRAVITY.chapter + 1)).toBe(whole);
   });
@@ -245,6 +249,9 @@ describe('sun uniforms', () => {
     }
     expect(opacityAt(SUN.chapter - 1)).toBe(0);
     expect(opacityAt(SUN.chapter + 1)).toBe(0);
+    // Con números fijos: en la llegada se apaga con la forma, entre `m` 4,30 y 4,31 (ver la gravedad).
+    expect(opacityAt(4.3)).toBeGreaterThan(0);
+    expect(opacityAt(4.31)).toBe(0);
   });
 
   it('waits for the particles: nothing on its chapter before they are painted (the Earth not there yet)', () => {

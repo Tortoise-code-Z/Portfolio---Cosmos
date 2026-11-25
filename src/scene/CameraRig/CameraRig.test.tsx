@@ -3,7 +3,7 @@ import { OrthographicCamera, PerspectiveCamera, Vector3, type Camera } from 'thr
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { CAMERA_KEYFRAMES, PARALLAX } from '../config/sceneConfig';
-import { cameraFov } from '../math/camera/camera';
+import { cameraFov, cameraPose, createCameraPose, createParallax } from '../math/camera/camera';
 import { createScreenPoint, projectToScreen } from '../math/projection/projection';
 import { createSceneFrame, type SceneFrame } from '../sceneMaterials/sceneMaterials';
 import { CAMERA_RIG_PRIORITY, CameraRig } from './CameraRig';
@@ -47,6 +47,29 @@ function facing(camera: Camera): Vector3 {
 }
 
 describe('CameraRig', () => {
+  it('in the arrival of the epilogue it follows the shape, not the scroll: on the portrait once it is formed (ADR-039)', () => {
+    const camera = new PerspectiveCamera(55, 16 / 9, 0.1, 400);
+    const { frame, tick } = mountRig(camera);
+    const pose = (m: number): number[] => {
+      const { position } = cameraPose(m, frame.wide, createParallax(), createCameraPose());
+      return [position.x, position.y, position.z];
+    };
+    // Valores fijos (`morphEnd` = 0,55): formado en 4,55 y quieto hasta 5; a medio formar (4,275), a medio camino.
+    for (const [m, shape] of [
+      [4.55, 5],
+      [4.9, 5],
+      [4.275, 4.5],
+    ] as const) {
+      frame.m = m;
+      tick();
+      camera.position.toArray().forEach((value, axis) => {
+        expect(value).toBeCloseTo(pose(shape)[axis] ?? Number.NaN, 6);
+      });
+    }
+    // Con la `m` de la escena tal cual, la pose sería otra: el test lo vería.
+    expect(pose(4.275)).not.toEqual(pose(4.5));
+  });
+
   it('puts the camera on the keyframe of m, looking at its target', () => {
     const camera = new PerspectiveCamera(55, 16 / 9, 0.1, 400);
     const { frame, tick } = mountRig(camera);

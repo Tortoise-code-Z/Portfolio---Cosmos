@@ -81,15 +81,14 @@ describe('Journey', () => {
     // Un capítulo con llegada se mide en su sección (la llegada) y se lee desde su marcador (`data-landing`).
     expect(inDom).toEqual(
       JOURNEY_SEGMENTS.map((segment, index) => {
-        if (segment.kind === 'arrival') return String(segment.chapter);
-        if (segment.kind === 'chapter') {
-          const before = JOURNEY_SEGMENTS[index - 1];
-          return before?.kind === 'arrival' && before.chapter === segment.chapter
-            ? 'landing'
-            : String(segment.chapter);
+        if ('interlude' in segment) {
+          return segment.kind === 'interlude' ? segment.interlude : `${segment.interlude} tail`;
         }
-        if (!('interlude' in segment)) return '';
-        return segment.kind === 'interlude' ? segment.interlude : `${segment.interlude} tail`;
+        if (segment.kind === 'arrival') return String(segment.chapter);
+        const before = JOURNEY_SEGMENTS[index - 1];
+        return before?.kind === 'arrival' && before.chapter === segment.chapter
+          ? 'landing'
+          : String(segment.chapter);
       }),
     );
   });
@@ -129,17 +128,48 @@ describe('Journey', () => {
     expect(at(7500).mTarget).toBeCloseTo(3.5);
     expect(at(7500).interlude).toBe('mission-control');
     expect(at(8000)).toEqual({ mTarget: 4, interlude: null });
-    // Contacto se queda en la Tierra hasta el final; en la llegada del epílogo la Tierra cambia al retrato (ventana 0),
-    // y el raíl ya marca el epílogo; desde su marcador se lee como capítulo (no es un interludio), con él formado.
+    // Contacto se queda en la Tierra hasta el final; en la llegada del epílogo la Tierra cambia al retrato al ritmo del
+    // scroll (en línea recta, `linear`) y el raíl ya marca el epílogo; desde su marcador se lee como capítulo (no es un
+    // interludio), con él formado.
     expect(at(8990)).toEqual({ mTarget: 4, interlude: null });
     expect(arriving()).toBeNull();
     expect(at(9000)).toEqual({ mTarget: 4, interlude: null });
     expect(arriving()).toBe(5);
+    expect(at(9200).mTarget).toBeCloseTo(4.2);
     expect(at(9500).mTarget).toBeCloseTo(4.5);
     expect(arriving()).toBe(5);
     expect(at(10000)).toEqual({ mTarget: 5, interlude: null });
     expect(arriving()).toBeNull();
     expect(at(10500)).toEqual({ mTarget: 5, interlude: null });
+    // De vuelta a Contacto desde la llegada, el raíl deja de marcar el epílogo.
+    at(9500);
+    expect(arriving()).toBe(5);
+    expect(at(8500)).toEqual({ mTarget: 4, interlude: null });
+    expect(arriving()).toBeNull();
+  });
+
+  it('con movimiento reducido la llegada mide 0: se pasa de Contacto al epílogo sin parada en medio', async () => {
+    // Como el test de arriba, pero el marcador del Crew file cae donde empieza su sección (el hueco mide 0).
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const order = [...document.querySelectorAll(JOURNEY_SEGMENT_SELECTOR)].indexOf(this);
+      const top = Math.max(order === 10 ? 9 : order, 0) * 1000;
+      return { top: top - window.scrollY, height: 1000 } as DOMRect;
+    });
+    render(<Stub initialEntries={['/']} />);
+    await screen.findByRole('heading', { level: 1 });
+    const seen = new Set<number | null>();
+    const at = (y: number): number => {
+      Object.defineProperty(window, 'scrollY', { configurable: true, value: y });
+      fireEvent.scroll(window);
+      seen.add(sceneStore.getState().arriving);
+      return sceneStore.getState().mTarget;
+    };
+    expect(at(8990)).toBe(4);
+    expect(at(9000)).toBe(5);
+    for (let y = 8000; y <= 10_000; y += 50) at(y);
+    expect([...seen]).toEqual([null]);
   });
 
   it('la sugerencia de idioma va la última en el orden del Tab, después del modo misión rápida', async () => {

@@ -35,23 +35,36 @@ guardada fuera del repo). Hasta C.7 el retrato se formaba en la segunda mitad de
 crudo»: ahora la escena trae el epílogo.
 
 - **La llegada:** al acabar Contacto, la sección se queda fija bajo la barra (escritorio: la pantalla entera; móvil:
-  su primera pantalla, con el título, la entrada y el visor) mientras pasan 160 svh de scroll (`--arrival-h`). Todo se
-  mide con lo que lleva la llegada (`a`, de 0 a 1: `m − 4` con la `m` suavizada de la escena, `lib/scroll/arrival`):
+  su primera pantalla, con el título, la entrada y el visor) mientras pasan 160 svh de scroll (`--arrival-h`). Mientras
+  dura, el escenario mide justo lo que se ve bajo la barra (la pantalla entera es literal y el pie se ve). Todo se mide
+  con lo que lleva la llegada (`a`, de 0 a 1: `m − 4` con la `m` suavizada de la escena, `lib/scroll/arrival`), que
+  avanza en línea recta con el scroll: los cortes de abajo son también la fracción recorrida de la llegada.
   - la Tierra se deshace en el retrato (formado en `a` = 0,55); las partículas llegan apagadas;
-  - el haz baja por la pantalla (de `a` = 0,05 a 0,70) y enciende lo que deja atrás: en la escena, el retrato;
+  - el haz baja por la pantalla (de `a` = 0,05 a 0,70, hasta 1,025 altos de la ventana: `beamReach`) y enciende lo
+    que deja atrás: en la escena, el retrato; la página lo pinta con la misma línea (`arrivalBeamLine`, en
+    `lib/scroll/arrivalChoreography`, fuera de la huella de las fotos fijas);
   - **(PR 2)** en la página, revela la transmisión por encima del haz (franja, aviso, título, cuadrícula, barrido) y
     deja negro lo de debajo; las cuatro esquinas del visor salen de las de la ventana y se cierran sobre el retrato
     (0,15 → 0,75); al encajar (0,78) brillan, las líneas guía salen del visor a los recuadros de la ficha
     (0,78 → 0,92), la ficha aparece con el teletipo y se enciende «Identity verified».
   - Acabada la llegada, el haz pasa en bucle por el retrato y la sección sigue con el scroll.
 - Todo va atado al scroll: subiendo, se deshace.
-- **El ancla y los saltos** (`/#crew-file`, el raíl, la misión rápida) aterrizan al final de la llegada (el marcador
-  `data-landing`, con el id del ancla): con el epílogo ya traído. El raíl marca el Crew file desde que empieza a
-  llegar.
-- **Movimiento reducido:** sin llegada (el hueco mide 0), el retrato encendido y sin haz ni fallos de señal.
-- **Sin WebGL:** también hay llegada; la foto fija pasa de la Tierra al retrato y, con el PR 2, el haz y el
-  visor de la página revelan la sección igual.
+- **El ancla y los saltos** (`/#crew-file`, el raíl, el cambio de idioma) aterrizan al final de la llegada (el
+  marcador `data-landing`, con el id del ancla): con el epílogo ya traído. El raíl marca el Crew file desde que empieza
+  a llegar, así que cambiar de idioma a mitad de la llegada lleva también al Crew file, ya traído. El marcador va el
+  primero en el DOM (su sitio lo pone el CSS): quien entra por el ancla sigue con Tab por la sección.
+- **Movimiento reducido:** sin llegada (el hueco mide 0), el retrato encendido y sin haz ni fallos de señal; aparece
+  solo al pasar al epílogo, con la escena poniéndose al día por su cuenta (estados-y-accesibilidad.md).
+- **Sin WebGL:** también hay llegada; la foto fija pasa de la Tierra al retrato con la forma (cuando cruza la mitad,
+  en `a` ≈ 0,275, como la escena) y, con el PR 2, el haz y el visor de la página revelan la sección igual.
+- **El foco con Tab:** mientras dura la llegada, lo que se enfoca con Tab bajo la ventana no subiría con el scroll
+  (el escenario está pegado): la página va al final de la llegada y lo justo más allá para enseñarlo entero, con su
+  anillo y el aire de abajo (`useArrivalFocus` de `Transmission`, `lib/scroll/stageFocus`). No actúa con el foco de un
+  salto (el título, `tabindex="-1"`), con un clic ni sin llegada, y deja de mirar si el usuario mueve la página.
 - **(PR 2) El foco:** si el foco entra en la sección antes de que acabe la llegada (Tab), se revela entera.
+- **(PR 2) Capturas:** las de `npm run visual` van con movimiento reducido, sin llegada: el PR 2 añade una o dos con
+  movimiento y la llegada parada en una `a` fija (p. ej. 0,4 y 1), con el reloj parado.
+- **Alto contraste:** la sección y su escenario, sobre el fondo liso del sistema (`Canvas`), sin cuadrícula ni barrido.
 - Si el retrato llega con la escena ya aquí (un salto, entrar por `/#crew-file`), se forma en 0,6 s desde la Tierra
   con el haz bajando por la pantalla, en vez de aparecer de golpe.
 
@@ -106,3 +119,8 @@ crudo»: ahora la escena trae el epílogo.
 
 - Download CV funciona en EN y ES; los datos coinciden con el CV.
 - Sin WebGL, con movimiento reducido y con lector de pantalla se lee entero.
+- La llegada: la sección se queda fija bajo la barra mientras dura y el raíl marca el Crew file desde que empieza; el
+  ancla, el raíl y el cambio de idioma aterrizan al final de la llegada (el raíl, con scroll suave); entrando por el
+  ancla, el primer Tab va a «Download CV»; con Tab, lo enfocado se ve entero con su anillo (también a 390 px y con
+  Shift+Tab); sin llegada con movimiento reducido; sin WebGL, la foto pasa al retrato con la forma; en alto contraste,
+  sobre `Canvas` (`tests/e2e/crew-file.spec.ts`).

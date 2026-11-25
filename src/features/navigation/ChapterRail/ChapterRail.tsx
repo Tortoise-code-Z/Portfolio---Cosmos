@@ -46,7 +46,8 @@ export function splitChapterLabel(label: string): { section: string; scene: stri
  * un `<nav>` con una lista ordenada de enlaces, uno por capítulo (`/#about`…). Son enlaces de verdad,
  * como los de la barra: sin JavaScript llevan al ancla y con Ctrl/Cmd abren otra pestaña; en el viaje,
  * un clic normal salta con el foco en el título. Entre capítulos, un rombo por interludio (fase C). El activo
- * (`selectActiveStop`: el interludio mientras se lee o el capítulo `round(m)`) lleva el punto ámbar más grande y
+ * (`selectActiveStop`: el capítulo que llega durante toda su llegada, el interludio mientras se lee o el capítulo
+ * `round(m)`) lleva el punto ámbar más grande y
  * `aria-current="step"` (nunca solo el color). Solo se repinta cuando cambia. En
  * escritorio cada enlace lleva sección y escena; en móvil, solo el punto: el nombre accesible es
  * siempre el texto completo («About · Nebula»).

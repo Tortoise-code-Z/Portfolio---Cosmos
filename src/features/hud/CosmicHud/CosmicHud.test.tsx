@@ -2,7 +2,12 @@ import { act, render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { sceneStore, setReadingInterlude, setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import {
+  sceneStore,
+  setReadingArrival,
+  setReadingInterlude,
+  setScrollTarget,
+} from '~/stores/sceneStore/sceneStore';
 
 import { CosmicHud } from './CosmicHud';
 
@@ -73,6 +78,20 @@ describe('CosmicHud', () => {
     expect(hud).toHaveAttribute('data-hidden');
     act(() => {
       setScrollTarget(4);
+    });
+    expect(hud).not.toHaveAttribute('data-hidden');
+  });
+
+  it('hides from the start of the arrival of the epilogue, with the Earth still there (ADR-039)', () => {
+    const hud = renderHud();
+    act(() => {
+      setScrollTarget(4.1);
+      setReadingArrival(5);
+    });
+    expect(hud).toHaveAttribute('data-hidden');
+    act(() => {
+      setScrollTarget(3.95);
+      setReadingArrival(null);
     });
     expect(hud).not.toHaveAttribute('data-hidden');
   });

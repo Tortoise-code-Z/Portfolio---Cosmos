@@ -97,6 +97,13 @@ describe('useSun', () => {
       paintFrame();
       expect(material.visible, `side ${String(side)}`).toBe(false);
     }
+    // Con números fijos, sin la cuenta de `at`: en la llegada se apaga entre `m` 4,30 y 4,31 (ADR-039).
+    frame.m = 4.3;
+    paintFrame();
+    expect(material.visible).toBe(true);
+    frame.m = 4.31;
+    paintFrame();
+    expect(material.visible).toBe(false);
   });
 
   it('waits for the Earth: not painted on its chapter until the particles are', () => {

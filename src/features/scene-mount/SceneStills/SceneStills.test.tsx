@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { sceneStore, setScrollTarget } from '~/stores/sceneStore/sceneStore';
 import { setSceneLevel, turnSceneOff, useUiStore } from '~/stores/uiStore/uiStore';
 
-import { SceneStills, STILL_SOURCES } from './SceneStills';
+import { SceneStills, selectStillChapter, STILL_SOURCES } from './SceneStills';
 import { DESKTOP_STILL_QUERY, STILL_CHAPTERS, stillFileName } from '../stillFrames/stillFrames';
 
 afterEach(() => {
@@ -72,6 +72,20 @@ describe('SceneStills', () => {
     const { container } = renderOff(4);
     fireEvent.load(still(container, 4));
     goTo(5);
+    fireEvent.load(still(container, 5));
+    expect(visible(container)).toEqual(['5']);
+  });
+
+  it('in the arrival of the epilogue the portrait comes in with the shape, not at half the arrival (ADR-039)', () => {
+    const at = (m: number): number => selectStillChapter({ ...sceneStore.getInitialState(), m });
+    // La forma cruza la mitad en `m` = 4,275 (`morphEnd` 0,55); `round(m)` lo haría en 4,5.
+    expect(at(4.27)).toBe(4);
+    expect(at(4.28)).toBe(5);
+    expect(at(4.45)).toBe(5);
+    expect(at(3.4)).toBe(3);
+    const { container } = renderOff(4);
+    fireEvent.load(still(container, 4));
+    goTo(4.3);
     fireEvent.load(still(container, 5));
     expect(visible(container)).toEqual(['5']);
   });

@@ -53,8 +53,10 @@
   1 B, del margen: **257 075 B**. La de la auditoría de cierre de F4 (las constelaciones que leen el grupo del frame
   y esperan a las partículas, sin dibujarse a opacidad 0; el ciclo de placas quieto en un interludio; el pin que valida
   su slug) pesó 52 B: **257 127 B**. La llegada del epílogo (C.7, primer paso, ADR-039: la forma y la cámara que
-  acaban antes, el haz del retrato en pantalla) pesó 185 B: **257 312 B**. Quedan 2 688 B de margen (para las Naves,
-  C.7, que subirán el límite). Los generadores no
+  acaban antes, el haz del retrato en pantalla) pesó 185 B: **257 312 B**. Medido sobre `main` antes de la corrección
+  de su auditoría, 257 367 B (sin cambios en la escena: los nombres con hash de los chunks que importa); la corrección
+  (el haz tras la gravedad, su recorrido desde la cabecera) pesó −27 B: **257 340 B**. Quedan 2 660 B de margen (para
+  las Naves, C.7, que subirán el límite). Los generadores no
   cuentan ahí: van en el worker (≤ 10 KB; con el retrato, 6 042 B) y, para el reintento, en su propio chunk (≤ 10 KB;
   el retrato no va en él). Las imágenes del retrato (~150 KB: 152 529 B sin metadatos) las pide el worker, no la página.
 

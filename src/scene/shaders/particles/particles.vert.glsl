@@ -200,8 +200,9 @@ void earth(out vec3 P, out vec3 C, out float S, out float A) {
   A = a;
 }
 
-// Lo que ha bajado el haz de la llegada del epílogo (0 arriba de la ventana → 1 abajo; ADR-039): la misma cuenta que
-// la página (lib/scroll/arrival). Si el retrato llega con la escena ya aquí, baja con su subida (uPor).
+// Lo que ha bajado el haz de la llegada del epílogo (0 arriba → 1 al final de su bajada, ARRIVAL_BEAM_REACH altos de
+// la ventana; ADR-039): la misma cuenta que la página (arrivalBeam de lib/scroll/arrivalChoreography). Si el retrato
+// llega con la escena ya aquí, baja con su subida (uPor).
 float arrivalBeam() {
   float a = clamp(uM - ARRIVAL_BASE, 0.0, 1.0);
   return min(clamp((a - ARRIVAL_BEAM_START) / (ARRIVAL_BEAM_END - ARRIVAL_BEAM_START), 0.0, 1.0), uPor);
@@ -287,18 +288,6 @@ void main() {
   gl_Position = projectionMatrix * mv;
   gl_PointSize = min(S * uPR * (SIZE_DISTANCE / -mv.z), SIZE_MAX_PX);
 
-  // El haz de la llegada, en pantalla (ADR-039): la misma línea que la página. Lo que queda por encima se enciende y
-  // brilla al pasar; por debajo, el retrato llega apagado. Solo toca la parte del retrato en la mezcla (tt · uPor).
-  if (k > 3.5) {
-    float y = gl_Position.y / gl_Position.w;
-    float down = arrivalBeam();
-    float b = 1.0 - 2.05 * down;
-    float lit = max(smoothstep(b - 0.01, b + 0.02, y), 1.0 - uMotion);
-    float q = (y - b) * 30.0;
-    float glow = exp(-q * q) * uMotion * step(0.001, down) * (1.0 - smoothstep(0.95, 1.0, down));
-    C *= mix(1.0, mix(0.12, 1.0, lit) + glow * 1.5, tt * uPor);
-  }
-
   // Gravedad del cursor, en pantalla y sin tocar la geometría (uGrav 0: táctil, sin ratón dentro, movimiento reducido).
   vec2 d = gl_Position.xy / gl_Position.w - uMouse;
   d.x *= uAspect;
@@ -306,5 +295,19 @@ void main() {
   vec2 off = (vec2(-d.y, d.x) * GRAV_SWIRL + d * GRAV_RADIAL) * f * GRAV_REACH;
   off.x /= uAspect;
   gl_Position.xy += off * gl_Position.w;
+
+  // El haz de la llegada, en pantalla (ADR-039): la misma línea que la página (lib/scroll/arrivalChoreography), donde se
+  // pinta cada partícula (después de la gravedad). Lo que queda por encima se enciende y brilla al pasar; por debajo,
+  // llega apagado. Toca la mezcla entera con el peso del retrato en ella (tt · uPor): sin retrato, nada; a mitad del
+  // cambio, por debajo de la línea se oscurece también la Tierra que se va.
+  if (k > 3.5) {
+    float y = gl_Position.y / gl_Position.w;
+    float down = arrivalBeam();
+    float b = 1.0 - 2.0 * ARRIVAL_BEAM_REACH * down;
+    float lit = max(smoothstep(b - 0.01, b + 0.02, y), 1.0 - uMotion);
+    float q = (y - b) * 30.0;
+    float glow = exp(-q * q) * uMotion * step(0.001, down) * (1.0 - smoothstep(0.95, 1.0, down));
+    C *= mix(1.0, mix(0.12, 1.0, lit) + glow * 1.5, tt * uPor);
+  }
   vCol = C * (1.0 + f * GRAV_GLOW);
 }

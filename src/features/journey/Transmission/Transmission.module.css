@@ -285,8 +285,11 @@
  * La llegada del epílogo (ADR-039; 05-crew-file.md → «Transición»): la sección mide la llegada y lo que se ve va en
  * un escenario pegado bajo la barra mientras pasa un hueco de `--arrival-h`; acabado el hueco, sigue con el scroll. El
  * fondo, el barrido y la banda de entrada van con el escenario (en la sección se moverían por debajo del texto quieto).
- * Con movimiento reducido no hay llegada: el hueco mide 0 y la sección se lee como antes. El marcador del final de la
- * llegada (`.landing`, con el ancla) cae donde acaba el hueco: ahí aterrizan el ancla y los saltos.
+ * Durante la llegada, el escenario mide justo lo que se ve bajo la barra: «pantalla entera» es literal y el pie se ve.
+ * Con movimiento reducido no hay llegada: el hueco mide 0 y el escenario, la pantalla de una transmisión (el retrato
+ * llega solo al pasar al capítulo: estados-y-accesibilidad.md). Al imprimir, tampoco: no deja una hoja en blanco. El
+ * marcador del final de la llegada (`.landing`, con el ancla) cae donde acaba el hueco: ahí aterrizan el ancla y los
+ * saltos.
  */
 .arriving {
   --_arrival: 0px;
@@ -294,9 +297,11 @@
   display: block;
   /* El alto mínimo lo lleva el escenario: la sección mide él más la llegada. */
   min-block-size: 0;
+  /* Recorta sin hacer de la sección un contenedor de scroll (como `.open`): si no, el escenario no se pegaría. */
+  overflow: clip;
 }
 
-@media (prefers-reduced-motion: no-preference) {
+@media screen and (prefers-reduced-motion: no-preference) {
   .arriving {
     --_arrival: var(--arrival-h);
   }
@@ -322,6 +327,13 @@
 
 .open .stage {
   background: var(--_ch-grid-bg);
+}
+
+/* Durante la llegada, lo que se ve bajo la barra (la barra y la zona segura de arriba, como su `inset-block-start`). */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .arriving .stage {
+    min-block-size: calc(var(--interlude-min-h) - var(--topbar-h) - env(safe-area-inset-top, 0px));
+  }
 }
 
 .arrivalSpace {
@@ -384,12 +396,16 @@
  * liso del sistema (`Canvas`), no sobre la escena.
  */
 @media (forced-colors: active) {
-  .transmission {
+  .transmission,
+  .arriving.open,
+  .open .stage {
     background: Canvas;
   }
 
   .transmission::after,
-  .transmission::before {
+  .transmission::before,
+  .stage::after,
+  .stage::before {
     background: none;
   }
 

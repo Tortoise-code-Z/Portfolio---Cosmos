@@ -4,7 +4,12 @@ import type { ReactNode } from 'react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { sceneStore, setReadingInterlude, setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import {
+  sceneStore,
+  setReadingArrival,
+  setReadingInterlude,
+  setScrollTarget,
+} from '~/stores/sceneStore/sceneStore';
 
 import { LANGUAGE_NOTICE_KEY } from '../LanguageNotice/LanguageNotice';
 import { LanguageSwitch } from './LanguageSwitch';
@@ -99,6 +104,18 @@ describe('LanguageSwitch', () => {
     expect(within(group).getByRole('link', { name: 'Español' })).toHaveAttribute(
       'href',
       '/es#mission-log',
+    );
+  });
+
+  it('in the arrival of the epilogue, goes to the Crew file (where the rail is): it lands with it brought in', () => {
+    const group = renderSwitch('/');
+    act(() => {
+      setScrollTarget(4.1);
+      setReadingArrival(5);
+    });
+    expect(within(group).getByRole('link', { name: 'Español' })).toHaveAttribute(
+      'href',
+      '/es#crew-file',
     );
   });
 

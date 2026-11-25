@@ -22,7 +22,8 @@ import desktop5Webp from '~/assets/scene-stills/webp/scene-still-desktop-5.webp'
 import handheld5Avif from '~/assets/scene-stills/avif/scene-still-handheld-5.avif';
 import handheld5Webp from '~/assets/scene-stills/webp/scene-still-handheld-5.webp';
 import type { ChapterIndex } from '~/content/chapters';
-import { selectActiveChapter, sceneStore } from '~/stores/sceneStore/sceneStore';
+import { arrivalShapeM } from '~/lib/scroll/arrival/arrival';
+import { activeChapter, sceneStore, type SceneState } from '~/stores/sceneStore/sceneStore';
 import { selectSceneLevel, useUiStore } from '~/stores/uiStore/uiStore';
 
 import styles from './SceneStills.module.css';
@@ -60,6 +61,14 @@ export const STILL_SOURCES: Readonly<
   },
 };
 
+/**
+ * El capítulo de la foto: el de la forma (`arrivalShapeM`), no el de `m`. En la llegada del epílogo el retrato está
+ * hecho en `morphEnd` (ADR-039): la foto cambia cuando la forma cruza la mitad, a la vez que la escena con WebGL.
+ */
+export function selectStillChapter({ m }: SceneState): ChapterIndex {
+  return activeChapter(arrivalShapeM(m));
+}
+
 function isStillChapter(chapter: number): chapter is StillChapter {
   return (STILL_CHAPTERS as readonly number[]).includes(chapter);
 }
@@ -80,7 +89,7 @@ export function SceneStills(): ReactNode {
 }
 
 /**
- * La foto del capítulo activo (`sceneStore` → `activeChapter`, como el HUD), encima del degradado del espacio y
+ * La foto del capítulo de la forma (`selectStillChapter`: el activo, como el HUD, salvo en la llegada), encima del degradado del espacio y
  * fundida con `screen`: la foto es la escena sobre negro y las partículas se suman como luz, así que el negro no se
  * ve. Solo se descargan las de los capítulos por los que pasa la visita; una vez en el DOM se quedan (ya bajadas),
  * así que volver a un capítulo es inmediato. La nueva entra cuando ha llegado: hasta entonces sigue la anterior
@@ -88,7 +97,7 @@ export function SceneStills(): ReactNode {
  * llega, se queda la anterior y no se avisa (el contenido no depende de ellas).
  */
 function Stills(): ReactNode {
-  const chapter = useStore(sceneStore, selectActiveChapter);
+  const chapter = useStore(sceneStore, selectStillChapter);
   const target = stillOf(chapter);
   const [visited, setVisited] = useState<readonly StillChapter[]>([]);
   const [loaded, setLoaded] = useState<ReadonlySet<StillChapter>>(() => new Set());

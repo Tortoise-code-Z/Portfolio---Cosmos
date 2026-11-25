@@ -729,6 +729,10 @@
   opacidad 0, el ciclo de placas quieto en un interludio y el pin que valida su slug): **257 127 B**. Quedan 2 873 B;
   las Naves (C.7) subirán el límite en su propio ADR con estos números. Esta cuenta sustituye a la anterior.
 - Nota (2026-11-24, C.7, primer paso): la llegada del epílogo (ADR-039) pesó 185 B: **257 312 B**. Quedan 2 688 B.
+  Esta cuenta sustituye a la anterior.
+- Nota (2026-11-24, C.7, corrección de la auditoría de la llegada): medido sobre `main` antes de ella, 257 367 B (55 B
+  más que la nota anterior sin cambios en la escena: los nombres con hash de los chunks que importa); la corrección
+  pesó −27 B: **257 340 B**. Quedan 2 660 B. Esta cuenta sustituye a la anterior.
 - Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).
 
 ## ADR-033 · Los commits de solo documentación van directos a `main`
@@ -778,7 +782,9 @@
   (Vercel)»), `DEVELOPMENT_RULES.md` §10 y §13.
 
 ## ADR-034 · El contenido se alinea con el CV y el viaje gana dos interludios y un epílogo
-- Estado: Aceptada (la prueba del retrato convenció: entra con la foto en el repo público, nota de C.6b)
+- Estado: Aceptada (la prueba del retrato convenció: entra con la foto en el repo público, nota de C.6b) · matizada
+  por ADR-039 (la Tierra pasa al retrato en la llegada del epílogo, no en la segunda mitad de Contacto; el haz baja
+  por la pantalla, no por el retrato)
 - Fecha: 2026-11-19
 - Contexto: desde el 25 nov 2026 el portfolio acompaña al CV en las candidaturas, y quien lo recibe compara los dos.
   El contenido no cuadraba con el CV: 948 h en vez de 975, un email antiguo, sin la experiencia de las prácticas
@@ -987,33 +993,47 @@
   «en crudo», a diferencia de la idea de las naves (C.7), en la que la escena trae cada transmisión. Víctor aprobó
   una entrada propia (sesión 47, con una prueba fuera del repo): la sección se queda quieta mientras la
   Tierra se deshace en el retrato, un haz baja por la pantalla revelándola y las esquinas del visor se cierran sobre
-  la cara. Es el primer paso de C.7, antes de las naves.
+  la cara. Es el primer paso de C.7, antes de las naves. Matiza ADR-034 (sus notas de C.6a y C.6b: Contacto
+  cambiando en su segunda mitad y el haz atado al morph).
 - Decisión:
   - **Un tipo de tramo nuevo, `arrival`** (`JOURNEY_SEGMENTS`): la llegada de un capítulo, entre el capítulo de
     antes y su lectura. Hoy solo la tiene el epílogo (base 4, `morphStart` 0); Contacto deja de cambiar. Las naves
-    podrán usar el mismo tipo para su tramo de llegada.
-  - **La sección se queda fija con CSS, sin mover nada a mano:** su contenido va en un escenario `sticky` bajo la
-    barra y, detrás, un hueco de `--arrival-h` (160 svh). La sección (no `sticky`) mide el tramo; un marcador
-    absoluto al final del hueco (`data-landing`) mide la lectura del capítulo y lleva el id del ancla, así que el ancla
-    nativa y los saltos (`jumpToChapter` busca el marcador) aterrizan con el epílogo ya traído. El raíl marca el
-    capítulo durante toda su llegada (`sceneStore.arriving`).
+    podrán usar el mismo tipo para su tramo de llegada. Avanza **en línea recta** con el scroll (`linear`: `mapM` no
+    le aplica `smoothstep`), así que sus cortes se cuentan en el avance del scroll, como en la prueba aprobada
+    (decidido tras su auditoría: con `smoothstep`, el haz arrancaba tarde y corría en el medio).
+  - **La sección se queda fija con CSS:** su contenido va en un escenario `sticky` (`data-stage`) bajo la barra que,
+    mientras dura la llegada, mide justo lo que se ve bajo ella, y, detrás, un hueco de `--arrival-h` (160 svh). La
+    sección (no `sticky`) mide el tramo; un marcador absoluto al final del hueco (`data-landing`) mide la lectura del
+    capítulo y lleva el id del ancla, así que el ancla nativa, los saltos (`jumpToChapter` busca el marcador) y el
+    cambio de idioma aterrizan con el epílogo ya traído. El marcador va el primero en el DOM (su sitio lo pone el
+    CSS): entrando por el ancla, el Tab sigue por el escenario. El raíl marca el capítulo durante toda su llegada
+    (`sceneStore.arriving`), y con él el idioma.
   - **Todo se mide con lo que lleva la llegada, `a` = `m − 4` con la `m` suavizada de la escena**
     (`lib/scroll/arrival`, `EPILOGUE_ARRIVAL`). La forma acaba en `morphEnd` (0,55): la cámara (`arrivalShapeM`) y el
-    shader hacen la misma cuenta, y el Sol y la gravedad de la Tierra se van con ella. El haz baja por la **pantalla**
-    (`arrivalBeam`): el shader compara la `y` proyectada de cada partícula con la línea, así que coincidirá al píxel
-    con el haz que pinte la página. La coreografía de la página (el recorte que revela la sección, las esquinas, el
+    shader hacen la misma cuenta, y el Sol, la gravedad de la Tierra y la foto fija sin WebGL se van con ella. El haz
+    baja por la **pantalla**, hasta `beamReach` (1,025) altos de la ventana: el shader compara la `y` proyectada de
+    cada partícula (tras la gravedad del cursor) con la línea y la página usará la misma (`arrivalBeamLine`), así que
+    coincidirán al píxel. Lo que lee la escena va en `lib/scroll/arrival`, en la huella de las fotos fijas; lo que solo
+    pinta la página, en `lib/scroll/arrivalChoreography`, fuera de ella. La coreografía de la página (el recorte que revela la sección, las esquinas, el
     encaje y las líneas guía) llega en un segundo PR, con un bucle propio que suaviza `m` como la escena (como el Big
     Bang, ADR-030).
   - **Con movimiento reducido no hay llegada:** el hueco mide 0 por CSS (sin saltos de alto) y el tramo no dura
-    nada. **Sin WebGL sí la hay**: la foto fija pasa de la Tierra al retrato y la página revela la sección
+    nada; el retrato llega solo al pasar al epílogo (la escena se pone al día por su cuenta, como tras un salto del
+    raíl): la excepción a «morph ligado al scroll» de `estados-y-accesibilidad.md`. Al imprimir, tampoco hay hueco. **Sin WebGL sí la hay**: la foto fija pasa de la Tierra al retrato y la página revela la sección
     igual; quitarla solo sin WebGL obligaría a cambiar el alto de la página al detectarlo y a recolocar el ancla.
 - Alternativas descartadas: la sección `sticky` entera midiendo el tramo (la medida de un elemento pegado depende de
   dónde esté el scroll al medir); un capítulo aparte para la llegada (otra ancla, otra parada del raíl); recolocar la
   sección con `transform` desde JavaScript (sin JavaScript no se leería); el haz medido en el retrato, como hasta
   ahora (no coincidiría con una línea de la página: la cámara se mueve durante la llegada).
 - Consecuencias: la página crece 160 svh; una ruta a `#crew-file` cae al final de la llegada; quien mida el epílogo
-  por su sección mide su llegada. Pesa unos bytes de GLSL y de JavaScript (`rendimiento.md` → «Presupuesto»). Lo
-  vigilan los tests de `arrival`, el orden de los tramos del DOM (`journey.test.tsx`), el ancla en el marcador
-  (`CrewFile.test.tsx`) y los e2e del epílogo.
+  por su sección mide su llegada. Con el escenario pegado, lo que se enfoca con Tab bajo la ventana no subiría con el
+  scroll: la página sí mueve el scroll para eso (`useArrivalFocus` de `Transmission`, con la cuenta de
+  `lib/scroll/stageFocus`, fuera de la huella): va al final de la llegada y lo justo más allá para enseñarlo con su
+  anillo y el aire de abajo; solo con Tab (no con el foco de un salto ni con un clic), solo si hay llegada, y deja de
+  mirar si el usuario mueve la página. Pesa unos bytes de GLSL y de JavaScript (`rendimiento.md` → «Presupuesto»). Lo
+  vigilan los tests de `arrival`, `arrivalChoreography`, `stageFocus` y `mapM`, el orden de los tramos del DOM y el
+  puente con y sin llegada (`journey.test.tsx`), el ancla en el marcador (`CrewFile.test.tsx`), los casos del foco de
+  `Transmission.test.tsx`, la cámara (`CameraRig.test.tsx`), la foto fija (`SceneStills.test.tsx`) y los e2e del
+  epílogo (`crew-file.spec.ts`).
 - Detalle: `docs/02-experiencia/capitulos/05-crew-file.md` → «Transición»; `docs/02-experiencia/scroll-y-escena.md`
   → «Tramos del viaje»; `docs/04-escena/particulas-y-shaders.md` → «Forma 5».

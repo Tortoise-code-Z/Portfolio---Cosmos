@@ -85,11 +85,6 @@ export function activeChapter(m: number): ChapterIndex {
   return CHAPTER_INDICES[clamp(Math.round(m), 0, last)] ?? 0;
 }
 
-/** Selector del capítulo activo, para `useStore(sceneStore, selectActiveChapter)`: re-renderiza solo al cambiar. */
-export function selectActiveChapter({ m }: SceneState): ChapterIndex {
-  return activeChapter(m);
-}
-
 /**
  * Lo que marca el raíl: el capítulo que está llegando (toda su llegada), el interludio mientras se lee (su pantalla y
  * la primera mitad de su cola, mientras la forma sigue siendo la del capítulo de antes) o, si no, el capítulo activo.

@@ -24,7 +24,7 @@
   min-block-size: var(--chapter-h-3);
 }
 
-/* Contacto: su segunda mitad es el paso de la Tierra al retrato del epílogo; el aire de abajo le da recorrido. */
+/* Contacto: aire bajo su contenido antes de la llegada del epílogo (la Tierra cambia al retrato en ella, ADR-039). */
 .chapter[data-chapter='4'] {
   min-block-size: var(--chapter-h-4);
   padding-block-end: var(--chapter-end-room);

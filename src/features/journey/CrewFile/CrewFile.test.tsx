@@ -74,17 +74,19 @@ describe('CrewFile', () => {
 
   it('has its arrival (ADR-039): the content in a stage, a space after it and the anchor where the arrival ends', () => {
     const region = renderAt('/');
-    // El ancla no está en la sección (su principio es el de la llegada): está en el marcador del final.
+    // El ancla no está en la sección (su principio es el de la llegada): está en el marcador del final, que va el
+    // primero en el DOM (quien entra por el ancla sigue con Tab por el escenario).
     expect(region).not.toHaveAttribute('id');
     const landing = region.querySelector('[data-landing]');
     expect(landing).toHaveAttribute('id', CHAPTER_ANCHORS[EPILOGUE]);
     expect(landing).toHaveAttribute('aria-hidden', 'true');
-    // El escenario lleva todo lo que se lee; detrás, el hueco de la llegada (decoración) y el marcador.
-    const [stage, space] = [...region.children];
+    expect(region.firstElementChild).toBe(landing);
+    // El escenario lleva todo lo que se lee; detrás, el hueco de la llegada (decoración).
+    const stage = region.querySelector('[data-stage]');
     expect(stage).toContainElement(within(region).getByRole('heading', { name: 'Crew file' }));
     expect(stage).toContainElement(within(region).getByRole('link', { name: /Download CV/ }));
-    expect(space).toHaveAttribute('aria-hidden', 'true');
-    expect(region.lastElementChild).toBe(landing);
+    expect(stage?.nextElementSibling).toHaveAttribute('aria-hidden', 'true');
+    expect(stage?.nextElementSibling).toBe(region.lastElementChild);
   });
 
   it('in Spanish too: its channel, the strip that closes the channels and the end of the journey', () => {

@@ -23,7 +23,7 @@ const only = (suffix: string): Readonly<Record<string, string>> =>
 const VERTEX_SHADERS = only('.vert.glsl');
 const FRAGMENT_SHADERS = only('.frag.glsl');
 const particlesVertex = SHADERS['../particles/particles.vert.glsl'] ?? '';
-const HEADER_NAME = /\b(?:TURTLE|EARTH|PLATE|PORTRAIT|COLOR|SUN)_\w+/g;
+const HEADER_NAME = /\b(?:TURTLE|EARTH|PLATE|PORTRAIT|COLOR|SUN|ARRIVAL)_\w+/g;
 
 /** Los nombres que define la cabecera (`#define X …` y `const vec3 X = …`). */
 const defined = new Set(
@@ -112,9 +112,11 @@ describe('glslHeader', () => {
     expect(define('ARRIVAL_MORPH_END')).toBe(EPILOGUE_ARRIVAL.morphEnd);
     expect(define('ARRIVAL_BEAM_START')).toBe(EPILOGUE_ARRIVAL.beam[0]);
     expect(define('ARRIVAL_BEAM_END')).toBe(EPILOGUE_ARRIVAL.beam[1]);
-    // El shader los usa: la forma acaba en ARRIVAL_MORPH_END y el haz, en pantalla, con arrivalBeam().
+    expect(define('ARRIVAL_BEAM_REACH')).toBe(EPILOGUE_ARRIVAL.beamReach);
+    // El shader los usa: la forma acaba en ARRIVAL_MORPH_END y la línea del haz baja hasta ARRIVAL_BEAM_REACH altos de
+    // la ventana (en NDC, de 1 arriba a −1 abajo: el doble), como `arrivalBeamLine` de la página.
     expect(particlesVertex).toContain('(m - ARRIVAL_BASE) / ARRIVAL_MORPH_END');
-    expect(particlesVertex).toContain('float b = 1.0 - 2.05 * down;');
+    expect(particlesVertex).toContain('float b = 1.0 - 2.0 * ARRIVAL_BEAM_REACH * down;');
   });
 
   it('LAST_M of the particles shader stops just short of the last shape (one per camera keyframe)', () => {
