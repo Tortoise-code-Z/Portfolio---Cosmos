@@ -85,6 +85,7 @@ const frame: Readonly<SceneFrame> = {
   transmission: false,
   skillGroup: null,
   painted: true,
+  portraitShift: { x: 0, y: 0 },
 };
 
 /**
@@ -245,6 +246,7 @@ describe('createSceneFrame', () => {
       transmission: false,
       skillGroup: null,
       painted: false,
+      portraitShift: { x: 0, y: 0 },
     });
   });
 });

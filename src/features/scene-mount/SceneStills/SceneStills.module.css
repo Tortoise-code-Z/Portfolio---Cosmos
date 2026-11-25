@@ -42,6 +42,15 @@
   opacity: 1;
 }
 
+/*
+ * La del epílogo va con el marco del retrato (ADR-042): la escena pinta la cara en el centro y la página mide cuánto
+ * se separa el marco (`--_portrait-x`, `--_portrait-y`, que escribe SceneStills.tsx). Cuando el marco sube mucho, abajo
+ * queda el fondo sin foto: aceptado (con WebGL la escena entera se mueve y no pasa).
+ */
+.still[data-still-chapter='5'] {
+  translate: calc(-50% + var(--_portrait-x, 0px)) calc(-50% + var(--_portrait-y, 0px));
+}
+
 @media (width >= 900px) {
   /* Escritorio estrecho (< 1,25): conserva el campo horizontal que tendría a 1,25. La foto mide 2160 / 900. */
   @container (aspect-ratio < 5 / 4) {

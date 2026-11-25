@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test';
+import sharp from 'sharp';
 
 import { profile } from '../../src/content/profile.ts';
 import { CHAPTER_INDICES, INTERLUDES } from '../../src/content/chapters.ts';
@@ -11,10 +12,13 @@ import {
   collectErrors,
   hud,
   lineClips,
+  PARTICLES_PAINTED,
   scrollToY,
   settleScene,
+  skipWithoutWebGL2,
   TELETYPE_WRITTEN,
   TELETYPE_WRITTEN_WITH_GUIDE,
+  waitFrames,
   withoutWebGL,
 } from './support/helpers.ts';
 import { test } from './support/test.ts';
@@ -121,9 +125,11 @@ test.describe('Crew file', () => {
           return {
             // El centro del lienzo: el del retrato (la cámara del capítulo 5 no se aparta).
             centre: canvas === undefined ? Number.NaN : (canvas.left + canvas.right) / 2,
-            middle: window.innerHeight / 2,
             frame: box(section?.querySelector('[data-crew-visor] > div') ?? null),
             title: box(section?.querySelector('h2') ?? null),
+            // El bloque de la ficha: del aviso (lo primero del cuerpo) al final de la lista.
+            block: box(section?.querySelector('h2')?.parentElement?.firstElementChild ?? null),
+            record: box(section?.querySelector('dl') ?? null),
             fields: fields.map((field) => box(field)),
             guides: fields.map((field, index) => guide(field, index < 3 ? 'left' : 'right')),
             email: box(
@@ -132,10 +138,14 @@ test.describe('Crew file', () => {
             cv: box(section?.querySelector('a[download]')?.closest('[data-line]') ?? null),
           };
         });
-      const { centre, middle, frame, title, fields, guides, email, cv } = await layout();
+      const { centre, frame, title, block, record, fields, guides, email, cv } = await layout();
       expect(frame).not.toBeNull();
-      if (frame === null || title === null) return;
+      if (frame === null || title === null || block === null || record === null) return;
       expect(Math.abs((frame.left + frame.right) / 2 - centre)).toBeLessThanOrEqual(1);
+      // En el centro del bloque de la ficha, del aviso al final de la lista (ADR-042).
+      expect(
+        Math.abs((frame.top + frame.bottom) / 2 - (block.top + record.bottom) / 2),
+      ).toBeLessThanOrEqual(1);
       // El título, entero a la izquierda del visor (en español, «Tripulación» sin partir ni entrar).
       expect(title.right).toBeLessThanOrEqual(frame.left);
       // Los campos 1–3 a su izquierda y los 4–6 a su derecha, sin pisarlo; cada línea guía llega justo al marco.
@@ -157,14 +167,16 @@ test.describe('Crew file', () => {
       expect(
         Math.abs((email.top + email.bottom) / 2 - (cv.top + cv.bottom) / 2),
       ).toBeLessThanOrEqual(1);
-      // Al bajar por la ficha, el marco sigue pegado al centro de la pantalla (el retrato está fijo en el lienzo).
+      // Al bajar por la ficha, el marco sube con la página, como lo demás (la cara lo sigue, ADR-042).
+      const scrolled = await page.evaluate(() => window.scrollY);
       await page.mouse.wheel(0, height / 3);
       await expect
         .poll(async () => {
+          const moved = (await page.evaluate(() => window.scrollY)) - scrolled;
           const after = await layout();
-          return after.frame === null
+          return after.frame === null || moved === 0
             ? Infinity
-            : Math.abs((after.frame.top + after.frame.bottom) / 2 - middle);
+            : Math.abs(frame.top - after.frame.top - moved);
         })
         .toBeLessThanOrEqual(1);
     });
@@ -949,5 +961,145 @@ test.describe('Crew file', () => {
     const contact = page.getByRole('region', { name: 'Touchdown' });
     await expect(contact.getByText('Master.D')).toHaveCount(0);
     await expect(contact.getByRole('link', { name: /^This site is open source/ })).toHaveCount(0);
+  });
+
+  test.describe('the face follows its frame (ADR-042)', () => {
+    test.use({ reducedMotion: 'reduce' });
+
+    /** El marco del visor, en la ventana. */
+    const frameBox = (page: Page) =>
+      page.evaluate(() => {
+        const rect = document.querySelector('[data-crew-visor] > div')?.getBoundingClientRect();
+        return rect === undefined
+          ? null
+          : { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+      });
+
+    /**
+     * Dónde está la luz del retrato dentro del marco: el centro de los píxeles claros del lienzo en la caja del marco
+     * (con todo lo demás invisible, sin cambiar la maqueta). Si la cara va con el marco, no cambia al hacer scroll.
+     */
+    async function faceInFrame(page: Page): Promise<{ x: number; y: number }> {
+      const frame = await frameBox(page);
+      expect(frame).not.toBeNull();
+      if (frame === null) return { x: Number.NaN, y: Number.NaN };
+      const style = await page.addStyleTag({
+        content: '* { visibility: hidden !important; } canvas { visibility: visible !important; }',
+      });
+      await waitFrames(page, 3);
+      // La ventana: el lienzo la ocupa entera (`position: fixed; inset: 0`), en las mismas coordenadas que el marco.
+      const png = await page.screenshot({ animations: 'disabled' });
+      await style.evaluate((element) => {
+        element.parentNode?.removeChild(element);
+      });
+      const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
+      let sum = 0;
+      let x = 0;
+      let y = 0;
+      const left = Math.max(0, Math.round(frame.left));
+      const top = Math.max(0, Math.round(frame.top));
+      const right = Math.min(info.width, Math.round(frame.left + frame.width));
+      const bottom = Math.min(info.height, Math.round(frame.top + frame.height));
+      for (let row = top; row < bottom; row += 1) {
+        for (let column = left; column < right; column += 1) {
+          const at = (row * info.width + column) * info.channels;
+          const light = (data[at] ?? 0) + (data[at + 1] ?? 0) + (data[at + 2] ?? 0);
+          if (light < 120) continue;
+          sum += light;
+          x += (column - frame.left) * light;
+          y += (row - frame.top) * light;
+        }
+      }
+      expect(sum, 'the portrait is painted in the frame').toBeGreaterThan(0);
+      return { x: x / sum, y: y / sum };
+    }
+
+    /** Cuánto se separan dos lecturas de `faceInFrame` (lo más en x o en y). */
+    const apart = (a: { x: number; y: number }, b: { x: number; y: number }): number =>
+      Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+
+    /**
+     * La luz del retrato en su marco, ya quieta: dos lecturas seguidas iguales (±1 px). Sin GPU (WebKit en el CI, a
+     * pocos fps) la escena tarda en pintar lo último.
+     */
+    async function settledFace(page: Page): Promise<{ x: number; y: number }> {
+      let last = await faceInFrame(page);
+      await expect
+        .poll(
+          async () => {
+            const next = await faceInFrame(page);
+            const moved = apart(next, last);
+            last = next;
+            return moved;
+          },
+          { timeout: 30_000 },
+        )
+        .toBeLessThanOrEqual(1);
+      return last;
+    }
+
+    for (const { width, height, scroll } of [
+      { width: 1280, height: 720, scroll: 120 },
+      { width: 390, height: 844, scroll: 160 },
+    ]) {
+      test(`${String(width)}×${String(height)} with WebGL: scrolling, the portrait stays in its frame (±2 px)`, async ({
+        page,
+        browserName,
+      }, testInfo) => {
+        // Lo que pinta WebGL se lee de una captura, y solo la de Chromium sale al día: en WebKit (en el CI) la captura
+        // repite la de antes del scroll, aunque en el vídeo de su traza la cara va en su marco; Firefox, en el CI, no
+        // tiene WebGL2. Los tres motores prueban que la foto sigue al marco sin WebGL (abajo).
+        test.skip(
+          browserName !== 'chromium',
+          'Only Chromium screenshots what WebGL paints after a scroll.',
+        );
+        // Sin GPU, la escena va lenta.
+        test.slow();
+        await skipWithoutWebGL2(page, testInfo);
+        await page.setViewportSize({ width, height });
+        await page.goto('/#crew-file', { waitUntil: 'networkidle' });
+        await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-portrait', 'painted', {
+          timeout: 60_000,
+        });
+        const before = await settledFace(page);
+        const top = (await frameBox(page))?.top ?? Number.NaN;
+        await scrollToY(page, (await page.evaluate(() => window.scrollY)) + scroll);
+        // El marco ha subido (con la página) y la cara, con él (en cuanto la escena pinta el frame nuevo).
+        expect(top - ((await frameBox(page))?.top ?? Number.NaN)).toBeCloseTo(scroll, 0);
+        await expect
+          .poll(async () => apart(await faceInFrame(page), before), { timeout: 30_000 })
+          .toBeLessThanOrEqual(2);
+      });
+
+      test(`${String(width)}×${String(height)} without WebGL: the still of the portrait goes with its frame (±2 px)`, async ({
+        page,
+      }) => {
+        await withoutWebGL(page);
+        await page.setViewportSize({ width, height });
+        await page.goto('/#crew-file', { waitUntil: 'networkidle' });
+        await settleScene(page);
+        const still = page.locator('img[data-still-chapter="5"]');
+        await expect(still).toHaveAttribute('data-visible', 'true');
+        const centres = async () => {
+          const frame = await frameBox(page);
+          const image = await still.boundingBox();
+          return frame === null || image === null
+            ? null
+            : {
+                x: image.x + image.width / 2 - (frame.left + frame.width / 2),
+                y: image.y + image.height / 2 - (frame.top + frame.height / 2),
+              };
+        };
+        for (const y of [0, scroll]) {
+          await scrollToY(page, (await page.evaluate(() => window.scrollY)) + y);
+          await expect
+            .poll(async () => Math.abs((await centres())?.x ?? Infinity))
+            .toBeLessThanOrEqual(2);
+          await expect
+            .poll(async () => Math.abs((await centres())?.y ?? Infinity))
+            .toBeLessThanOrEqual(2);
+        }
+      });
+    }
   });
 });

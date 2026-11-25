@@ -196,6 +196,12 @@ export interface SceneFrame {
    * una forma (los pins, el Sol) no tiene dónde.
    */
   painted: boolean;
+  /**
+   * Cuánto se separa el marco del retrato del centro de la ventana, en px (y, hacia abajo): `sceneStore.portraitShift`,
+   * que copia el bucle. La cámara mueve la imagen eso en el epílogo (`CameraRig`, ADR-042). El mismo objeto toda la
+   * visita.
+   */
+  readonly portraitShift: { x: number; y: number };
 }
 
 export function createSceneFrame(): SceneFrame {
@@ -217,6 +223,7 @@ export function createSceneFrame(): SceneFrame {
     transmission: false,
     skillGroup: null,
     painted: false,
+    portraitShift: { x: 0, y: 0 },
   };
 }
 

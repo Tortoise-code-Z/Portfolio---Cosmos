@@ -213,10 +213,11 @@ float arrivalBeam() {
 }
 
 // Retrato (SHAPE_PORTRAIT): holograma de escáner con la luz de la foto (pPor.w), fallos de señal (una franja salta de
-// lado un instante) y giro limitado con el ratón. Llega apagado: el haz de la llegada baja por la pantalla y enciende
-// lo que deja atrás (main, tras proyectar); después pasa en bucle. Con movimiento reducido, encendido y sin haz ni
-// fallos. Hasta que llega el retrato (uPor 0), la Tierra; al llegar, uPor sube a 1 en un instante y cada partícula
-// pasa de la Tierra al retrato con su retraso del morph.
+// lado un instante) y giro limitado con el ratón (PORTRAIT_TURN: poco, la cara no está completa por los lados).
+// Llega apagado: el haz de la llegada baja por la pantalla y enciende lo que deja atrás (main, tras proyectar); después
+// pasa en bucle. Con movimiento reducido, encendido y sin haz ni fallos. Hasta que llega el retrato (uPor 0), la
+// Tierra; al llegar, uPor sube a 1 en un instante y cada partícula pasa de la Tierra al retrato con su retraso del
+// morph.
 void portrait(out vec3 P, out vec3 C, out float S, out float A) {
   vec3 p = pPor.xyz;
   // El tick se acota: con uTime grande, sin() pierde precisión en la GPU y los fallos dejarían de ser al azar.
@@ -224,7 +225,7 @@ void portrait(out vec3 P, out vec3 C, out float S, out float A) {
   float band = floor(p.y * 9.0);
   float glitch = uMotion * step(0.99, hash(band * 1.37 + tick * 17.1));
   p.x += glitch * (hash(band * 7.3 + tick) - 0.5) * 0.47;
-  p = rotY(p, clamp(uMouse.x, -1.0, 1.0) * uGrav * 0.44);
+  p = rotY(p, clamp(uMouse.x, -1.0, 1.0) * uGrav * PORTRAIT_TURN);
   // Al acabar la bajada entra el haz en bucle, fundido (sin saltar a mitad de la cara). Bases al cuadrado, nunca pow.
   float r = (pPor.y - PORTRAIT_HALF_H * 1.1 + mod(uTime * 1.3, PORTRAIT_HALF_H * 3.0)) * 3.0;
   float beam = exp(-r * r) * smoothstep(0.8, 1.0, arrivalBeam());
@@ -271,6 +272,9 @@ void main() {
   // acabar el tramo: ADR-039) ya viene en uT (lib/scroll/shapeTrack, la misma cuenta que la cámara).
   float tt = smoothstep(0.0, 1.0, clamp((uT - aR.x * MORPH_DELAY) / MORPH_SPAN, 0.0, 1.0));
   bool toPortrait = isTag(uTo, SHAPE_PORTRAIT);
+  // Lo que esta partícula ya es retrato (0 → 1, con su retraso y con uPor): pesa el haz de la llegada y apaga la
+  // gravedad del cursor sobre la cara (ADR-042).
+  float portraitWeight = toPortrait ? tt * uPor : 0.0;
 
   vec3 PA; vec3 PB; vec3 CA; vec3 CB; float SA; float SB; float AA; float AB;
   shape(uFrom, PA, CA, SA, AA);
@@ -305,9 +309,10 @@ void main() {
   gl_PointSize = min(S * uPR * (SIZE_DISTANCE / -mv.z), SIZE_MAX_PX);
 
   // Gravedad del cursor, en pantalla y sin tocar la geometría (uGrav 0: táctil, sin ratón dentro, movimiento reducido).
+  // Sobre la cara, nada: la deformaría (portraitWeight).
   vec2 d = gl_Position.xy / gl_Position.w - uMouse;
   d.x *= uAspect;
-  float f = exp(-dot(d, d) * GRAV_FALLOFF) * uGrav;
+  float f = exp(-dot(d, d) * GRAV_FALLOFF) * uGrav * (1.0 - portraitWeight);
   vec2 off = (vec2(-d.y, d.x) * GRAV_SWIRL + d * GRAV_RADIAL) * f * GRAV_REACH;
   off.x /= uAspect;
   gl_Position.xy += off * gl_Position.w;
@@ -323,7 +328,7 @@ void main() {
     float lit = max(smoothstep(b - 0.01, b + 0.02, y), 1.0 - uMotion);
     float q = (y - b) * 30.0;
     float glow = exp(-q * q) * uMotion * step(0.001, down) * (1.0 - smoothstep(0.95, 1.0, down));
-    C *= mix(1.0, mix(0.12, 1.0, lit) + glow * 1.5, tt * uPor);
+    C *= mix(1.0, mix(0.12, 1.0, lit) + glow * 1.5, portraitWeight);
   }
   vCol = C * (1.0 + f * GRAV_GLOW);
 }

@@ -1,10 +1,10 @@
 import { act, fireEvent, render } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { sceneStore, setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import { sceneStore, setPortraitShift, setScrollTarget } from '~/stores/sceneStore/sceneStore';
 import { setSceneLevel, turnSceneOff, useUiStore } from '~/stores/uiStore/uiStore';
 
-import { SceneStills, selectStillChapter, STILL_SOURCES } from './SceneStills';
+import { PORTRAIT_SHIFT_VARS, SceneStills, selectStillChapter, STILL_SOURCES } from './SceneStills';
 import { DESKTOP_STILL_QUERY, STILL_CHAPTERS, stillFileName } from '../stillFrames/stillFrames';
 
 afterEach(() => {
@@ -74,6 +74,18 @@ describe('SceneStills', () => {
     goTo(5);
     fireEvent.load(still(container, 5));
     expect(visible(container)).toEqual(['5']);
+  });
+
+  it('the portrait still goes with the frame of the portrait, like the scene (ADR-042)', () => {
+    setPortraitShift(24, -180);
+    const { container } = renderOff(5);
+    const layer = container.querySelector<HTMLElement>('[data-scene-stills]');
+    expect(layer?.style.getPropertyValue(PORTRAIT_SHIFT_VARS.x)).toBe('24.0px');
+    expect(layer?.style.getPropertyValue(PORTRAIT_SHIFT_VARS.y)).toBe('-180.0px');
+    act(() => {
+      setPortraitShift(24, -620.25);
+    });
+    expect(layer?.style.getPropertyValue(PORTRAIT_SHIFT_VARS.y)).toBe('-620.3px');
   });
 
   it('in the arrival of the epilogue the portrait comes in with the shape, not at half the arrival (ADR-039)', () => {

@@ -81,11 +81,24 @@ for (const frameName of Object.keys(STILL_FRAMES) as StillFrameName[]) {
         if (chapter === EPILOGUE) {
           await expect(scene).toHaveAttribute('data-portrait', 'painted', { timeout: 60_000 });
         }
-        // Solo el lienzo: lo demás, invisible (sin cambiar la maqueta).
+        // Solo el lienzo: lo demás, invisible (sin cambiar la maqueta). El marco del retrato, fuera: sin él la escena
+        // no se mueve con el marco (ADR-042) y la foto sale con la cara en el centro, donde la espera la capa sin
+        // WebGL, que la mueve ella. Dos frames: el que lo mide y el que pinta.
         await page.addStyleTag({
           content:
-            '* { visibility: hidden !important; } canvas { visibility: visible !important; }',
+            '* { visibility: hidden !important; } canvas { visibility: visible !important; }' +
+            ' [data-crew-visor] { display: none !important; }',
         });
+        await page.evaluate(
+          () =>
+            new Promise<void>((resolve) => {
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  resolve();
+                });
+              });
+            }),
+        );
         const canvas = page.locator('canvas');
         expect(await canvas.boundingBox()).toEqual({
           x: 0,

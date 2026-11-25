@@ -2,21 +2,28 @@ import { render } from '@testing-library/react';
 import { OrthographicCamera, PerspectiveCamera, Vector3, type Camera } from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
+
 import { CAMERA_KEYFRAMES, PARALLAX } from '../config/sceneConfig';
 import { cameraFov, cameraPose, createCameraPose, createParallax } from '../math/camera/camera';
 import { createScreenPoint, projectToScreen } from '../math/projection/projection';
 import { createSceneFrame, type SceneFrame } from '../sceneMaterials/sceneMaterials';
-import { CAMERA_RIG_PRIORITY, CameraRig } from './CameraRig';
+import { CAMERA_RIG_PRIORITY, CameraRig, portraitFollow } from './CameraRig';
 
 /** El `useFrame` y el `useThree` de R3F, a mano: la cámara que se le da y cada frame cuando se pide. */
 const r3f = vi.hoisted(() => ({
   camera: null as Camera | null,
+  size: { width: 1280, height: 720 },
   frames: [] as (() => void)[],
   priorities: [] as (number | undefined)[],
 }));
 vi.mock('@react-three/fiber', () => ({
-  useThree: (select: (state: { camera: Camera | null }) => unknown) =>
-    select({ camera: r3f.camera }),
+  useThree: (
+    select: (state: {
+      camera: Camera | null;
+      size: { readonly width: number; readonly height: number };
+    }) => unknown,
+  ) => select({ camera: r3f.camera, size: r3f.size }),
   useFrame: (callback: () => void, priority?: number) => {
     r3f.frames.push(callback);
     r3f.priorities.push(priority);
@@ -25,6 +32,7 @@ vi.mock('@react-three/fiber', () => ({
 
 afterEach(() => {
   r3f.camera = null;
+  r3f.size = { width: 1280, height: 720 };
   r3f.frames = [];
   r3f.priorities = [];
 });
@@ -195,6 +203,58 @@ describe('CameraRig', () => {
     tick();
     expect(camera.position.toArray()).toEqual([...CAMERA_KEYFRAMES[0].position]);
     expect(update).not.toHaveBeenCalled();
+  });
+
+  it('in the epilogue, moves the whole picture with the frame of the portrait, as far as the portrait is there (ADR-042)', () => {
+    const camera = new PerspectiveCamera(55, 1280 / 720, 0.1, 400);
+    const { frame, tick } = mountRig(camera);
+    frame.aspect = 1280 / 720;
+    frame.portraitShift.x = 40;
+    frame.portraitShift.y = -300;
+    frame.m = 5;
+    tick();
+    camera.updateMatrixWorld();
+    // El retrato (el origen, donde mira la cámara del epílogo) cae en el centro del marco: el de la ventana, movido.
+    const ndc = new Vector3(0, 0, 0).project(camera);
+    expect(((ndc.x + 1) / 2) * 1280).toBeCloseTo(640 + 40, 6);
+    expect(((1 - ndc.y) / 2) * 720).toBeCloseTo(360 - 300, 6);
+    // A media presencia del retrato (la `m` de la forma a 4,72, a mitad de la rampa), a medias.
+    frame.m = 4 + 0.72 * EPILOGUE_ARRIVAL.morphEnd;
+    tick();
+    expect(camera.view?.offsetX).toBeCloseTo(-40 * portraitFollow(frame), 6);
+    expect(portraitFollow(frame)).toBeGreaterThan(0);
+    expect(portraitFollow(frame)).toBeLessThan(1);
+    // Fuera del epílogo, la proyección de siempre.
+    frame.m = 4;
+    tick();
+    expect(camera.view?.enabled ?? false).toBe(false);
+  });
+
+  it('touches the projection only when the shift or the canvas size change', () => {
+    const camera = new PerspectiveCamera(55, 1, 0.1, 400);
+    r3f.camera = camera;
+    const frame = createSceneFrame();
+    const { rerender } = render(<CameraRig frame={frame} />);
+    const tick = (): void => {
+      r3f.frames.at(-1)?.();
+    };
+    frame.aspect = 1;
+    tick();
+    const update = vi.spyOn(camera, 'updateProjectionMatrix');
+    // Sin desplazamiento (antes del epílogo o sin marco), nada.
+    frame.m = 5;
+    tick();
+    expect(update).not.toHaveBeenCalled();
+    frame.portraitShift.y = 120;
+    tick();
+    tick();
+    expect(update).toHaveBeenCalledTimes(1);
+    // El lienzo cambia de tamaño (R3F vuelve a pintar el componente con el nuevo): otra vez, a su medida.
+    r3f.size = { width: 900, height: 900 };
+    rerender(<CameraRig frame={frame} />);
+    tick();
+    expect(update).toHaveBeenCalledTimes(2);
+    expect(camera.view?.fullWidth).toBe(900);
   });
 
   it('paints nothing of its own', () => {

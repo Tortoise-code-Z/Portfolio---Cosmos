@@ -1,4 +1,11 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+} from 'react';
 import { useStore } from 'zustand';
 
 import desktop1Avif from '~/assets/scene-stills/avif/scene-still-desktop-1.avif';
@@ -89,14 +96,40 @@ export function SceneStills(): ReactNode {
 }
 
 /**
+ * Lo que la foto del epílogo se mueve con el marco del retrato (ADR-042), en px: `sceneStore.portraitShift`, el mismo
+ * desplazamiento que la escena con WebGL. Variables privadas de la capa (`SceneStills.module.css`): solo las lee esa
+ * foto.
+ */
+export const PORTRAIT_SHIFT_VARS = { x: '--_portrait-x', y: '--_portrait-y' } as const;
+
+/** Escribe en la capa dónde está el marco del retrato, al montar y cada vez que cambia (sin re-renderizar). */
+function usePortraitShiftVars(layer: RefObject<HTMLDivElement | null>): void {
+  useEffect(() => {
+    const element = layer.current;
+    if (element === null) return undefined;
+    const write = ({ x, y }: { readonly x: number; readonly y: number }): void => {
+      element.style.setProperty(PORTRAIT_SHIFT_VARS.x, `${x.toFixed(1)}px`);
+      element.style.setProperty(PORTRAIT_SHIFT_VARS.y, `${y.toFixed(1)}px`);
+    };
+    write(sceneStore.getState().portraitShift);
+    return sceneStore.subscribe((state, previous) => {
+      if (state.portraitShift !== previous.portraitShift) write(state.portraitShift);
+    });
+  }, [layer]);
+}
+
+/**
  * La foto del capítulo de la forma (`selectStillChapter`: el activo, como el HUD, salvo en la llegada), encima del degradado del espacio y
  * fundida con `screen`: la foto es la escena sobre negro y las partículas se suman como luz, así que el negro no se
  * ve. Solo se descargan las de los capítulos por los que pasa la visita; una vez en el DOM se quedan (ya bajadas),
  * así que volver a un capítulo es inmediato. La nueva entra cuando ha llegado: hasta entonces sigue la anterior
  * (nunca un hueco a medias). En la singularidad (capítulo 0), ninguna. Decorativas: sin texto ni foco; si una no
- * llega, se queda la anterior y no se avisa (el contenido no depende de ellas).
+ * llega, se queda la anterior y no se avisa (el contenido no depende de ellas). La del epílogo va con el marco del
+ * retrato, como la escena (`usePortraitShiftVars`).
  */
 function Stills(): ReactNode {
+  const layer = useRef<HTMLDivElement>(null);
+  usePortraitShiftVars(layer);
   const chapter = useStore(sceneStore, selectStillChapter);
   const target = stillOf(chapter);
   const [visited, setVisited] = useState<readonly StillChapter[]>([]);
@@ -109,7 +142,7 @@ function Stills(): ReactNode {
   if (next !== shown) setShown(next);
 
   return (
-    <div className={styles.stills} aria-hidden="true" data-scene-stills="">
+    <div ref={layer} className={styles.stills} aria-hidden="true" data-scene-stills="">
       {visited.map((still) => (
         <Still
           key={still}

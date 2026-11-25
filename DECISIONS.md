@@ -738,6 +738,8 @@
   (257 330 → 257 585 B; 10 B menos que la nota anterior: los nombres con hash de los chunks). Medido sobre `main` con
   él, 257 596 B; la corrección de su auditoría pesó 25 B: **257 621 B**. Quedan 2 379 B; el PR del satélite sube el
   límite (ADR-041). Esta cuenta sustituye a la anterior.
+- Nota (2026-11-25, C.7, la cara que sigue a su marco, ADR-042): pesó 277 B: **257 898 B**. Quedan 2 102 B. Esta
+  cuenta sustituye a la anterior.
 - Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).
 
 ## ADR-033 · Los commits de solo documentación van directos a `main`
@@ -1111,3 +1113,43 @@
   cámara (`arrivalShapeM`) y las formas sigan yendo a la par: hoy salen de la misma cuenta; con las naves, la cámara
   seguirá a `m` y las formas a su propia posición.
 - Detalle: `docs/04-escena/particulas-y-shaders.md` → «Mapa de formas»; `docs/02-experiencia/transiciones-naves.md`.
+
+## ADR-042 · La cara del Crew file sigue a su marco: la página lo mide y la escena descentra su proyección
+- Estado: Aceptada
+- Fecha: 2026-11-25
+- Contexto: el retrato se pinta en el lienzo, fijo en la ventana, y la cámara del capítulo 5 lo pone en su centro; el
+  marco del visor es de la página. En móvil el marco subía con el scroll y la cara se quedaba atrás, por detrás de la
+  ficha; en escritorio el marco iba pegado al centro de la pantalla (`sticky`) para encajar con ella y, al final, la
+  cara pisaba el pie del sitio. Víctor quiere la cara siempre en su marco y, en escritorio, el marco en el centro de la
+  ficha, subiendo con la página. Además, la gravedad del cursor deformaba la cara y su giro con el ratón (~±25°)
+  dejaba ver que no está completa por los lados ni por detrás.
+- Decisión:
+  - **La página mide el marco** (`features/journey/usePortraitFollow`, con `lib/scroll/portraitShift`): cuánto se
+    separa su centro del centro de la ventana, en px, en el evento del scroll (antes del frame que pinta la escena)
+    mientras el marco está a menos de una ventana de la vista (`IntersectionObserver`: lejos no lee el layout en cada
+    scroll de la página), al cambiar de tamaño la ventana o el marco y al montar; lo deja en `sceneStore.portraitShift`
+    (ADR-004: sin estado de React). Un marco sin tamaño no mueve nada.
+  - **La escena descentra su proyección** (`CameraRig`, `setViewOffset`): la imagen entera se mueve eso en pantalla
+    (la cara, las partículas y las estrellas, sin huecos), por la presencia del retrato con la `m` de la forma (0 fuera
+    del epílogo; en la llegada, la cara entra en el marco a la vez que se forma). El haz de la llegada se mide en
+    pantalla en el shader y en la página, así que sigue encajando.
+  - **Sin WebGL**, la foto del epílogo se mueve igual (`SceneStills`, variables de su capa). Cuando el marco sale por
+    arriba, abajo queda el fondo sin foto: aceptado. Las fotos fijas se sacan con el marco escondido, sin desplazar.
+  - **En escritorio**, el visor va en la columna del centro del aviso al final de la ficha y el marco en el centro de
+    ese bloque; deja de ser `sticky`.
+  - **La gravedad del cursor no toca la cara:** su remolino y su brillo van por lo que la partícula aún no es retrato
+    (`1 − tt · uPor` llegando al retrato), así que en la llegada se apaga por partícula. El giro con el ratón se queda,
+    más corto: ±0,22 rad (~±12,6°, `PORTRAIT_TURN`, por la cabecera de los shaders).
+- Alternativas descartadas: mover el lienzo con CSS (`translate`; dejaba huecos en los bordes y movía también lo que
+  no es del epílogo), mover la cámara en el mundo (cambia la perspectiva de la cara y la pose que leen las etiquetas),
+  medir el marco desde la escena (la escena no lee el DOM de las secciones), quitar también el giro de la cara (Víctor
+  lo quiere, más corto) y sacar fotos fijas más altas para el epílogo (más peso y otro encuadre para una franja de
+  fondo).
+- Consecuencias: el peso de la escena sube 277 B (ADR-032, nota del 2026-11-25). Lo que proyecta con la pose de la
+  cámara (`math/projection`: etiquetas y pins) no ve el descentrado; en el epílogo no hay ninguno, y si alguna vez lo
+  hay, tendrá que sumarlo. El shader y la cámara entran en la huella de las fotos fijas, que no cambian (se sacan con
+  movimiento reducido, sin gravedad ni giro, y sin desplazar). Las capturas sin WebGL del Crew file cambian (el marco
+  de escritorio y la foto que lo sigue).
+- Detalle: `docs/02-experiencia/capitulos/05-crew-file.md` → «Layout» e «Interacciones»;
+  `docs/04-escena/camara-y-encuadre.md`; `docs/04-escena/particulas-y-shaders.md` → «Gravedad del cursor» y
+  «Retrato».

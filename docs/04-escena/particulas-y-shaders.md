@@ -57,8 +57,9 @@ antepone a cada shader de vértices:
   `config/plateSlots`), el balanceo de la tortuga `TURTLE_SWAY_*` (`TURTLE_SWAY` de `sceneConfig`, la misma cuenta que
   los pins), la dirección del Sol `SUN_DIR` (`SUN.position` normalizada: la luz de la Tierra, «Iluminación de la
   Tierra»), la mitad del alto del retrato, `PORTRAIT_HALF_H`, y lo que mide su fundido de abajo, `PORTRAIT_FADE_H`
-  (`PORTRAIT_FRAME`), y la llegada del epílogo `ARRIVAL_BASE`, `ARRIVAL_BEAM_START`,
-  `ARRIVAL_BEAM_END` y `ARRIVAL_BEAM_REACH` (`EPILOGUE_ARRIVAL` de `lib/scroll/arrival`, ADR-039).
+  (`PORTRAIT_FRAME`), lo que gira con el ratón, `PORTRAIT_TURN` (`sceneConfig`), y la llegada del epílogo
+  `ARRIVAL_BASE`, `ARRIVAL_BEAM_START`, `ARRIVAL_BEAM_END` y `ARRIVAL_BEAM_REACH` (`EPILOGUE_ARRIVAL` de
+  `lib/scroll/arrival`, ADR-039).
 - `const vec3 COLOR_<NOMBRE>` desde `config/scenePalette`, que tiene todos los colores principales del design
   system, cada uno en su papel (lo comprueba su test con la tabla), y los matices del prototipo que la tabla no
   lista (los ojos de la tortuga son `COLOR_TURTLE_EYES` × 2: más brillantes que el blanco).
@@ -154,6 +155,11 @@ va por la forma que toca, no por la que se ve: si el retrato no llega, en m = 5 
 con la gravedad entera; solo pasa si falla el retrato, aceptado. Las constelaciones (F4.3) y el Sol (F4.5)
 no son partículas: la gravedad no los mueve.
 
+**Sobre la cara, nada (ADR-042).** La gravedad deformaba el retrato: su remolino y su brillo van por lo que la
+partícula aún no es retrato (`f · (1 − portraitWeight)`, con `portraitWeight = tt · uPor` llegando al retrato, el mismo
+peso que el haz). Por partícula: en la llegada se apaga a la vez que la cara se forma, y con el retrato hecho no queda.
+El giro de la cara con el ratón no es gravedad (lo da `uGrav` como intensidad del ratón dentro) y se queda.
+
 ### Colores
 
 Constantes `const vec3` de la cabecera (ver «Etiquetas y colores»), tomadas de la paleta de escena del design
@@ -192,8 +198,9 @@ shader le suma:
   lo que la foto funde (el corte del busto): se apagan con el mismo fundido, sacado de la altura (`PORTRAIT_FADE_H`).
 - **Fallos de señal:** cada 0,2 s, una franja horizontal de cada 100 salta de lado y brilla. El tick se acota
   (`mod 997`): con `uTime` grande, `sin` pierde precisión en la GPU de un móvil y los fallos dejarían de ser al azar.
-- **Parpadeo** leve y **giro** con el ratón hasta ±0,44 rad (`uMouse.x`, acotado a ±1, `· uGrav`: vuelve de frente al
-  salir y en táctil no gira; arrastrando fuera de la ventana no pasa de ahí).
+- **Parpadeo** leve y **giro** con el ratón hasta ±0,22 rad (~±12,6°, `PORTRAIT_TURN` de `sceneConfig`, por la
+  cabecera; `uMouse.x`, acotado a ±1, `· uGrav`: vuelve de frente al salir y en táctil no gira; arrastrando fuera de la
+  ventana no pasa de ahí). Poco: la cara sale de una sola foto y no está completa por los lados ni por detrás.
 - **Contraste:** el color va por `luz²`, para que los rasgos (ojos, cejas, barba) se lean sobre la piel.
 - Con movimiento reducido (`uMotion` 0), encendido entero y sin haz, fallos ni parpadeo que se mueva.
 - Sin retrato aún (`uPor` 0), `portrait()` pinta la Tierra, y el morph del 4 al 5 va sin dispersión (no la hincha).

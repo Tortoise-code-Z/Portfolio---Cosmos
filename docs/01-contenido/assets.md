@@ -29,7 +29,9 @@
   WebGL»): la forma del capítulo activo sobre el degradado del espacio. ✔ F3.9
 - **Origen:** la escena real, fotografiada por `npm run stills` dentro de la imagen de Playwright (Docker, como las
   capturas; `tests/stills/stills.spec.ts`, `playwright.stills.config.ts`): entra por el ancla de cada capítulo 1–5
-  con movimiento reducido y fotografía solo el lienzo, sobre negro (`--color-void` a `#000`).
+  con movimiento reducido y fotografía solo el lienzo, sobre negro (`--color-void` a `#000`), con el marco del retrato
+  escondido: así la escena no se mueve con él (ADR-042) y la foto del epílogo sale con la cara en el centro (la capa sin
+  WebGL la mueve después con el marco).
 - **Encuadres** (`src/features/scene-mount/stillFrames` → `STILL_FRAMES`):
   - **Escritorio:** 2160 × 900 px a densidad 2, en Alto, con `shiftX`. Ajustada al alto cubre cualquier pantalla de
     aspecto 1,25–2,4.
