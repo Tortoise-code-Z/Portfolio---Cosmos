@@ -1,8 +1,9 @@
 // Partículas de la escena (docs/04-escena/particulas-y-shaders.md). Un vértice por partícula: se evalúan solo
-// las dos formas que se mezclan (`uFrom` y `uTo`, con `uT`: el mapa de formas, ADR-041), y una sola con `uT` 0. Los
-// ids de las formas (SHAPE_*), las etiquetas (TURTLE_*, EARTH_*, PLATE_*), el balanceo de la
-// tortuga (también TURTLE_*), las medidas del retrato (PORTRAIT_*) y los colores (COLOR_*) llegan en la cabecera que
-// genera `scene/shaders/glslHeader` desde TypeScript.
+// las dos formas que se mezclan (`uFrom` y `uTo`, con `uT`: el mapa de formas, ADR-041), y una sola con `uT` 0. Salvo
+// en el epílogo: ahí la escena se para con `uT` 0,999 (el tope del mapa de formas) y se evalúan la Tierra y el
+// retrato, y con `uPor` < 1 el retrato vuelve a evaluar la Tierra. Los ids de las formas (SHAPE_*), las etiquetas
+// (TURTLE_*, EARTH_*, PLATE_*), el balanceo de la tortuga (también TURTLE_*), las medidas del retrato (PORTRAIT_*) y
+// los colores (COLOR_*) llegan en la cabecera que genera `scene/shaders/glslHeader` desde TypeScript.
 // Tres.js añade `position`, las matrices, `cameraPosition` y la precisión (ShaderMaterial).
 
 attribute vec3 pGal;
@@ -248,14 +249,21 @@ void portrait(out vec3 P, out vec3 C, out float S, out float A) {
   }
 }
 
-// La forma de id `id` (SHAPE_*). Las naves (SHAPE_SATELLITE, SHAPE_MOTHERSHIP) aún no están en el viaje.
+// La forma de id `id` (SHAPE_*): una rama por forma del viaje. Las naves (SHAPE_SATELLITE, SHAPE_MOTHERSHIP) aún no
+// están en él. Un id sin rama no pinta nada (tamaño y alfa 0): no se disfraza de otra forma.
 void shape(float id, out vec3 P, out vec3 C, out float S, out float A) {
   if (isTag(id, SHAPE_SINGULARITY)) singularity(P, C, S, A);
   else if (isTag(id, SHAPE_NEBULA)) nebula(P, C, S, A);
   else if (isTag(id, SHAPE_GALAXY)) galaxy(P, C, S, A);
   else if (isTag(id, SHAPE_TURTLE)) turtle(P, C, S, A);
   else if (isTag(id, SHAPE_EARTH)) earth(P, C, S, A);
-  else portrait(P, C, S, A);
+  else if (isTag(id, SHAPE_PORTRAIT)) portrait(P, C, S, A);
+  else {
+    P = vec3(0.0);
+    C = P;
+    S = 0.0;
+    A = 0.0;
+  }
 }
 
 void main() {
@@ -266,7 +274,7 @@ void main() {
 
   vec3 PA; vec3 PB; vec3 CA; vec3 CB; float SA; float SB; float AA; float AB;
   shape(uFrom, PA, CA, SA, AA);
-  // Quieta en una forma (uT 0, un uniform: la GPU se salta la rama entera), una sola: con tt 0 la mezcla es la de uFrom.
+  // Quieta en una forma (uT 0, un uniform: la GPU puede saltarse la rama entera), una sola: con tt 0, la de uFrom.
   if (uT > 0.0) {
     shape(uTo, PB, CB, SB, AB);
   } else {

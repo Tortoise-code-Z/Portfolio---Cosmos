@@ -1,10 +1,17 @@
 import { AdditiveBlending } from 'three';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
-import { SHAPE } from '~/lib/scroll/shapeTrack/shapeTrack';
+import {
+  createShapeMix,
+  SHAPE,
+  SHAPE_TRACK,
+  SHAPE_TRACK_REST,
+  shapeMixAt,
+} from '~/lib/scroll/shapeTrack/shapeTrack';
 
 import {
+  CAMERA_KEYFRAMES,
   CHAPTER_PRESENCE_FADE,
   EARTH_GRAVITY,
   PORTRAIT_FADE_IN_S,
@@ -38,6 +45,16 @@ import {
   updateSunUniforms,
   type SceneFrame,
 } from './sceneMaterials';
+
+// Los mismos `createShapeMix` y `shapeMixAt`, espiados: para contar los objetos que crea cada frame (ADR-004).
+vi.mock('~/lib/scroll/shapeTrack/shapeTrack', async (importOriginal) => {
+  const original = await importOriginal<typeof import('~/lib/scroll/shapeTrack/shapeTrack')>();
+  return {
+    ...original,
+    createShapeMix: vi.fn(original.createShapeMix),
+    shapeMixAt: vi.fn(original.shapeMixAt),
+  };
+});
 
 /** La `m` a cada lado de `chapter` con esa presencia (`chapterPresence`): `side` −1 hacia atrás, +1 hacia delante. */
 function mWithPresence(chapter: number, presence: number, side: -1 | 1): number {
@@ -106,7 +123,24 @@ describe('particle uniforms', () => {
     expect(uniforms.uM.value).toBe(base + 1);
     expect(uniforms.uFrom.value).toBe(SHAPE.earth);
     expect(uniforms.uTo.value).toBe(SHAPE.portrait);
-    expect(uniforms.uT.value).toBeCloseTo(0.999, 9);
+    expect(uniforms.uT.value).toBeCloseTo(SHAPE_TRACK_REST, 9);
+  });
+
+  it('take the shapes with no new object per frame: always the same mix (ADR-004)', () => {
+    const uniforms = createParticleUniforms();
+    vi.mocked(createShapeMix).mockClear();
+    vi.mocked(shapeMixAt).mockClear();
+    for (const m of [0.5, 2.5, 4.3, 5]) updateParticleUniforms(uniforms, { ...frame, m });
+    expect(createShapeMix).not.toHaveBeenCalled();
+    const outs = vi.mocked(shapeMixAt).mock.calls.map(([, out]) => out);
+    expect(outs).toHaveLength(4);
+    expect(new Set(outs).size).toBe(1);
+  });
+
+  it('a shape per camera keyframe: the m of the shape is still that of the chapters (ADR-041)', () => {
+    // Una forma por pose de la cámara, en orden: la `m` de la forma sale de la de la escena. Las naves (C.7) lo
+    // cambian.
+    expect(SHAPE_TRACK).toHaveLength(CAMERA_KEYFRAMES.length);
   });
 
   it('take the frame in place (the same objects every frame)', () => {
@@ -374,6 +408,11 @@ describe('materials', () => {
       expect(created.vertexShader).toBe(glslHeader() + vertex);
       expect(created.fragmentShader).toBe(fragment);
       for (const [key, uniform] of Object.entries(own)) expect(created.uniforms[key]).toBe(uniform);
+      // Los uniforms que declaran sus shaders son justo los suyos: uno mal escrito se quedaría en 0 sin avisar.
+      const declared = new Set(
+        [...`${vertex}\n${fragment}`.matchAll(/^\s*uniform\s+\w+\s+(\w+)\s*;/gm)].map(([, n]) => n),
+      );
+      expect([...declared].sort()).toEqual(Object.keys(own).sort());
     });
   }
 });

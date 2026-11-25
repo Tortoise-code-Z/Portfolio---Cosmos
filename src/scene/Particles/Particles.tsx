@@ -99,10 +99,10 @@ export function useParticles({
 }
 
 /**
- * Las partículas (docs/04-escena/particulas-y-shaders.md): un solo `THREE.Points` con las 4 formas como
- * atributos (el retrato, cuando llega); el shader mezcla la actual y la siguiente según `m`. Lo que cambia cada frame va por uniforms,
- * nunca por estado de React (ADR-004). Su lógica (geometría, uniforms, materiales) se prueba aparte; esto solo
- * la monta (`useParticles`).
+ * Las partículas (docs/04-escena/particulas-y-shaders.md): un solo `THREE.Points` con las formas como atributos
+ * (el retrato, cuando llega); el shader mezcla las dos que le da el mapa de formas (`uFrom` y `uTo`, con `uT`;
+ * ADR-041). Lo que cambia cada frame va por uniforms, nunca por estado de React (ADR-004). Su lógica (geometría,
+ * uniforms, materiales) se prueba aparte; esto solo la monta (`useParticles`).
  */
 export function Particles(props: ParticlesProps): ReactNode {
   const { geometry, material } = useParticles(props);

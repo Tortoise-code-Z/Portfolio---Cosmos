@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
-import { SHAPE, SHAPE_TRACK } from '~/lib/scroll/shapeTrack/shapeTrack';
+import { SHAPE, SHAPE_TRACK, type ShapeId } from '~/lib/scroll/shapeTrack/shapeTrack';
 
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
-import { CAMERA_KEYFRAMES, SUN, TURTLE_SWAY } from '../../config/sceneConfig';
+import { SUN, TURTLE_SWAY } from '../../config/sceneConfig';
 import { SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
 import { EARTH_TAG, PORTRAIT_FRAME, TURTLE_TAG } from '../../shapes/shapeContract/shapeContract';
+import { stripGlslComments } from '../stripGlslComments/stripGlslComments';
 import { constantName, glslFloat, glslHeader, sunDirection } from './glslHeader';
 
 const header = glslHeader();
@@ -24,7 +25,23 @@ const only = (suffix: string): Readonly<Record<string, string>> =>
 const VERTEX_SHADERS = only('.vert.glsl');
 const FRAGMENT_SHADERS = only('.frag.glsl');
 const particlesVertex = SHADERS['../particles/particles.vert.glsl'] ?? '';
-const HEADER_NAME = /\b(?:TURTLE|EARTH|PLATE|PORTRAIT|COLOR|SUN|ARRIVAL)_\w+/g;
+const HEADER_NAME = /\b(?:SHAPE|TURTLE|EARTH|PLATE|PORTRAIT|COLOR|SUN|ARRIVAL)_\w+/g;
+/** El shader de las partículas sin comentarios: lo que compila. */
+const particlesCode = stripGlslComments(particlesVertex);
+/** El cuerpo de `shape()`, la función que pinta la forma de un id. */
+const shapeBody =
+  /^void shape\(float id, [^)]*\) \{\n([\s\S]*?)\n\}$/m.exec(particlesCode)?.[1] ?? '';
+/** Las condiciones de sus ramas (`if (…) forma(P, C, S, A);`). */
+const shapeConditions = [
+  ...shapeBody.matchAll(/^\s*(?:else )?if \((.+)\) \w+\(P, C, S, A\);$/gm),
+].map(([, condition]) => condition);
+
+/** El nombre de la cabecera de una forma: `SHAPE_EARTH`. */
+function shapeName(id: ShapeId): string {
+  const key =
+    Object.entries(SHAPE).find(([, value]) => value === id)?.[0] ?? `unknown ${String(id)}`;
+  return `SHAPE_${constantName(key)}`;
+}
 
 /** Los nombres que define la cabecera (`#define X …` y `const vec3 X = …`). */
 const defined = new Set(
@@ -124,14 +141,34 @@ describe('glslHeader', () => {
     for (const [key, id] of Object.entries(SHAPE)) {
       expect(header).toContain(`#define SHAPE_${constantName(key)} ${glslFloat(id)}\n`);
     }
-    // El shader elige la forma por su id, nunca por un número escrito a mano.
-    expect(particlesVertex).not.toMatch(/\b(?:uFrom|uTo|id) [<>]/);
   });
 
-  it('the shape track has a shape per camera keyframe: m and the shape still go together (ADR-041)', () => {
-    // Hoy la `m` de la forma es la de los capítulos: una forma por pose de la cámara. Las naves (C.7) cambian esto.
-    expect(SHAPE_TRACK).toHaveLength(CAMERA_KEYFRAMES.length);
-    expect(particlesVertex).not.toContain('LAST_M');
+  it('shape() has a branch per shape of the journey, each by its name; an unknown id paints nothing', () => {
+    // Cada rama elige por el nombre de la forma (`isTag(id, SHAPE_EARTH)`), nunca por un número ni por un orden.
+    expect(shapeConditions.length).toBeGreaterThanOrEqual(SHAPE_TRACK.length);
+    for (const condition of shapeConditions)
+      expect(condition).toMatch(/^isTag\(id, SHAPE_[A-Z_]+\)$/);
+    // Una forma del viaje sin su rama se pintaría como otra sin avisar: cada una tiene la suya.
+    for (const id of SHAPE_TRACK) expect(shapeConditions).toContain(`isTag(id, ${shapeName(id)})`);
+    // El último `else` no es una forma: tamaño y alfa 0, sin llamar a ninguna.
+    const fallback = /\belse \{([^}]*)\}\s*$/.exec(shapeBody)?.[1] ?? '';
+    expect(fallback).toContain('S = 0.0;');
+    expect(fallback).toContain('A = 0.0;');
+    expect(fallback).not.toMatch(/\w+\(P, C, S, A\)/);
+  });
+
+  it('the particles take the shapes from uFrom/uTo/uT, never from m or a number by hand (ADR-041)', () => {
+    // Ninguna comparación con las formas: `uFrom < 0.5`, `id == 4.0`, `3.5 > id`, `abs(id - 4.0)`.
+    expect(particlesCode).not.toMatch(/\b(?:uFrom|uTo|id)\s*(?:[<>]=?|[=!]=)/);
+    expect(particlesCode).not.toMatch(/(?:[<>]=?|[=!]=)\s*(?:uFrom|uTo|id)\b/);
+    expect(particlesCode).not.toMatch(/abs\(\s*(?:uFrom|uTo|id)\s*-/);
+    // `uM` solo está para el haz de la llegada: su declaración y `arrivalBeam()`.
+    expect([...particlesCode.matchAll(/\buM\b/g)]).toHaveLength(2);
+    expect(particlesCode).toContain('float a = clamp(uM - ARRIVAL_BASE, 0.0, 1.0);');
+    // Las dos formas, la segunda solo durante un cambio (uT > 0: quieta, una sola).
+    expect(particlesCode).toContain('shape(uFrom, PA, CA, SA, AA);');
+    expect(particlesCode).toContain('if (uT > 0.0) {\n    shape(uTo, PB, CB, SB, AB);');
+    expect(particlesCode).toContain('bool toPortrait = isTag(uTo, SHAPE_PORTRAIT);');
   });
 
   it('no pow() whose base can be negative (undefined in GLSL ES): only the bases known to be ≥ 0', () => {
@@ -172,9 +209,10 @@ describe('glslHeader', () => {
 
   it('the shaders write no tag number or colour by hand: they go through the names', () => {
     for (const [name, source] of Object.entries(SHADERS)) {
-      // Una etiqueta escrita a mano: `tag … 12.5`, `isTag(tag, 12.0)`, `abs(tag - 12.0)` o `aR.y < 12.5`.
+      // Una etiqueta o un id escritos a mano: `tag … 12.5`, `isTag(tag, 12.0)`, `isTag(id, 4.0)`,
+      // `abs(tag - 12.0)` o `aR.y < 12.5`.
       expect(source, name).not.toMatch(/\btag\s*[<>=]=?\s*\d/);
-      expect(source, name).not.toMatch(/isTag\(tag,\s*\d/);
+      expect(source, name).not.toMatch(/isTag\(\s*\w+\s*,\s*-?[\d.]/);
       expect(source, name).not.toMatch(/abs\(tag\s*-\s*\d/);
       expect(source, name).not.toMatch(/\baR\.[yz]\s*[<>=!]=?\s*\d/);
       // Un nombre desplazado a mano, salvo el ±0,5 de redondeo: `TURTLE_FLIPPER + 1.5` da por hecho 2 aletas.

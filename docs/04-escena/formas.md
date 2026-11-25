@@ -10,7 +10,7 @@
 > generador (`NEBULA`, `GALAXY`, `TURTLE`, `EARTH`, `PORTRAIT`): son el aspecto que ya se aprobó. El retrato
 > (forma 5) llega aparte, con sus imágenes: «Forma 5 · Retrato».
 > El número de cada forma aquí es su sitio en el viaje (un capítulo por forma). El shader las elige por un id fijo
-> (`SHAPE`: el retrato es el 7, detrás de las naves), el mapa de formas (`particulas-y-shaders.md` → «Mapa de
+> (`SHAPE`: el retrato es el 7, detrás de las naves): es el mapa de formas (`particulas-y-shaders.md` → «Mapa de
 > formas», ADR-041).
 
 ## Utilidades compartidas
