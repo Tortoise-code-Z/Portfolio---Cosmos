@@ -15,6 +15,7 @@ import {
   PARTICLES_PAINTED,
   scrollToY,
   settleScene,
+  skipWithoutWebGL2,
   TELETYPE_WRITTEN,
   TELETYPE_WRITTEN_WITH_GUIDE,
   waitFrames,
@@ -1012,26 +1013,53 @@ test.describe('Crew file', () => {
       return { x: x / sum, y: y / sum };
     }
 
+    /** Cuánto se separan dos lecturas de `faceInFrame` (lo más en x o en y). */
+    const apart = (a: { x: number; y: number }, b: { x: number; y: number }): number =>
+      Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+
+    /**
+     * La luz del retrato en su marco, ya quieta: dos lecturas seguidas iguales (±1 px). Sin GPU (WebKit en el CI, a
+     * pocos fps) la escena tarda en pintar lo último.
+     */
+    async function settledFace(page: Page): Promise<{ x: number; y: number }> {
+      let last = await faceInFrame(page);
+      await expect
+        .poll(
+          async () => {
+            const next = await faceInFrame(page);
+            const moved = apart(next, last);
+            last = next;
+            return moved;
+          },
+          { timeout: 30_000 },
+        )
+        .toBeLessThanOrEqual(1);
+      return last;
+    }
+
     for (const { width, height, scroll } of [
       { width: 1280, height: 720, scroll: 120 },
       { width: 390, height: 844, scroll: 160 },
     ]) {
       test(`${String(width)}×${String(height)} with WebGL: scrolling, the portrait stays in its frame (±2 px)`, async ({
         page,
-      }) => {
+      }, testInfo) => {
+        // Sin GPU, la escena va lenta (WebKit en el CI) o no hay WebGL2 (Firefox en el CI: el modo sin WebGL, abajo).
+        test.slow();
+        await skipWithoutWebGL2(page, testInfo);
         await page.setViewportSize({ width, height });
         await page.goto('/#crew-file', { waitUntil: 'networkidle' });
         await expect(page.locator(PARTICLES_PAINTED)).toHaveAttribute('data-portrait', 'painted', {
           timeout: 60_000,
         });
-        const before = await faceInFrame(page);
+        const before = await settledFace(page);
         const top = (await frameBox(page))?.top ?? Number.NaN;
         await scrollToY(page, (await page.evaluate(() => window.scrollY)) + scroll);
-        // El marco ha subido (con la página) y la cara, con él.
+        // El marco ha subido (con la página) y la cara, con él (en cuanto la escena pinta el frame nuevo).
         expect(top - ((await frameBox(page))?.top ?? Number.NaN)).toBeCloseTo(scroll, 0);
-        const after = await faceInFrame(page);
-        expect(Math.abs(after.x - before.x)).toBeLessThanOrEqual(2);
-        expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(2);
+        await expect
+          .poll(async () => apart(await faceInFrame(page), before), { timeout: 30_000 })
+          .toBeLessThanOrEqual(2);
       });
 
       test(`${String(width)}×${String(height)} without WebGL: the still of the portrait goes with its frame (±2 px)`, async ({
