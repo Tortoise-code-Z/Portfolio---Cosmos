@@ -228,7 +228,8 @@
   from the main thread…», su `waitFor`): con la tanda entera cargando la máquina (50 s; jsdom, 160 s sumados entre
   hilos). Sueltos pasan los dos (S48), y en el CI también. En S49, con `npm run test:coverage`, agotaron su tiempo
   también `scripts/sceneModules.test.ts` (ESLint `calculateConfigForFile`, 5 s) y `scripts/siteTelemetry.test.ts` (el
-  plugin, 5 s), y otra vez `useSceneShapes.test.ts`; sueltos y con `--maxWorkers=2` pasan. Ya es la tercera sesión:
+  plugin, 5 s), y otra vez `useSceneShapes.test.ts`; sueltos y con `--maxWorkers=2` pasan. En S50, otra vez el
+  `beforeAll` de `docsOnly.test.ts` con `npm run test:coverage`. Ya es la cuarta sesión:
   toca un `chore` aparte (subir el plazo de esos tests o correr con menos hilos en Windows); si alguno falla suelto,
   mirarlo antes.
 - **e2e en el equipo de Víctor (S32, S38):** la primera tanda completa de Chromium en Windows sacó dos carreras de

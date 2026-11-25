@@ -128,6 +128,14 @@ crudo»: ahora la escena trae el epílogo.
 
 ## Pendiente
 
+- **Decidido en S50, por construir (su propio PR y un ADR nuevo): la cara sigue a su marco.** Hoy el retrato está fijo
+  en el lienzo y el marco del visor es de la página: en móvil el marco sube con el scroll y la cara se queda atrás, por
+  detrás de la ficha; en escritorio el marco va pegado al centro de la pantalla y, al final, la cara pisa el pie. Lo
+  decidido: la escena se desplaza con el marco (la página mide dónde está y la cámara lo sigue), así que la cara va
+  siempre dentro de él, en móvil y en escritorio, también durante la llegada; sin WebGL, la foto fija igual. En
+  escritorio el marco deja de ir pegado al centro de la pantalla: queda en el centro de la ficha y sube con la página
+  como lo demás. Las estrellas del fondo se mueven con él en el Crew file (un paralaje suave). Se prueba con un e2e de
+  que retrato y marco coinciden (±2 px) al hacer scroll y con capturas nuevas.
 - F6: la inclinación del móvil (con su permiso en iOS) y mirar el retrato en un móvil real.
 - Decidido en C.6: solo los idiomas, sin el nivel de inglés; la foto de la prueba de la sesión 34 y sus datos, en el
   repo público.

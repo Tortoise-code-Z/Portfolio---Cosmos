@@ -195,15 +195,17 @@ por paso, en este orden:
    transmisión se lee a pantalla completa, como hoy, y al salir el satélite se aleja llevándose la pantalla con el
    texto. En Mission control, una nave nodriza; el retrato llega directo desde la Tierra. Prueba fuera del repo hecha
    (versión 8): `docs/02-experiencia/transiciones-naves.md`. Se construye en cuatro PR (ADR-041): el **mapa de formas**,
-   sin ningún cambio visible (la escena recibe qué dos formas mezcla, `uFrom`/`uTo`/`uT`, en vez de sacarlas de `m`; en
-   curso); el **satélite** en el Mission log (con el tope de peso de la escena que mida); la **nave nodriza** en el
+   sin ningún cambio visible (la escena recibe qué dos formas mezcla, `uFrom`/`uTo`/`uT`, en vez de sacarlas de `m`;
+   ✔ #128); el **satélite** en el Mission log (con el tope de peso de la escena que mida); la **nave nodriza** en el
    Mission control, y la **coreografía de la página** de las transmisiones (el marco encajado, la vista llena y la
    salida con la pantalla).
    **Primer paso (sesión 47, antes de las naves): la entrada del Crew file** (prueba aprobada): la
    sección se queda fija mientras la Tierra se deshace en el retrato, el haz baja revelándola y el visor se cierra
    (`05-crew-file.md` → «Transición», ADR-039). En dos PR: el tramo de llegada, la sección fija, los saltos y la
    escena (PR 1, ✔ #124); la coreografía de la página (PR 2, ✔ #127: el haz que revela la sección, las esquinas del
-   visor, el encaje con el teletipo y las líneas guía).
+   visor, el encaje con el teletipo y las líneas guía; su auditoría corregida, ✔ #129). Después, decidido en S50: la
+   cara sigue a su marco al hacer scroll, y en escritorio el marco va en el centro de la ficha (`05-crew-file.md` →
+   «Pendiente»), en su propio PR.
 
 **Hecho cuando:** el sitio no contradice el CV, los dos interludios y el epílogo cumplen sus criterios (un doc por
 sección en `docs/02-experiencia/capitulos/`, escrito en su paso) en escritorio y móvil, sin WebGL y con movimiento
