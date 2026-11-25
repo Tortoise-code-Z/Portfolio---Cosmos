@@ -987,7 +987,9 @@ test.describe('Crew file', () => {
         content: '* { visibility: hidden !important; } canvas { visibility: visible !important; }',
       });
       await waitFrames(page, 3);
-      const png = await page.locator('canvas').screenshot({ animations: 'disabled' });
+      // La ventana, no el elemento: el lienzo es `position: fixed` y WebKit, al hacer la captura de un elemento fijo con
+      // la página bajada, recorta otro trozo (la cara parecía quedarse atrás, y en su vídeo iba en el marco).
+      const png = await page.screenshot({ animations: 'disabled' });
       await style.evaluate((element) => {
         element.parentNode?.removeChild(element);
       });
