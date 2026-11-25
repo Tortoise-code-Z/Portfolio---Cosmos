@@ -42,7 +42,9 @@ cosmos-portfolio/
 │  │  │                           que salta a un capítulo), BlinkCursor (el cursor del teletipo),
 │  │  │                           `chapterDom` (el contrato con el DOM que lee la
 │  │  │                           navegación y el mapeo de scroll), `useBigBang` y `BigBangFlash` (los efectos del Big Bang en el
-│  │  │                           DOM, ADR-030), `pointGestures` y `useTapOutsideTurnsOff` (los gestos con que
+│  │  │                           DOM, ADR-030), `useArrivalChoreography` (lo que pinta la página en la
+│  │  │                           llegada del epílogo: el haz, las esquinas del visor y el encaje, con su propia
+│  │  │                           `m` suavizada; ADR-039), `pointGestures` y `useTapOutsideTurnsOff` (los gestos con que
 │  │  │                           un grupo de Skills o una fila de Projects encienden la escena, y tocar fuera)
 │  │  │                           y `shared.module.css` (piezas de texto comunes)
 │  │  ├─ navigation/            ← TopBar, ChapterRail, LanguageSwitch, SkipLink, goToChapter (salto con
@@ -99,13 +101,15 @@ cosmos-portfolio/
 │  │  ├─ history/               ← replaceHash (cambia el ancla sin entrada nueva en el historial)
 │  │  ├─ storage/               ← readStorage / writeStorage: localStorage que nunca lanza; si falla, memoria
 │  │  │                           hasta recargar y un aviso por clave (solo comodidades)
-│  │  ├─ events/                ← isPlainClick (clic normal: los saltos dentro del viaje lo comparten)
+│  │  ├─ events/                ← isPlainClick (clic normal: los saltos dentro del viaje lo comparten) e
+│  │  │                           isTabFocus (lo que se enfoca con Tab: el foco y la coreografía de la llegada)
 │  │  ├─ scroll/                ← mapM, segmentAt y toScrollLayout (puros; los tramos del viaje),
 │  │  │                           useChapterLayout, useScrollTarget,
 │  │  │                           jumpToChapter (scroll + foco al título + ancla), smoothM (el suavizado de
-│  │  │                           `m` que comparten la escena y los efectos del Big Bang, ADR-030), arrival (la
-│  │  │                           llegada del epílogo que lee la escena: EPILOGUE_ARRIVAL, arrivalShapeM; ADR-039),
-│  │  │                           arrivalChoreography (lo que pinta la página en ella: arrivalBeam, arrivalBeamLine)
+│  │  │                           `m` que comparten la escena, los efectos del Big Bang y la coreografía de la
+│  │  │                           llegada, ADR-030), arrival (la llegada del epílogo que lee la escena:
+│  │  │                           EPILOGUE_ARRIVAL, arrivalShapeM; ADR-039), arrivalChoreography (lo que pinta la
+│  │  │                           página en ella: los cortes ARRIVAL_CHOREOGRAPHY, arrivalBeam, arrivalBeamLine)
 │  │  │                           y stageFocus (el foco en el escenario fijo); estos dos, fuera de la huella de las
 │  │  │                           fotos fijas
 │  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
@@ -262,7 +266,9 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
 | `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); grupo de skills encendido (`activeSkillGroup`, desde F4.3b: lo lee el bucle de la escena una vez por frame con `getState()` y lo copia a `SceneFrame.skillGroup`; lo escriben el panel y las etiquetas desde F4.3c: `setActiveSkillGroup` enciende y `releaseActiveSkillGroup` apaga solo si sigue encendido; `selectSceneOn` dice si hay escena); página de proyecto a la vista (`projectPageOpen`: la escribe la ficha al montarse y al irse; hasta F5, la escena se pausa con ella); proyecto señalado (`activeProject`, su slug, desde F4.4a: lo escriben las filas del capítulo 3 —ratón, foco del teclado en sus enlaces, toque— y, desde F4.4b, los pins (ratón y toque); `setActiveProject` señala y `releaseActiveProject` suelta solo si sigue señalado; el bucle de la escena lo lee una vez por frame con `getState()` e ilumina su placa, y la fila lo marca con su selector) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto y, hasta F5, en la ficha); desde F4.3, el bucle de la escena lee una vez por frame, con `getState()`, `activeSkillGroup` (las constelaciones) y, desde F4.4, `activeProject` (las placas y los pins), y los deja en el `SceneFrame`: ningún `useFrame` lee un store (ADR-027); desde F5, la placa visitada |
-| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028; `setScrollTarget` no deja pasar lo que no sea un número finito), el interludio que se lee (`interlude`, fase C: lo escribe el viaje con `setReadingInterlude` en la pantalla y la cola del interludio), el capítulo que está llegando (`arriving`, C.7: lo escribe el viaje con `setReadingArrival` durante la llegada del epílogo, ADR-039), la carga de la detonación (`charge`, desde F4.1: la escribe el bucle del botón del hero en cada frame mientras carga o se descarga, ADR-030); el peso de cada capítulo no va aquí: lo calcula la escena desde su `m` (`scene/math/chapterPresence`), y el ratón lo escribe `scene/pointer` en el `SceneFrame` | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget`, `charge` e `interlude` y deja su `m` suavizada, la carga y si se lee una transmisión (`transmission`: los pins se ocultan) en el `SceneFrame` que leen los `useFrame`; los efectos del Big Bang del hero (`useBigBang`, ADR-030) por suscripción, en su propio bucle y **sin re-render**; el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen la parada activa (`selectActiveStop`: el capítulo que llega durante toda su llegada, el interludio mientras se lee, o el capítulo `round(m)`), y el HUD la lee para esconderse en una transmisión (un interludio o el epílogo, también durante su llegada, `isTransmissionStop`); las fotos fijas del modo sin WebGL eligen el capítulo de la forma (`selectStillChapter` de `SceneStills`: solo se repintan al cambiar) |
+| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028; `setScrollTarget` no deja pasar lo que no sea un número finito), el interludio que se lee (`interlude`, fase C: lo escribe el viaje con `setReadingInterlude` en la pantalla y la cola del interludio), el capítulo que está llegando (`arriving`, C.7: lo escribe el viaje con `setReadingArrival` durante la llegada del epílogo, ADR-039), la carga de la detonación (`charge`, desde F4.1: la escribe el bucle del botón del hero en cada frame mientras carga o se descarga, ADR-030); el peso de cada capítulo no va aquí: lo calcula la escena desde su `m` (`scene/math/chapterPresence`), y el ratón lo escribe `scene/pointer` en el `SceneFrame` | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget`, `charge` e `interlude` y deja su `m` suavizada, la carga y si se lee una transmisión (`transmission`: los pins se ocultan) en el `SceneFrame` que leen los `useFrame`; los efectos del Big Bang del hero (`useBigBang`, ADR-030) y la coreografía de la llegada del epílogo
+(`useArrivalChoreography`, ADR-039; solo cuando cambia `mTarget`) por suscripción, cada uno en su propio bucle y **sin
+re-render**; el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen la parada activa (`selectActiveStop`: el capítulo que llega durante toda su llegada, el interludio mientras se lee, o el capítulo `round(m)`), y el HUD la lee para esconderse en una transmisión (un interludio o el epílogo, también durante su llegada, `isTransmissionStop`); las fotos fijas del modo sin WebGL eligen el capítulo de la forma (`selectStillChapter` de `SceneStills`: solo se repintan al cambiar) |
 
 Regla: nada que cambie en cada frame pasa por estado de React. La respuesta a la sugerencia de idioma no está en
 ningún store: se guarda en `localStorage` (`lib/storage`), la lee solo `LanguageNotice` y la escriben el aviso y
@@ -292,7 +298,8 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
    Big Bang en el DOM (`features/journey/useBigBang`) llevan otra copia con el mismo `smoothM` y la escriben, ya
    convertida en destello, temblor, nombre y halo, como variables CSS privadas en `<html>` (`--_bang-*`); los leen el
    hero, el destello (`BigBangFlash`, en la ruta del viaje, fuera de `<main>`) y el lienzo, sin importarse entre
-   capas (ADR-030).
+   capas (ADR-030). La coreografía de la llegada del epílogo (`features/journey/useArrivalChoreography`) lleva una
+   tercera, y escribe en la sección lo que pinta su CSS (`--_beam-y`, `--_corners`… y marcas `data-*`; ADR-039).
 4. El raíl y el idioma eligen la parada activa (`selectActiveStop`: el capítulo que llega durante toda su llegada
    (`arriving`), el interludio mientras se lee, o el capítulo `round(m)`); las fotos fijas (sin WebGL), el capítulo de
    la forma (`selectStillChapter`: `round(arrivalShapeM(m))`, que en la llegada del epílogo cambia con el retrato,

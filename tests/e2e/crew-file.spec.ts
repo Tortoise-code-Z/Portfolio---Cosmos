@@ -2,14 +2,19 @@ import { expect, type Page } from '@playwright/test';
 
 import { profile } from '../../src/content/profile.ts';
 import { CHAPTER_INDICES, INTERLUDES } from '../../src/content/chapters.ts';
+import { EPILOGUE_ARRIVAL } from '../../src/lib/scroll/arrival/arrival.ts';
 import { arrivalBeamLine } from '../../src/lib/scroll/arrivalChoreography/arrivalChoreography.ts';
 import { PORTRAIT_FRAME } from '../../src/scene/shapes/shapeContract/shapeContract.ts';
 import {
+  ARRIVAL_TIMEOUT_MS,
+  arrivalGeometry as geometryOf,
   collectErrors,
   hud,
   lineClips,
+  scrollToY,
   settleScene,
   TELETYPE_WRITTEN,
+  TELETYPE_WRITTEN_WITH_GUIDE,
   withoutWebGL,
 } from './support/helpers.ts';
 import { test } from './support/test.ts';
@@ -324,28 +329,12 @@ test.describe('Crew file', () => {
   }
 
   /** Dónde está la sección (su principio) y el final de su llegada en el documento, y lo que tapa la barra. */
-  const arrivalGeometry = (page: Page) =>
-    crewFile(page).evaluate((section) => {
-      const landing = section.querySelector('[data-landing]');
-      const bar = Number.parseFloat(
-        getComputedStyle(document.documentElement).scrollPaddingBlockStart,
-      );
-      return {
-        start: section.getBoundingClientRect().top + window.scrollY - bar,
-        landed: (landing?.getBoundingClientRect().top ?? 0) + window.scrollY - bar,
-        bar,
-      };
-    });
+  const arrivalGeometry = (page: Page) => geometryOf(crewFile(page));
   /** Dónde está el borde de arriba del escenario (`data-stage`) en la ventana. */
   const stageTop = (page: Page) =>
     crewFile(page).evaluate((section) =>
       Math.round(section.querySelector('[data-stage]')?.getBoundingClientRect().top ?? Number.NaN),
     );
-  const scrollToY = async (page: Page, y: number) => {
-    await page.evaluate((top) => {
-      window.scrollTo({ top, behavior: 'instant' });
-    }, y);
-  };
   /**
    * Lo que lleva la llegada según la página: de la línea del haz (`--_beam-y`, desde arriba del escenario) a la parte
    * de la ventana, y de ahí a `a` con `arrivalBeamLine`. Se espera a ella: la `m` de la página va suavizada.
@@ -364,8 +353,18 @@ test.describe('Crew file', () => {
     const y = await page.evaluate(() => window.scrollY);
     return (y - start) / (landed - start);
   };
+  /** El haz de la página arriba del todo y apagado: por encima de la llegada (o antes de su primer frame). */
+  const beamUp = (page: Page) =>
+    crewFile(page).evaluate(
+      (section) =>
+        section.style.getPropertyValue('--_beam-y') === '0.0px' &&
+        section.style.getPropertyValue('--_beam-on') === '0',
+    );
   /** El recorte de la pantalla mientras el haz no ha acabado de bajar: tapa lo de debajo de su línea. */
   const COVERED = /^inset\(0px 0px max\(0px, 100%/;
+  /** Una línea del teletipo escrita: las de la ficha, desde 1280 px, abren su recorte a su línea guía. */
+  const written = (clip: string) =>
+    clip === TELETYPE_WRITTEN || clip === TELETYPE_WRITTEN_WITH_GUIDE;
   /** El recorte de la pantalla de la transmisión (lo que revela el haz). */
   const screenClip = (page: Page) =>
     crewFile(page).evaluate(
@@ -379,6 +378,15 @@ test.describe('Crew file', () => {
         ? null
         : [box.left, box.top, box.width, box.height].map((value) => Math.round(value));
     }, selector);
+  /** Dos cajas que existen y coinciden a un píxel (cada una se redondea por su lado). */
+  const sameBox = async (page: Page, one: string, other: string) => {
+    const [a, b] = [await boxOf(page, one), await boxOf(page, other)];
+    return (
+      a !== null &&
+      b !== null &&
+      a.every((value, index) => Math.abs(value - (b[index] ?? NaN)) <= 1)
+    );
+  };
 
   test('its choreography (C.7): the beam reveals the screen down to its line, the shader’s, and the rest stays dark', async ({
     page,
@@ -390,13 +398,15 @@ test.describe('Crew file', () => {
     await scrollToY(page, start + 0.4 * (landed - start));
     const a = await arrivalAt(page);
     // La línea de la página es la del shader: `arrivalBeamLine` altos de la ventana, ya con la `m` en su sitio.
-    await expect.poll(() => beamLineAt(page)).toBeCloseTo(arrivalBeamLine(a), 2);
+    await expect
+      .poll(() => beamLineAt(page), { timeout: ARRIVAL_TIMEOUT_MS })
+      .toBeCloseTo(arrivalBeamLine(a), 2);
     // Tapado todo lo que queda por debajo de la línea (el navegador deja la cuenta en el valor calculado), y la línea del
     // haz encendida en ella, a todo el ancho de la sección (la ventana menos la barra de scroll). Todo en la misma
     // lectura: la `m` de la página aún se asienta en sus últimas décimas.
     const look = await crewFile(page).evaluate((section) => {
       const stage = section.querySelector('[data-stage]')?.getBoundingClientRect();
-      const beam = section.querySelector('[data-stage] > [aria-hidden] > :first-child');
+      const beam = section.querySelector('[data-arrival-beam]');
       const line = beam?.getBoundingClientRect();
       return {
         written: section.style.getPropertyValue('--_beam-y'),
@@ -406,7 +416,10 @@ test.describe('Crew file', () => {
         width: [Math.round(line?.width ?? 0), Math.round(stage?.width ?? -1)],
       };
     });
-    expect(look.clip).toBe(`inset(0px 0px max(0px, 100% - ${look.written}))`);
+    // El navegador escribe el número en su forma corta («352px», no «352.0px»).
+    expect(look.clip).toBe(
+      `inset(0px 0px max(0px, 100% - ${String(Number.parseFloat(look.written))}px))`,
+    );
     expect(look.opacity).toBe('1');
     expect(look.middle).toBeCloseTo(Number.parseFloat(look.written), 0);
     expect(look.width[0]).toBe(look.width[1]);
@@ -419,11 +432,12 @@ test.describe('Crew file', () => {
     await page.goto('/#contact', { waitUntil: 'networkidle' });
     await settleScene(page);
     const { start, landed } = await arrivalGeometry(page);
-    const corners = '[data-stage] > [aria-hidden] > :last-child';
+    const corners = '[data-arrival-corners]';
     // Al empezar, cerca de las de lo que se ve del escenario (a `--arrival-corner-inset` de ellas).
     await scrollToY(page, start + 0.2 * (landed - start));
-    await expect.poll(() => arrivalAt(page)).toBeCloseTo(0.2, 2);
-    await expect.poll(() => beamLineAt(page)).toBeCloseTo(arrivalBeamLine(0.2), 2);
+    await expect
+      .poll(() => beamLineAt(page), { timeout: ARRIVAL_TIMEOUT_MS })
+      .toBeCloseTo(arrivalBeamLine(0.2), 2);
     const [left = 0, top = 0, width = 0] = (await boxOf(page, corners)) ?? [];
     const stageTop = (await boxOf(page, '[data-stage]'))?.[1] ?? 0;
     const viewport = page.viewportSize()?.width ?? 0;
@@ -433,8 +447,8 @@ test.describe('Crew file', () => {
     // Cerradas antes de encajar (0,76): justo sobre el marco del visor.
     await scrollToY(page, start + 0.76 * (landed - start));
     await expect
-      .poll(async () => JSON.stringify(await boxOf(page, corners)))
-      .toBe(JSON.stringify(await boxOf(page, '[data-arrival-target]')));
+      .poll(() => sameBox(page, corners, '[data-arrival-target]'), { timeout: ARRIVAL_TIMEOUT_MS })
+      .toBe(true);
     await expect(crewFile(page)).not.toHaveAttribute('data-locked');
     // Al marco no se le ven las suyas mientras tanto.
     await expect(crewFile(page).locator('[data-arrival-target]')).toHaveCSS(
@@ -473,6 +487,12 @@ test.describe('Crew file', () => {
       () => (window as unknown as { arrivalPainted: string[] }).arrivalPainted,
     );
     expect(new Set(painted)).toEqual(new Set(['true 1.0000']));
+    // Y sin el destello de encajar: no ha encajado nada.
+    await expect(crewFile(page)).toHaveAttribute('data-instant', '');
+    await expect(crewFile(page).locator('[data-arrival-target]')).toHaveCSS(
+      'animation-name',
+      'none',
+    );
   });
 
   test('its choreography (C.7): scrolling back up undoes it, down to the screen dark again before the arrival', async ({
@@ -486,7 +506,9 @@ test.describe('Crew file', () => {
     await expect(crewFile(page)).not.toHaveAttribute('data-on');
     await expect(crewFile(page)).not.toHaveAttribute('data-revealed');
     await scrollToY(page, start - 200);
-    await expect.poll(() => screenClip(page)).toMatch(COVERED);
+    // El haz, arriba y apagado otra vez (no basta con que haya recorte: valdría con cualquier línea).
+    await expect.poll(() => beamUp(page), { timeout: ARRIVAL_TIMEOUT_MS }).toBe(true);
+    expect(await screenClip(page)).toMatch(COVERED);
   });
 
   test('its choreography (C.7): a Tab into it during the arrival shows it whole at once', async ({
@@ -496,12 +518,40 @@ test.describe('Crew file', () => {
     await settleScene(page);
     const { start, landed } = await arrivalGeometry(page);
     await scrollToY(page, start + 0.3 * (landed - start));
-    await expect.poll(() => beamLineAt(page)).toBeCloseTo(arrivalBeamLine(0.3), 1);
+    await expect
+      .poll(() => beamLineAt(page), { timeout: ARRIVAL_TIMEOUT_MS })
+      .toBeCloseTo(arrivalBeamLine(0.3), 1);
     await expect(crewFile(page)).not.toHaveAttribute('data-revealed');
-    await page.getByRole('region', { name: 'Touchdown' }).getByRole('link').last().focus();
+    // El último enlace de Contacto, sin mover la página (si no, su scroll sacaría la página de la llegada).
+    const before = await page.evaluate(() => window.scrollY);
+    await page
+      .getByRole('region', { name: 'Touchdown' })
+      .getByRole('link')
+      .last()
+      .evaluate((link) => {
+        if (link instanceof HTMLElement) link.focus({ preventScroll: true });
+      });
+    expect(await page.evaluate(() => window.scrollY)).toBe(before);
+    // El scroll al revelarse: el navegador ya ha movido la página para enseñar lo enfocado, pero aún no al final del haz
+    // (lo que lleva la `m` de la página es aún menos): la revela el Tab, no el haz.
+    await crewFile(page).evaluate((section) => {
+      const own = window as unknown as { revealedAt: number | null };
+      own.revealedAt = null;
+      new MutationObserver((_records, observer) => {
+        if (!section.hasAttribute('data-revealed')) return;
+        own.revealedAt = window.scrollY;
+        observer.disconnect();
+      }).observe(section, { attributes: true, attributeFilter: ['data-revealed'] });
+    });
     await page.keyboard.press('Tab');
     await expect(page.locator(':focus')).toHaveAccessibleName(/^Download CV/);
     await expect(crewFile(page)).toHaveAttribute('data-revealed', '');
+    const revealedAt = await page.evaluate(
+      () => (window as unknown as { revealedAt: number | null }).revealedAt,
+    );
+    expect(((revealedAt ?? Infinity) - start) / (landed - start)).toBeLessThan(
+      EPILOGUE_ARRIVAL.beam[1],
+    );
     await expect(crewFile(page)).toHaveAttribute('data-locked', '');
     expect(await screenClip(page)).toBe('none');
   });
@@ -514,7 +564,11 @@ test.describe('Crew file', () => {
     const { start, landed } = await arrivalGeometry(page);
     await scrollToY(page, start + 0.4 * (landed - start));
     await expect(crewFile(page)).toHaveAttribute('data-arrival', '');
-    await expect.poll(() => screenClip(page)).toMatch(COVERED);
+    // La línea, donde toca en esa `a` (no basta con que haya recorte: lo hay desde el primer frame).
+    await expect
+      .poll(() => beamLineAt(page), { timeout: ARRIVAL_TIMEOUT_MS })
+      .toBeCloseTo(arrivalBeamLine(0.4), 2);
+    expect(await screenClip(page)).toMatch(COVERED);
     await scrollToY(page, landed);
     await expect(crewFile(page)).toHaveAttribute('data-revealed', '');
   });
@@ -628,6 +682,51 @@ test.describe('Crew file', () => {
       .toBeLessThanOrEqual(1);
   });
 
+  test('from 1280 px, written, each box of the file reaches the frame of the visor with its guide line', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/#crew-file', { waitUntil: 'networkidle' });
+    await expect(crewFile(page)).toHaveAttribute('data-on', '');
+    const fields = crewFile(page).locator('dl > [data-line]');
+    await expect
+      .poll(async () =>
+        (
+          await fields.evaluateAll((all) => all.map((field) => getComputedStyle(field).clipPath))
+        ).every((clip) => clip === TELETYPE_WRITTEN_WITH_GUIDE),
+      )
+      .toBe(true);
+    // El recorte de un recuadro de la izquierda llega al marco (si no, su guía se quedaría corta, a un dedo de él).
+    const reach = await crewFile(page).evaluate((section) => {
+      const field = section.querySelector('dl > [data-line]')?.getBoundingClientRect();
+      const frame = section.querySelector('[data-arrival-target]')?.getBoundingClientRect();
+      const clip = Number.parseFloat(
+        /inset\(\S+ (-?[\d.]+)px\)/.exec(
+          getComputedStyle(section.querySelector('dl > [data-line]') ?? section).clipPath,
+        )?.[1] ?? 'NaN',
+      );
+      return { open: (field?.right ?? 0) - clip, frame: frame?.left ?? Infinity };
+    });
+    expect(reach.open).toBeGreaterThanOrEqual(reach.frame);
+  });
+
+  test('printed halfway through the arrival, nothing stays hidden: the screen whole and «Identity verified» in sight', async ({
+    page,
+  }) => {
+    await page.goto('/#contact', { waitUntil: 'networkidle' });
+    const { start, landed } = await arrivalGeometry(page);
+    await scrollToY(page, start + 0.3 * (landed - start));
+    await expect
+      .poll(() => beamLineAt(page), { timeout: ARRIVAL_TIMEOUT_MS })
+      .toBeCloseTo(arrivalBeamLine(0.3), 1);
+    await page.emulateMedia({ media: 'print' });
+    expect(await screenClip(page)).toBe('none');
+    await expect(crewFile(page).getByText('Identity verified', { exact: true })).toHaveCSS(
+      'opacity',
+      '1',
+    );
+  });
+
   test('in Windows high contrast it lies on the plain system background, not on the scene', async ({
     page,
     browserName,
@@ -651,8 +750,12 @@ test.describe('Crew file', () => {
         screen: style(screen),
         lines: style(screen, '::after'),
         beam: (() => {
-          const beam = section.querySelector('[data-stage] > [aria-hidden] > :first-child');
+          const beam = section.querySelector('[data-arrival-beam]');
           return beam === null ? 'missing' : getComputedStyle(beam).display;
+        })(),
+        frame: (() => {
+          const frame = section.querySelector('[data-arrival-target]');
+          return frame === null ? 'missing' : getComputedStyle(frame).animationName;
         })(),
         canvas: getComputedStyle(document.body).backgroundColor,
       };
@@ -664,8 +767,9 @@ test.describe('Crew file', () => {
       expect(part.image).toBe('none');
     }
     expect(look.lines.image).toBe('none');
-    // La línea del haz es un fondo con brillo: fuera.
+    // La línea del haz es un fondo con brillo: fuera. Y el marco, sin destello (un `filter` que el sistema no quita).
     expect(look.beam).toBe('none');
+    expect(look.frame).toBe('none');
   });
 
   test('with reduced motion it has no arrival: it is read as soon as it comes', async ({
@@ -696,18 +800,16 @@ test.describe('Crew file', () => {
     await page.goto('/#contact', { waitUntil: 'networkidle' });
     await expect(crewFile(page)).toHaveAttribute('data-armed', '');
     const { start, landed } = await arrivalGeometry(page);
-    // A mitad de la llegada, aún sin encajar: las líneas esperan.
+    // A mitad de la llegada, aún sin encajar: las líneas esperan (con la `m` de la página ya ahí, no solo el scroll).
     await scrollToY(page, start + 0.5 * (landed - start));
-    await expect.poll(() => arrivalAt(page)).toBeCloseTo(0.5, 2);
+    await expect
+      .poll(() => beamLineAt(page), { timeout: ARRIVAL_TIMEOUT_MS })
+      .toBeCloseTo(arrivalBeamLine(0.5), 2);
     await expect(crewFile(page)).not.toHaveAttribute('data-on');
     await scrollToY(page, landed);
     await expect(crewFile(page)).toHaveAttribute('data-on', '');
     // La ficha, el email y «Download CV»: ninguna línea se queda tapada (su numeración `--_line` crece con la ficha).
-    await expect
-      .poll(async () =>
-        (await lineClips(crewFile(page))).every((clip) => clip === TELETYPE_WRITTEN),
-      )
-      .toBe(true);
+    await expect.poll(async () => (await lineClips(crewFile(page))).every(written)).toBe(true);
   });
 
   test('844×390 (a phone on its side): the teletype switches on and writes every line, however tall it is', async ({
@@ -727,11 +829,7 @@ test.describe('Crew file', () => {
       }, y);
     }
     await expect(crewFile(page)).toHaveAttribute('data-on', '');
-    await expect
-      .poll(async () =>
-        (await lineClips(crewFile(page))).every((clip) => clip === TELETYPE_WRITTEN),
-      )
-      .toBe(true);
+    await expect.poll(async () => (await lineClips(crewFile(page))).every(written)).toBe(true);
   });
 
   test('without WebGL it reads whole, over the still photo of the portrait', async ({ page }) => {
@@ -741,9 +839,7 @@ test.describe('Crew file', () => {
     // Sin WebGL el teletipo sigue (es CSS); `toBeVisible` no ve el `clip-path`: al acabar, ninguna línea tapada.
     await expect
       .poll(async () =>
-        (await lineClips(crewFile(page))).every(
-          (clip) => clip === 'none' || clip === TELETYPE_WRITTEN,
-        ),
+        (await lineClips(crewFile(page))).every((clip) => clip === 'none' || written(clip)),
       )
       .toBe(true);
     await expect(region.getByRole('term')).toHaveCount(6);

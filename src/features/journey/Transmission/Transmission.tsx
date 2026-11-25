@@ -3,6 +3,7 @@ import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { CHAPTER_ANCHORS, EPILOGUE, INTERLUDE, type InterludeId } from '~/content/chapters';
 import { cx } from '~/lib/css/cx/cx';
 import { prefersReducedMotion } from '~/lib/device/reducedMotion/reducedMotion';
+import { isTabFocus } from '~/lib/events/isTabFocus/isTabFocus';
 import { useT } from '~/lib/i18n/useT/useT';
 import { stageFocusScroll } from '~/lib/scroll/stageFocus/stageFocus';
 import { LANDING_SELECTOR } from '~/lib/scroll/jumpToChapter/jumpToChapter';
@@ -10,7 +11,7 @@ import { VisuallyHidden } from '~/ui/VisuallyHidden/VisuallyHidden';
 
 import { ChapterJumpLink } from '../ChapterJumpLink/ChapterJumpLink';
 import {
-  isTabFocus,
+  STAGE_SELECTOR,
   useArrivalChoreography,
 } from '../useArrivalChoreography/useArrivalChoreography';
 import styles from './Transmission.module.css';
@@ -121,9 +122,6 @@ function cssNumber(value: string): number {
   const number = Number.parseFloat(value);
   return Number.isFinite(number) ? number : 0;
 }
-
-/** Cómo se encuentra el escenario de una sección con llegada (lo que se queda fijo mientras dura). */
-const STAGE_SELECTOR = '[data-stage]';
 
 /** Cuántos frames se mira después del foco (medio segundo a 60 fps): ver `useArrivalFocus`. */
 const ARRIVAL_FOCUS_FRAMES = 30;
@@ -331,8 +329,8 @@ export function Transmission(props: TransmissionProps): ReactNode {
                 {content}
               </div>
               <div className={styles.arrivalMarks} aria-hidden="true">
-                <div className={styles.beam} />
-                <div className={styles.corners}>
+                <div className={styles.beam} data-arrival-beam="" />
+                <div className={styles.corners} data-arrival-corners="">
                   <span />
                   <span />
                   <span />

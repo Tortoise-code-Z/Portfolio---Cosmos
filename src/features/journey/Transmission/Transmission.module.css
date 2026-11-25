@@ -38,6 +38,10 @@
   --_ch-text-glow: var(--glow-channel-green);
   --_ch-grid-bg: var(--gradient-channel-green-grid);
   --_ch-sweep: var(--gradient-channel-green-sweep);
+  /* Los brillos de la llegada: solo el epílogo, en este canal, tiene una (ADR-039). */
+  --_ch-arrival-beam-glow: var(--glow-arrival-beam-green);
+  --_ch-arrival-corner-glow: var(--glow-arrival-corner-green);
+  --_ch-visor-lock-glow: var(--glow-visor-lock-green);
 }
 
 .transmission {
@@ -285,7 +289,8 @@
 /*
  * La llegada del epílogo (ADR-039; 05-crew-file.md → «Transición»): la sección mide la llegada y lo que se ve va en
  * un escenario pegado bajo la barra mientras pasa un hueco de `--arrival-h`; acabado el hueco, sigue con el scroll. El
- * fondo, el barrido y la banda de entrada van con el escenario (en la sección se moverían por debajo del texto quieto).
+ * fondo y las líneas de barrido van en su pantalla (`.screen`, dentro del escenario: en la sección se moverían por
+ * debajo del texto quieto); sin banda de entrada: el haz hace de barrido.
  * Durante la llegada, el escenario mide justo lo que se ve bajo la barra: «pantalla entera» es literal y el pie se ve.
  * Con movimiento reducido no hay llegada: el hueco mide 0 y el escenario, la pantalla de una transmisión (el retrato
  * llega solo al pasar al capítulo: estados-y-accesibilidad.md). Al imprimir, tampoco: no deja una hoja en blanco. El
@@ -394,7 +399,7 @@
   block-size: var(--arrival-beam-h);
   translate: 0 -50%;
   background: var(--_ch-bright);
-  box-shadow: 0 0 var(--space-4) var(--space-1) var(--_ch-glow);
+  box-shadow: var(--_ch-arrival-beam-glow);
   opacity: var(--_beam-on, 0);
 }
 
@@ -424,7 +429,7 @@
   inline-size: var(--_size);
   block-size: var(--_size);
   border: 0 solid var(--_ch-bright);
-  filter: drop-shadow(0 0 var(--space-1) var(--_ch-glow));
+  filter: var(--_ch-arrival-corner-glow);
 }
 
 .corners > :nth-child(1) {

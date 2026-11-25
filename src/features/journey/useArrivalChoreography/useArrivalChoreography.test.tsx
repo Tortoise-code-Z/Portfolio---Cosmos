@@ -8,7 +8,8 @@ import {
   arrivalCorners,
   arrivalGuides,
 } from '~/lib/scroll/arrivalChoreography/arrivalChoreography';
-import { sceneStore, setScrollTarget } from '~/stores/sceneStore/sceneStore';
+import { smoothM } from '~/lib/scroll/smoothM/smoothM';
+import { sceneStore, setCharge, setScrollTarget } from '~/stores/sceneStore/sceneStore';
 
 import { ARRIVAL_FLAGS, ARRIVAL_VARS, useArrivalChoreography } from './useArrivalChoreography';
 
@@ -16,18 +17,23 @@ import { ARRIVAL_FLAGS, ARRIVAL_VARS, useArrivalChoreography } from './useArriva
 function Arrival({
   enabled = true,
   target = true,
+  stage = true,
 }: {
   readonly enabled?: boolean;
   readonly target?: boolean;
+  readonly stage?: boolean;
 }): ReactNode {
   const ref = useRef<HTMLElement>(null);
   useArrivalChoreography(ref, enabled);
+  const content = (
+    <>
+      {target ? <div data-arrival-target="" /> : null}
+      <a href="/cv.pdf">Download CV</a>
+    </>
+  );
   return (
     <section ref={ref} aria-label="Crew file">
-      <div data-stage="">
-        {target ? <div data-arrival-target="" /> : null}
-        <a href="/cv.pdf">Download CV</a>
-      </div>
+      {stage ? <div data-stage="">{content}</div> : content}
     </section>
   );
 }
@@ -37,8 +43,9 @@ const VIEWPORT = 800;
 const STAGE = { top: 64, left: 0, width: 1280, height: 736 };
 const TARGET = { top: 200, left: 500, width: 300, height: 400 };
 
-/** Bucle de frames manual: una cola, como el navegador. */
-let pending: FrameRequestCallback[] = [];
+/** Bucle de frames manual: una cola, como el navegador (cada frame con su id, para cancelarlo). */
+let pending: { readonly id: number; readonly callback: FrameRequestCallback }[] = [];
+let nextId = 1;
 let now = 0;
 
 function advance(ms: number, frames = 1): void {
@@ -47,7 +54,7 @@ function advance(ms: number, frames = 1): void {
     const callbacks = pending;
     pending = [];
     act(() => {
-      for (const callback of callbacks) callback(now);
+      for (const { callback } of callbacks) callback(now);
     });
   }
 }
@@ -82,7 +89,7 @@ function focusVisible(visible: boolean): void {
   });
 }
 
-function renderArrival(props: { enabled?: boolean; target?: boolean } = {}): {
+function renderArrival(props: { enabled?: boolean; target?: boolean; stage?: boolean } = {}): {
   section: HTMLElement;
   unmount: () => void;
 } {
@@ -99,21 +106,33 @@ const px = (value: number): string => `${value.toFixed(1)}px`;
 const unit = (value: number): string => value.toFixed(4);
 const flags = (section: HTMLElement): string[] =>
   Object.values(ARRIVAL_FLAGS).filter((name) => section.hasAttribute(`data-${name}`));
+/** Todas las marcas de una sección encajada: con `instant` si su primer frame ya llegó encajado. */
+const LOCKED = [
+  ARRIVAL_FLAGS.active,
+  ARRIVAL_FLAGS.locked,
+  ARRIVAL_FLAGS.revealed,
+  ARRIVAL_FLAGS.armed,
+  ARRIVAL_FLAGS.on,
+];
+const LOCKED_INSTANT = Object.values(ARRIVAL_FLAGS);
 
 beforeEach(() => {
   pending = [];
+  nextId = 1;
   now = 0;
   vi.stubGlobal(
     'requestAnimationFrame',
     vi.fn((callback: FrameRequestCallback) => {
-      pending.push(callback);
-      return pending.length;
+      const id = nextId;
+      nextId += 1;
+      pending.push({ id, callback });
+      return id;
     }),
   );
   vi.stubGlobal(
     'cancelAnimationFrame',
-    vi.fn(() => {
-      pending = [];
+    vi.fn((id: number) => {
+      pending = pending.filter((entry) => entry.id !== id);
     }),
   );
   stubReducedMotion(false);
@@ -121,20 +140,25 @@ beforeEach(() => {
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
     this: HTMLElement,
   ) {
-    const box = this.hasAttribute('data-stage')
-      ? STAGE
-      : this.hasAttribute('data-arrival-target')
-        ? TARGET
-        : { top: 0, left: 0, width: 0, height: 0 };
-    return {
-      ...box,
-      bottom: box.top + box.height,
-      right: box.left + box.width,
-      x: box.left,
-      y: box.top,
-    } as DOMRect;
+    return fakeRect(this);
   });
 });
+
+/** Las cajas de la prueba: el escenario, el destino y lo demás en 0. */
+function fakeRect(element: HTMLElement): DOMRect {
+  const box = element.hasAttribute('data-stage')
+    ? STAGE
+    : element.hasAttribute('data-arrival-target')
+      ? TARGET
+      : { top: 0, left: 0, width: 0, height: 0 };
+  return {
+    ...box,
+    bottom: box.top + box.height,
+    right: box.left + box.width,
+    x: box.left,
+    y: box.top,
+  } as DOMRect;
+}
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -193,7 +217,7 @@ describe('useArrivalChoreography', () => {
   it('locked at 0.78: the file is written (teletype on), the beam is done and the guides come out', () => {
     setScrollTarget(4.85);
     const { section } = renderArrival();
-    expect(flags(section)).toEqual(Object.values(ARRIVAL_FLAGS));
+    expect(flags(section)).toEqual(LOCKED_INSTANT);
     expect(read(section, ARRIVAL_VARS.beamOn)).toBe('0');
     expect(read(section, ARRIVAL_VARS.guides)).toBe(unit(arrivalGuides(arrivalProgress(4.85))));
   });
@@ -201,7 +225,7 @@ describe('useArrivalChoreography', () => {
   it('entering by the anchor (the arrival done): all in sight and locked, without measuring the stage', () => {
     setScrollTarget(5);
     const { section } = renderArrival();
-    expect(flags(section)).toEqual(Object.values(ARRIVAL_FLAGS));
+    expect(flags(section)).toEqual(LOCKED_INSTANT);
     expect(read(section, ARRIVAL_VARS.guides)).toBe(unit(1));
     expect(read(section, ARRIVAL_VARS.cornersShow)).toBe('0');
     expect(read(section, ARRIVAL_VARS.visibleH)).toBe('');
@@ -219,7 +243,85 @@ describe('useArrivalChoreography', () => {
     expect(read(section, ARRIVAL_VARS.beamOn)).toBe('1');
     expect(pending).toHaveLength(1);
     advance(100, 40);
-    expect(flags(section)).toEqual(Object.values(ARRIVAL_FLAGS));
+    // Encajada al pasar por la llegada: con el destello del visor (sin `instant`).
+    expect(flags(section)).toEqual(LOCKED);
+    expect(pending).toEqual([]);
+  });
+
+  it('goes at the pace of the scene: one frame of 100 ms moves its m like the scene’s (smoothM)', () => {
+    setScrollTarget(4);
+    const { section } = renderArrival();
+    act(() => {
+      setScrollTarget(5);
+    });
+    // El frame que despierta no cuenta tiempo; el siguiente, 100 ms.
+    advance(16);
+    advance(100);
+    const m = smoothM(4, 5, 0.1, false);
+    expect(read(section, ARRIVAL_VARS.beamY)).toBe(
+      px(arrivalBeamLine(arrivalProgress(m)) * VIEWPORT - STAGE.top),
+    );
+  });
+
+  it('the first frame already locked has no flash (instant); unlocking takes it away, and locking again flashes', () => {
+    setScrollTarget(5);
+    const { section } = renderArrival();
+    expect(section).toHaveAttribute('data-instant');
+    act(() => {
+      setScrollTarget(4.5);
+    });
+    advance(100, 40);
+    expect(section).not.toHaveAttribute('data-instant');
+    act(() => {
+      setScrollTarget(5);
+    });
+    advance(100, 40);
+    expect(flags(section)).toEqual(LOCKED);
+  });
+
+  it('measures before it writes in a frame (no layout forced halfway)', () => {
+    setScrollTarget(4.3);
+    const { section } = renderArrival();
+    const calls: string[] = [];
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      calls.push('read');
+      return fakeRect(this);
+    });
+    vi.spyOn(section.style, 'setProperty').mockImplementation(() => {
+      calls.push('write');
+    });
+    vi.spyOn(section, 'toggleAttribute').mockImplementation(() => {
+      calls.push('write');
+      return true;
+    });
+    act(() => {
+      setScrollTarget(4.4);
+    });
+    // Un frame: lee las cajas y, después, escribe.
+    advance(16);
+    expect(calls).toContain('read');
+    expect(calls.indexOf('write')).toBeGreaterThan(calls.lastIndexOf('read'));
+  });
+
+  it('does not write again what has not changed', () => {
+    setScrollTarget(4.4);
+    const { section } = renderArrival();
+    const setProperty = vi.spyOn(section.style, 'setProperty');
+    act(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+    advance(16);
+    expect(setProperty).not.toHaveBeenCalled();
+  });
+
+  it('wakes only when mTarget changes (not with the charge of the Big Bang)', () => {
+    setScrollTarget(4.4);
+    renderArrival();
+    act(() => {
+      setCharge(0.5);
+    });
     expect(pending).toEqual([]);
   });
 
@@ -241,7 +343,7 @@ describe('useArrivalChoreography', () => {
     act(() => {
       section.querySelector('a')?.focus();
     });
-    expect(flags(section)).toEqual(Object.values(ARRIVAL_FLAGS));
+    expect(flags(section)).toEqual(LOCKED);
     // Sigue revelada mientras la llegada se mueve…
     act(() => {
       setScrollTarget(4.2);
@@ -270,6 +372,66 @@ describe('useArrivalChoreography', () => {
     expect(section).toHaveAttribute('data-revealed');
   });
 
+  it('a Tab with the arrival done does not hold it: scrolling back up undoes it as always', () => {
+    focusVisible(true);
+    setScrollTarget(5);
+    const { section } = renderArrival();
+    act(() => {
+      section.querySelector('a')?.focus();
+    });
+    act(() => {
+      setScrollTarget(4.5);
+    });
+    advance(100, 40);
+    expect(section).not.toHaveAttribute('data-revealed');
+  });
+
+  it('a Tab before the arrival is let go when the scroll goes above it: coming down again, the choreography', () => {
+    focusVisible(true);
+    setScrollTarget(3.9);
+    const { section } = renderArrival();
+    act(() => {
+      section.querySelector('a')?.focus();
+    });
+    expect(section).toHaveAttribute('data-revealed');
+    act(() => {
+      setScrollTarget(3.5);
+    });
+    advance(100, 30);
+    act(() => {
+      setScrollTarget(4.3);
+    });
+    advance(100, 30);
+    expect(section).not.toHaveAttribute('data-revealed');
+  });
+
+  it('a Tab while the loop is running reveals it in its next frame', () => {
+    focusVisible(true);
+    setScrollTarget(4);
+    const { section } = renderArrival();
+    act(() => {
+      setScrollTarget(4.4);
+    });
+    expect(pending).toHaveLength(1);
+    act(() => {
+      section.querySelector('a')?.focus();
+    });
+    expect(section).not.toHaveAttribute('data-revealed');
+    advance(16);
+    expect(section).toHaveAttribute('data-revealed');
+  });
+
+  it('with reduced motion a Tab does nothing either', () => {
+    focusVisible(true);
+    stubReducedMotion(true);
+    setScrollTarget(4.4);
+    const { section } = renderArrival();
+    act(() => {
+      section.querySelector('a')?.focus();
+    });
+    expect(flags(section)).toEqual([]);
+  });
+
   it('a click that focuses (no :focus-visible) leaves the choreography alone', () => {
     focusVisible(false);
     setScrollTarget(4.3);
@@ -286,6 +448,59 @@ describe('useArrivalChoreography', () => {
     expect(read(section, ARRIVAL_VARS.cornersShow)).toBe('0');
     expect(read(section, ARRIVAL_VARS.targetX)).toBe('');
     expect(read(section, ARRIVAL_VARS.beamOn)).toBe('1');
+  });
+
+  it('without a stage nothing is measured: the beam stays up and no corners', () => {
+    setScrollTarget(4.4);
+    const { section } = renderArrival({ stage: false });
+    expect(read(section, ARRIVAL_VARS.beamY)).toBe('0.0px');
+    expect(read(section, ARRIVAL_VARS.cornersShow)).toBe('0');
+    expect(read(section, ARRIVAL_VARS.visibleH)).toBe('');
+  });
+
+  it('a change of size of the stage (ResizeObserver) wakes it to measure again', () => {
+    let observed: (() => void) | null = null;
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          observed = callback;
+        }
+        observe = vi.fn();
+        disconnect = vi.fn();
+      },
+    );
+    setScrollTarget(4.4);
+    const { section } = renderArrival();
+    vi.spyOn(document.documentElement, 'clientHeight', 'get').mockReturnValue(700);
+    act(() => {
+      observed?.();
+    });
+    advance(16);
+    expect(read(section, ARRIVAL_VARS.visibleH)).toBe(px(700 - STAGE.top));
+  });
+
+  it('the fonts arriving late wake it to measure again (the target may have moved)', async () => {
+    let loaded: () => void = () => undefined;
+    vi.stubGlobal('document', document);
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: {
+        ready: new Promise<void>((resolve) => {
+          loaded = resolve;
+        }),
+      },
+    });
+    setScrollTarget(4.4);
+    const { section } = renderArrival();
+    vi.spyOn(document.documentElement, 'clientHeight', 'get').mockReturnValue(650);
+    await act(async () => {
+      loaded();
+      await Promise.resolve();
+    });
+    advance(16);
+    expect(read(section, ARRIVAL_VARS.visibleH)).toBe(px(650 - STAGE.top));
+    Reflect.deleteProperty(document, 'fonts');
   });
 
   it('a resize wakes it to measure again', () => {

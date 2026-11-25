@@ -43,13 +43,16 @@ crudo»: ahora la escena trae el epílogo.
   - el haz baja por la pantalla (de `a` = 0,05 a 0,70, hasta 1,025 altos de la ventana: `beamReach`) y enciende lo
     que deja atrás: en la escena, el retrato; la página lo pinta con la misma línea (`arrivalBeamLine`, en
     `lib/scroll/arrivalChoreography`, fuera de la huella de las fotos fijas);
-  - en la página, revela la pantalla de la transmisión por encima del haz (franja, aviso, título, cuadrícula, líneas
-    de barrido) y deja negro lo de debajo, con la línea del haz cruzando la ventana (fina y brillante, a todo el
+  - en la página, revela la pantalla de la transmisión por encima del haz (franja, aviso, título, la entrada,
+    cuadrícula, líneas de barrido) y deja negro lo de debajo (sin WebGL, lo de debajo es la foto fija del retrato, sin
+    oscurecer: la página solo recorta su pantalla), con la línea del haz cruzando la ventana (fina y brillante, a todo el
     ancho); las cuatro esquinas del visor aparecen en las de lo que se ve del escenario (0,08 → 0,20) y se cierran
     sobre el marco del visor (0,15 → 0,75, con curva suave); al encajar (0,78) le pasan las suyas al marco con un
-    destello que se apaga en 0,6 s (`--dur-visor-lock`: acaba igual que con movimiento reducido), las líneas guía salen
-    del visor a los recuadros de la ficha (0,78 → 0,92), la ficha se escribe con el teletipo y se enciende «Identity
-    verified». La sección con llegada no lleva el barrido de entrada de las transmisiones: el haz hace de barrido.
+    destello que se apaga en 0,6 s (`--dur-visor-lock`: acaba igual que con movimiento reducido; sin él si el primer
+    frame ya llega encajado —por el ancla, al recargar o al cambiar de idioma—, porque no ha encajado nada), las
+    líneas guía salen del visor a los recuadros de la ficha (0,78 → 0,92) y llegan hasta el marco, la ficha se escribe
+    con el teletipo (desde «Download CV»: la entrada no va en él, la revela el haz con el título) y se enciende
+    «Identity verified». La sección con llegada no lleva el barrido de entrada de las transmisiones: el haz hace de barrido.
   - Lo pinta un bucle propio (`useArrivalChoreography`, en `Transmission`) que suaviza `m` como la escena y escribe
     variables CSS en la sección (C.7 · ADR-039). Los cortes, en `ARRIVAL_CHOREOGRAPHY` (`lib/scroll/arrivalChoreography`).
   - Acabada la llegada, el haz pasa en bucle por el retrato y la sección sigue con el scroll.
@@ -68,13 +71,17 @@ crudo»: ahora la escena trae el epílogo.
   salto (el título, `tabindex="-1"`), con un clic ni sin llegada, y deja de mirar si el usuario mueve la página.
 - **El foco revela:** si el foco entra con Tab en la sección antes de que acabe la llegada (también antes de que
   empiece), se revela entera al momento: sin recorte, con el visor encajado y la ficha escribiéndose. Sigue así hasta
-  que se vuelve por encima de la llegada; al bajar otra vez, la coreografía vuelve.
-- **Sin JavaScript** (o mientras hidrata) la sección se ve entera y quieta; al imprimir, también.
+  que se vuelve por encima de la llegada (o, si el Tab fue antes de que empezara, hasta subir más arriba de donde
+  estaba); al bajar otra vez, la coreografía vuelve. Con la llegada ya hecha, un Tab no la fija: subiendo, se deshace.
+  Si el foco se queda dentro y se vuelve a bajar con la rueda, lo enfocado queda tapado por el haz hasta que pasa (el
+  siguiente Tab lo revela todo otra vez): aceptado, solo pasa mezclando teclado y rueda.
+- **Sin JavaScript** (o mientras hidrata) la sección se ve entera y quieta; al imprimir, también (con «Identity
+  verified» y las líneas que el teletipo aún no había escrito).
 - **Capturas:** las de `npm run visual` van con movimiento reducido, sin llegada; dos más, con movimiento y la llegada
   parada en `a` = 0,4 y 1 (`arrival-40-crew-file.png`, `arrival-100-crew-file.png`), sin WebGL: la página hace lo
   mismo sobre la foto fija del retrato, y así no hay un reloj de la escena que parar.
 - **Alto contraste:** la sección y su escenario, sobre el fondo liso del sistema (`Canvas`), sin cuadrícula ni barrido;
-  sin la línea del haz (un fondo con brillo) y las esquinas, sin brillo.
+  sin la línea del haz (un fondo con brillo) y las esquinas, sin brillo; el marco, sin destello al encajar.
 - Si el retrato llega con la escena ya aquí (un salto, entrar por `/#crew-file`), se forma en 0,6 s desde la Tierra
   con el haz bajando por la pantalla, en vez de aparecer de golpe.
 
@@ -134,3 +141,8 @@ crudo»: ahora la escena trae el epílogo.
   ancla, el primer Tab va a «Download CV»; con Tab, lo enfocado se ve entero con su anillo (también a 390 px y con
   Shift+Tab); sin llegada con movimiento reducido; sin WebGL, la foto pasa al retrato con la forma; en alto contraste,
   sobre `Canvas` (`tests/e2e/crew-file.spec.ts`).
+- La coreografía: el haz revela la pantalla hasta su línea, la del shader; las esquinas se cierran sobre el marco del
+  visor y encajan con él; entrando por el ancla no se repite (lo primero que se pinta es el visor encajado, sin
+  destello); subiendo se deshace; un Tab durante la llegada la revela entera; sin WebGL, igual sobre la foto fija; al
+  imprimir, entera; desde 1280 px, las líneas guía llegan al marco; dos capturas con movimiento, en `a` = 0,4 y 1
+  (`crew-file.spec.ts`, `useArrivalChoreography.test.tsx` y `tests/visual/chapters.spec.ts`).

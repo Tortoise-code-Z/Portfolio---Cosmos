@@ -16,8 +16,8 @@
   de la llegada (257 340 B), así que su ADR subirá el límite con esos números reales. **Primer paso en marcha (desde S47):** la entrada
   del Crew file (ADR-039; prueba aprobada: artefacto privado «Crew file · entrada», copia en el buzón (`crew-entrada/`, fuera de git)).
   PR 1 hecho (#124: tramo de llegada, sección fija, saltos, escena) y su auditoría corregida (#126); PR 2 (la
-  coreografía de la página) hecho en S49 (#127), falta su auditoría. Mirar en el móvil de Víctor, con WebGL, si el marco del
-  visor de la columna cae sobre la cara: con la foto fija a 390 px cae algo por debajo (de antes de C.7; con la
+  coreografía de la página) hecho en S49 (#127) y su auditoría corregida en S50. Mirar en el móvil de Víctor, con WebGL, si el marco del
+  visor de la columna cae sobre la cara: con la foto fija a 390 px cae algo por debajo (de antes del PR 2; con la
   coreografía se nota más, porque las esquinas encajan en él).
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
   cómo está construido: solo herramientas, para qué y lo hecho (nota de ADR-034; `experiencia.md` → «Regla de

@@ -88,7 +88,7 @@ a (llegada)   0 ──── 0,05 ──── 0,15 ──── 0,55 ───�
 forma         Tierra → retrato ──────────► (escena)
 haz           ·······  baja de arriba ──────────────► 1,025 altos de la ventana
 pantalla      negra    revelada por encima del haz ──► entera
-esquinas      (aparecen 0,08–0,20) de la ventana → al visor ──► encajan: destello 0,6 s
+esquinas      (aparecen 0,08–0,20) de lo que se ve → al visor ─► encajan: destello 0,6 s
 líneas guía                                                    salen del visor ──►
 ficha                                                          teletipo + «Identity verified»
 ```
@@ -97,4 +97,6 @@ Quién lo pinta (ADR-039): la forma y el haz en las partículas, la escena; lo d
 (`useArrivalChoreography`), que escribe variables CSS privadas en la sección (`--_beam-y`, `--_corners`, `--_guides`…)
 con los cortes de `lib/scroll/arrivalChoreography` y la misma `m` suavizada que la escena. Avanza en línea recta con el
 scroll (`a` es la fracción recorrida de la llegada) y, subiendo, se deshace. Sin escena, igual (sobre la foto fija).
-Con movimiento reducido no hay llegada: la sección se ve entera y quieta (`05-crew-file.md` → «Transición»).
+Con movimiento reducido no hay llegada: la sección se ve entera y quieta (`05-crew-file.md` → «Transición»). El
+destello del visor solo sale si las esquinas acaban de encajar: entrando ya encajada (por el ancla, al recargar o al
+cambiar de idioma), sin él.
