@@ -16,7 +16,7 @@
   de la llegada (257 340 B), así que su ADR subirá el límite con esos números reales. **Primer paso en marcha (desde S47):** la entrada
   del Crew file (ADR-039; prueba aprobada: artefacto privado «Crew file · entrada», copia en el buzón (`crew-entrada/`, fuera de git)).
   PR 1 hecho (#124: tramo de llegada, sección fija, saltos, escena) y su auditoría corregida (#126); PR 2 (la
-  coreografía de la página) hecho en S49, falta su auditoría. Mirar en el móvil de Víctor, con WebGL, si el marco del
+  coreografía de la página) hecho en S49 (#127), falta su auditoría. Mirar en el móvil de Víctor, con WebGL, si el marco del
   visor de la columna cae sobre la cara: con la foto fija a 390 px cae algo por debajo (de antes de C.7; con la
   coreografía se nota más, porque las esquinas encajan en él).
 - **Fase C · privacidad de Studios Demanzon:** el sitio y el repo no enseñan qué es el producto de la empresa ni
@@ -226,8 +226,11 @@
   `--workers=1`. En `npm run check`, `scripts/docsOnly.test.ts` agotó los 10 s de su `beforeAll` (crea un repo de git
   de usar y tirar) una vez en S43 y otra en S48, y en S48 también `useSceneShapes.test.ts` («the worker fails: shapes
   from the main thread…», su `waitFor`): con la tanda entera cargando la máquina (50 s; jsdom, 160 s sumados entre
-  hilos). Sueltos pasan los dos (S48), y en el CI también. Si vuelven a fallar en la tanda, subir el `hookTimeout` de
-  `docsOnly` y el plazo de ese `waitFor` en un PR aparte; si alguno falla suelto, mirarlo antes.
+  hilos). Sueltos pasan los dos (S48), y en el CI también. En S49, con `npm run test:coverage`, agotaron su tiempo
+  también `scripts/sceneModules.test.ts` (ESLint `calculateConfigForFile`, 5 s) y `scripts/siteTelemetry.test.ts` (el
+  plugin, 5 s), y otra vez `useSceneShapes.test.ts`; sueltos y con `--maxWorkers=2` pasan. Ya es la tercera sesión:
+  toca un `chore` aparte (subir el plazo de esos tests o correr con menos hilos en Windows); si alguno falla suelto,
+  mirarlo antes.
 - **e2e en el equipo de Víctor (S32, S38):** la primera tanda completa de Chromium en Windows sacó dos carreras de
   carga que pasaban solas (el recuento de chunks de `scene.spec.ts`, que contaba la descarga tardía de la página del
   `beforeEach`, y el espaciado del nombre en `journey.spec.ts`, que tardaba más de 5 s con pocos frames). Blindadas
