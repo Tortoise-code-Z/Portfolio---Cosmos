@@ -393,24 +393,36 @@ test.describe('Crew file', () => {
 
   test('the rail travels to it smoothly: the jump to the end of the arrival is not cut short by the focus', async ({
     page,
+    browserName,
   }) => {
     await page.goto('/#contact', { waitUntil: 'networkidle' });
     const { landed } = await arrivalGeometry(page);
     const from = await page.evaluate(() => window.scrollY);
-    // Cada scroll del viaje, guardado en la página.
+    // Cada scroll del viaje y cada `scrollTo` de la página (el del foco del escenario cortaría el scroll suave).
     await page.evaluate(() => {
       const seen: number[] = [];
-      Object.assign(window, { seenScroll: seen });
+      const scrollTos: unknown[] = [];
+      Object.assign(window, { seenScroll: seen, scrollTos });
       window.addEventListener('scroll', () => seen.push(window.scrollY), { passive: true });
+      const scrollTo = window.scrollTo.bind(window);
+      window.scrollTo = ((...args: Parameters<typeof window.scrollTo>) => {
+        scrollTos.push(args[0]);
+        scrollTo(...args);
+      }) as typeof window.scrollTo;
     });
     await rail(page).getByRole('link', { name: 'Crew file · Epilogue' }).click();
     await expect
       .poll(() => page.evaluate(() => window.scrollY), { timeout: 10_000 })
       .toBeGreaterThanOrEqual(landed - 1);
-    const seen = await page.evaluate(
-      () => (window as unknown as { seenScroll: number[] }).seenScroll,
-    );
-    // Un salto de golpe dejaría uno o dos valores; el viaje suave pasa por muchos entre medias.
+    const { seen, scrollTos } = await page.evaluate(() => {
+      const own = window as unknown as { seenScroll: number[]; scrollTos: unknown[] };
+      return { seen: own.seenScroll, scrollTos: own.scrollTos };
+    });
+    // Nadie interrumpe el viaje del raíl (`jumpToChapter` va con `scrollIntoView`): el foco del título no mueve nada.
+    expect(scrollTos).toEqual([]);
+    // Y se ve: un salto de golpe dejaría uno o dos valores; el viaje suave pasa por muchos entre medias. WebKit sin GPU
+    // en el CI (a ~3 fps) acaba el scroll suave en uno o dos frames: ahí basta lo de arriba.
+    if (browserName === 'webkit') return;
     const between = seen.filter((y) => y > from + 10 && y < landed - 10);
     expect(between.length).toBeGreaterThanOrEqual(3);
   });
