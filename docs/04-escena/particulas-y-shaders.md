@@ -25,7 +25,7 @@ la dirección de `position` escalada a casi cero.
 |---|---|---|
 | `uM` | float | `m` suavizado por la escena (0–5; `SceneFrame.m`, ADR-028). La forma no sale de aquí: solo lo lee el haz de la llegada del epílogo |
 | `uFrom`, `uTo` | float | las dos formas que se mezclan, por su id (`SHAPE`: «Mapa de formas», ADR-041) |
-| `uT` | float | cuánto lleva de `uFrom` a `uTo` (0 → 1; 0, quieta en `uFrom`: el shader evalúa una sola forma) |
+| `uT` | float | cuánto lleva de `uFrom` a `uTo` (0 → 1; 0, quieta en `uFrom`: el shader evalúa una sola forma). En el epílogo se queda en 0,999 (`SHAPE_TRACK_REST`): «Shader de vértices» |
 | `uTime` | float | reloj de animación de la escena (`scene/sceneClock`): segundos que avanzan con los frames, como mucho 0,1 s de uno a otro (una pestaña que vuelve no salta) y congelados con movimiento reducido |
 | `uCharge` | float | carga de la detonación (0–1) |
 | `uPR` | float | pixel ratio efectivo |
@@ -64,13 +64,19 @@ antepone a cada shader de vértices:
   lista (los ojos de la tortuga son `COLOR_TURTLE_EYES` × 2: más brillantes que el blanco).
 
 La cabecera solo va en los shaders de vértices: los de fragmentos no la llevan y no pueden usar sus nombres. Su
-test comprueba que todo nombre `TURTLE_*` (también `TURTLE_SWAY_*`), `EARTH_*`, `PLATE_*`, `SUN_*`, `PORTRAIT_*` o `COLOR_*` que usan los shaders de vértices
-existe (y un `SHAPE_*` por forma), que los de fragmentos no usan ninguno, y que ni las etiquetas (comparaciones, `abs(tag - …)`, `aR.y`/`aR.z`,
-un nombre desplazado más allá del ±0,5 de redondeo) ni los colores (`c = vec3(…)`) llevan números escritos a mano.
+test comprueba que define un `SHAPE_*` por forma, que todo nombre `SHAPE_*`, `TURTLE_*` (también `TURTLE_SWAY_*`),
+`EARTH_*`, `PLATE_*`, `SUN_*`, `PORTRAIT_*`, `ARRIVAL_*` o `COLOR_*` que usan los shaders de vértices existe, que los
+de fragmentos no usan ninguno, y que ni las etiquetas ni los ids (comparaciones, `isTag(…, 4.0)`, `abs(tag - …)`,
+`aR.y`/`aR.z`, un nombre desplazado más allá del ±0,5 de redondeo) ni los colores (`c = vec3(…)`) llevan números
+escritos a mano.
 Las potencias del GLSL nunca llevan base negativa (indefinido en GLSL ES): `exp(-q * q)` y un `rim` que no baja
 de 0. Lo vigila el test de la cabecera: solo deja los `pow(` cuya base se sabe ≥ 0 (`rim`, `2.0`, `1.0 - d * 2.0`);
-otro, a escribirse como producto. El mismo test comprueba que la forma se elige por su id (nunca `uFrom < …`) y que el
-mapa de formas tiene una forma por pose de la cámara (`SHAPE_TRACK`; lo cambiarán las naves). Las placas se comparan con `uPlate` **dentro**
+otro, a escribirse como producto. El mismo test comprueba que `shape()` tiene una rama por cada forma de
+`SHAPE_TRACK`, cada una por su nombre (`isTag(id, SHAPE_…)`; un id sin rama no pinta nada: tamaño y alfa 0), que la
+forma nunca se elige por un número ni por `m` (`uM` solo lo lee el haz de la llegada) y que la segunda forma solo se
+evalúa con `uT > 0`. El de `sceneMaterials` comprueba que el mapa de formas tiene una forma por pose de la cámara
+(`SHAPE_TRACK`; lo cambiarán las naves) y que los uniforms que declara cada shader son justo los de su
+`create*Uniforms()`. Las placas se comparan con `uPlate` **dentro**
 de su rama (`PLATE_FIRST`..`PLATE_LAST`): `uPlate = 0` («ninguna») no casa nunca con la base del caparazón
 (etiqueta 0).
 
@@ -97,7 +103,14 @@ void main() {
 ```
 
 - Solo se evalúan **dos formas** por vértice (`uFrom` y `uTo`), y **una** con la escena quieta en una forma (`uT` 0:
-  una condición sobre un uniform, así que la GPU se salta la segunda rama entera).
+  una condición sobre un uniform, así que la GPU puede saltarse la segunda rama entera; depende del driver). **Salvo
+  en el epílogo:** la escena se para en `SHAPE_TRACK_END`, con `uT` 0,999, y quieta evalúa la Tierra y el retrato; y
+  mientras sube el retrato (`uPor` < 1), `portrait()` vuelve a evaluar la Tierra (tres evaluaciones). No es nuevo (el
+  shader de antes del mapa de formas hacía lo mismo); quitarlo queda para el PR del satélite (`deuda.md`).
+- Animaciones propias de cada forma dentro de `shape()`: giro lento (nebulosa, galaxia, Tierra), aletas,
+  balanceo y estela de la tortuga, iluminación de la Tierra. Las oscilaciones (aletas, balanceo, cabeceo,
+  estela, el pulso de la placa encendida) van multiplicadas por `uMotion`; los giros no: se paran porque `uTime` se congela con movimiento
+  reducido.
 
 ### Mapa de formas (C.7 · ADR-041)
 
@@ -115,10 +128,6 @@ Así la escena puede ir de una forma a cualquier otra, no solo a la del capítul
 transmisiones entrarán en `SHAPE_TRACK` entre la nebulosa y la galaxia y entre la tortuga y la Tierra, con su propia
 posición en los interludios (donde `m` se para). El retrato es la forma a la que se llega (`uTo`): su dispersión y su
 haz pesan con `uPor` y con su parte en la mezcla (`tt`).
-- Animaciones propias de cada forma dentro de `shape()`: giro lento (nebulosa, galaxia, Tierra), aletas,
-  balanceo y estela de la tortuga, iluminación de la Tierra. Las oscilaciones (aletas, balanceo, cabeceo,
-  estela, el pulso de la placa encendida) van multiplicadas por `uMotion`; los giros no: se paran porque `uTime` se congela con movimiento
-  reducido.
 
 ### Gravedad del cursor
 
@@ -153,6 +162,12 @@ system. Variación por partícula con `aR.x` (brillo 0,7–1,3) y `aR.w` (tono y
 **Sin gestión de color ni mapeo de tonos** (ADR-027): el lienzo es opaco, se limpia con `--color-void` y va con
 `linear` y `flat`; los shaders no incluyen los trozos de Three que convierten el color. La luz se suma tal cual,
 como en el prototipo (de ahí los factores > 1 del núcleo y del destello).
+
+**El color de la singularidad es el del destello.** La singularidad solo es la forma de salida (`uFrom`), y en esa
+rama del shader el color es el del destello (`COLOR_FLASH` × 2,2, el blanco cálido), que se funde con el de la forma
+siguiente al explotar: el punto quieto antes del Big Bang se ve de ese blanco. El color propio de `singularity()`
+(la mezcla de `COLOR_SINGULARITY_WARM` y `COLOR_SINGULARITY_ICE`) no entra en ninguna mezcla. Se quitará en un paso que
+ya rehaga las fotos fijas (`deuda.md`).
 
 El fondo sale de `scene/voidColour` con los números del hex tal cual (`hexToRgb` + `Color.setRGB`), como la
 paleta. **No** `new Color(token)`: toma el hex como sRGB y lo linealiza, y con la salida lineal el espacio se

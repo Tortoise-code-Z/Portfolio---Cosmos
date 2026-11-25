@@ -1,7 +1,7 @@
 # Escena 3D · visión general
 
-> El motor visual: un único sistema de partículas que cambia de forma según `m` (ver
-> `docs/02-experiencia/scroll-y-escena.md`). Referencia funcional: `docs/referencia/prototipo-v0.1.html`
+> El motor visual: un único sistema de partículas que cambia de forma según `m`, por el mapa de formas
+> (`uFrom`/`uTo`/`uT`, ADR-041; ver `docs/02-experiencia/scroll-y-escena.md`). Referencia funcional: `docs/referencia/prototipo-v0.1.html`
 > (Three.js r128 sin React; aquí se reescribe con React Three Fiber y TypeScript).
 
 ## Archivos
@@ -23,7 +23,7 @@ scroll ───► │ scroll/mapM (puro) ──► sceneStore (mutable, sin re
             │  SceneRoot (su step) ◄─────┘ suaviza m, copia la carga: SceneFrame  │
 puntero ──► │ scene/pointer ──► SceneFrame.pointer (lo escribe cada evento)       │
             │       useFrame de cada pieza (R3F) ◄── leen SceneFrame              │
-            │        ├─ uniforms de partículas (uM, uTime, uCharge, uPlate…)      │
+            │        ├─ uniforms de partículas (uFrom/uTo/uT, uM, uTime…)         │
             │        ├─ cámara (keyframes + encuadre + paralaje)                  │
             │        └─ etiquetas y pins (proyección 3D→2D por refs, sin estado)  │
             └─────────────────────────────────────────────────────────────────────┘

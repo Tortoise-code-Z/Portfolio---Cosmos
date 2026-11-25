@@ -1,11 +1,11 @@
-# Transiciones con naves (idea aprobada; fuera del cierre de la fase C: después de F4.5 o en el pulido)
+# Transiciones con naves (C.7 · naves: en construcción)
 
-> Idea de Víctor (20 nov 2026, sesión 35), estudiada por el Taller sobre la copia del repo con C.2 hecho. **Aprobada
-> como idea y sin calendario:** va después de F4.5 o en el pulido (roadmap → «C · 7. Naves»; fuera del cierre de la
-> fase C). La prueba fuera del repo ya está hecha (apartado «Prueba», versiones 1–8): **manda la versión 8**, que cambia los apartados 3 a 5 (se
-> lee a pantalla completa, sin marco). **En construcción (sesión 50, ADR-041)**, en cuatro PR: el mapa de formas
-> (apartado 1, sin cambio visible), el satélite, la nave nodriza y la coreografía de la página. Este doc pasa a spec
-> por partes, según se construyen.
+> Idea de Víctor (20 nov 2026, sesión 35), estudiada por el Taller sobre la copia del repo con C.2 hecho. Se aprobó
+> como idea, para después de F4.5 o el pulido (roadmap → «C · 7. Naves»; fuera del cierre de la fase C). La prueba
+> fuera del repo ya está hecha (apartado «Prueba», versiones 1–8): **manda la versión 8**, que cambia los apartados 3
+> a 5 (se lee a pantalla completa, sin marco). **En construcción (sesión 50, ADR-041)**, en cuatro PR: el mapa de
+> formas (apartado 1, sin cambio visible; hecho), el satélite, la nave nodriza y la coreografía de la página. Este doc
+> pasa a spec por partes, según se construyen.
 
 ## La idea
 
@@ -25,7 +25,9 @@ y atenuada. Con las naves, **la escena trae la transmisión**:
 
 > Construido en el primer PR de C.7 · naves, sin cambio visible: `lib/scroll/shapeTrack` (`SHAPE`, `SHAPE_TRACK`,
 > `shapeMixAt`) y `particulas-y-shaders.md` → «Mapa de formas». Mientras no hay naves, la posición de las formas sale
-> de `m`; la de los interludios (una segunda coordenada junto a `m`) llega con el satélite. Lo que sigue es el estudio.
+> de `m`; la de los interludios (una segunda coordenada junto a `m`) llega con el satélite. `mapM` no cambia: el par
+> de formas sale de la `m` suavizada de la escena (`shapePosition`); la segunda coordenada se medirá por tramos y se
+> suavizará como `m` (con el satélite). Lo que sigue es el estudio, de antes del mapa de formas.
 
 Hoy `m` es a la vez el capítulo y la forma. El shader de las partículas evalúa la forma `floor(m)` y la siguiente, y
 mezcla las dos (`particles.vert.glsl` → `shape(k)`). Solo sabe ir de una forma a la contigua: 1 nebulosa → 2 galaxia.
@@ -192,7 +194,7 @@ se lee → galaxia, con el scroll, y un botón para cambiar de satélite a nave 
 
 1. **Prueba fuera del repo** (un artefacto, como el retrato): el satélite y la nave nodriza en partículas con el
    estilo del shader, los dos morphs y el encaje con un marco HTML al 85 %. Víctor elige la forma.
-2. **Su ADR:** mapa de formas (`uFrom`/`uTo`/`uT`), naves paramétricas en el shader, el tramo de llegada y el peso.
+2. **Su ADR (ADR-041):** el mapa de formas (`uFrom`/`uTo`/`uT`); las naves paramétricas y el peso, con el satélite.
 3. **Construcción** en cuatro PR (ADR-041): el mapa de formas, sin cambio visible (hecho); el satélite (Mission log),
    con los tramos y el tope de peso; la nave nodriza (Mission control), y la coreografía de la página (el marco, la
    vista llena y la salida). El retrato directo desde la Tierra ya está: el primer paso de C.7, la llegada del epílogo
@@ -201,7 +203,8 @@ se lee → galaxia, con el scroll, y un botón para cambiar de satélite a nave 
 Al construir C.4 (Mission control) y C.6 (Crew file) no se cerró nada de esto: los tramos y el componente
 `Transmission` admiten un tramo de llegada y un marco más estrecho sin rehacerse. Lo del retrato que estaba atado a la
 forma 5 (`m − 4`, la dispersión de `k > 3.5`, `LAST_M`) y el remapeo de la llegada en el shader (`ARRIVAL_MORPH_END`)
-ya van sobre el mapa de formas (ADR-041). `arrivalShapeM` sigue en la cámara, el Sol, la gravedad y la foto fija sin
+ya van sobre el mapa de formas (ADR-041), salvo el haz, que sigue midiendo la llegada con `uM − ARRIVAL_BASE`
+(ADR-039). `arrivalShapeM` sigue en la cámara, el Sol, la gravedad y la foto fija sin
 WebGL: siguen a `m`, no a las formas.
 
 ## En cristiano

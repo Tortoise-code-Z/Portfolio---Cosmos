@@ -108,9 +108,11 @@ cosmos-portfolio/
 │  │  │                           jumpToChapter (scroll + foco al título + ancla), smoothM (el suavizado de
 │  │  │                           `m` que comparten la escena, los efectos del Big Bang y la coreografía de la
 │  │  │                           llegada, ADR-030), arrival (la llegada del epílogo que lee la escena:
-│  │  │                           EPILOGUE_ARRIVAL, arrivalShapeM; ADR-039), arrivalChoreography (lo que pinta la
-│  │  │                           página en ella: los cortes ARRIVAL_CHOREOGRAPHY, arrivalBeam, arrivalBeamLine)
-│  │  │                           y stageFocus (el foco en el escenario fijo); estos dos, fuera de la huella de las
+│  │  │                           EPILOGUE_ARRIVAL, arrivalShapeM; ADR-039), shapeTrack (el mapa de formas que
+│  │  │                           lee la escena: SHAPE, SHAPE_TRACK, shapePosition, shapeMixAt; ADR-041; en la
+│  │  │                           huella de las fotos fijas), arrivalChoreography (lo que pinta la página en la
+│  │  │                           llegada: los cortes ARRIVAL_CHOREOGRAPHY, arrivalBeam, arrivalBeamLine) y
+│  │  │                           stageFocus (el foco en el escenario fijo); estos dos, fuera de la huella de las
 │  │  │                           fotos fijas
 │  │  ├─ seo/                   ← builders puros: URL canónicas, lista de páginas, meta, hreflang, JSON-LD,
 │  │  │                           sitemap y robots (reciben origen y datos por parámetro, ADR-017)
@@ -291,9 +293,10 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
    real del frame; en su primer frame arranca en `mTarget`), que deja en el `SceneFrame` compartido; los `useFrame`
    de cada pieza (uniforms, cámara y etiquetas) la leen de ahí (ADR-028). `CameraRig` además **escribe** en el frame
    su pose y su campo de visión, y por eso su `useFrame` va antes que nadie (prioridad −1, `CAMERA_RIG_PRIORITY`):
-   las etiquetas de las constelaciones proyectan con ellos. En la llegada del epílogo, la cámara, el shader, el Sol y
-   la gravedad de la Tierra usan la `m` de la forma (`arrivalShapeM`, `lib/scroll/arrival`, ADR-039), que acaba antes
-   que el tramo; el haz del retrato, lo que lleva la llegada. `sceneStore.m` sigue siendo
+   las etiquetas de las constelaciones proyectan con ellos. En la llegada del epílogo, la cámara, el Sol y la gravedad
+   de la Tierra usan la `m` de la forma (`arrivalShapeM`, `lib/scroll/arrival`, ADR-039), que acaba antes que el
+   tramo; el shader recibe sus formas del mapa de formas (`lib/scroll/shapeTrack`, ADR-041), que sale de la misma
+   cuenta; el haz del retrato, lo que lleva la llegada. `sceneStore.m` sigue siendo
    `mTarget`. Con la página oculta o la misión rápida abierta, el bucle se pausa (`scene/pause`). Los efectos del
    Big Bang en el DOM (`features/journey/useBigBang`) llevan otra copia con el mismo `smoothM` y la escriben, ya
    convertida en destello, temblor, nombre y halo, como variables CSS privadas en `<html>` (`--_bang-*`); los leen el

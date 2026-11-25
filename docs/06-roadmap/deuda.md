@@ -11,9 +11,9 @@
 - **C.7 · Naves** (fuera del cierre de la fase C: después de F4.5 o en el pulido): estudio, versiones
   de la prueba y lecciones del shader en `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a
   pantalla completa). La prueba es el artefacto privado «Naves · prueba»; copia del código en el buzón (`naves/`, fuera de git). Su ADR es
-  el ADR-041 (el mapa de formas, `uFrom`/`uTo`/`uT`, en su primer PR, sin cambio visible). Falta el peso: el mapa de formas
-  suma ~255 B (257 330 → 257 585 B, medido en Linux; quedan ~2 415 B), así que el PR del satélite subirá el límite con
-  sus números reales. **Primer paso en marcha (desde S47):** la entrada
+  el ADR-041 (el mapa de formas, `uFrom`/`uTo`/`uT`, en su primer PR, sin cambio visible). Falta el peso: el mapa de
+  formas y la corrección de su auditoría dejan la escena en **257 621 B** (quedan 2 379 B; «Peso de la escena», abajo),
+  así que el PR del satélite subirá el límite con sus números reales. **Primer paso en marcha (desde S47):** la entrada
   del Crew file (ADR-039; prueba aprobada: artefacto privado «Crew file · entrada», copia en el buzón (`crew-entrada/`, fuera de git)).
   PR 1 hecho (#124: tramo de llegada, sección fija, saltos, escena) y su auditoría corregida (#126); PR 2 (la
   coreografía de la página) hecho en S49 (#127) y su auditoría corregida en S50. Mirar en el móvil de Víctor, con WebGL, si el marco del
@@ -46,6 +46,16 @@
 - **C.6a · el raíl que encoge:** en una ventana baja las ocho paradas bajan de 44 px hasta 24 px como mínimo (WCAG
   2.5.8; excepción escrita en las reglas, «Accesibilidad común» y ADR-034), sin entrar en las zonas seguras; en una
   ventana ancha pero baja (`height < 30em`), solo los puntos y sin HUD. Mirarlo en un móvil real apaisado (F6).
+- **C.7 · el epílogo quieto evalúa dos formas (S51):** en el Crew file la escena se para con `uT` 0,999
+  (`SHAPE_TRACK_END`): el shader evalúa la Tierra y el retrato, y mientras sube el retrato (`uPor` < 1), tres veces
+  (`particulas-y-shaders.md` → «Shader de vértices»; ADR-041). Ya pasaba antes del mapa de formas. Arreglo para el PR
+  del satélite, que ya cambia el shader, rehace las fotos fijas y mide fps: que `shapePosition` llegue a la última forma
+  (`from = to =` retrato, `uT` 0) y que el peso del retrato en la dispersión y el haz sea 1 con `uFrom` retrato (el haz
+  sigue bajando con la forma ya quieta, de `morphEnd` a 0,7 de la llegada). Las partículas de más retraso pasan de
+  ~0,999995 a 1: mirar si las fotos salen iguales.
+- **Escena · el color propio de la singularidad no se ve (S51):** solo es forma de salida, y esa rama pinta el destello
+  (`particulas-y-shaders.md` → «Colores»). Quitar la mezcla muerta de `singularity()` (`COLOR_SINGULARITY_WARM` y
+  `_ICE`, y sus colores de la paleta si nadie más los usa) en un paso que ya rehaga las fotos fijas.
 - **C.7 · la coreografía y el alto de la ventana (S49):** la línea del haz de la página se mide con
   `document.documentElement.clientHeight` (la caja de `position: fixed; inset: 0`, la del lienzo). En un móvil con la
   barra del navegador que aparece y desaparece, comprobar que la línea de la página y la del shader coinciden (F6).
@@ -169,9 +179,9 @@
   `npm run stills` en el mismo PR. Desde el cierre de F4, la parte de `scene/` de `STILLS_SOURCES` sale de la tabla
   única de la escena (`scripts/sceneModules.ts`: una carpeta nueva se clasifica allí y su test lo exige); fuera de
   `scene/`, la lista de `tests/stills/fingerprint.ts` sigue a mano (mirar los imports relativos de lo que se añada).
-- **Peso de la escena:** 257 340 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
+- **Peso de la escena:** 257 621 B de 260 000 (ADR-032 y sus notas; medido commit a commit: tras S38 253 071,
   C.5 −2, C.6a +52, C.6b +967, su corrección +252, F4.4a +391, F4.4b +1 729, corrección de F4.4a +21, de F4.4b +149, F4.5 +444,
-  corrección de F4.5 +1, del cierre de F4 +52, C.7 PR 1 +185; 257 367 medidos en `main` sin cambios en la escena, los nombres con hash de los chunks; su corrección −27): **257 340 B**. Quedan 2 660 B; C.7 subirá el límite. Cada paso
+  corrección de F4.5 +1, del cierre de F4 +52, C.7 PR 1 +185; 257 367 medidos en `main` sin cambios en la escena, los nombres con hash de los chunks; su corrección −27; el mapa de formas +255 en su rama y 257 596 medidos en `main` con él; su corrección +25): **257 621 B**. Quedan 2 379 B; el PR del satélite subirá el límite (ADR-041). Cada paso
   apunta lo que pesó en `rendimiento.md`. Por paquete se mide con
   `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F3.6):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).

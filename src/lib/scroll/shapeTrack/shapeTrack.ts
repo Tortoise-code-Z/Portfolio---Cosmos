@@ -4,8 +4,9 @@ import { arrivalShapeM } from '../arrival/arrival';
 /**
  * El mapa de formas (ADR-041; docs/04-escena/particulas-y-shaders.md → «Mapa de formas»): la escena no deduce la forma
  * de `m`, sino que recibe qué dos formas mezcla y cuánto (`uFrom`, `uTo`, `uT`). Así puede pasar de una forma a
- * cualquier otra, no solo a la del capítulo siguiente: las naves de las transmisiones (C.7) entran entre la nebulosa y
- * la galaxia y entre la tortuga y la Tierra sin tocar `m`, que sigue para la cámara, el HUD, el raíl y las fotos fijas.
+ * cualquier otra, no solo a la del capítulo siguiente: las naves de las transmisiones (C.7) entrarán entre la nebulosa
+ * y la galaxia y entre la tortuga y la Tierra sin tocar `m`, que sigue para la cámara, el HUD, el raíl y las fotos
+ * fijas.
  *
  * Esta carpeta la lee la escena (el shader, por su cabecera, y sus uniforms): entra en la huella de las fotos fijas.
  */
@@ -41,15 +42,25 @@ export const SHAPE_TRACK: readonly [ShapeId, ...ShapeId[]] = [
 ];
 
 /**
- * Dónde se para `s` en la escena (`shapePosition`): justo antes de la última forma, como `m` se paraba en el shader. El
- * último cambio va de la penúltima a la última y se queda ahí (`t` 0,999: todas las partículas han llegado, con su
- * retraso).
+ * Lo que lleva el último cambio (de la penúltima forma a la última) donde se para la escena: casi entero. Con el
+ * retraso de cada partícula, prácticamente todas han llegado (las de más retraso se quedan a ~5·10⁻⁶ del final).
  */
-export const SHAPE_TRACK_END = SHAPE_TRACK.length - 2 + 0.999;
+export const SHAPE_TRACK_REST = 0.999;
+
+/**
+ * Dónde se para `s` en la escena (`shapePosition`): justo antes de la última forma, como `m` se paraba en el shader. El
+ * último cambio va de la penúltima a la última y se queda ahí (`t` = `SHAPE_TRACK_REST`). Por eso la escena, quieta en
+ * el epílogo, aún evalúa dos formas (la Tierra y el retrato): ADR-041.
+ */
+export const SHAPE_TRACK_END = SHAPE_TRACK.length - 2 + SHAPE_TRACK_REST;
 
 const LAST_INDEX = SHAPE_TRACK.length - 1;
 
-/** La forma del sitio `index` de `SHAPE_TRACK`, o `past` si se sale de la lista. */
+/**
+ * La forma del sitio `index` de `SHAPE_TRACK`, o `past` si se sale de la lista: pasa con la siguiente de la última
+ * (`shapeMixAt` en `LAST_INDEX`). Con `index` ya acotado, el `past` de `from` no se usa nunca (está por
+ * `noUncheckedIndexedAccess`).
+ */
 function trackShape(index: number, past: ShapeId): ShapeId {
   return SHAPE_TRACK[index] ?? past;
 }

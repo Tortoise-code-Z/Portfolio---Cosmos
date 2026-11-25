@@ -189,8 +189,8 @@ por paso, en este orden:
    de ocho paradas que encogen en un móvil apaisado y Contacto que cambia en su segunda mitad—; C.6b, el retrato con
    la transición del haz de barrido. Detalle en `05-crew-file.md`. Hechos: C.6a, PR #107; C.6b, PR #108; las
    correcciones de sus auditorías, PR #109 y PR #111.)*
-7. **Naves** (idea de Víctor aprobada, sin calendario; **fuera del cierre de la fase C**: después de F4.5 o en el
-   pulido, con el peso real de F4.4 y F4.5 para su ADR). La escena trae cada
+7. **Naves** (idea de Víctor aprobada; **fuera del cierre de la fase C**: en construcción tras F4.5; su ADR, el
+   ADR-041, y el tope de peso de la escena, que se decide con el satélite). La escena trae cada
    transmisión: la nebulosa se convierte en un satélite que se acerca hasta que su pantalla llena la vista; la
    transmisión se lee a pantalla completa, como hoy, y al salir el satélite se aleja llevándose la pantalla con el
    texto. En Mission control, una nave nodriza; el retrato llega directo desde la Tierra. Prueba fuera del repo hecha

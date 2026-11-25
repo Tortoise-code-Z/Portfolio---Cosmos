@@ -734,6 +734,10 @@
 - Nota (2026-11-24, C.7, corrección de la auditoría de la llegada): medido sobre `main` antes de ella, 257 367 B (55 B
   más que la nota anterior sin cambios en la escena: los nombres con hash de los chunks que importa); la corrección
   pesó −27 B: **257 340 B**. Quedan 2 660 B. Esta cuenta sustituye a la anterior.
+- Nota (2026-11-25, C.7 · naves, el mapa de formas, ADR-041): pesó 255 B, medido en Linux sobre su base en la rama
+  (257 330 → 257 585 B; 10 B menos que la nota anterior: los nombres con hash de los chunks). Medido sobre `main` con
+  él, 257 596 B; la corrección de su auditoría pesó 25 B: **257 621 B**. Quedan 2 379 B; el PR del satélite sube el
+  límite (ADR-041). Esta cuenta sustituye a la anterior.
 - Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).
 
 ## ADR-033 · Los commits de solo documentación van directos a `main`
@@ -987,7 +991,8 @@
 - Detalle: `docs/05-tecnico/arquitectura.md` → «Puntero del viaje»; `docs/04-escena/constelaciones-y-placas.md`.
 
 ## ADR-039 · La llegada del epílogo: un tramo con la sección fija, medido con la misma `m` que la escena
-- Estado: Aceptada · completada en C.7 PR 2 (#127): la coreografía de la página
+- Estado: Aceptada · completada en C.7 PR 2 (#127): la coreografía de la página · matizada por ADR-041 (el shader ya
+  no remapea la forma de la llegada: la recibe en `uFrom`/`uTo`/`uT`)
 - Fecha: 2026-11-24
 - Contexto: hasta ahora la Tierra pasaba al retrato en la segunda mitad de Contacto y la sección del Crew file subía
   con el scroll como una página más: el retrato se formaba mientras aún se leía Contacto y la transmisión entraba
@@ -1045,7 +1050,7 @@
   (`useArrivalChoreography.test.tsx`), los e2e del epílogo (`crew-file.spec.ts`) y dos capturas de la llegada con
   movimiento, parada en `a` = 0,4 y 1 (sin WebGL: no queda un reloj de la escena que parar).
 - Detalle: `docs/02-experiencia/capitulos/05-crew-file.md` → «Transición»; `docs/02-experiencia/scroll-y-escena.md`
-  → «Tramos del viaje»; `docs/04-escena/particulas-y-shaders.md` → «Forma 5».
+  → «Tramos del viaje»; `docs/04-escena/particulas-y-shaders.md` → «Retrato».
 
 ## ADR-040 · La deuda anotada vive en su propio doc, fuera de `STATE.md`
 - Estado: Aceptada
@@ -1085,7 +1090,13 @@
   - Lo del retrato se ata a «llegar al retrato» (`uTo` es el retrato), no a un número de forma: su dispersión, que
     espera a `uPor`, y el haz de la llegada, que pesa con su parte en la mezcla.
   - Con la escena quieta en una forma (`uT` = 0), el shader evalúa **una sola** (una condición sobre un uniform): la
-    lección de la prueba de las naves, que iban a tirones al calcularse dos veces en cada frame.
+    lección de la prueba de las naves, que iban a tirones al calcularse dos veces en cada frame. **Salvo en el
+    epílogo:** la escena se para justo antes del retrato (`uT` 0,999, como se paraba `m` en el shader), así que quieta
+    evalúa la Tierra y el retrato, y mientras sube el retrato (`uPor` < 1) el retrato vuelve a evaluar la Tierra. Ya
+    pasaba antes de este ADR; quitarlo (que la escena llegue al retrato con `uT` 0) cambia el shader y la regla del
+    haz, y se mide con el satélite.
+  - `shape()` tiene una rama por forma, por su nombre (`isTag(id, SHAPE_…)`); un id sin rama no pinta nada, para que
+    una forma nueva sin la suya no salga disfrazada de otra (lo vigila el test de la cabecera).
   - Primero el mapa, sin ningún cambio visible (las fotos fijas y las capturas, iguales); las naves van después, cada
     una en su propio cambio: el satélite en el Mission log, la nave nodriza en el Mission control y, al final, la
     coreografía de la página de las transmisiones. Las naves dan a las formas su propia posición en los interludios
@@ -1094,7 +1105,8 @@
 - Alternativas descartadas: seguir con `floor(m)` y meter las naves como capítulos (`m` dejaría de ser el capítulo y
   habría que mover la cámara, el HUD, el raíl y las fotos fijas); dar ya en este cambio la segunda coordenada de las
   formas (sin naves no hay tramo que la use, y sus tramos dependen de cómo lleguen las naves).
-- Consecuencias: el shader ya no sabe de capítulos; añadir una forma es darle un id y un sitio en `SHAPE_TRACK`. La
+- Consecuencias: el shader ya no elige la forma por el capítulo (solo el haz de la llegada sigue midiendo con `uM`,
+  ADR-039); añadir una forma es darle un id, un sitio en `SHAPE_TRACK` y su rama en `shape()`. La
   posición de las formas entra en la huella de las fotos fijas (`lib/scroll/shapeTrack`). Hay que vigilar que la
   cámara (`arrivalShapeM`) y las formas sigan yendo a la par: hoy salen de la misma cuenta; con las naves, la cámara
   seguirá a `m` y las formas a su propia posición.
