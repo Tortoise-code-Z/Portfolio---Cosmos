@@ -124,8 +124,9 @@ crudo»: ahora la escena trae el epílogo.
   pantalla: su alto, `--visor-h`, y su proporción, `--visor-ratio`, centrado con el retrato aunque la columna deje
   sitio al raíl), **Download CV justo debajo** (lo primero que se busca), la ficha y el email.
 - **La cara sigue a su marco (ADR-042), en móvil y en escritorio:** la cámara del capítulo 5 pinta el retrato en el
-  centro de la ventana y la página mide cuánto se separa de él el centro del marco (`usePortraitFollow`, en el scroll,
-  al cambiar de tamaño y al montar; `sceneStore.portraitShift`). La escena mueve su imagen entera eso (la cara, las
+  centro de la ventana y la página mide cuánto se separa de él el centro del marco (`usePortraitFollow`, en el scroll
+  mientras el marco está a menos de una ventana de la vista, al cambiar de tamaño y al montar;
+  `sceneStore.portraitShift`). La escena mueve su imagen entera eso (la cara, las
   partículas y las estrellas del fondo; `CameraRig`), con la presencia del retrato: fuera del epílogo, nada; en la
   llegada, la cara entra en el marco a la vez que se forma. Sin WebGL, la foto del retrato se mueve igual; cuando el
   marco sube hasta salir de la pantalla, abajo queda el fondo sin foto (aceptado).

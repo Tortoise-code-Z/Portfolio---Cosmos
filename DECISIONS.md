@@ -1125,9 +1125,10 @@
   dejaba ver que no está completa por los lados ni por detrás.
 - Decisión:
   - **La página mide el marco** (`features/journey/usePortraitFollow`, con `lib/scroll/portraitShift`): cuánto se
-    separa su centro del centro de la ventana, en px, en el evento del scroll (antes del frame que pinta la escena), al
-    cambiar de tamaño la ventana o el marco y al montar; lo deja en `sceneStore.portraitShift` (ADR-004: sin estado de
-    React). Un marco sin tamaño no mueve nada.
+    separa su centro del centro de la ventana, en px, en el evento del scroll (antes del frame que pinta la escena)
+    mientras el marco está a menos de una ventana de la vista (`IntersectionObserver`: lejos no lee el layout en cada
+    scroll de la página), al cambiar de tamaño la ventana o el marco y al montar; lo deja en `sceneStore.portraitShift`
+    (ADR-004: sin estado de React). Un marco sin tamaño no mueve nada.
   - **La escena descentra su proyección** (`CameraRig`, `setViewOffset`): la imagen entera se mueve eso en pantalla
     (la cara, las partículas y las estrellas, sin huecos), por la presencia del retrato con la `m` de la forma (0 fuera
     del epílogo; en la llegada, la cara entra en el marco a la vez que se forma). El haz de la llegada se mide en
