@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { EPILOGUE } from '~/content/chapters';
+import { sceneStore, setScrollTarget } from '~/stores/sceneStore/sceneStore';
 
 import { Transmission, TRANSMISSION_ENTRY } from './Transmission';
 
@@ -109,6 +110,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
   FakeObserver.last = null;
+  sceneStore.setState(sceneStore.getInitialState(), true);
   document.body.replaceChildren();
   document.documentElement.removeAttribute('style');
 });
@@ -254,8 +256,12 @@ describe('Transmission', () => {
       vi.spyOn(link, 'getBoundingClientRect').mockImplementation(at(linkTop, 44));
     }
 
-    /** Los frames se corren en el acto; la barra tapa 64 px y la ventana mide 720. */
+    /**
+     * Los frames se corren en el acto; la barra tapa 64 px y la ventana mide 720. Sin la coreografía (movimiento
+     * reducido: su bucle también pediría frames y se mezclaría con el del foco, que es lo que se mira aquí).
+     */
     function setUpWindow(): ReturnType<typeof vi.fn> {
+      reducedMotion(true);
       vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
         callback(0);
         return 1;
@@ -335,22 +341,36 @@ describe('Transmission', () => {
       reducedMotion(false);
       vi.stubGlobal('IntersectionObserver', FakeObserver);
       const frames = manualFrames();
-      const { region } = renderEpilogue();
+      const before = renderEpilogue();
       expect(FakeObserver.last).toBeNull();
       // Hasta su primer frame, nada (se ve entera, como sin JavaScript).
-      expect(region).not.toHaveAttribute('data-armed');
+      expect(before.region).not.toHaveAttribute('data-armed');
       frames.run();
-      expect(region).toHaveAttribute('data-arrival', '');
-      expect(region).toHaveAttribute('data-armed', '');
+      expect(before.region).toHaveAttribute('data-arrival', '');
+      expect(before.region).toHaveAttribute('data-armed', '');
       // Antes de la llegada (la `m` del store, 0), sin encajar: las líneas esperan.
-      expect(region).not.toHaveAttribute('data-on');
+      expect(before.region).not.toHaveAttribute('data-on');
+      before.unmount();
+      // Con la llegada hecha (encajada), se enciende en su primer frame, sin que la sección entre en la pantalla.
+      act(() => {
+        setScrollTarget(5);
+      });
+      const after = renderEpilogue();
+      frames.run();
+      expect(after.region).toHaveAttribute('data-locked', '');
+      expect(after.region).toHaveAttribute('data-on', '');
+      expect(FakeObserver.last).toBeNull();
     });
 
     it('with reduced motion, no choreography: nothing armed, nothing hidden', () => {
       reducedMotion(true);
+      const frames = manualFrames();
       const { region } = renderEpilogue();
+      // Ni en su primer frame (con movimiento, ahí se arma).
+      frames.run();
       expect(region).not.toHaveAttribute('data-arrival');
       expect(region).not.toHaveAttribute('data-armed');
+      expect(frames.pending()).toBe(0);
     });
 
     it('what takes the focus with Tab below the window, while the stage is held, is brought into view past the arrival', () => {

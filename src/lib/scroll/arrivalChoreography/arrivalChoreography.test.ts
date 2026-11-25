@@ -88,4 +88,8 @@ describe('ARRIVAL_CHOREOGRAPHY', () => {
     expect(guides[0]).toBe(lock);
     expect(guides[1]).toBeLessThanOrEqual(1);
   });
+
+  it('el haz acaba de bajar antes de encajar: el teletipo nunca escribe bajo el recorte', () => {
+    expect(ARRIVAL_CHOREOGRAPHY.lock).toBeGreaterThanOrEqual(EPILOGUE_ARRIVAL.beam[1]);
+  });
 });

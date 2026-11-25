@@ -288,9 +288,9 @@
   /* La llegada del epílogo (ADR-039): lo que dura de scroll, con la sección fija (sin movimiento reducido). */
   --arrival-h: 160svh;
   /*
-   * Lo que pinta la página en esa llegada (C.7): las esquinas que viajan salen a `--arrival-corner-inset` de las de la
-   * ventana, con `--arrival-corner-from` de largo, y encogen hasta las del visor (`--visor-corner`); la línea del haz
-   * mide `--arrival-beam-h` de grueso.
+   * Lo que pinta la página en esa llegada (C.7): las esquinas que viajan salen a `--arrival-corner-inset` de las de lo
+   * que se ve del escenario, con `--arrival-corner-from` de largo, y encogen hasta las del visor (`--visor-corner`); la
+   * línea del haz mide `--arrival-beam-h` de grueso.
    */
   --arrival-corner-inset: var(--space-4);
   --arrival-corner-from: 64px;
@@ -421,6 +421,14 @@
   /* El «T-0» de Mission control: un halo más ancho, para un título tan grande. */
   --glow-channel-blue-countdown: drop-shadow(0 0 14px var(--color-channel-blue-glow));
   --glow-singularity: 0 0 18px 4px var(--color-singularity);
+  /*
+   * La llegada del epílogo (C.7), en el verde de su canal, como la prueba aprobada: la línea del haz con su halo y una
+   * estela que sube sobre lo ya revelado; las esquinas que viajan; y el destello del visor al encajar.
+   */
+  --glow-arrival-beam-green:
+    0 0 18px 4px rgb(109 255 159 / 0.55), 0 -40px 60px -20px rgb(109 255 159 / 0.18);
+  --glow-arrival-corner-green: drop-shadow(0 0 4px rgb(109 255 159 / 0.6));
+  --glow-visor-lock-green: drop-shadow(0 0 8px var(--color-channel-green-glow));
   /* Halo oscuro de las etiquetas de las estrellas: se leen también sobre el núcleo brillante de la galaxia. */
   --halo-star-label: 0 0 2px var(--color-void), 0 0 4px var(--color-void);
   --blur-chrome: 6px;

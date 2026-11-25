@@ -132,7 +132,8 @@
   línea, las esquinas se cierran sobre el destino que marque quien la usa (`data-arrival-target`; el Crew file, el
   marco del visor) y, al encajar, el teletipo se enciende (sin el barrido de entrada: el haz hace de barrido). Solo
   con JavaScript, sin movimiento reducido y en pantalla; un Tab dentro antes de que acabe la revela entera
-  (`05-crew-file.md` → «Transición»). Su ancla
+  (`05-crew-file.md` → «Transición»). La línea del haz y las esquinas llevan sus ganchos (`data-arrival-beam`,
+  `data-arrival-corners`) y sus brillos, los de su canal (`--glow-arrival-*`). Su ancla
   (`CHAPTER_ANCHORS`) está en el marcador del final de la llegada (`data-landing`), que va el primero en el DOM (su sitio
   lo pone el CSS): quien entra por el ancla sigue con Tab por el escenario. Si lo enfocado con Tab cae en el escenario
   fuera de la vista (la ventana más baja que él), se va al final de la llegada y lo justo más allá para enseñarlo con
@@ -161,10 +162,11 @@
 - Cursor de bloque del teletipo (`BlinkCursor`, el mismo en los dos interludios): parpadea unas pocas veces al
   escribirse su línea y se queda quieto. En el epílogo no hay cursor: el cierre de su teletipo es «Identity
   verified», en el visor.
-- Entrada: con JavaScript y sin movimiento reducido, la sección se arma al montar (`data-armed`: las líneas del
-  teletipo, `[data-line]`, esperan tapadas) y se enciende una vez cuando su borde de arriba pasa el 80 % de la
-  ventana (`data-on`; `TRANSMISSION_ENTRY`, un margen y no una proporción: una sección muy alta también llega):
-  barrido de luz y líneas una tras otra (`--dur-teletype-*`). Sin JavaScript o con movimiento reducido no se arma:
+- Entrada (salvo la sección con llegada, arriba: la arma y la enciende su coreografía, al encajar): con JavaScript y
+  sin movimiento reducido, la sección se arma al montar (`data-armed`: las líneas del teletipo, `[data-line]`, esperan
+  tapadas) y se enciende una vez cuando su borde de arriba pasa el 80 % de la ventana (`data-on`;
+  `TRANSMISSION_ENTRY`, un margen y no una proporción: una sección muy alta también llega): barrido de luz y líneas
+  una tras otra (`--dur-teletype-*`). Sin JavaScript o con movimiento reducido no se arma:
   todo quieto y visible. El texto está entero en el DOM siempre, y al imprimir no sale tapado. Una línea con algo
   enfocado se destapa al momento (`:focus-within`): con Tab se puede llegar a un control que el teletipo aún no ha
   escrito (el CV y el email del Crew file), y el recorte taparía su anillo de foco.

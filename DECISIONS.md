@@ -550,7 +550,8 @@
 
 ## ADR-028 · La escena suaviza su propia `m`; la interfaz fija sigue el scroll a saltos
 - Estado: Aceptada · matizada por ADR-030 (los efectos del Big Bang en el DOM suavizan su `m` como la escena;
-  `M_SMOOTHING` pasa a `lib/scroll/smoothM`)
+  `M_SMOOTHING` pasa a `lib/scroll/smoothM`) y por ADR-039 (la coreografía de la llegada del epílogo lleva otra copia,
+  con el mismo `smoothM`)
 - Fecha: 2026-10-27
 - Contexto: F3.5 conecta el scroll con la escena: `m` tiene que perseguir a `mTarget` con inercia
   (`scroll-y-escena.md` → «Suavizado»). ADR-021 dejó el raíl, el HUD y el idioma leyendo `m = mTarget` a saltos y
@@ -986,7 +987,7 @@
 - Detalle: `docs/05-tecnico/arquitectura.md` → «Puntero del viaje»; `docs/04-escena/constelaciones-y-placas.md`.
 
 ## ADR-039 · La llegada del epílogo: un tramo con la sección fija, medido con la misma `m` que la escena
-- Estado: Aceptada
+- Estado: Aceptada · completada en C.7 PR 2 (#127): la coreografía de la página
 - Fecha: 2026-11-24
 - Contexto: hasta ahora la Tierra pasaba al retrato en la segunda mitad de Contacto y la sección del Crew file subía
   con el scroll como una página más: el retrato se formaba mientras aún se leía Contacto y la transmisión entraba
@@ -1012,15 +1013,16 @@
     (`lib/scroll/arrival`, `EPILOGUE_ARRIVAL`). La forma acaba en `morphEnd` (0,55): la cámara (`arrivalShapeM`) y el
     shader hacen la misma cuenta, y el Sol, la gravedad de la Tierra y la foto fija sin WebGL se van con ella. El haz
     baja por la **pantalla**, hasta `beamReach` (1,025) altos de la ventana: el shader compara la `y` proyectada de
-    cada partícula (tras la gravedad del cursor) con la línea y la página usará la misma (`arrivalBeamLine`), así que
-    coincidirán al píxel. Lo que lee la escena va en `lib/scroll/arrival`, en la huella de las fotos fijas; lo que solo
+    cada partícula (tras la gravedad del cursor) con la línea y la página usa la misma (`arrivalBeamLine`), así que
+    coinciden al píxel (en un móvil con la barra del navegador, por comprobar en F6: `docs/06-roadmap/deuda.md`). Lo que lee la escena va en `lib/scroll/arrival`, en la huella de las fotos fijas; lo que solo
     pinta la página, en `lib/scroll/arrivalChoreography`, fuera de ella.
   - **La coreografía de la página** (segundo PR) la pinta un bucle propio de la sección (`useArrivalChoreography`) que
     suaviza `m` como la escena (como el Big Bang, ADR-030) y escribe variables CSS en la sección, con los cortes de
     `ARRIVAL_CHOREOGRAPHY`: el haz recorta la pantalla de la transmisión (`data-screen`) por debajo de su línea, la
     misma del shader; encima (sin recortarse) van la línea del haz y cuatro esquinas que salen de las de lo que se ve y
     se cierran sobre un destino (`data-arrival-target`: el marco del visor), donde al encajar le pasan las suyas con un
-    destello; al encajar se enciende el teletipo (la sección con llegada no usa el `IntersectionObserver` ni el barrido
+    destello (sin él si el primer frame ya llega encajado: por el ancla, al recargar o al cambiar de idioma); al
+    encajar se enciende el teletipo (la sección con llegada no usa el `IntersectionObserver` ni el barrido
     de entrada: el haz hace de barrido). Un Tab dentro antes de que acabe la revela entera hasta volver por encima de
     la llegada. Sin JavaScript, con movimiento reducido o al imprimir, la sección se ve entera y quieta.
   - **Con movimiento reducido no hay llegada:** el hueco mide 0 por CSS (sin saltos de alto) y el tramo no dura

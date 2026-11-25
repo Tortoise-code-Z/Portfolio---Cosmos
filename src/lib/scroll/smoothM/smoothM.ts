@@ -3,8 +3,9 @@ import { damp } from '../../math/damp/damp';
 /**
  * Suavizado de `m` (docs/02-experiencia/scroll-y-escena.md → «Suavizado», ADR-028 y ADR-030): persigue a
  * `mTarget` a ritmo `rate` (`min(1, dt · rate)`), `reducedRate` con movimiento reducido (casi sin inercia), y llega
- * cuando le falta menos de `epsilon`. Lo comparten la escena y los efectos del Big Bang en el DOM, para que el
- * destello y el nombre vayan al paso de la explosión.
+ * cuando le falta menos de `epsilon`. Lo comparten la escena, los efectos del Big Bang en el DOM (para que el
+ * destello y el nombre vayan al paso de la explosión) y la coreografía de la llegada del epílogo (que va a la par que
+ * la escena, ADR-039).
  */
 export const M_SMOOTHING = { rate: 3.4, reducedRate: 12, epsilon: 1e-4 } as const;
 

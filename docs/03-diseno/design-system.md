@@ -214,7 +214,11 @@ en las media queries y están anotados en la cabecera de `tokens.css`.)
   (`--glow-star` = `0 0 12px --color-star`); el punto CSS de la singularidad lleva el suyo (`--glow-singularity`), y el título de cada transmisión, el de su canal
   (`--glow-channel-amber` = `0 0 18px --color-channel-amber-glow`; `--glow-channel-blue` y `--glow-channel-green`,
   igual en azul y en verde), y el «T-0» de
-  Mission control, un halo más ancho (`--glow-channel-blue-countdown`, un `drop-shadow` de 14 px).
+  Mission control, un halo más ancho (`--glow-channel-blue-countdown`, un `drop-shadow` de 14 px). La llegada del
+  epílogo (C.7) lleva los suyos, en el verde de su canal y como la prueba aprobada: la línea del haz
+  (`--glow-arrival-beam-green`: `0 0 18px 4px` al 55 % y una estela `0 -40px 60px -20px` al 18 % que sube sobre lo
+  ya revelado), las esquinas que viajan (`--glow-arrival-corner-green`, un `drop-shadow` de 4 px al 60 %) y el
+  destello del visor al encajar (`--glow-visor-lock-green`, un `drop-shadow` de 8 px).
   Las etiquetas de las estrellas llevan un halo oscuro (`--halo-star-label`, dos sombras de `--color-void`) para
   leerse sobre el núcleo de la galaxia: es contraste, no brillo.
 - Desenfoque de fondo (`backdrop-filter: blur(var(--blur-chrome))`, 6 px) solo en barra superior, botones de
