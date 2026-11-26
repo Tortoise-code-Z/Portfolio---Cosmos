@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
 
 import { CHAPTER_PRESENCE_FADE, SUN } from '../config/sceneConfig';
-import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
+import { createSceneFrame, shapeMixOf } from '../sceneMaterials/sceneMaterials';
 import { Sun, useSun } from './Sun';
 
 /** `useFrame` necesita el lienzo de R3F: aquí se guarda el callback para dar los frames a mano. */
@@ -63,10 +63,12 @@ describe('useSun', () => {
     const { result, frame } = renderSun();
     const { material } = result.current;
     frame.m = SUN.chapter - 1;
+    shapeMixOf(frame, frame.shapes);
     paintFrame();
     expect(material.visible).toBe(false);
     expect(material.uniforms.uOpacity?.value).toBe(0);
     frame.m = SUN.chapter;
+    shapeMixOf(frame, frame.shapes);
     frame.time = Math.PI / 2 / SUN.pulseRate;
     paintFrame();
     expect(material.visible).toBe(true);
@@ -74,6 +76,7 @@ describe('useSun', () => {
     expect(material.uniforms.uSize?.value).toBeCloseTo(SUN.size + SUN.pulse);
     // Al pasar al retrato se apaga otra vez.
     frame.m = SUN.chapter + 1;
+    shapeMixOf(frame, frame.shapes);
     paintFrame();
     expect(material.visible).toBe(false);
   });
@@ -90,18 +93,22 @@ describe('useSun', () => {
     };
     for (const side of [-1, 1] as const) {
       frame.m = at(0.01, side);
+      shapeMixOf(frame, frame.shapes);
       paintFrame();
       expect(material.visible, `side ${String(side)}`).toBe(true);
       // Justo pasado el final de la rampa (en el final exacto, el redondeo deja ~1e-16 de presencia).
       frame.m = at(-1e-6, side);
+      shapeMixOf(frame, frame.shapes);
       paintFrame();
       expect(material.visible, `side ${String(side)}`).toBe(false);
     }
     // Con números fijos, sin la cuenta de `at`: en la llegada se apaga entre `m` 4,30 y 4,31 (ADR-039).
     frame.m = 4.3;
+    shapeMixOf(frame, frame.shapes);
     paintFrame();
     expect(material.visible).toBe(true);
     frame.m = 4.31;
+    shapeMixOf(frame, frame.shapes);
     paintFrame();
     expect(material.visible).toBe(false);
   });
@@ -111,6 +118,7 @@ describe('useSun', () => {
     const { material } = result.current;
     frame.painted = false;
     frame.m = SUN.chapter;
+    shapeMixOf(frame, frame.shapes);
     paintFrame();
     expect(material.visible).toBe(false);
     frame.painted = true;
@@ -122,6 +130,7 @@ describe('useSun', () => {
     const { result, frame } = renderSun();
     const { material } = result.current;
     frame.m = SUN.chapter;
+    shapeMixOf(frame, frame.shapes);
     frame.reducedMotion = true;
     paintFrame();
     expect(material.visible).toBe(true);

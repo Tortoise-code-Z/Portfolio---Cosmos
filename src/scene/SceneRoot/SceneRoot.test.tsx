@@ -8,6 +8,7 @@ import type { Color } from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BIG_BANG_VARS } from '~/lib/bigBang/bigBang';
+import { SHAPE } from '~/lib/scroll/shapeTrack/shapeTrack';
 import {
   sceneStore,
   setCharge,
@@ -407,6 +408,8 @@ describe('SceneRoot', () => {
       m: 2.25,
       // La posición en los tramos (las formas y las naves): la que pide el scroll, como `m`.
       j: 6.5,
+      // Las formas, una vez por frame: de la posición en los tramos (6,5: Skills a mitad, la galaxia aún quieta).
+      shapes: { from: SHAPE.galaxy, to: SHAPE.turtle, t: 0 },
       charge: 0.3,
       time: MAX_STEP_S,
       delta: MAX_STEP_S,

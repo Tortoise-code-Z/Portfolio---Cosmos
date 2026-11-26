@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { NO_PLATE } from '../../config/plateSlots/plateSlots';
+import { NO_PLATE, PLATE_LOOK } from '../../config/plateSlots/plateSlots';
+import { chapterPresence } from '../chapterPresence/chapterPresence';
 import {
   createPlateCycle,
   createPlateStep,
@@ -14,7 +15,14 @@ const LABELS = [20, 21, 22] as const;
 /** Un paso; con `pointed`, señalado (`pointing`) salvo que se diga lo contrario. */
 function at(m: number, delta: number, extra: Partial<PlateStep> = {}): PlateStep {
   const pointing = extra.pointing ?? (extra.pointed !== undefined && extra.pointed !== NO_PLATE);
-  return { ...createPlateStep(), m, delta, ...extra, pointing };
+  // La tortuga, con la rampa de siempre: sin naves, su presencia es la de su capítulo con esa `m`.
+  return {
+    ...createPlateStep(),
+    presence: chapterPresence(m, PLATE_LOOK.chapter),
+    delta,
+    ...extra,
+    pointing,
+  };
 }
 
 /** Avanza `seconds` a 60 fps en la tortuga y devuelve la última placa. */
@@ -29,7 +37,7 @@ describe('stepPlates', () => {
   it('a fresh cycle starts on the first plate (the featured one) and none without content', () => {
     expect(createPlateCycle()).toEqual({ index: 0, elapsed: 0 });
     expect(createPlateStep()).toEqual({
-      m: 0,
+      presence: 0,
       delta: 0,
       reducedMotion: false,
       transmission: false,

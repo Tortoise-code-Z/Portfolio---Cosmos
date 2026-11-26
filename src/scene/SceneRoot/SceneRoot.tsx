@@ -32,7 +32,14 @@ import {
   type PlateStep,
 } from '../math/plateCycle/plateCycle';
 import { createSceneClock } from '../sceneClock/sceneClock';
-import { createSceneFrame, type SceneFrame } from '../sceneMaterials/sceneMaterials';
+import {
+  createSceneFrame,
+  shapeMixOf,
+  shipsInPlay,
+  type SceneFrame,
+} from '../sceneMaterials/sceneMaterials';
+import { shapePresence } from '../math/chapterPresence/chapterPresence';
+import { SHAPE } from '~/lib/scroll/shapeTrack/shapeTrack';
 import { Sun } from '../Sun/Sun';
 import { useHotDegradation } from '../useHotDegradation/useHotDegradation';
 import { usePortrait } from '../usePortrait/usePortrait';
@@ -98,10 +105,11 @@ function followPlates(
   step: PlateStep,
   scene: HTMLElement | null,
 ): void {
-  step.m = frame.m;
+  step.presence = shapePresence(frame.shapes, SHAPE.turtle);
   step.delta = frame.delta;
   step.reducedMotion = frame.reducedMotion;
-  step.transmission = frame.transmission;
+  // Con naves, la tortuga se va con la suya; sin ellas, el velo de Mission control la tapa (C.7 · naves).
+  step.transmission = frame.transmission && !shipsInPlay(frame);
   step.pointing = activeProject !== null;
   step.pointed = plateLabelOf(SCENE_PLATES, activeProject);
   const plate = stepPlates(cycle, SCENE_PLATE_LABELS, step);
@@ -309,6 +317,9 @@ export default function SceneRoot({
               ? jTarget
               : smoothM(frame.j, jTarget, clock.delta, clock.reduced);
         first = false;
+        frame.reducedMotion = clock.reduced;
+        // Las formas de este frame, una vez: las leen las partículas, la cámara y lo atado a una forma.
+        shapeMixOf(frame, frame.shapes);
         frame.charge = charge;
         frame.transmission = interlude !== null;
         frame.portraitShift.x = portraitShift.x;
@@ -316,7 +327,6 @@ export default function SceneRoot({
         frame.skillGroup = activeSkillGroup;
         frame.time = clock.time;
         frame.delta = clock.delta;
-        frame.reducedMotion = clock.reduced;
         frame.pixelRatio = state.viewport.dpr;
         frame.aspect = state.size.width / Math.max(state.size.height, 1);
         frame.barTop = barFraction(barRef.current, state.size.height);

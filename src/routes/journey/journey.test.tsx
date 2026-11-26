@@ -127,13 +127,13 @@ describe('Journey', () => {
     const j = (): number | null => sceneStore.getState().jTarget;
 
     // Tramos: 0 inicio · 1 About · 2 la llegada del satélite · 3 Mission log · 4 su salida · 5 su cola · 6 Skills ·
-    // 7 Projects · 8 Mission control · 9 su cola · 10 Contact · 11 la llegada del Crew file (su sección) · 12 el Crew
-    // file (su marcador).
+    // 7 Projects · 8 la llegada de la nave nodriza · 9 Mission control · 10 su salida · 11 su cola · 12 Contact ·
+    // 13 la llegada del Crew file (su sección) · 14 el Crew file (su marcador).
     expect(at(1500)).toEqual({ mTarget: 1, interlude: null });
     expect(j()).toBe(1.5);
     expect(at(1990)).toEqual({ mTarget: 1, interlude: null });
-    // En los huecos del satélite `m` se queda en la nebulosa (la cámara no se mueve) y el raíl ya marca el interludio;
-    // la posición en los tramos sigue avanzando (de ella salen la forma y la nave).
+    // En los huecos de la nave `m` se queda en la forma de antes (la cámara no se mueve) y el raíl ya marca el
+    // interludio; la posición en los tramos sigue avanzando (de ella salen la forma y la nave).
     expect(at(2500)).toEqual({ mTarget: 1, interlude: 'mission-log' });
     expect(j()).toBe(2.5);
     expect(at(3500)).toEqual({ mTarget: 1, interlude: 'mission-log' });
@@ -144,31 +144,35 @@ describe('Journey', () => {
     expect(at(5500).interlude).toBe('mission-log');
     expect(at(6000)).toEqual({ mTarget: 2, interlude: null });
     expect(at(7000)).toEqual({ mTarget: 3, interlude: null });
-    // Projects se queda en la tortuga hasta el final, y la pantalla de Mission control también (sin nave: sin huecos).
+    // Projects se queda en la tortuga hasta el final, y Mission control también: los huecos de la nave nodriza y su
+    // pantalla.
     expect(at(7990)).toEqual({ mTarget: 3, interlude: null });
     expect(at(8500)).toEqual({ mTarget: 3, interlude: 'mission-control' });
+    expect(at(9500)).toEqual({ mTarget: 3, interlude: 'mission-control' });
+    expect(at(10500)).toEqual({ mTarget: 3, interlude: 'mission-control' });
+    expect(j()).toBe(10.5);
     // En su cola, la tortuga cambia a la Tierra; Contact llega con ella formada.
-    expect(at(9500).mTarget).toBeCloseTo(3.5);
-    expect(at(9500).interlude).toBe('mission-control');
-    expect(at(10000)).toEqual({ mTarget: 4, interlude: null });
+    expect(at(11500).mTarget).toBeCloseTo(3.5);
+    expect(at(11500).interlude).toBe('mission-control');
+    expect(at(12000)).toEqual({ mTarget: 4, interlude: null });
     // Contacto se queda en la Tierra hasta el final; en la llegada del epílogo la Tierra cambia al retrato al ritmo del
     // scroll (en línea recta, `linear`) y el raíl ya marca el epílogo; desde su marcador se lee como capítulo (no es un
     // interludio), con él formado.
-    expect(at(10990)).toEqual({ mTarget: 4, interlude: null });
+    expect(at(12990)).toEqual({ mTarget: 4, interlude: null });
     expect(arriving()).toBeNull();
-    expect(at(11000)).toEqual({ mTarget: 4, interlude: null });
+    expect(at(13000)).toEqual({ mTarget: 4, interlude: null });
     expect(arriving()).toBe(5);
-    expect(at(11200).mTarget).toBeCloseTo(4.2);
-    expect(at(11500).mTarget).toBeCloseTo(4.5);
+    expect(at(13200).mTarget).toBeCloseTo(4.2);
+    expect(at(13500).mTarget).toBeCloseTo(4.5);
     expect(arriving()).toBe(5);
-    expect(at(12000)).toEqual({ mTarget: 5, interlude: null });
+    expect(at(14000)).toEqual({ mTarget: 5, interlude: null });
     expect(arriving()).toBeNull();
-    expect(at(12500)).toEqual({ mTarget: 5, interlude: null });
-    expect(j()).toBe(12.5);
+    expect(at(14500)).toEqual({ mTarget: 5, interlude: null });
+    expect(j()).toBe(14.5);
     // De vuelta a Contacto desde la llegada, el raíl deja de marcar el epílogo.
-    at(11500);
+    at(13500);
     expect(arriving()).toBe(5);
-    expect(at(10500)).toEqual({ mTarget: 4, interlude: null });
+    expect(at(12500)).toEqual({ mTarget: 4, interlude: null });
     expect(arriving()).toBeNull();
   });
 
@@ -178,7 +182,7 @@ describe('Journey', () => {
       this: HTMLElement,
     ) {
       const order = [...document.querySelectorAll(JOURNEY_SEGMENT_SELECTOR)].indexOf(this);
-      const top = Math.max(order === 12 ? 11 : order, 0) * 1000;
+      const top = Math.max(order === 14 ? 13 : order, 0) * 1000;
       return { top: top - window.scrollY, height: 1000 } as DOMRect;
     });
     render(<Stub initialEntries={['/']} />);
@@ -190,9 +194,9 @@ describe('Journey', () => {
       seen.add(sceneStore.getState().arriving);
       return sceneStore.getState().mTarget;
     };
-    expect(at(10990)).toBe(4);
-    expect(at(11000)).toBe(5);
-    for (let y = 10_000; y <= 12_000; y += 50) at(y);
+    expect(at(12990)).toBe(4);
+    expect(at(13000)).toBe(5);
+    for (let y = 12_000; y <= 14_000; y += 50) at(y);
     expect([...seen]).toEqual([null]);
   });
 

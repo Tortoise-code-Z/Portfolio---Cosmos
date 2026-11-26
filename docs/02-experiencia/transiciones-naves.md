@@ -5,7 +5,7 @@
 > fuera del repo ya está hecha (apartado «Prueba», versiones 1–8): **manda la versión 8**, que cambia los apartados 3
 > a 5 (se lee a pantalla completa, sin marco). **En construcción (sesión 50, ADR-041)**, en cuatro PR: el mapa de
 > formas (apartado 1, sin cambio visible; hecho), el satélite (hecho: «El satélite», abajo), la nave nodriza y la
-> coreografía de la página. Este doc pasa a spec por partes, según se construyen; las reglas de los tres últimos pasos
+> coreografía de la página (la nave nodriza, hecha: «La nave nodriza», abajo). Este doc pasa a spec por partes, según se construyen; las reglas de los tres últimos pasos
 > se decidieron antes del satélite («Reglas de la construcción»).
 
 ## Reglas de la construcción (decididas antes del satélite)
@@ -66,6 +66,19 @@ la prueba donde choquen.
   `Transmission`, vacíos y `aria-hidden`; la transmisión sube como hoy tras la llegada, así que tapa al satélite
   mientras llena la vista, hasta la coreografía.
 - **Peso:** 5 094 B (unos 3,0 KB de GLSL y 2,1 KB de JS); el límite de la escena pasa a 268 KB (ADR-041).
+
+## La nave nodriza (construida: Mission control)
+
+- **Tramos:** los mismos huecos alrededor de la pantalla de Mission control (`INTERLUDE['mission-control'].ship`);
+  `SHAPE_TRACK` la pone entre la tortuga y la Tierra. Nace en el centro de la tortuga y se coloca igual que el satélite
+  (`scene/math/shipPose`), con la cámara de la tortuga, oblicua: la nave mira a la cámara por sus ejes.
+- **La nave:** paramétrica en el shader (`formas.md` → «Naves»): la boca del hangar es la pantalla, el hangar lleva la
+  lanzadera y dos alienígenas (el de delante saluda), y un astronauta saluda sobre el casco, delante del puente. En
+  Bajo, sin módulos, ventanas ni balizas.
+- **Lo atado a una forma** sigue su peso en la mezcla (`shapePresence`; regla 5): los pins, las placas y su ciclo se
+  apagan con la tortuga, y el Sol y la gravedad de la Tierra vuelven con ella; sin nave, igual que antes.
+- **Peso:** ~3,4 KB (unos 2,9 KB de GLSL y 0,5 KB de JS), algo más de su tope de ~3 KB; Víctor acepta lo medido y el
+  límite no cambia (la coreografía de la página no pesa en la escena).
 
 ## La idea
 

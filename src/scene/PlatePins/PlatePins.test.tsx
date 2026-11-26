@@ -18,7 +18,9 @@ import {
   type PinBox,
 } from '../math/platePins/platePins';
 import { createScreenPoint, projectToScreen } from '../math/projection/projection';
-import { createSceneFrame, type SceneFrame } from '../sceneMaterials/sceneMaterials';
+import { createSceneFrame, shapeMixOf, type SceneFrame } from '../sceneMaterials/sceneMaterials';
+import { JOURNEY_SEGMENTS } from '~/content/chapters';
+import { SHIP_ARRIVAL } from '~/lib/scroll/shapeTrack/shapeTrack';
 import {
   createPinElements,
   createPinWork,
@@ -71,6 +73,7 @@ function pointed(): string | null {
 function turtleFrame(m = 3, wide = true): SceneFrame {
   const frame = createSceneFrame();
   frame.m = m;
+  shapeMixOf(frame, frame.shapes);
   frame.wide = wide;
   frame.time = 4.2;
   // Las partículas ya pintadas: antes, los pins no tienen tortuga sobre la que estar.
@@ -347,6 +350,7 @@ describe('stepPlatePins', () => {
     stepPlatePins(work, frame, elements, SIZE, pinWidths(NAMES));
     expect(pin(elements, 'chessmate').style.visibility).toBe('visible');
     frame.m = 1;
+    shapeMixOf(frame, frame.shapes);
     stepPlatePins(work, frame, elements, SIZE, pinWidths(NAMES));
     expect(pin(elements, 'chessmate').style.visibility).toBe('hidden');
     expect(work.shown).toBe(false);
@@ -425,6 +429,29 @@ describe('stepPlatePins', () => {
     const reading = turtleFrame();
     reading.transmission = true;
     stepPlatePins(work, reading, elements, SIZE, pinWidths(NAMES));
+    expect(PINS.map(({ slug }) => pin(elements, slug).style.visibility)).toEqual([
+      'hidden',
+      'hidden',
+      'hidden',
+    ]);
+  });
+
+  it('with the ships (C.7), they go with the turtle: still there as the mothership starts to arrive, gone once it has formed', () => {
+    const arrival = JOURNEY_SEGMENTS.findIndex(
+      (segment) => segment.kind === 'interlude-arrival' && segment.interlude === 'mission-control',
+    );
+    const { elements, work } = step(turtleFrame());
+    const arriving = (fraction: number): SceneFrame => {
+      const frame = turtleFrame();
+      // El raíl ya marca Mission control (el velo aún no está: la nave nodriza llega en su hueco).
+      frame.transmission = true;
+      frame.j = arrival + fraction;
+      shapeMixOf(frame, frame.shapes);
+      return frame;
+    };
+    stepPlatePins(work, arriving(0), elements, SIZE, pinWidths(NAMES));
+    expect(pin(elements, 'chessmate').style.visibility).toBe('visible');
+    stepPlatePins(work, arriving(SHIP_ARRIVAL.formed), elements, SIZE, pinWidths(NAMES));
     expect(PINS.map(({ slug }) => pin(elements, slug).style.visibility)).toEqual([
       'hidden',
       'hidden',

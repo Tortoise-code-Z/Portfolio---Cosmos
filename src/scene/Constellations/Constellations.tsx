@@ -14,7 +14,8 @@ import {
   starLabelWidth,
 } from '../config/constellationLayout/constellationLayout';
 import type { ScenePoint } from '../config/sceneConfig';
-import { chapterPresence } from '../math/chapterPresence/chapterPresence';
+import { shapePresence } from '../math/chapterPresence/chapterPresence';
+import { SHAPE } from '~/lib/scroll/shapeTrack/shapeTrack';
 import {
   constellationLook,
   createConstellationLook,
@@ -201,12 +202,12 @@ export interface ConstellationStep {
 
 /**
  * Un frame: lo encendido de cada grupo y sus uniforms; después, las etiquetas. Hasta que las partículas están pintadas
- * (`frame.painted`), nada: sin galaxia detrás, como los pins y el Sol. No miran `frame.transmission`: entran en la cola
- * del Mission log.
+ * (`frame.painted`), nada: sin galaxia detrás, como los pins y el Sol. Van con la galaxia (`shapePresence`): entran
+ * en la cola del Mission log, cuando el satélite se deshace en ella.
  */
 export function stepConstellations(work: ConstellationWork, step: ConstellationStep): void {
   const { frame } = step;
-  const presence = frame.painted ? chapterPresence(frame.m, CONSTELLATION_LOOK.chapter) : 0;
+  const presence = frame.painted ? shapePresence(frame.shapes, SHAPE.galaxy) : 0;
   for (const group of work.groups) {
     const { mesh } = group;
     group.hot = followHot(

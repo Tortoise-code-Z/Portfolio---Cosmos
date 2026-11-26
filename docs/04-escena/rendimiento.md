@@ -64,7 +64,11 @@
   naves, ADR-041: la posición en los tramos, la nave en el shader con sus piezas y sus banderas, su colocación, sus
   puntos opacos y la paleta) pesó 5 094 B, medido en Linux: **262 992 B** (unos 3,0 KB de GLSL y 2,1 KB de JS; su tope
   orientativo era de 3,5 KB, y Víctor acepta lo medido). El límite sube una sola vez a **268 000 B**: lo medido, ~3 KB
-  para la nave nodriza (las piezas comunes ya están pagadas: si pasa, se mira antes de seguir) y ~2 KB de margen. Los generadores no
+  para la nave nodriza (las piezas comunes ya están pagadas: si pasa, se mira antes de seguir) y ~2 KB de margen.
+  **La nave nodriza** (C.7 · naves: la nave con sus alienígenas en el shader, su paleta y lo atado a una forma que
+  sigue su peso en la mezcla) pesó 3 405 B, medido en Linux: **~266 400 B** (unos 2,9 KB de GLSL y 0,5 KB de JS; algo
+  más de su tope, y Víctor acepta lo medido). Quedan ~1,6 KB de margen; la coreografía de la página no pesa en la
+  escena. Los generadores no
   cuentan ahí: van en el worker (≤ 10 KB; con el retrato, 6 042 B) y, para el reintento, en su propio chunk (≤ 10 KB;
   el retrato no va en él). Las imágenes del retrato (~150 KB: 152 529 B sin metadatos) las pide el worker, no la página.
 

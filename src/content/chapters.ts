@@ -46,7 +46,7 @@ export interface Interlude {
   /**
    * La trae una nave (C.7 · naves, docs/02-experiencia/transiciones-naves.md): antes de su pantalla, un hueco en el
    * que la nave llega, y después, otro en el que se va (`interlude-arrival` e `interlude-exit` en `JOURNEY_SEGMENTS`).
-   * Hoy, el Mission log (el satélite).
+   * El Mission log (el satélite) y Mission control (la nave nodriza).
    */
   readonly ship: boolean;
 }
@@ -59,7 +59,7 @@ export const INTERLUDE: Readonly<Record<InterludeId, Interlude>> = {
     anchor: 'mission-control',
     after: 3,
     next: 4,
-    ship: false,
+    ship: true,
   },
 };
 
@@ -140,7 +140,10 @@ export const JOURNEY_SEGMENTS: readonly (JourneySegment & {
   { kind: 'interlude-tail', interlude: 'mission-log', base: 1, morphStart: 0 },
   { kind: 'chapter', chapter: 2, base: 2, morphStart: 0.52 },
   { kind: 'chapter', chapter: 3, base: 3, morphStart: null },
+  // La nave nodriza (C.7 · naves), como el satélite: llega y se va en sus huecos con `m` quieta en la tortuga.
+  { kind: 'interlude-arrival', interlude: 'mission-control', base: 3, morphStart: null },
   { kind: 'interlude', interlude: 'mission-control', base: 3, morphStart: null },
+  { kind: 'interlude-exit', interlude: 'mission-control', base: 3, morphStart: null },
   { kind: 'interlude-tail', interlude: 'mission-control', base: 3, morphStart: 0 },
   { kind: 'chapter', chapter: 4, base: 4, morphStart: null },
   // La llegada del epílogo: la Tierra pasa al retrato (la última forma del mapa de formas, ADR-041) mientras la

@@ -58,6 +58,14 @@ rótulo.
 
 ## Escena
 
+- **La nave nodriza (C.7 · naves):** antes de la pantalla, un hueco vacío de 120 svh (`--transmission-arrival-h`) en
+  el que la tortuga se convierte en la nave nodriza (boca del hangar, hangar con su lanzadera y dos alienígenas, casco,
+  puente, toberas y un astronauta saludando sobre el casco), que se acerca y llena la vista; después, otro de 60 vh
+  (`--transmission-exit-h`) en el que se aleja, y en la cola se deshace en la Tierra. `m` se queda en la tortuga
+  (scroll-y-escena.md → «Posición en los tramos»; `transiciones-naves.md`). Los pins y el ciclo de placas se apagan
+  con la tortuga al formarse la nave. Con movimiento reducido y al imprimir no hay nave (los huecos miden 0); sin WebGL
+  los huecos están, sobre la foto de la tortuga. Hasta la coreografía de la página (N4), la transmisión sube como hoy
+  tras el hueco de la llegada.
 - La tortuga se queda quieta y atenuada detrás: Projects ya no cambia en su segunda mitad (`morphStart: null`), y el
   cambio a la Tierra pasa a la cola del interludio, al salir (`JOURNEY_SEGMENTS`). En la pantalla, el reloj se para
   (`m` = 3): el HUD se esconde y el pie lo dice. Ni pins ni placa encendida: el ciclo automático se queda quieto
@@ -93,7 +101,8 @@ rótulo.
 ## Raíl y misión rápida
 
 - Rombo propio en el raíl entre Projects y Contact («Mission control · transmission»; «Control de misión ·
-  transmisión»), ancla `#mission-control`.
+  transmisión»), ancla `#mission-control`, en la sección: el rombo se marca desde que empieza la llegada de la nave
+  nodriza y el ancla aterriza al final de la llegada.
 - En la misión rápida, la sección «How I work» va tras «Experience»: la frase y los cinco pasos.
 
 ## Aceptación

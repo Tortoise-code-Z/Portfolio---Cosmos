@@ -17,7 +17,7 @@ import {
 import { CHAPTER_PRESENCE_FADE } from '../config/sceneConfig';
 import { cameraFov, cameraPose, createParallax } from '../math/camera/camera';
 import { createScreenPoint, projectToScreen } from '../math/projection/projection';
-import { createSceneFrame, type SceneFrame } from '../sceneMaterials/sceneMaterials';
+import { createSceneFrame, shapeMixOf, type SceneFrame } from '../sceneMaterials/sceneMaterials';
 import {
   Constellations,
   createConstellationWork,
@@ -102,6 +102,7 @@ function galaxyFrame(m = 2, wide = true): SceneFrame {
   const frame = createSceneFrame();
   frame.painted = true;
   frame.m = m;
+  shapeMixOf(frame, frame.shapes);
   frame.wide = wide;
   frame.delta = 0.05;
   frame.aspect = 1280 / 720;
@@ -321,16 +322,19 @@ describe('useConstellations', () => {
     // La `m` con esa presencia del capítulo 2 (la cámara se queda en la pose de m = 2).
     const at = (presence: number): number => 2 + (1 - presence) / CHAPTER_PRESENCE_FADE;
     frame.m = at(CONSTELLATION_LOOK.interactiveFrom - 0.05);
+    shapeMixOf(frame, frame.shapes);
     paint();
     expect(shownLabels(labels)).toHaveLength(all.length);
     for (const id of all) expect(label(labels, id), id).not.toHaveAttribute('data-live');
     frame.m = at(CONSTELLATION_LOOK.interactiveFrom + 0.05);
+    shapeMixOf(frame, frame.shapes);
     paint();
     for (const id of all) expect(label(labels, id), id).toHaveAttribute('data-live');
     const write = vi.spyOn(label(labels, 'html'), 'toggleAttribute');
     paint();
     expect(write).not.toHaveBeenCalled();
     frame.m = 3;
+    shapeMixOf(frame, frame.shapes);
     paint();
     for (const id of all) expect(label(labels, id), id).not.toHaveAttribute('data-live');
   });
@@ -402,6 +406,7 @@ describe('useConstellations', () => {
       );
     }
     frame.m = 3;
+    shapeMixOf(frame, frame.shapes);
     paint(390, 844);
     expect(shownLabels(labels)).toEqual([]);
   });
