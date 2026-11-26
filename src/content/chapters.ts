@@ -43,12 +43,24 @@ export interface Interlude {
   readonly after: ChapterIndex;
   /** Adónde lleva «Skip transmission»: el capítulo que viene después. */
   readonly next: ChapterIndex;
+  /**
+   * La trae una nave (C.7 · naves, docs/02-experiencia/transiciones-naves.md): antes de su pantalla, un hueco en el
+   * que la nave llega, y después, otro en el que se va (`interlude-arrival` e `interlude-exit` en `JOURNEY_SEGMENTS`).
+   * Hoy, el Mission log (el satélite).
+   */
+  readonly ship: boolean;
 }
 
 /** Los interludios por id. */
 export const INTERLUDE: Readonly<Record<InterludeId, Interlude>> = {
-  'mission-log': { id: 'mission-log', anchor: 'mission-log', after: 1, next: 2 },
-  'mission-control': { id: 'mission-control', anchor: 'mission-control', after: 3, next: 4 },
+  'mission-log': { id: 'mission-log', anchor: 'mission-log', after: 1, next: 2, ship: true },
+  'mission-control': {
+    id: 'mission-control',
+    anchor: 'mission-control',
+    after: 3,
+    next: 4,
+    ship: false,
+  },
 };
 
 /** Los interludios en orden de lectura. */
@@ -92,16 +104,21 @@ export function stopChapter(stop: ChapterStop): ChapterIndex {
 }
 
 /**
- * Un tramo del viaje medido en el DOM: un capítulo, la pantalla de un interludio o su cola, o la llegada de un
- * capítulo (el tramo antes de leerlo en el que se queda fijo mientras la escena lo trae: hoy, el epílogo; ADR-039).
+ * Un tramo del viaje medido en el DOM: un capítulo, la pantalla de un interludio o su cola, la llegada y la salida de
+ * la nave que trae un interludio (C.7 · naves: dos huecos alrededor de su pantalla), o la llegada de un capítulo (el
+ * tramo antes de leerlo en el que se queda fijo mientras la escena lo trae: hoy, el epílogo; ADR-039).
  */
 export type JourneySegment =
   | { readonly kind: 'chapter' | 'arrival'; readonly chapter: ChapterIndex }
-  | { readonly kind: 'interlude' | 'interlude-tail'; readonly interlude: InterludeId };
+  | {
+      readonly kind: 'interlude' | 'interlude-tail' | 'interlude-arrival' | 'interlude-exit';
+      readonly interlude: InterludeId;
+    };
 
 /**
  * Los tramos del viaje en orden, con lo que hace la escena en cada uno (scroll-y-escena.md → «Tramos del viaje»):
- * su forma (`base`) y desde qué fracción cambia a la siguiente (`morphStart`; `null`, quieta). Antes de cada interludio,
+ * su `m` (`base`) y desde qué fracción cambia a la siguiente (`morphStart`; `null`, quieta). Las formas salen de aquí
+ * (`journeySteps` de `lib/scroll/shapeTrack`): las de `m`, con las naves entre medias. Antes de cada interludio,
  * el capítulo y la pantalla del interludio se quedan quietos y la forma cambia en su cola, al salir: About y el Mission
  * log con la nebulosa (a galaxia), Projects y Mission control con la tortuga (a la Tierra). El inicio cambia desde el
  * principio (el Big Bang) y Skills en su segunda mitad (la columna «Ventana de morph»). Contacto se queda con la
@@ -115,7 +132,11 @@ export const JOURNEY_SEGMENTS: readonly (JourneySegment & {
 })[] = [
   { kind: 'chapter', chapter: 0, base: 0, morphStart: 0 },
   { kind: 'chapter', chapter: 1, base: 1, morphStart: null },
+  // El satélite (C.7 · naves): llega y se va en sus huecos, con `m` quieta (la forma y la nave las mide la posición
+  // en los tramos, `lib/scroll/journeyPosition` y `lib/scroll/shapeTrack`).
+  { kind: 'interlude-arrival', interlude: 'mission-log', base: 1, morphStart: null },
   { kind: 'interlude', interlude: 'mission-log', base: 1, morphStart: null },
+  { kind: 'interlude-exit', interlude: 'mission-log', base: 1, morphStart: null },
   { kind: 'interlude-tail', interlude: 'mission-log', base: 1, morphStart: 0 },
   { kind: 'chapter', chapter: 2, base: 2, morphStart: 0.52 },
   { kind: 'chapter', chapter: 3, base: 3, morphStart: null },

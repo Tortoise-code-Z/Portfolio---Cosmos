@@ -40,6 +40,11 @@ const NOT_IN_STILLS = 'no cambia lo que se pinta en una foto quieta';
 export const SCENE_MODULES = {
   BackgroundStars: { impure: true, strict: true, stills: true },
   CameraRig: { impure: true, strict: true, stills: true },
+  barTop: {
+    impure: 'lee el estilo del documento (la barra fija)',
+    strict: true,
+    stills: 'solo coloca las naves, que no salen en las fotos (van con movimiento reducido)',
+  },
   ConstellationLabels: { impure: true, strict: true, stills: DOM_ONLY },
   Constellations: { impure: true, strict: true, stills: true },
   Particles: { impure: true, strict: true, stills: true },

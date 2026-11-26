@@ -22,7 +22,7 @@ cabe, la sección crece y nunca lo recorta (P1); `useChapterLayout` mide la altu
 |---|---|---|---|
 | 0 · Singularidad | 150 vh | 150 vh | del 0 % al 100 % de la sección (la explosión empieza al primer scroll) |
 | 1 · Nebulosa | 150 vh | 170 vh | — (quieta: cambia en la cola del Mission log) |
-| ✦ Mission log | ≥ 100 svh (según contenido) + cola de 100 vh | igual | en la cola, del 0 % al 100 % |
+| ✦ Mission log | llegada del satélite de 120 svh + ≥ 100 svh (según contenido) + salida de 60 vh + cola de 100 vh (los huecos, 0 con movimiento reducido) | igual | en la cola, del 0 % al 100 % (la forma: al satélite en la llegada, del 0 % al 35 %, y a la galaxia en la cola) |
 | 2 · Galaxia | 220 vh | 240 vh | del 52 % al 100 % |
 | 3 · Tortuga | 240 vh | 260 vh | — (quieta: cambia en la cola de Mission control) |
 | ✦ Mission control | ≥ 100 svh (según contenido) + cola de 100 vh | igual | en la cola, del 0 % al 100 % |
@@ -50,6 +50,30 @@ ancla, los saltos del raíl y el cambio de idioma. El raíl marca el Crew file d
 (`sceneStore.arriving`), no desde la mitad del cambio de forma (`round(m)`). Con movimiento reducido el hueco mide 0:
 el tramo no dura nada, la sección se lee en cuanto llega y el retrato aparece solo al pasar al epílogo (la escena se
 pone al día por su cuenta, como con un salto del raíl: estados-y-accesibilidad.md).
+
+### Posición en los tramos (C.7 · naves)
+
+Desde el satélite (ADR-041), las **formas** no salen de `m` sino de una segunda coordenada, la **posición en los
+tramos** `j` (`lib/scroll/journeyPosition`): el índice del tramo en el que se lee más lo recorrido de él, en línea recta
+(`j = k + f`). Se mide en el mismo escuchador y sobre los mismos tramos que `m` (`useScrollTarget`), va a
+`sceneStore.jTarget` y la escena la suaviza como `m`. Cada tramo da, a partir de su paso de `m`, un paso de **forma**
+(la posición en `SHAPE_TRACK`, con las naves entre medias) y uno de **nave** (su avance, de 0 a 2):
+`journeySteps` en `lib/scroll/shapeTrack`. Un interludio que trae una nave (`INTERLUDE[id].ship`: hoy, el Mission log)
+suma dos tramos alrededor de su pantalla, vacíos, `aria-hidden` y sin puntero, con `m` quieta (la cámara, el HUD y el
+raíl no se mueven):
+
+- **Llegada** (`interlude-arrival`, `--transmission-arrival-h`: 120 svh), en línea recta: la nebulosa se convierte en
+  el satélite hasta el 35 % (`SHIP_ARRIVAL.formed`); el satélite se acerca girado y se pone de frente hasta el 75 %
+  (`near`, su pantalla al 86–90 % de lo que se ve bajo la barra), y sigue hasta llenar la vista. El raíl ya marca el
+  interludio y el HUD se esconde; el ancla `#mission-log` sigue en la sección, así que aterriza al final de la
+  llegada.
+- **Salida** (`interlude-exit`, `--transmission-exit-h`: 60 vh): el satélite se aleja de frente. En la cola se deshace
+  en la galaxia (como hoy, con `m` de 1 a 2).
+
+Con movimiento reducido los huecos miden 0 (no hay nave) y la escena saca las formas de `m`, una por capítulo
+(`CHAPTER_SHAPES`): la cola va de la nebulosa a la galaxia sin pasar por el satélite. Igual mientras la página aún no
+ha medido los tramos (`jTarget` es `null`). Al imprimir, tampoco hay huecos. Hasta N4 (la coreografía de la página) la
+transmisión sube como hoy en cuanto acaba el hueco de la llegada, así que tapa al satélite mientras llena la vista.
 
 **Cálculo de `m`** (función pura, testeable):
 

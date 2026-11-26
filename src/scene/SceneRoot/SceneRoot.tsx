@@ -38,6 +38,7 @@ import { useHotDegradation } from '../useHotDegradation/useHotDegradation';
 import { usePortrait } from '../usePortrait/usePortrait';
 import { SCENE_PLATE_LABELS, SCENE_PLATES, useSceneShapes } from '../useSceneShapes/useSceneShapes';
 import { readVoidColour } from '../voidColour/voidColour';
+import { barFraction, readBarHeight } from '../barTop/barTop';
 import styles from './SceneRoot.module.css';
 
 /** Por qué la escena se rinde y pide el modo sin WebGL. */
@@ -177,6 +178,8 @@ export default function SceneRoot({
   const levelRef = useRef(level);
   const loopRef = useRef<FrameLoop | null>(null);
   const stopVoidRef = useRef<(() => void) | null>(null);
+  /** Lo que tapa la barra fija de arriba, en px (`readBarHeight`): el bucle lo pasa a fracción del lienzo. */
+  const barRef = useRef(0);
   const { shapes, lowerTo } = useSceneShapes(level, (reason) => {
     onFailRef.current(reason);
   });
@@ -206,6 +209,18 @@ export default function SceneRoot({
   );
 
   useEffect(() => watchPointer(frame.pointer), [frame]);
+
+  // Lo que tapa la barra de arriba, en px: al montar y al cambiar la ventana (la pantalla de una nave se encaja debajo).
+  useEffect(() => {
+    const read = (): void => {
+      barRef.current = readBarHeight(document.documentElement);
+    };
+    read();
+    window.addEventListener('resize', read);
+    return () => {
+      window.removeEventListener('resize', read);
+    };
+  }, []);
 
   useEffect(
     () =>
@@ -280,12 +295,19 @@ export default function SceneRoot({
         degradation.sample(seconds);
         const state = get();
         // Cada store, una vez por frame: los `useFrame` leen el frame, nunca un store (ADR-027).
-        const { mTarget, charge, interlude, portraitShift } = sceneStore.getState();
+        const { mTarget, jTarget, charge, interlude, portraitShift } = sceneStore.getState();
         const { activeSkillGroup, activeProject } = useUiStore.getState();
         frame.m =
           first || !Number.isFinite(frame.m)
             ? mTarget
             : smoothM(frame.m, mTarget, clock.delta, clock.reduced);
+        // La posición en los tramos (las formas y las naves), suavizada como `m`; sin tramos medidos, ninguna.
+        frame.j =
+          jTarget === null
+            ? null
+            : first || frame.j === null || !Number.isFinite(frame.j)
+              ? jTarget
+              : smoothM(frame.j, jTarget, clock.delta, clock.reduced);
         first = false;
         frame.charge = charge;
         frame.transmission = interlude !== null;
@@ -297,6 +319,7 @@ export default function SceneRoot({
         frame.reducedMotion = clock.reduced;
         frame.pixelRatio = state.viewport.dpr;
         frame.aspect = state.size.width / Math.max(state.size.height, 1);
+        frame.barTop = barFraction(barRef.current, state.size.height);
         frame.extras = LEVEL_SETTINGS[levelRef.current].extras;
         followGravity(frame.gravity, frame.pointer, !clock.reduced, clock.delta);
         followPlates(frame, activeProject, plateCycle, plateStep, sceneRef.current);

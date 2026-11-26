@@ -13,10 +13,10 @@ export const CHAPTER_SELECTOR = '[data-chapter]';
 
 /**
  * Cómo se encuentran los tramos del viaje en el DOM, en el orden de `JOURNEY_SEGMENTS`: los capítulos, de cada
- * interludio su pantalla y su cola, y de un capítulo con llegada (el epílogo) el final de la llegada (lo usa el mapeo
- * de scroll; la sección del capítulo mide su llegada).
+ * interludio su pantalla y su cola (y, si lo trae una nave, los huecos de su llegada y su salida), y de un capítulo
+ * con llegada (el epílogo) el final de la llegada (lo usa el mapeo de scroll; la sección del capítulo mide su llegada).
  */
-export const JOURNEY_SEGMENT_SELECTOR = `[data-chapter], [data-interlude], [data-interlude-tail], ${LANDING_SELECTOR}`;
+export const JOURNEY_SEGMENT_SELECTOR = `[data-chapter], [data-interlude-arrival], [data-interlude], [data-interlude-exit], [data-interlude-tail], ${LANDING_SELECTOR}`;
 
 /** Id del nombre (el `h1`): destino de «Skip to content» sin JavaScript. */
 export const HERO_TITLE_ID = 'hero-title';

@@ -61,13 +61,15 @@ function mix(out: MutablePoint, from: ScenePoint, to: ScenePoint, t: number, shi
 /**
  * La pose para `m` (0–5; fuera, el capítulo del borde): entre el keyframe `k = ⌊m⌋` y el siguiente, con
  * `t = smoothstep(m − k)`; en `m = 5`, el último entero. En escritorio (`wide`) suma el `shiftX` interpolado a la
- * posición y al objetivo; el paralaje mueve solo la posición, así que la cámara gira un poco hacia el objetivo.
+ * posición y al objetivo; el paralaje mueve solo la posición, así que la cámara gira un poco hacia el objetivo. Con
+ * `parallaxWeight` < 1 el paralaje se funde (a 0, mientras se ve una nave: su pantalla encaja con lo que se ve).
  */
 export function cameraPose(
   m: number,
   wide: boolean,
   parallax: Readonly<Parallax>,
   out: CameraPose,
+  parallaxWeight = 1,
 ): CameraPose {
   const clamped = clamp(Number.isNaN(m) ? 0 : m, 0, LAST_KEYFRAME);
   const k = Math.min(Math.floor(clamped), LAST_KEYFRAME - 1);
@@ -77,8 +79,8 @@ export function cameraPose(
   const shiftX = wide ? lerp(from.shiftX, to.shiftX, t) : 0;
   mix(out.target, from.target, to.target, t, shiftX);
   mix(out.position, from.position, to.position, t, shiftX);
-  out.position.x += parallax.x * PARALLAX.x;
-  out.position.y += parallax.y * PARALLAX.y;
+  out.position.x += parallax.x * PARALLAX.x * parallaxWeight;
+  out.position.y += parallax.y * PARALLAX.y * parallaxWeight;
   return out;
 }
 

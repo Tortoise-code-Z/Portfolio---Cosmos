@@ -43,9 +43,12 @@ export function meta({ location }: Route.MetaArgs): Route.MetaDescriptors {
   return homeMeta({ origin: SITE_ORIGIN, locale, profile, siteShare, skillGroups });
 }
 
-/** Con `m`, el tramo: si es de un interludio o la llegada de un capítulo, el raíl lo marca. */
-function onScrollTarget(m: number, segment: number): void {
-  setScrollTarget(m);
+/**
+ * Con `m`, la posición en los tramos (las formas y las naves) y el tramo: si es de un interludio (también los huecos de
+ * su nave) o la llegada de un capítulo, el raíl lo marca.
+ */
+function onScrollTarget(m: number, segment: number, j: number): void {
+  setScrollTarget(m, j);
   const reading = JOURNEY_SEGMENTS[segment];
   setReadingInterlude(reading !== undefined && 'interlude' in reading ? reading.interlude : null);
   setReadingArrival(reading?.kind === 'arrival' ? reading.chapter : null);

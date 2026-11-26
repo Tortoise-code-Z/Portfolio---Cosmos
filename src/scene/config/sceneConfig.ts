@@ -170,3 +170,39 @@ export const PORTRAIT_CHAPTER = 5;
  * sola foto y por los lados y por detrás no está completa (antes, 0,44: ~±25°).
  */
 export const PORTRAIT_TURN = 0.22;
+
+/**
+ * Las naves que traen las transmisiones (C.7 · naves; docs/02-experiencia/transiciones-naves.md, la prueba v8): cómo
+ * se encaja su pantalla con lo que se ve y cómo llegan y se van (`math/shipPose`).
+ *
+ * - `screenHeight`: el alto de la pantalla de la nave en sus unidades (el ancho sale de la proporción del marco).
+ * - `landscape`/`portrait`: la pantalla, en fracción de lo que se ve bajo la barra, con la nave ya de frente: en
+ *   horizontal, el 86 % del ancho y hasta el 70 % del alto (y no más de 0,62 del ancho); en vertical, el 90 % del ancho
+ *   y el 64 % del alto (los paneles del satélite van arriba y abajo).
+ * - `cover`: cuánto más grande que la ventana es la pantalla cuando llena la vista (un margen: sus bordes no se ven).
+ * - `birthScale`: su tamaño al nacer, en el centro de la forma de antes; `far`: lo lejos que se va al salir, en veces la
+ *   distancia a la que encaja.
+ * - `turn`: llega girada (radianes, en Y y en X) y se pone de frente al acercarse; `sway`, lo que se mece después
+ *   (radianes, a `swayRate` radianes por segundo).
+ * - `flag`: la bandera de Irlanda que cruza por detrás del satélite va `behind · h + gap` por detrás de su pantalla
+ *   (`h`, medio alto de la pantalla: la misma cuenta que su sitio en el shader) y sale de la vista con `margin · h` de
+ *   más (su ancho).
+ */
+export const SHIP_FRAME = {
+  screenHeight: 2,
+  landscape: { width: 0.86, height: 0.7, maxRatio: 0.62 },
+  portrait: { width: 0.9, height: 0.64 },
+  cover: 1.05,
+  birthScale: 0.55,
+  far: 3.2,
+  turn: { yaw: 0.75, pitch: 0.3 },
+  sway: 0.03,
+  swayRate: 0.3,
+  flag: { behind: 1.94, gap: 0.1, margin: 1.3 },
+} as const;
+
+/**
+ * Cuándo la nave pasa de luz que se suma a puntos opacos (`uSolid`, `shipSolid`), en fracción del cambio de forma: sube
+ * desde `rise` hasta que la nave está formada, y vuelve a ser luz en el primer `fall` del cambio que la deshace.
+ */
+export const SHIP_SOLID = { rise: 0.55, fall: 0.3 } as const;

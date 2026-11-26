@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { chapterSteps } from './chapterSteps';
-import { mapM, segmentAt, toScrollLayout, type ChapterLayout } from './mapM';
+import { mapM, segmentAt, stepAt, toScrollLayout, type ChapterLayout } from './mapM';
 
 // Alturas del prototipo a 1000 px de ventana: 150 / 210 / 220 / 240 / 130 vh.
 const LAYOUT: ChapterLayout = [
@@ -181,5 +181,36 @@ describe('toScrollLayout', () => {
   it('without a bar nothing changes', () => {
     expect(toScrollLayout(LAYOUT, 0)).toEqual(LAYOUT);
     expect(toScrollLayout([], 64)).toEqual([]);
+  });
+});
+
+describe('stepAt', () => {
+  it('without a window, its base all the way', () => {
+    expect(stepAt({ base: 2, morphStart: null }, 0.7)).toBe(2);
+  });
+
+  it('smooth by default, from `morphStart` to the end of the segment', () => {
+    const step = { base: 1, morphStart: 0.5 };
+    expect(stepAt(step, 0.5)).toBe(1);
+    expect(stepAt(step, 0.75)).toBeCloseTo(1.5);
+    expect(stepAt(step, 1)).toBe(2);
+  });
+
+  it('ends at `morphEnd` when it has one (a shape formed before its segment ends)', () => {
+    expect(stepAt({ base: 1, morphStart: 0, morphEnd: 0.5 }, 0.25)).toBeCloseTo(1.5);
+    expect(stepAt({ base: 1, morphStart: 0, morphEnd: 0.5 }, 0.8)).toBe(2);
+    expect(stepAt({ base: 1, morphStart: 0, morphEnd: 0.4, linear: true }, 0.1)).toBeCloseTo(1.25);
+    expect(stepAt({ base: 1, morphStart: 0, morphEnd: 0.4, linear: true }, 0.9)).toBe(2);
+  });
+
+  it('linear steps stay within their window before and after it', () => {
+    const step = { base: 4, morphStart: 0.2, morphEnd: 0.6, linear: true };
+    expect(stepAt(step, 0)).toBe(4);
+    expect(stepAt(step, 0.4)).toBeCloseTo(4.5);
+    expect(stepAt(step, 1)).toBe(5);
+  });
+
+  it('a linear window with no length is already crossed', () => {
+    expect(stepAt({ base: 0, morphStart: 1, linear: true }, 0.5)).toBe(1);
   });
 });

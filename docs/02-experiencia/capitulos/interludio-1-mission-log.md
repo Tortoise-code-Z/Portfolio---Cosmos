@@ -35,8 +35,14 @@ Metáfora: en mitad del viaje llega una transmisión, el registro de la primera 
 
 ## Escena
 
-- La forma del capítulo anterior (la nebulosa) se queda quieta y atenuada detrás; la pantalla del canal la cubre
-  casi entera.
+- **El satélite (C.7 · naves):** antes de la pantalla, un hueco vacío de 120 svh (`--transmission-arrival-h`) en el
+  que la nebulosa se convierte en un satélite que se acerca y llena la vista; después, otro de 60 vh
+  (`--transmission-exit-h`) en el que se aleja, y en la cola se deshace en la galaxia. Mientras tanto `m` se queda en
+  la nebulosa (scroll-y-escena.md → «Posición en los tramos»; `transiciones-naves.md`). Con movimiento reducido y al
+  imprimir no hay satélite (los huecos miden 0); sin WebGL los huecos están, sobre la foto de la nebulosa. Hasta la
+  coreografía de la página (N4), la transmisión sube como hoy tras el hueco de la llegada.
+- La forma del capítulo anterior (la nebulosa, o el satélite) se queda quieta y atenuada detrás; la pantalla del
+  canal la cubre casi entera.
 - En la pantalla, el reloj se para (`m` se queda en 1): el HUD se esconde y el pie de la transmisión lo dice. Estrellas
   y placas no reciben el puntero (la pantalla, hija directa de `<main>`, lo recoge). En la cola, que también es parte
   del interludio, vacía y sin puntero, la nebulosa cambia a galaxia y el reloj vuelve a andar; desde su mitad, el raíl
@@ -68,8 +74,9 @@ Metáfora: en mitad del viaje llega una transmisión, el registro de la primera 
 
 ## Raíl y misión rápida
 
-- Rombo propio en el raíl entre About y Skills («Mission log · transmission»), activo mientras se lee la pantalla y
-  la primera mitad de la cola; ancla `#mission-log`.
+- Rombo propio en el raíl entre About y Skills («Mission log · transmission»), activo desde que empieza la llegada del
+  satélite, mientras se lee la pantalla, en la salida y en la primera mitad de la cola; ancla `#mission-log`, en la
+  sección: aterriza al final de la llegada.
 - En la misión rápida, la sección «Experience» va tras Projects (los proyectos siguen en la primera pantalla a
   390 px): puesto, empresa, lugar, fechas y las seis entradas.
 - En Contacto (y en la misión rápida), la disponibilidad suma «Available immediately» y el permiso de trabajo.

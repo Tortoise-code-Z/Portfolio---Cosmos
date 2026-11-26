@@ -76,14 +76,16 @@ cosmos-portfolio/
 │  │                              ConstellationLabels (la capa del DOM de las etiquetas, en `body`), PlatePins
 │  │                              (los pins de las placas: su capa en `body` y su colocación), labelWriter
 │  │                              (lo que se escribe de una etiqueta colocada, de las estrellas o de un pin) y Sun
-│  │                              (el Sol sobre la Tierra, F4.5)
+│  │                              (el Sol sobre la Tierra, F4.5) y barTop (lo que tapa la barra fija: la pantalla
+│  │                              de una nave se encaja debajo, C.7)
 │  │  ├─ shaders/               ← los `.glsl` (particles, stars, constellations, sun), glslHeader (etiquetas,
 │  │  │                           colores y `SUN_DIR` desde TS) y stripGlslComments (el plugin de vite.config.ts)
 │  │  ├─ math/                  ← código puro: camera (pose por `m`, campo de visión, paralaje) · gravity (la
 │  │  │                           gravedad del cursor) · projection (de la escena a la pantalla) ·
 │  │  │                           chapterPresence (cuánto está un capítulo) · constellations (encendido y
 │  │  │                           aspecto) · labelFit (qué etiquetas caben) · plateCycle (qué placa se ilumina)
-│  │  │                           · platePins (ancla, balanceo, caja y pisos de los pins)
+│  │  │                           · platePins (ancla, balanceo, caja y pisos de los pins) · shipPose (dónde va
+│  │  │                           la nave de una transmisión y su pantalla, C.7)
 │  │  ├─ config/                ← lo compartido: sceneConfig (semilla, semiejes del caparazón, cámara),
 │  │  │                           plateSlots (huecos de las placas, assignPlates, plateLabelOf/plateSlugOf,
 │  │  │                           NO_PLATE, PLATE_LOOK y PLATE_PIN), scenePalette (los colores) y
@@ -111,8 +113,9 @@ cosmos-portfolio/
 │  │  │                           `m` que comparten la escena, los efectos del Big Bang y la coreografía de la
 │  │  │                           llegada, ADR-030), arrival (la llegada del epílogo que lee la escena:
 │  │  │                           EPILOGUE_ARRIVAL, arrivalShapeM; ADR-039), shapeTrack (el mapa de formas que
-│  │  │                           lee la escena: SHAPE, SHAPE_TRACK, shapePosition, shapeMixAt; ADR-041; en la
-│  │  │                           huella de las fotos fijas), arrivalChoreography (lo que pinta la página en la
+│  │  │                           lee la escena: SHAPE, SHAPE_TRACK, CHAPTER_SHAPES, journeySteps, shapePosition,
+│  │  │                           shapeMixAt; ADR-041; en la huella de las fotos fijas), journeyPosition (la
+│  │  │                           posición en los tramos, de la que salen las formas y las naves, C.7), arrivalChoreography (lo que pinta la página en la
 │  │  │                           llegada: los cortes ARRIVAL_CHOREOGRAPHY, arrivalBeam, arrivalBeamLine) y
 │  │  │                           stageFocus (el foco en el escenario fijo); estos dos, fuera de la huella de las
 │  │  │                           fotos fijas; y portraitShift (cuánto se separa el marco del retrato del
@@ -271,7 +274,7 @@ en el DOM e id del nombre), que leen `features/navigation` y la ruta del viaje (
 | Store | Qué guarda | Quién lo lee |
 |---|---|---|
 | `uiStore` (Zustand, `useUiStore`) | modo misión rápida abierto (`quickMissionOpen`, desde F2.6); último proyecto visto (`visitedProject`, desde F2.7: lo apunta la página de proyecto y el capítulo Proyectos lo recoge una vez, con `takeVisitedProject`, para dejar el foco en su fila); nivel de la escena (`sceneLevel`, desde F3.1: `null` mientras no se decide, `high`/`medium`/`low`, u `off` = sin WebGL para el resto de la visita; desde F3.2, `lowerSceneLevel` lo baja y nunca lo sube: el reintento de las formas y, desde F3.6, la degradación en caliente); sugerencia de idioma a la vista (`languageNoticeOpen`, desde F3.1: el aviso sin WebGL espera a que se conteste); grupo de skills encendido (`activeSkillGroup`, desde F4.3b: lo lee el bucle de la escena una vez por frame con `getState()` y lo copia a `SceneFrame.skillGroup`; lo escriben el panel y las etiquetas desde F4.3c: `setActiveSkillGroup` enciende y `releaseActiveSkillGroup` apaga solo si sigue encendido; `selectSceneOn` dice si hay escena); página de proyecto a la vista (`projectPageOpen`: la escribe la ficha al montarse y al irse; hasta F5, la escena se pausa con ella); proyecto señalado (`activeProject`, su slug, desde F4.4a: lo escriben las filas del capítulo 3 —ratón, foco del teclado en sus enlaces, toque— y, desde F4.4b, los pins (ratón y toque); `setActiveProject` señala y `releaseActiveProject` suelta solo si sigue señalado; el bucle de la escena lo lee una vez por frame con `getState()` e ilumina su placa, y la fila lo marca con su selector) | Componentes React (selectores finos); desde F3, la escena (pausa con el modo abierto y, hasta F5, en la ficha); desde F4.3, el bucle de la escena lee una vez por frame, con `getState()`, `activeSkillGroup` (las constelaciones) y, desde F4.4, `activeProject` (las placas y los pins), y los deja en el `SceneFrame`: ningún `useFrame` lee un store (ADR-027); desde F5, la placa visitada |
-| `sceneStore` (Zustand *vanilla*, mutable) | `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028; `setScrollTarget` no deja pasar lo que no sea un número finito), el interludio que se lee (`interlude`, fase C: lo escribe el viaje con `setReadingInterlude` en la pantalla y la cola del interludio), el capítulo que está llegando (`arriving`, C.7: lo escribe el viaje con `setReadingArrival` durante la llegada del epílogo, ADR-039), la carga de la detonación (`charge`, desde F4.1: la escribe el bucle del botón del hero en cada frame mientras carga o se descarga, ADR-030), dónde está el marco del retrato (`portraitShift`, C.7: lo escribe `usePortraitFollow` con `setPortraitShift`; lo copian el bucle de la escena y las fotos fijas, ADR-042); el peso de cada capítulo no va aquí: lo calcula la escena desde su `m` (`scene/math/chapterPresence`), y el ratón lo escribe `scene/pointer` en el `SceneFrame` | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget`, `charge` e `interlude` y deja su `m` suavizada, la carga y si se lee una transmisión (`transmission`: los pins se ocultan) en el `SceneFrame` que leen los `useFrame`; los efectos del Big Bang del hero (`useBigBang`, ADR-030) y la coreografía de la llegada del epílogo
+| `sceneStore` (Zustand *vanilla*, mutable) | `jTarget` (la posición en los tramos, C.7; `null` sin tramos medidos), `mTarget`, `m` (desde F2.5; `m = mTarget` siempre: la escena suaviza su propia copia, ADR-028; `setScrollTarget` no deja pasar lo que no sea un número finito), el interludio que se lee (`interlude`, fase C: lo escribe el viaje con `setReadingInterlude` en la pantalla y la cola del interludio), el capítulo que está llegando (`arriving`, C.7: lo escribe el viaje con `setReadingArrival` durante la llegada del epílogo, ADR-039), la carga de la detonación (`charge`, desde F4.1: la escribe el bucle del botón del hero en cada frame mientras carga o se descarga, ADR-030), dónde está el marco del retrato (`portraitShift`, C.7: lo escribe `usePortraitFollow` con `setPortraitShift`; lo copian el bucle de la escena y las fotos fijas, ADR-042); el peso de cada capítulo no va aquí: lo calcula la escena desde su `m` (`scene/math/chapterPresence`), y el ratón lo escribe `scene/pointer` en el `SceneFrame` | el `step` del bucle de `SceneRoot` (sobre `scene/frameLoop`): lee `mTarget`, `charge` e `interlude` y deja su `m` suavizada, la carga y si se lee una transmisión (`transmission`: los pins se ocultan) en el `SceneFrame` que leen los `useFrame`; los efectos del Big Bang del hero (`useBigBang`, ADR-030) y la coreografía de la llegada del epílogo
 (`useArrivalChoreography`, ADR-039; solo cuando cambia `mTarget`) por suscripción, cada uno en su propio bucle y **sin
 re-render**; el HUD por `getState()`/suscripción, **sin re-render**; el raíl y el idioma eligen la parada activa (`selectActiveStop`: el capítulo que llega durante toda su llegada, el interludio mientras se lee, o el capítulo `round(m)`), y el HUD la lee para esconderse en una transmisión (un interludio o el epílogo, también durante su llegada, `isTransmissionStop`); las fotos fijas del modo sin WebGL eligen el capítulo de la forma (`selectStillChapter` de `SceneStills`: solo se repintan al cambiar) |
 
@@ -290,7 +293,9 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
    calcula `mTarget = mapM(scrollY, layout, JOURNEY_SEGMENTS)`: cada tramo tiene su forma y su ventana de morph, y un
    interludio la deja quieta (scroll-y-escena.md → «Tramos del viaje»). Lo escribe en `sceneStore`
    (`setScrollTarget`, `setReadingInterlude` con el interludio del tramo y `setReadingArrival` con el capítulo que
-   llega; también al montar, para una recarga a mitad del viaje). La ruta del viaje los conecta:
+   llega; también al montar, para una recarga a mitad del viaje). Con `m`, la **posición en los tramos**
+   (`journeyPosition`: el tramo y lo recorrido de él; `sceneStore.jTarget`), de la que salen las formas y las naves
+   (C.7). La ruta del viaje los conecta:
    `lib` no importa `stores`, así que el destino le llega por parámetro.
 3. El bucle de la escena lee `mTarget` en cada frame y suaviza su propia `m` (`smoothM` de `lib/scroll`, con el tiempo
    real del frame; en su primer frame arranca en `mTarget`), que deja en el `SceneFrame` compartido; los `useFrame`
@@ -298,8 +303,9 @@ el selector `EN / ES` (`rememberLanguageAnswer`).
    su pose y su campo de visión, y por eso su `useFrame` va antes que nadie (prioridad −1, `CAMERA_RIG_PRIORITY`):
    las etiquetas de las constelaciones proyectan con ellos. En la llegada del epílogo, la cámara, el Sol y la gravedad
    de la Tierra usan la `m` de la forma (`arrivalShapeM`, `lib/scroll/arrival`, ADR-039), que acaba antes que el
-   tramo; el shader recibe sus formas del mapa de formas (`lib/scroll/shapeTrack`, ADR-041), que sale de la misma
-   cuenta; el haz del retrato, lo que lleva la llegada. `sceneStore.m` sigue siendo
+   tramo; el shader recibe sus formas del mapa de formas (`lib/scroll/shapeTrack`, ADR-041), que sale de la posición
+   en los tramos (`SceneFrame.j`, suavizada como `m`; sin ella o con movimiento reducido, de `m`, sin naves); el haz
+   del retrato, lo que lleva la llegada. `sceneStore.m` sigue siendo
    `mTarget`. Con la página oculta o la misión rápida abierta, el bucle se pausa (`scene/pause`). Los efectos del
    Big Bang en el DOM (`features/journey/useBigBang`) llevan otra copia con el mismo `smoothM` y la escriben, ya
    convertida en destello, temblor, nombre y halo, como variables CSS privadas en `<html>` (`--_bang-*`); los leen el

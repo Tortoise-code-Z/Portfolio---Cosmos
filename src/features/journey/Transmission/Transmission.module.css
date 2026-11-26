@@ -467,6 +467,27 @@
 }
 
 /*
+ * Los huecos de la nave que trae la transmisión (C.7 · naves): antes de su pantalla, mientras la nave se forma, se
+ * acerca y llena la vista, y después, mientras se aleja. Vacíos y sin puntero, como la cola. Con movimiento reducido no
+ * hay nave: miden 0 (estados-y-accesibilidad.md); al imprimir, tampoco (no dejan hojas en blanco).
+ */
+.shipArrival,
+.shipExit {
+  block-size: 0;
+  pointer-events: none;
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .shipArrival {
+    block-size: var(--transmission-arrival-h);
+  }
+
+  .shipExit {
+    block-size: var(--transmission-exit-h);
+  }
+}
+
+/*
  * Teletipo: con la sección armada, cada línea (`[data-line]`, con su orden en `--_line`) espera tapada y se escribe
  * de izquierda a derecha al encenderse. Sin armar (sin JavaScript, movimiento reducido) se ve entera.
  */

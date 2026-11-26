@@ -14,7 +14,7 @@ import {
   type Parallax,
 } from '../math/camera/camera';
 import { chapterPresence } from '../math/chapterPresence/chapterPresence';
-import type { SceneFrame } from '../sceneMaterials/sceneMaterials';
+import { shipPresence, type SceneFrame } from '../sceneMaterials/sceneMaterials';
 
 export interface CameraRigProps {
   /**
@@ -33,12 +33,19 @@ function fitLens(camera: PerspectiveCamera, aspect: number): void {
 /**
  * La pose de este frame (`m`, encuadre y paralaje, que sigue al ratón), escrita en el frame con el campo de visión
  * de su aspecto, para quien proyecte después en el mismo frame. En la llegada del epílogo, la `m` de la forma
- * (`arrivalShapeM`, ADR-039): la cámara llega al retrato cuando el retrato está formado, como el shader.
+ * (`arrivalShapeM`, ADR-039): la cámara llega al retrato cuando el retrato está formado, como el shader. Mientras se
+ * ve una nave (C.7), sin paralaje: se funde con su presencia, para que su pantalla encaje con lo que se ve.
  */
 function aimCamera(frame: SceneFrame, parallax: Parallax): CameraPose {
   followParallax(parallax, frame.pointer, !frame.reducedMotion, frame.delta);
   frame.fov = cameraFov(frame.aspect);
-  return cameraPose(arrivalShapeM(frame.m), frame.wide, parallax, frame.camera);
+  return cameraPose(
+    arrivalShapeM(frame.m),
+    frame.wide,
+    parallax,
+    frame.camera,
+    1 - shipPresence(frame),
+  );
 }
 
 /** Lo que la imagen está movida ahora (px) y para qué tamaño del lienzo: solo se rehace la proyección si cambia. */

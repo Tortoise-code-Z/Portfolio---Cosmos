@@ -17,7 +17,7 @@
 | 5 · Retrato (epílogo) | (0, 0, 8,2) | (0, 0, 0) | 0 (centrado: el visor del Crew file está en el centro de la ventana) |
 
 - Entre keyframes: interpolación lineal de posición y objetivo con `t = smoothstep(fract(m))`. En `m = 5`, el
-  keyframe 5 exacto (sin el tope de las formas: `SHAPE_TRACK_END` = 4,999, ADR-041); fuera de 0–5, el capítulo del
+  keyframe 5 exacto (las formas también llegan al retrato entero desde el satélite, ADR-041); fuera de 0–5, el capítulo del
   borde. La cámara lee la `m` de la forma (`arrivalShapeM`, ADR-039): en la llegada del epílogo llega al retrato
   cuando el retrato está formado (en el 55 % de la llegada), como el shader.
 - **El retrato sigue a su marco (ADR-042):** la página mide cuánto se separa el centro del marco del Crew file del
@@ -37,7 +37,9 @@
   tiempo real del frame (`SceneFrame.delta`, que no se congela). Solo con ratón (`pointerType === 'mouse'`,
   evento a evento: en táctil y con lápiz no hay paralaje, también en un portátil con pantalla táctil). Si el
   ratón sale de la ventana (su `pointerout` sin destino; el de un dedo o un lápiz que se levanta no cuenta),
-  vuelve al centro al mismo ritmo. Con movimiento reducido, al
+  vuelve al centro al mismo ritmo. Mientras se ve una nave (C.7 · naves), el paralaje se funde a 0 con su presencia
+  (`shipPresence`; `cameraPose`, `parallaxWeight`): la cámara no se mueve y la pantalla de la nave encaja con lo que se
+  ve (`math/shipPose`; `particulas-y-shaders.md` → «Naves»). Con movimiento reducido, al
   centro de golpe (un corte, no un movimiento) y quieto.
 - Todas las cifras viven en `scene/config/sceneConfig.ts`. Las del prototipo se ajustaron en F3.6c con capturas
   en los tamaños de referencia (ver abajo): las cámaras de los capítulos 1–4 se alejan de su objetivo con el mismo

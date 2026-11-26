@@ -206,7 +206,8 @@ function useArrivalFocus(ref: RefObject<HTMLElement | null>, arriving: boolean):
  * en el color de su canal, con la franja del canal arriba y el pie con la onda abajo. Un interludio va entre capítulos:
  * detrás, la forma del capítulo de antes, quieta y atenuada (su velo); «Skip transmission» lleva al capítulo que sigue
  * (`INTERLUDE[id].next`), y le sigue su cola, un tramo vacío y sin puntero en el que la escena cambia a la forma
- * siguiente (`JOURNEY_SEGMENTS`). El epílogo es un capítulo (`data-chapter`): sin salto ni cola, pero con su llegada
+ * siguiente (`JOURNEY_SEGMENTS`). Si la trae una nave (`INTERLUDE[id].ship`, C.7), dos huecos más: antes de la
+ * pantalla, en el que la nave llega, y después, en el que se va. El epílogo es un capítulo (`data-chapter`): sin salto ni cola, pero con su llegada
  * (ADR-039): su contenido va en un escenario fijo mientras pasa un hueco (la escena trae el retrato) y su ancla está en
  * el marcador del final de la llegada (`data-landing`), donde aterrizan el ancla y los saltos. Mientras llega, el haz la
  * revela y las esquinas se cierran sobre su destino (`useArrivalChoreography`, C.7). Es hija directa de `<main>`:
@@ -288,8 +289,14 @@ export function Transmission(props: TransmissionProps): ReactNode {
     </>
   );
 
+  const ship = interlude !== null && INTERLUDE[interlude].ship;
+
   return (
     <>
+      {ship ? (
+        // La llegada de la nave que la trae (C.7 · naves): un hueco antes de la pantalla, con su ancla en la sección.
+        <div className={styles.shipArrival} data-interlude-arrival={interlude} aria-hidden="true" />
+      ) : null}
       <section
         ref={ref}
         id={props.id === undefined ? undefined : INTERLUDE[props.id].anchor}
@@ -342,6 +349,9 @@ export function Transmission(props: TransmissionProps): ReactNode {
           </>
         )}
       </section>
+      {ship ? (
+        <div className={styles.shipExit} data-interlude-exit={interlude} aria-hidden="true" />
+      ) : null}
       {interlude === null ? null : (
         <div className={styles.tail} data-interlude-tail={interlude} aria-hidden="true" />
       )}

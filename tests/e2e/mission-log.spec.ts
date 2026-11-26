@@ -273,3 +273,106 @@ test.describe('the Mission log', () => {
     ).toHaveCount(6);
   });
 });
+
+/**
+ * El satélite que trae el Mission log (C.7 · naves; docs/02-experiencia/transiciones-naves.md): un hueco antes de la
+ * pantalla en el que llega y otro después en el que se va. Mientras pasan, `m` se queda en la nebulosa y el raíl ya
+ * marca el interludio; el ancla aterriza al final de la llegada (en la pantalla).
+ */
+const arrivalGap = (page: Page) => page.locator('[data-interlude-arrival="mission-log"]');
+const exitGap = (page: Page) => page.locator('[data-interlude-exit="mission-log"]');
+const gapHeight = (gap: ReturnType<typeof arrivalGap>): Promise<number> =>
+  gap.evaluate((element) => element.getBoundingClientRect().height);
+
+/** Baja hasta la fracción `at` del hueco (bajo la barra, como lee el mapeo del scroll). */
+async function scrollIntoGap(
+  page: Page,
+  gap: ReturnType<typeof arrivalGap>,
+  at: number,
+): Promise<void> {
+  await gap.evaluate((element, fraction) => {
+    const bar = Number.parseFloat(
+      getComputedStyle(document.documentElement).scrollPaddingBlockStart,
+    );
+    const box = element.getBoundingClientRect();
+    window.scrollTo({
+      top: box.top + window.scrollY - bar + box.height * fraction,
+      behavior: 'auto',
+    });
+  }, at);
+}
+
+test.describe('the satellite of the Mission log (C.7)', () => {
+  test('its gaps: 120 svh to arrive before the screen and 60 vh to leave after it, empty and inert', async ({
+    page,
+  }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    const viewport = page.viewportSize()?.height ?? 0;
+    expect(await gapHeight(arrivalGap(page))).toBeCloseTo(viewport * 1.2, 0);
+    expect(await gapHeight(exitGap(page))).toBeCloseTo(viewport * 0.6, 0);
+    for (const gap of [arrivalGap(page), exitGap(page)]) {
+      await expect(gap).toHaveAttribute('aria-hidden', 'true');
+      await expect(gap).toHaveCSS('pointer-events', 'none');
+      await expect(gap).toHaveText('');
+    }
+  });
+
+  test('while it arrives and leaves the rail already marks the Mission log, the HUD hides and the clock stays at the nebula', async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+    for (const [gap, at] of [
+      [arrivalGap(page), 0.1],
+      [arrivalGap(page), 0.6],
+      [exitGap(page), 0.5],
+    ] as const) {
+      await scrollIntoGap(page, gap, at);
+      await expect(rail(page).locator('[aria-current="step"]')).toHaveAccessibleName(
+        'Mission log · transmission',
+      );
+      await expect(hud(page)).toHaveAttribute('data-hidden', '');
+      await expect(hud(page)).toContainText('200 million years');
+    }
+    expect(errors).toEqual([]);
+  });
+
+  test('the anchor lands at the end of the arrival: the screen right under the bar, not the gap', async ({
+    page,
+  }) => {
+    await page.goto('/#mission-log', { waitUntil: 'networkidle' });
+    const [gap, bar] = await Promise.all([
+      arrivalGap(page).boundingBox(),
+      page.getByRole('banner').boundingBox(),
+    ]);
+    // El hueco queda entero por encima de la barra: la pantalla empieza donde acaba.
+    expect((gap?.y ?? 0) + (gap?.height ?? 0)).toBeLessThanOrEqual(
+      (bar?.y ?? 0) + (bar?.height ?? 0) + 1,
+    );
+  });
+
+  test('with reduced motion there is no satellite: its gaps measure 0', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/', { waitUntil: 'networkidle' });
+    expect(await gapHeight(arrivalGap(page))).toBe(0);
+    expect(await gapHeight(exitGap(page))).toBe(0);
+  });
+
+  test('printed, no gaps either (no blank pages)', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.emulateMedia({ media: 'print' });
+    expect(await gapHeight(arrivalGap(page))).toBe(0);
+    expect(await gapHeight(exitGap(page))).toBe(0);
+  });
+
+  test('without WebGL the gaps are there, over the still photo of the nebula', async ({ page }) => {
+    await withoutWebGL(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+    expect(await gapHeight(arrivalGap(page))).toBeGreaterThan(0);
+    await scrollIntoGap(page, arrivalGap(page), 0.5);
+    await expect(page.locator('[data-scene-stills] img[data-still-chapter="1"]')).toHaveAttribute(
+      'data-visible',
+      'true',
+    );
+  });
+});

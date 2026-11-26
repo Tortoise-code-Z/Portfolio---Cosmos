@@ -17,15 +17,23 @@ function renderAt(path: string): HTMLElement {
 }
 
 describe('MissionLog', () => {
-  it('is the region #mission-log named by its title, the screen of the interlude, followed by its tail', () => {
+  it('is the region #mission-log named by its title, the screen of the interlude, between the gaps of its satellite and followed by its tail', () => {
     const region = renderAt('/');
     expect(region).toHaveAccessibleName('Mission 01');
     expect(region).toHaveAttribute('id', 'mission-log');
     expect(region).toHaveAttribute('data-interlude', 'mission-log');
-    const tail = region.nextElementSibling;
+    // La nave llega en un hueco antes de la pantalla (el ancla, en la sección: se aterriza al final de la llegada) y se
+    // va en otro después; luego, la cola.
+    const arrival = region.previousElementSibling;
+    const exit = region.nextElementSibling;
+    const tail = exit?.nextElementSibling;
+    expect(arrival).toHaveAttribute('data-interlude-arrival', 'mission-log');
+    expect(exit).toHaveAttribute('data-interlude-exit', 'mission-log');
     expect(tail).toHaveAttribute('data-interlude-tail', 'mission-log');
-    expect(tail).toHaveAttribute('aria-hidden', 'true');
-    expect(tail?.textContent).toBe('');
+    for (const gap of [arrival, exit, tail]) {
+      expect(gap).toHaveAttribute('aria-hidden', 'true');
+      expect(gap?.textContent).toBe('');
+    }
   });
 
   it.each([

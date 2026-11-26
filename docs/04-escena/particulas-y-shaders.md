@@ -104,10 +104,9 @@ void main() {
 ```
 
 - Solo se evalúan **dos formas** por vértice (`uFrom` y `uTo`), y **una** con la escena quieta en una forma (`uT` 0:
-  una condición sobre un uniform, así que la GPU puede saltarse la segunda rama entera; depende del driver). **Salvo
-  en el epílogo:** la escena se para en `SHAPE_TRACK_END`, con `uT` 0,999, y quieta evalúa la Tierra y el retrato; y
-  mientras sube el retrato (`uPor` < 1), `portrait()` vuelve a evaluar la Tierra (tres evaluaciones). No es nuevo (el
-  shader de antes del mapa de formas hacía lo mismo); quitarlo queda para el PR del satélite (`deuda.md`).
+  una condición sobre un uniform, así que la GPU puede saltarse la segunda rama entera; depende del driver). También
+  en el epílogo, quieta en el retrato (desde el satélite; antes se paraba con `uT` 0,999 y evaluaba la Tierra y el
+  retrato): solo mientras sube el retrato (`uPor` < 1) `portrait()` vuelve a evaluar la Tierra.
 - Animaciones propias de cada forma dentro de `shape()`: giro lento (nebulosa, galaxia, Tierra), aletas,
   balanceo y estela de la tortuga, iluminación de la Tierra. Las oscilaciones (aletas, balanceo, cabeceo,
   estela, el pulso de la placa encendida) van multiplicadas por `uMotion`; los giros no: se paran porque `uTime` se congela con movimiento
@@ -118,17 +117,43 @@ void main() {
 La escena no deduce la forma de `m`: recibe qué dos formas mezcla y cuánto (`uFrom`, `uTo`, `uT`). Las calcula
 `lib/scroll/shapeTrack`, en `updateParticleUniforms`, sin objetos nuevos por frame:
 - **`SHAPE`:** un id fijo por forma: 0 singularidad · 1 nebulosa · 2 galaxia · 3 tortuga · 4 Tierra · 5 satélite ·
-  6 nave nodriza · 7 retrato. Las naves (`transiciones-naves.md`) aún no se pintan.
-- **`SHAPE_TRACK`:** las formas por las que pasa el viaje, en orden. La posición `s` en esta lista es la «`m` de la
-  forma»: hoy, una forma por capítulo (y por pose de la cámara), así que `s` sale de `m` (`shapePosition`: la de
-  la forma en la llegada del epílogo, `arrivalShapeM`, la misma que la cámara, el Sol y la gravedad) y se para en
-  `SHAPE_TRACK_END`, justo antes de la última forma (el último cambio casi entero, como hacía `m` en el shader).
-- **`shapeMixAt(s)`:** la forma de `floor(s)`, la siguiente y la fracción.
+  6 nave nodriza · 7 retrato. La nave nodriza aún no se pinta.
+- **`SHAPE_TRACK`:** las formas por las que pasa el viaje, en orden, con las naves: singularidad, nebulosa, satélite,
+  galaxia, tortuga, Tierra, retrato. La posición `s` en esta lista sale de la **posición en los tramos**
+  (`journeyValue` con los pasos de forma de `journeySteps`: scroll-y-escena.md → «Posición en los tramos»).
+- **`CHAPTER_SHAPES`:** una forma por capítulo (y por pose de la cámara), sin naves. Con movimiento reducido (sin
+  naves) y mientras la página no ha medido los tramos, `s` sale de `m` en esta lista (`shapePosition`: la de la forma
+  en la llegada del epílogo, `arrivalShapeM`, la misma que la cámara, el Sol y la gravedad).
+- **`shapeMixAt(s, lista)`:** la forma de `floor(s)`, la siguiente y la fracción; en la última, quieta en ella (`uT` 0).
 
-Así la escena puede ir de una forma a cualquier otra, no solo a la del capítulo siguiente: las naves de las
-transmisiones entrarán en `SHAPE_TRACK` entre la nebulosa y la galaxia y entre la tortuga y la Tierra, con su propia
-posición en los interludios (donde `m` se para). El retrato es la forma a la que se llega (`uTo`): su dispersión y su
-haz pesan con `uPor` y con su parte en la mezcla (`tt`).
+El retrato es la forma a la que se llega (`uTo`): su dispersión y su haz pesan con `uPor` y con su parte en la mezcla
+(`tt`; quieta en él, entera).
+
+### Naves (C.7 · naves)
+
+Las naves se dibujan **en el shader** (paramétricas: cada partícula elige un punto de una pieza con sus números, sin
+datos nuevos; `formas.md` → «Naves») en sus propias unidades, con la pantalla en `z = 0`, y `placeShip` las coloca:
+`P = uShipPos + uShipAxes · (giro(p) · uShipScale)`. Los uniforms los pone `updateParticleUniforms` con
+`scene/math/shipPose` mientras hay una nave en la mezcla:
+
+| Uniform | Qué |
+|---|---|
+| `uShipPos`, `uShipAxes` (`mat3`) | el centro de su pantalla en la escena y sus ejes (los de la cámara: mira de frente) |
+| `uShipScale`, `uShipTurn` | su tamaño y lo que está girada (Y, X); se mece `SHIP_SWAY` a `SHIP_SWAY_RATE` (cabecera) |
+| `uScreen`, `uVert` | su pantalla en sus unidades (la proporción del marco) y si va en vertical (piezas cambiadas de lado) |
+| `uFlagSpan` | hasta dónde cruza la bandera de Irlanda a cada lado, fuera de la vista |
+| `uSolid` | de luz que se suma (0) a puntos opacos con profundidad (1): `shipSolid` |
+
+**`uSolid` y el material:** sube en el último 45 % del cambio que forma la nave (`SHIP_SOLID.rise`) y baja en el
+primer 30 % del que la deshace (`SHIP_SOLID.fall`). El shader de fragmentos premultiplica el color y pone `uSolid` de
+alfa; `updateParticleMaterial` cambia la mezcla a `ONE, ONE_MINUS_SRC_ALPHA` (alfa 0 suma, alfa 1 tapa), con
+profundidad desde la mitad, y ya sólida del todo la pinta opaca y sin mezcla. Son estados del pintado: no recompilan
+el shader. Con `uSolid` 0, el material de siempre. Los puntos opacos van finos y con un mínimo
+(`clamp(tamaño · 1,15; 1,2 · uPR; 3,4 · uPR)`).
+
+**La cámara y el cursor:** mientras se ve la nave, la cámara funde su paralaje con su presencia (`shipPresence`;
+`cameraPose`, `parallaxWeight`) y la gravedad del cursor se apaga por partícula con lo que ya es nave
+(`shipWeight`), como sobre la cara del retrato: así su pantalla encaja con lo que se ve.
 
 ### Gravedad del cursor
 
@@ -159,6 +184,10 @@ no son partículas: la gravedad no los mueve.
 partícula aún no es retrato (`f · (1 − portraitWeight)`, con `portraitWeight = tt · uPor` llegando al retrato, el mismo
 peso que el haz). Por partícula: en la llegada se apaga a la vez que la cara se forma, y con el retrato hecho no queda.
 El giro de la cara con el ratón no es gravedad (lo da `uGrav` como intensidad del ratón dentro) y se queda.
+
+**Sobre las naves, tampoco (C.7):** con la misma cuenta, `f · max(1 − portraitWeight − shipWeight, 0)`, con
+`shipWeight` lo que la partícula ya es nave (`tt` llegando a ella, `1 − tt` dejándola): su pantalla encaja con lo que
+se ve (`Naves`, arriba).
 
 ### Colores
 
