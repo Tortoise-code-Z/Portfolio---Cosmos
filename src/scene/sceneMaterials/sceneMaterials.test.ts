@@ -1,12 +1,13 @@
-import { AdditiveBlending } from 'three';
+import { AdditiveBlending, CustomBlending, NormalBlending } from 'three';
 import { describe, expect, it, vi } from 'vitest';
 
+import { JOURNEY_SEGMENTS } from '~/content/chapters';
 import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
 import {
+  CHAPTER_SHAPES,
   createShapeMix,
   SHAPE,
-  SHAPE_TRACK,
-  SHAPE_TRACK_REST,
+  SHIP_ARRIVAL,
   shapeMixAt,
 } from '~/lib/scroll/shapeTrack/shapeTrack';
 
@@ -15,6 +16,7 @@ import {
   CHAPTER_PRESENCE_FADE,
   EARTH_GRAVITY,
   PORTRAIT_FADE_IN_S,
+  SHIP_SOLID,
   SUN,
 } from '../config/sceneConfig';
 import constellationLinesFragment from '../shaders/constellations/constellationLines.frag.glsl?raw';
@@ -40,6 +42,10 @@ import {
   createSunUniforms,
   motionOf,
   POINTER_AWAY,
+  shipPresence,
+  shipSolid,
+  shipWeight,
+  updateParticleMaterial,
   updateParticleUniforms,
   updateStarUniforms,
   updateSunUniforms,
@@ -69,12 +75,14 @@ const PAST_THE_RAMP = -1e-6;
 
 const frame: Readonly<SceneFrame> = {
   m: 2.5,
+  j: null,
   charge: 0.4,
   time: 12,
   delta: 0.016,
   reducedMotion: false,
   pixelRatio: 2,
   aspect: 1.6,
+  barTop: 0.08,
   extras: true,
   wide: true,
   pointer: { x: 0.2, y: -0.4, inside: true },
@@ -122,9 +130,53 @@ describe('particle uniforms', () => {
     expect(uniforms.uT.value).toBeCloseTo(0.5);
     updateParticleUniforms(uniforms, { ...frame, m: base + 1 });
     expect(uniforms.uM.value).toBe(base + 1);
-    expect(uniforms.uFrom.value).toBe(SHAPE.earth);
+    // Quieta en el retrato, entero: el shader evalúa una sola forma.
+    expect(uniforms.uFrom.value).toBe(SHAPE.portrait);
     expect(uniforms.uTo.value).toBe(SHAPE.portrait);
-    expect(uniforms.uT.value).toBeCloseTo(SHAPE_TRACK_REST, 9);
+    expect(uniforms.uT.value).toBe(0);
+  });
+
+  it('take the shapes from the position in the segments, with the satellite in the Mission log (C.7)', () => {
+    const uniforms = createParticleUniforms();
+    const arrival = JOURNEY_SEGMENTS.findIndex(
+      (segment) => segment.kind === 'interlude-arrival' && segment.interlude === 'mission-log',
+    );
+    const tail = JOURNEY_SEGMENTS.findIndex(
+      (segment) => segment.kind === 'interlude-tail' && segment.interlude === 'mission-log',
+    );
+    // `m` quieta en la nebulosa: la forma la da `j`.
+    updateParticleUniforms(uniforms, { ...frame, m: 1, j: arrival + SHIP_ARRIVAL.formed / 2 });
+    expect(uniforms.uFrom.value).toBe(SHAPE.nebula);
+    expect(uniforms.uTo.value).toBe(SHAPE.satellite);
+    expect(uniforms.uT.value).toBeCloseTo(0.5);
+    updateParticleUniforms(uniforms, { ...frame, m: 1, j: arrival + 1.5 });
+    expect([uniforms.uFrom.value, uniforms.uT.value]).toEqual([SHAPE.satellite, 0]);
+    updateParticleUniforms(uniforms, { ...frame, m: 1.5, j: tail + 0.5 });
+    expect(uniforms.uFrom.value).toBe(SHAPE.satellite);
+    expect(uniforms.uTo.value).toBe(SHAPE.galaxy);
+    expect(uniforms.uT.value).toBeCloseTo(0.5);
+    // El final del viaje: el retrato, entero.
+    updateParticleUniforms(uniforms, { ...frame, m: 5, j: JOURNEY_SEGMENTS.length - 0.5 });
+    expect([uniforms.uFrom.value, uniforms.uTo.value, uniforms.uT.value]).toEqual([
+      SHAPE.portrait,
+      SHAPE.portrait,
+      0,
+    ]);
+  });
+
+  it('without the measured segments, or with reduced motion (no ships), take the shapes from m', () => {
+    const uniforms = createParticleUniforms();
+    const arrival = JOURNEY_SEGMENTS.findIndex((segment) => segment.kind === 'interlude-arrival');
+    updateParticleUniforms(uniforms, {
+      ...frame,
+      m: 1.5,
+      j: arrival + 0.2,
+      reducedMotion: true,
+    });
+    expect([uniforms.uFrom.value, uniforms.uTo.value]).toEqual([SHAPE.nebula, SHAPE.galaxy]);
+    expect(uniforms.uT.value).toBeCloseTo(0.5);
+    updateParticleUniforms(uniforms, { ...frame, m: 1.5, j: null });
+    expect([uniforms.uFrom.value, uniforms.uTo.value]).toEqual([SHAPE.nebula, SHAPE.galaxy]);
   });
 
   it('take the shapes with no new object per frame: always the same mix (ADR-004)', () => {
@@ -132,16 +184,17 @@ describe('particle uniforms', () => {
     vi.mocked(createShapeMix).mockClear();
     vi.mocked(shapeMixAt).mockClear();
     for (const m of [0.5, 2.5, 4.3, 5]) updateParticleUniforms(uniforms, { ...frame, m });
+    for (const j of [2.5, 5.5]) updateParticleUniforms(uniforms, { ...frame, j });
     expect(createShapeMix).not.toHaveBeenCalled();
-    const outs = vi.mocked(shapeMixAt).mock.calls.map(([, out]) => out);
-    expect(outs).toHaveLength(4);
+    const outs = vi.mocked(shapeMixAt).mock.calls.map(([, , out]) => out);
+    expect(outs).toHaveLength(6);
     expect(new Set(outs).size).toBe(1);
   });
 
-  it('a shape per camera keyframe: the m of the shape is still that of the chapters (ADR-041)', () => {
-    // Una forma por pose de la cámara, en orden: la `m` de la forma sale de la de la escena. Las naves (C.7) lo
-    // cambian.
-    expect(SHAPE_TRACK).toHaveLength(CAMERA_KEYFRAMES.length);
+  it('a chapter shape per camera keyframe: the m of the shape is still that of the chapters (ADR-041)', () => {
+    // Una forma de capítulo por pose de la cámara, en orden: sin naves, la `m` de la forma sale de la de la escena.
+    // Las naves no tienen pose: la cámara se queda en la del capítulo de antes.
+    expect(CHAPTER_SHAPES).toHaveLength(CAMERA_KEYFRAMES.length);
   });
 
   it('take the frame in place (the same objects every frame)', () => {
@@ -230,12 +283,14 @@ describe('createSceneFrame', () => {
   it('starts at the singularity, uncharged, with motion and extras, narrow, with no mouse and no lit plate', () => {
     expect(createSceneFrame()).toEqual({
       m: 0,
+      j: null,
       charge: 0,
       time: 0,
       delta: 0,
       reducedMotion: false,
       pixelRatio: 1,
       aspect: 1,
+      barTop: 0,
       extras: true,
       wide: false,
       pointer: { x: 0, y: 0, inside: false },
@@ -417,4 +472,76 @@ describe('materials', () => {
       expect([...declared].sort()).toEqual(Object.keys(own).sort());
     });
   }
+});
+
+describe('the ships (C.7)', () => {
+  const mix = (from: number, to: number, t: number): ReturnType<typeof createShapeMix> =>
+    ({ from, to, t }) as ReturnType<typeof createShapeMix>;
+  const arrival = JOURNEY_SEGMENTS.findIndex((segment) => segment.kind === 'interlude-arrival');
+
+  it('shipWeight: t coming to a ship, 1 − t leaving it, 1 still in it, 0 without one', () => {
+    expect(shipWeight(mix(SHAPE.nebula, SHAPE.satellite, 0.3))).toBe(0.3);
+    expect(shipWeight(mix(SHAPE.satellite, SHAPE.galaxy, 0.25))).toBe(0.75);
+    expect(shipWeight(mix(SHAPE.satellite, SHAPE.galaxy, 0))).toBe(1);
+    expect(shipWeight(mix(SHAPE.galaxy, SHAPE.turtle, 0.5))).toBe(0);
+  });
+
+  it('shipSolid: opaque as the ship forms, at once in it, light again as it comes apart; 0 without a ship', () => {
+    expect(shipSolid(mix(SHAPE.nebula, SHAPE.satellite, SHIP_SOLID.rise))).toBe(0);
+    expect(shipSolid(mix(SHAPE.nebula, SHAPE.satellite, 1))).toBe(1);
+    expect(shipSolid(mix(SHAPE.satellite, SHAPE.galaxy, 0))).toBe(1);
+    expect(shipSolid(mix(SHAPE.satellite, SHAPE.galaxy, SHIP_SOLID.fall / 2))).toBeCloseTo(0.5);
+    expect(shipSolid(mix(SHAPE.satellite, SHAPE.galaxy, SHIP_SOLID.fall))).toBe(0);
+    expect(shipSolid(mix(SHAPE.nebula, SHAPE.galaxy, 0.5))).toBe(0);
+  });
+
+  it('the particle uniforms take the solidity and the ship pose from the position in the segments', () => {
+    const uniforms = createParticleUniforms();
+    const before = { ...uniforms };
+    const position = uniforms.uShipPos.value;
+    updateParticleUniforms(uniforms, { ...frame, m: 1, j: arrival + 0.5 });
+    expect(uniforms.uFrom.value).toBe(SHAPE.satellite);
+    expect(uniforms.uSolid.value).toBe(1);
+    // A medio acercarse: fuera del origen, a su tamaño casi, con su pantalla en la proporción de lo que se ve.
+    expect(uniforms.uShipPos.value).toBe(position);
+    expect(position.length()).toBeGreaterThan(0);
+    expect(uniforms.uShipScale.value).toBeGreaterThan(0.55);
+    expect(uniforms.uScreen.value.y).toBe(2);
+    expect(uniforms.uScreen.value.x).toBeGreaterThan(2);
+    expect(uniforms.uVert.value).toBe(0);
+    expect(uniforms.uFlagSpan.value).toBeGreaterThan(0);
+    for (const key of Object.keys(before) as (keyof typeof before)[]) {
+      expect(uniforms[key]).toBe(before[key]);
+    }
+  });
+
+  it('without a ship in the mix the material is the usual one (uSolid 0) and the ship is not placed', () => {
+    const uniforms = createParticleUniforms();
+    updateParticleUniforms(uniforms, { ...frame, m: 2.5, j: null });
+    expect(uniforms.uSolid.value).toBe(0);
+    expect(uniforms.uShipPos.value.toArray()).toEqual([0, 0, 0]);
+  });
+
+  it('shipPresence: what the camera fades its parallax with', () => {
+    expect(shipPresence({ ...frame, m: 1, j: arrival + 0.5 })).toBe(1);
+    expect(shipPresence({ ...frame, m: 1, j: arrival })).toBe(0);
+    expect(shipPresence({ ...frame, m: 2.5, j: null })).toBe(0);
+    // Con movimiento reducido no hay naves.
+    expect(shipPresence({ ...frame, m: 1, j: arrival + 0.5, reducedMotion: true })).toBe(0);
+  });
+
+  it('updateParticleMaterial: additive as always with uSolid 0; mixed, then with depth, then opaque', () => {
+    const uniforms = createParticleUniforms();
+    const material = createParticleMaterial(uniforms);
+    const state = (solid: number): [number, boolean, boolean, boolean] => {
+      uniforms.uSolid.value = solid;
+      updateParticleMaterial(material, uniforms);
+      return [material.blending, material.transparent, material.depthTest, material.depthWrite];
+    };
+    expect(state(0)).toEqual([AdditiveBlending, true, false, false]);
+    expect(state(0.3)).toEqual([CustomBlending, true, false, false]);
+    expect(state(0.7)).toEqual([CustomBlending, true, true, true]);
+    expect(state(1)).toEqual([NormalBlending, false, true, true]);
+    expect(state(0)).toEqual([AdditiveBlending, true, false, false]);
+  });
 });

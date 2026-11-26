@@ -1,11 +1,71 @@
-# Transiciones con naves (C.7 · naves: en construcción)
+# Transiciones con naves (C.7 · naves: en construcción; el satélite, hecho)
 
 > Idea de Víctor (20 nov 2026, sesión 35), estudiada por el Taller sobre la copia del repo con C.2 hecho. Se aprobó
 > como idea, para después de F4.5 o el pulido (roadmap → «C · 7. Naves»; fuera del cierre de la fase C). La prueba
 > fuera del repo ya está hecha (apartado «Prueba», versiones 1–8): **manda la versión 8**, que cambia los apartados 3
 > a 5 (se lee a pantalla completa, sin marco). **En construcción (sesión 50, ADR-041)**, en cuatro PR: el mapa de
-> formas (apartado 1, sin cambio visible; hecho), el satélite, la nave nodriza y la coreografía de la página. Este doc
-> pasa a spec por partes, según se construyen.
+> formas (apartado 1, sin cambio visible; hecho), el satélite (hecho: «El satélite», abajo), la nave nodriza y la
+> coreografía de la página. Este doc pasa a spec por partes, según se construyen; las reglas de los tres últimos pasos
+> se decidieron antes del satélite («Reglas de la construcción»).
+
+## Reglas de la construcción (decididas antes del satélite)
+
+Víctor las decidió el 25 nov 2026 sobre un estudio de reglas y casos; mandan sobre lo que dicen los apartados 3 a 5 y
+la prueba donde choquen.
+
+1. **Peso:** una sola subida del límite de la escena con el satélite, que cubre también la nave nodriza (lo medido,
+   su tope y ~2 KB de margen; ADR-041 y ADR-032). Si un paso pasa de su tope, se mira antes de seguir.
+2. **Niveles:** las naves usan las partículas del nivel (60 000 / 36 000 / 20 000; los móviles arrancan en Bajo). En
+   Bajo, sin piezas pequeñas (módulos, sensores, ventanas, tornillos, LEDs): sus partículas van al casco o al cuerpo.
+   Los guiños (las banderas, los alienígenas, el astronauta) se quedan en todos los niveles. Víctor mira cada nave en
+   Bajo en su móvil antes de cerrar su paso.
+3. **Tramos:** por interludio con nave, una llegada de 120 svh y una salida de 60 vh alrededor de su pantalla, en línea
+   recta con el scroll y con `m` quieta. En la llegada, la forma de antes se convierte en la nave hasta el 35 %, la nave
+   se acerca girada y se pone de frente hasta el 75 % y llena la vista al final; en la salida se aleja de frente, y en
+   la cola (la de hoy) se deshace. Los cortes se afinan mirando la página.
+4. **Dónde vive:** nace en el centro de la forma de antes y viaja al centro de lo que se ve; la cámara no se mueve.
+   Mientras está, sin paralaje (se funde) ni gravedad del cursor sobre ella (por partícula, como sobre la cara).
+5. **Lo atado a una forma** (pins, placa y su ciclo, constelaciones y sus etiquetas, el Sol y la gravedad de la Tierra)
+   sigue el peso de su forma en la mezcla, no `m` ni el interludio (con la nave nodriza).
+6. **Anclas, raíl, HUD, idioma y saltos:** como la llegada del epílogo. El ancla aterriza al final de la llegada; el
+   raíl marca el interludio desde que empieza la llegada; el HUD se esconde desde la llegada; un salto que cruza un
+   interludio pasa por la nave en lo que tarda la escena en ponerse al día.
+7. **Movimiento reducido:** sin naves. Los huecos miden 0 y la cola va de la forma de antes a la siguiente sin pasar
+   por la nave.
+8. **Sin WebGL o con la escena cargando:** los huecos están, y la página hace su parte sobre la foto fija de la forma de
+   antes (el marco, con la coreografía); sin fotos de las naves. Sin JavaScript: la sección entera y quieta. Al
+   imprimir: sin huecos. Alto contraste: el marco sin brillo ni velo.
+9. **Móvil y apaisado:** la pantalla de la nave con las proporciones de la prueba, medidas sobre lo que se ve bajo la
+   barra; apaisado bajo, igual.
+10. **Puntos opacos (`uSolid`), solo en las naves:** suben en el último ~45 % del cambio que forma la nave y bajan en el
+    primer ~30 % del que la deshace; con profundidad desde la mitad; del todo, opacos y sin mezcla. Con 0, el
+    material de siempre.
+11. **El marco** (con la coreografía): llega vacío, el contenido aparece en el último ~10 % de la llegada y entonces
+    arranca el teletipo (sustituye al barrido de entrada); el texto no se escala al llegar. En la salida, la última
+    pantalla se queda fija y se encoge con la nave, y el borde vuelve.
+12. **Foco y lector:** como el epílogo en las dos puntas (un Tab que entra antes de acabar la llegada la revela y va al
+    final de la llegada; uno que entra en la salida la devuelve a escala 1 y al final de la lectura; solo con Tab). El
+    texto siempre en el DOM; el marco, `aria-hidden`.
+13. **Tests:** unitarios de lo puro, el shader sin avisos, el peso, las fotos fijas iguales y los e2e del recorrido en
+    los tres motores; con la coreografía, un e2e de píxeles solo en Chromium (el marco y la pantalla de la nave casan)
+    y capturas sin WebGL a media salida (1440 × 900 y 390 × 844). El aspecto de las naves, a ojo de Víctor.
+14. **Entre pasos, `main` presentable:** el satélite y la nave nodriza llegan con una página provisional (la nave llega
+    y llena la vista en un hueco vacío y después la transmisión sube como hoy); la coreografía cambia el hueco por el
+    marco encajado.
+
+## El satélite (construido: Mission log)
+
+- **Posición en los tramos:** las formas salen de una segunda coordenada (`lib/scroll/journeyPosition`), medida y
+  suavizada como `m`; cada tramo da su paso de forma y de nave (`journeySteps`). Detalle en
+  `scroll-y-escena.md` → «Posición en los tramos» y `particulas-y-shaders.md` → «Mapa de formas».
+- **La nave:** paramétrica en el shader (`formas.md` → «Naves»), colocada por `scene/math/shipPose`
+  (`particulas-y-shaders.md` → «Naves»): su pantalla, centrada en lo que se ve bajo la barra con la proporción de la
+  prueba (86 % del ancho y hasta el 70 % del alto en horizontal; 90 % y 64 % en vertical) y, al final de la llegada,
+  más grande que la ventana entera.
+- **La página, provisional:** los dos huecos (`--transmission-arrival-h`, `--transmission-exit-h`) en
+  `Transmission`, vacíos y `aria-hidden`; la transmisión sube como hoy tras la llegada, así que tapa al satélite
+  mientras llena la vista, hasta la coreografía.
+- **Peso:** 5 094 B (unos 3,0 KB de GLSL y 2,1 KB de JS); el límite de la escena pasa a 268 KB (ADR-041).
 
 ## La idea
 

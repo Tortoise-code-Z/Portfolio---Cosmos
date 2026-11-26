@@ -34,7 +34,28 @@ export function toScrollLayout(layout: ChapterLayout, offset: number): ChapterLa
 export interface JourneyStep {
   readonly base: number;
   readonly morphStart: number | null;
+  /**
+   * Dónde acaba el cambio, en fracción del tramo (por defecto, 1: justo al empezar el siguiente). Lo usan las formas
+   * de las llegadas, que se forman antes de que acabe su tramo (`lib/scroll/shapeTrack`).
+   */
+  readonly morphEnd?: number;
   readonly linear?: boolean;
+}
+
+/**
+ * Lo que vale un tramo a la fracción `fraction` (0 → 1) de su recorrido: su `base` hasta su ventana y `base + 1` al
+ * acabarla (`morphStart` → `morphEnd`), con `smoothstep` o en línea recta (`linear`). Sin ventana (`null`), su `base`.
+ */
+export function stepAt(step: JourneyStep, fraction: number): number {
+  if (step.morphStart === null) return step.base;
+  const end = step.morphEnd ?? 1;
+  if (step.linear !== true) return step.base + smoothstep(step.morphStart, end, fraction);
+  return (
+    step.base +
+    (step.morphStart < end
+      ? clamp((fraction - step.morphStart) / (end - step.morphStart), 0, 1)
+      : 1)
+  );
 }
 
 /**
@@ -56,7 +77,7 @@ export function segmentAt(y: number, layout: ChapterLayout): number {
 
 /**
  * Traduce una posición de scroll `y` (px) al valor continuo `m` (docs/02-experiencia/scroll-y-escena.md → «Cálculo
- * de m»). En el tramo `i` que contiene `y`, `m = base_i + smoothstep(morphStart_i, 1, f)`, con `f` la fracción
+ * de m»). En el tramo `i` que contiene `y`, `m = base_i + smoothstep(morphStart_i, 1, f)` (`stepAt`), con `f` la fracción
  * recorrida (o en línea recta, con `linear`): la forma se queda quieta hasta su ventana y llega a la siguiente justo al
  * empezar el tramo siguiente. Un
  * tramo sin ventana (`null`, o el último) se queda en su `base` (un interludio que para la escena). Un tramo sin
@@ -69,10 +90,5 @@ export function mapM(y: number, layout: ChapterLayout, steps: readonly JourneySt
   if (box === undefined) return 0;
   const step = steps[index] ?? { base: index, morphStart: 0 };
   if (index === layout.length - 1 || step.morphStart === null) return step.base;
-  const fraction = box.height > 0 ? (y - box.top) / box.height : 1;
-  if (step.linear !== true) return step.base + smoothstep(step.morphStart, 1, fraction);
-  return (
-    step.base +
-    (step.morphStart < 1 ? clamp((fraction - step.morphStart) / (1 - step.morphStart), 0, 1) : 1)
-  );
+  return stepAt(step, box.height > 0 ? (y - box.top) / box.height : 1);
 }

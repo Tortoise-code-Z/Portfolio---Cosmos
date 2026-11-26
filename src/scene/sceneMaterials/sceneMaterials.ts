@@ -1,21 +1,41 @@
-import { AdditiveBlending, ShaderMaterial, Vector2, type IUniform } from 'three';
+import {
+  AdditiveBlending,
+  AddEquation,
+  CustomBlending,
+  Matrix3,
+  NormalBlending,
+  OneFactor,
+  OneMinusSrcAlphaFactor,
+  ShaderMaterial,
+  Vector2,
+  Vector3,
+  type IUniform,
+} from 'three';
 
+import { JOURNEY_SEGMENTS } from '~/content/chapters';
 import type { SkillGroupId } from '~/content/types';
 import { lerp } from '~/lib/math/lerp/lerp';
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
 import { arrivalShapeM } from '~/lib/scroll/arrival/arrival';
+import { journeyValue } from '~/lib/scroll/journeyPosition/journeyPosition';
 import {
+  CHAPTER_SHAPES,
   createShapeMix,
+  isShip,
+  journeySteps,
+  SHAPE_TRACK,
   shapeMixAt,
   shapePosition,
   type ShapeId,
+  type ShapeMix,
 } from '~/lib/scroll/shapeTrack/shapeTrack';
 
 import { NO_PLATE } from '../config/plateSlots/plateSlots';
-import { EARTH_GRAVITY, PORTRAIT_FADE_IN_S, SUN } from '../config/sceneConfig';
+import { EARTH_GRAVITY, PORTRAIT_FADE_IN_S, SHIP_SOLID, SUN } from '../config/sceneConfig';
 import { createCameraPose, type CameraPose } from '../math/camera/camera';
 import { chapterPresence } from '../math/chapterPresence/chapterPresence';
 import { createGravity, type Gravity } from '../math/gravity/gravity';
+import { createShipPose, shipPose } from '../math/shipPose/shipPose';
 import { createScenePointer, type ScenePointer } from '../pointer/pointer';
 import constellationLinesFragment from '../shaders/constellations/constellationLines.frag.glsl?raw';
 import constellationsVertex from '../shaders/constellations/constellations.vert.glsl?raw';
@@ -69,6 +89,23 @@ export interface ParticleUniforms {
    * `PORTRAIT_FADE_IN_S` (de golpe con movimiento reducido) y la Tierra pasa a retrato.
    */
   readonly uPor: IUniform<number>;
+  /**
+   * La nave que trae una transmisión (C.7 · naves; `math/shipPose`): el centro de su pantalla en la escena, sus ejes
+   * (los de la cámara), su tamaño, lo que está girada (en Y y en X), su pantalla en sus unidades, si va en vertical
+   * y hasta dónde cruza la bandera de Irlanda. Solo cuentan con una nave en la mezcla.
+   */
+  readonly uShipPos: IUniform<Vector3>;
+  readonly uShipAxes: IUniform<Matrix3>;
+  readonly uShipScale: IUniform<number>;
+  readonly uShipTurn: IUniform<Vector2>;
+  readonly uScreen: IUniform<Vector2>;
+  readonly uVert: IUniform<number>;
+  readonly uFlagSpan: IUniform<number>;
+  /**
+   * De luz que se suma (0, como todas las formas) a puntos opacos con profundidad (1): solo mientras se forma o se ve
+   * una nave (`shipSolid`). Con 0, el material de siempre.
+   */
+  readonly uSolid: IUniform<number>;
 }
 
 export interface StarUniforms {
@@ -122,6 +159,14 @@ export function createParticleUniforms(): ParticleUniforms {
     uMotion: { value: 1 },
     uExtras: { value: 1 },
     uPor: { value: 0 },
+    uShipPos: { value: new Vector3() },
+    uShipAxes: { value: new Matrix3() },
+    uShipScale: { value: 1 },
+    uShipTurn: { value: new Vector2() },
+    uScreen: { value: new Vector2(1, 1) },
+    uVert: { value: 0 },
+    uFlagSpan: { value: 0 },
+    uSolid: { value: 0 },
   };
 }
 
@@ -152,6 +197,12 @@ export interface SceneFrame {
    * `sceneStore.m`.
    */
   m: number;
+  /**
+   * La posición en los tramos de la escena (`lib/scroll/journeyPosition`), suavizada desde `jTarget` como `m`: de ella
+   * salen las formas y la nave (C.7 · naves). `null` mientras la página no ha medido los tramos: las formas salen de
+   * `m`, sin naves.
+   */
+  j: number | null;
   /** Carga de la detonación (0–1), tal cual la deja el botón del hero en `sceneStore`. */
   charge: number;
   time: number;
@@ -160,7 +211,12 @@ export interface SceneFrame {
   reducedMotion: boolean;
   pixelRatio: number;
   aspect: number;
-  /** Extras del nivel (estela y luces de ciudad; no en Bajo). */
+  /**
+   * La fracción del alto del lienzo que tapa la barra fija de arriba (0 sin barra): la pantalla de una nave se encaja
+   * con lo que se ve debajo (`math/shipPose`). La pone el bucle.
+   */
+  barTop: number;
+  /** Extras del nivel (estela y luces de ciudad; no en Bajo: tampoco las piezas pequeñas de las naves). */
   extras: boolean;
   /** Escritorio (`WIDE_LAYOUT_QUERY`, la media query de los paneles): el encuadre se aparta a un lado. */
   wide: boolean;
@@ -207,12 +263,14 @@ export interface SceneFrame {
 export function createSceneFrame(): SceneFrame {
   return {
     m: 0,
+    j: null,
     charge: 0,
     time: 0,
     delta: 0,
     reducedMotion: false,
     pixelRatio: 1,
     aspect: 1,
+    barTop: 0,
     extras: true,
     wide: false,
     pointer: createScenePointer(),
@@ -235,13 +293,76 @@ export function motionOf(frame: Readonly<SceneFrame>): number {
   return frame.reducedMotion ? 0 : 1;
 }
 
-/** Las formas de este frame (un solo objeto para toda la visita: ADR-004). */
-const shapeMix = createShapeMix();
+/** Los pasos de las formas y de la nave en cada tramo del viaje (C.7 · naves; `lib/scroll/shapeTrack`). */
+const JOURNEY_STEPS = journeySteps(JOURNEY_SEGMENTS);
 
 /**
- * Las formas salen de la `m` de la escena por el mapa de formas (`shapePosition`, `shapeMixAt`: ADR-041).
- * `portrait`: el retrato ya está en la geometría (`pPor`). `uPor` sube desde lo que valía (los uniforms duran toda la
- * visita, también al cambiar las formas): solo vuelve a 0 sin retrato.
+ * Las formas de un frame por el mapa de formas (ADR-041): de la posición en los tramos (`frame.j`), con las naves
+ * (`SHAPE_TRACK`). Con movimiento reducido no hay naves (los huecos de sus llegadas y salidas miden 0), y mientras la
+ * página no ha medido los tramos no hay posición: entonces, de la `m` de la forma, una por capítulo
+ * (`CHAPTER_SHAPES`). Escribe en `out` y lo devuelve.
+ */
+export function shapeMixOf(frame: Readonly<SceneFrame>, out: ShapeMix): ShapeMix {
+  if (frame.reducedMotion || frame.j === null) {
+    return shapeMixAt(shapePosition(frame.m), CHAPTER_SHAPES, out);
+  }
+  return shapeMixAt(journeyValue(frame.j, JOURNEY_STEPS.shape), SHAPE_TRACK, out);
+}
+
+/**
+ * Lo que pesa una nave en una mezcla (0 → 1): `t` llegando a ella, `1 − t` dejándola, 1 quieta en ella; 0 sin nave.
+ */
+export function shipWeight(mix: Readonly<ShapeMix>): number {
+  if (isShip(mix.from)) return 1 - mix.t;
+  return isShip(mix.to) ? mix.t : 0;
+}
+
+/**
+ * De luz que se suma a puntos opacos (`uSolid`, la prueba v8): sube mientras la nave se forma, en el último tramo del
+ * cambio (`SHIP_SOLID.rise` → 1), y baja al empezar a deshacerse (0 → `SHIP_SOLID.fall`); quieta en ella, 1. Sin nave,
+ * 0 (el material de siempre).
+ */
+export function shipSolid(mix: Readonly<ShapeMix>): number {
+  if (isShip(mix.from)) return 1 - smoothstep(0, SHIP_SOLID.fall, mix.t);
+  return isShip(mix.to) ? smoothstep(SHIP_SOLID.rise, 1, mix.t) : 0;
+}
+
+/** Las formas de este frame (un solo objeto para toda la visita: ADR-004). */
+const shapeMix = createShapeMix();
+/** Las de la cámara, que las mira antes que las partículas en el mismo frame (`shipPresence`). */
+const presenceMix = createShapeMix();
+
+/**
+ * Cuánto está la nave en este frame (`shipWeight` de sus formas): la cámara funde con ello su paralaje, para que la
+ * pantalla de la nave encaje con lo que se ve (`CameraRig`).
+ */
+export function shipPresence(frame: Readonly<SceneFrame>): number {
+  return shipWeight(shapeMixOf(frame, presenceMix));
+}
+
+/** Dónde va la nave en este frame y lo que se ve (un solo objeto cada uno: ADR-004). */
+const pose = createShipPose();
+const shipView = { aspect: 1, fov: 55, barTop: 0 };
+
+/** La nave de este frame en sus uniforms (`math/shipPose`), con su avance en los tramos. */
+function updateShipUniforms(uniforms: ParticleUniforms, frame: Readonly<SceneFrame>): void {
+  shipView.aspect = frame.aspect;
+  shipView.fov = frame.fov;
+  shipView.barTop = frame.barTop;
+  shipPose(journeyValue(frame.j ?? 0, JOURNEY_STEPS.ship), frame.camera, shipView, pose);
+  uniforms.uShipPos.value.set(pose.position.x, pose.position.y, pose.position.z);
+  uniforms.uShipAxes.value.fromArray(pose.axes);
+  uniforms.uShipScale.value = pose.scale;
+  uniforms.uShipTurn.value.set(pose.yaw, pose.pitch);
+  uniforms.uScreen.value.set(pose.screen.x, pose.screen.y);
+  uniforms.uVert.value = pose.vertical ? 1 : 0;
+  uniforms.uFlagSpan.value = pose.flagSpan;
+}
+
+/**
+ * Las formas salen del mapa de formas (`shapeMixOf`). `portrait`: el retrato ya está en la geometría (`pPor`). `uPor`
+ * sube desde lo que valía (los uniforms duran toda la visita, también al cambiar las formas): solo vuelve a 0 sin
+ * retrato.
  */
 export function updateParticleUniforms(
   uniforms: ParticleUniforms,
@@ -249,10 +370,13 @@ export function updateParticleUniforms(
   portrait = false,
 ): void {
   uniforms.uM.value = frame.m;
-  shapeMixAt(shapePosition(frame.m), shapeMix);
+  shapeMixOf(frame, shapeMix);
   uniforms.uFrom.value = shapeMix.from;
   uniforms.uTo.value = shapeMix.to;
   uniforms.uT.value = shapeMix.t;
+  uniforms.uSolid.value = shipSolid(shapeMix);
+  // La nave solo se coloca mientras está en la mezcla.
+  if (shipWeight(shapeMix) > 0 || isShip(shapeMix.to)) updateShipUniforms(uniforms, frame);
   uniforms.uPor.value = !portrait
     ? 0
     : frame.reducedMotion
@@ -303,13 +427,36 @@ const ADDITIVE = {
   blending: AdditiveBlending,
 } as const;
 
+/**
+ * Las partículas: luz que se suma, como el resto, salvo mientras se ve una nave (`uSolid` > 0). Entonces la mezcla es
+ * `ONE, ONE_MINUS_SRC_ALPHA` (el shader de fragmentos premultiplica: con alfa 0 suma, con alfa 1 tapa), y desde la
+ * mitad, con profundidad: lo de delante tapa lo de detrás (`updateParticleMaterial`).
+ */
 export function createParticleMaterial(uniforms: ParticleUniforms): ShaderMaterial {
   return new ShaderMaterial({
     ...ADDITIVE,
+    blendEquation: AddEquation,
+    blendSrc: OneFactor,
+    blendDst: OneMinusSrcAlphaFactor,
     uniforms: { ...uniforms },
     vertexShader: glslHeader() + particlesVertex,
     fragmentShader: particlesFragment,
   });
+}
+
+/**
+ * El estado del material de las partículas para su `uSolid` (la prueba v8): con 0, el de siempre (aditivo, sin
+ * profundidad); entre 0 y 1, la mezcla de luz y opacos; desde la mitad, con profundidad; ya sólida del todo, opaca y
+ * sin mezcla (lo más barato para la GPU del móvil). Son estados del pintado: cambiarlos no recompila el shader (sin
+ * `needsUpdate`).
+ */
+export function updateParticleMaterial(material: ShaderMaterial, uniforms: ParticleUniforms): void {
+  const solid = uniforms.uSolid.value;
+  const opaque = solid >= 1;
+  material.blending = solid > 0 ? (opaque ? NormalBlending : CustomBlending) : AdditiveBlending;
+  material.transparent = !opaque;
+  material.depthTest = solid > 0.5;
+  material.depthWrite = solid > 0.5;
 }
 
 export function createStarsMaterial(uniforms: StarUniforms): ShaderMaterial {

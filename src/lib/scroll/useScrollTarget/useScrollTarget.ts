@@ -7,6 +7,7 @@ import {
   type ChapterLayout,
   type JourneyStep,
 } from '../mapM/mapM';
+import { journeyPosition } from '../journeyPosition/journeyPosition';
 import { useChapterLayout } from '../useChapterLayout/useChapterLayout';
 
 interface ScrollTargetOptions {
@@ -15,10 +16,10 @@ interface ScrollTargetOptions {
   /** Lo que hace la escena en cada tramo (`JOURNEY_SEGMENTS`). */
   readonly steps: readonly JourneyStep[];
   /**
-   * Recibe el `m` objetivo y el tramo en el que se lee (su índice): al montar, al cambiar las medidas y con cada
-   * scroll.
+   * Recibe el `m` objetivo, el tramo en el que se lee (su índice) y la posición en los tramos (`journeyPosition`): al
+   * montar, al cambiar las medidas y con cada scroll.
    */
-  readonly onTarget: (m: number, segment: number) => void;
+  readonly onTarget: (m: number, segment: number, j: number) => void;
 }
 
 /**
@@ -32,7 +33,8 @@ function readingOffset(): number {
 
 /**
  * Puente scroll → `m` (docs/05-tecnico/arquitectura.md → «Puente scroll → escena»): un único escuchador
- * de scroll pasivo calcula `m = mapM(scrollY, tramos bajo la barra)` y se lo da a `onTarget` con el tramo. No pasa por
+ * de scroll pasivo calcula `m = mapM(scrollY, tramos bajo la barra)` y se lo da a `onTarget` con el tramo y la
+ * posición en los tramos (`journeyPosition`). No pasa por
  * estado de React (ADR-004): quien lo recibe decide qué hacer (hoy, `sceneStore`).
  */
 export function useScrollTarget(
@@ -43,7 +45,11 @@ export function useScrollTarget(
 
   const update = useCallback((): void => {
     const y = window.scrollY;
-    onTarget(mapM(y, layout.current, steps), segmentAt(y, layout.current));
+    onTarget(
+      mapM(y, layout.current, steps),
+      segmentAt(y, layout.current),
+      journeyPosition(y, layout.current),
+    );
   }, [steps, onTarget]);
 
   const onLayout = useCallback(

@@ -288,6 +288,12 @@
   /* La llegada del epílogo (ADR-039): lo que dura de scroll, con la sección fija (sin movimiento reducido). */
   --arrival-h: 160svh;
   /*
+   * Las naves (C.7, transiciones-naves.md): lo que dura de scroll la llegada de la nave que trae una transmisión, antes
+   * de su pantalla, y su salida, después (sin movimiento reducido; al imprimir, nada).
+   */
+  --transmission-arrival-h: 120svh;
+  --transmission-exit-h: 60vh;
+  /*
    * Lo que pinta la página en esa llegada (C.7): las esquinas que viajan salen a `--arrival-corner-inset` de las de lo
    * que se ve del escenario, con `--arrival-corner-from` de largo, y encogen hasta las del visor (`--visor-corner`); la
    * línea del haz mide `--arrival-beam-h` de grueso.

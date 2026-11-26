@@ -2,7 +2,13 @@ import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
 import { SHAPE } from '~/lib/scroll/shapeTrack/shapeTrack';
 
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
-import { PORTRAIT_TURN, SUN, TURTLE_SWAY, type ScenePoint } from '../../config/sceneConfig';
+import {
+  PORTRAIT_TURN,
+  SHIP_FRAME,
+  SUN,
+  TURTLE_SWAY,
+  type ScenePoint,
+} from '../../config/sceneConfig';
 import { hexToRgb, SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
 import {
   EARTH_TAG,
@@ -16,7 +22,7 @@ import {
  * formas (`SHAPE_*`, los de `uFrom`/`uTo`: ADR-041), las etiquetas de `aR`, el balanceo de la tortuga
  * (`TURTLE_SWAY_*`, la misma cuenta que los pins), la dirección del Sol (`SUN_DIR`, `SUN.position` normalizada: la luz
  * de la Tierra), las medidas del retrato y lo que gira, la llegada del epílogo (`ARRIVAL_*`, la misma que la cámara y
- * el DOM: ADR-039) y los colores de la paleta salen de TypeScript, la misma fuente que los generadores, los pins, el Sol y la
+ * el DOM: ADR-039), lo que se mece una nave (`SHIP_SWAY*`) y los colores de la paleta salen de TypeScript, la misma fuente que los generadores, los pins, el Sol y la
  * página. Así el GLSL no escribe ningún número de forma, etiqueta, color, balanceo o luz a mano y no puede quedarse
  * atrás si cambian.
  */
@@ -79,6 +85,8 @@ export function glslHeader(): string {
     `#define ARRIVAL_BEAM_START ${glslFloat(EPILOGUE_ARRIVAL.beam[0])}`,
     `#define ARRIVAL_BEAM_END ${glslFloat(EPILOGUE_ARRIVAL.beam[1])}`,
     `#define ARRIVAL_BEAM_REACH ${glslFloat(EPILOGUE_ARRIVAL.beamReach)}`,
+    `#define SHIP_SWAY ${glslFloat(SHIP_FRAME.sway)}`,
+    `#define SHIP_SWAY_RATE ${glslFloat(SHIP_FRAME.swayRate)}`,
     ...colours(),
     '',
   ].join('\n');

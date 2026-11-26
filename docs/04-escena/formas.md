@@ -122,6 +122,28 @@ misma sin la dispersión del morph (no se hincha).
 - Las cifras son las de la prueba de la sesión 34 con los ajustes que eligió Víctor; viven en `PORTRAIT`
   (`src/scene/shapes/portrait`).
 
+## Naves (C.7 · naves; desde el satélite)
+
+Las naves que traen las transmisiones no se generan en el worker: se dibujan **en el shader**, paramétricas
+(`docs/02-experiencia/transiciones-naves.md` → apartado 2, opción B, y la prueba v8). Cada partícula elige su pieza con
+`aR.x` y su lado o detalle con `aR.w`, y saca más números con `rx(k)`, un hash sin `sin()` de esos dos (estable en la
+GPU del móvil; `aR.y` y `aR.z` son etiquetas de la tortuga y la Tierra, no números al azar). Las piezas comunes
+(cajas con sus aristas, troncos de cono, platos parabólicos, luz con la normal de cada pieza) las compartirá la nave
+nodriza. Se dibujan en sus unidades, con la pantalla en `z = 0` mirando a +z y la proporción de lo que se ve
+(`uScreen`; en vertical, x e y cambiadas: los paneles van arriba y abajo), y las coloca `scene/math/shipPose`
+(`particulas-y-shaders.md` → «Naves»).
+
+- **Satélite** (`SHAPE_SATELLITE`, el Mission log): el bisel de la pantalla en el ámbar del canal, con tornillos y LEDs;
+  la pantalla apagada; el cuerpo (aislante dorado arrugado con costuras, radiadores blancos con aletas, frontal gris)
+  con sus aristas; dos alas de tres paneles articulados (células con sus pistas, marcos y cara trasera) sobre un yugo
+  de celosía; dos reflectores laterales con brazo y bocina; la antena de arriba; la tobera principal y cuatro de
+  control; sensores estelares; antenas de varilla; y dos guiños: la bandera de España en su mástil, ondeando, y la de
+  Irlanda, que cruza por detrás de borde a borde de lo que se ve (cada 13 s; `uFlagSpan`).
+- **En Bajo** (`uExtras` 0) no hay piezas pequeñas (tornillos, LEDs, sensores): sus partículas van al cuerpo. Las
+  banderas se quedan en todos los niveles. Las naves usan las partículas del nivel (60 000 / 36 000 / 20 000).
+- Los colores, en la paleta (`satellite*`, `flag*`); el ámbar del bisel es `--color-channel-amber` (lo comprueba el
+  test de la paleta).
+
 ## Contrato y tests
 
 ```ts

@@ -740,6 +740,10 @@
   límite (ADR-041). Esta cuenta sustituye a la anterior.
 - Nota (2026-11-25, C.7, la cara que sigue a su marco, ADR-042): pesó 277 B: **257 898 B**. Quedan 2 102 B. Esta
   cuenta sustituye a la anterior.
+- Nota (2026-11-26, C.7 · naves, el satélite, ADR-041): pesó 5 094 B, medido en Linux: **262 992 B**. Pasa del tope
+  que le quedaba y del orientativo de su paso (3,5 KB); Víctor acepta lo medido y **el límite sube a 268 000 B**: lo
+  medido, ~3 KB para la nave nodriza (si pasa, se mira antes de seguir) y ~2 KB de margen. Esta cuenta sustituye a la
+  anterior.
 - Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).
 
 ## ADR-033 · Los commits de solo documentación van directos a `main`
@@ -1112,6 +1116,19 @@
   posición de las formas entra en la huella de las fotos fijas (`lib/scroll/shapeTrack`). Hay que vigilar que la
   cámara (`arrivalShapeM`) y las formas sigan yendo a la par: hoy salen de la misma cuenta; con las naves, la cámara
   seguirá a `m` y las formas a su propia posición.
+- Nota (2026-11-26, C.7 · naves, el satélite): las formas salen ya de su propia posición, **la posición en los tramos**
+  (`lib/scroll/journeyPosition`: el tramo en el que se lee y lo recorrido de él, en línea recta, medido como `m` y
+  suavizado en la escena como ella). Cada tramo da su paso de forma y su paso de nave (`journeySteps`), y
+  `SHAPE_TRACK` pasa por el satélite entre la nebulosa y la galaxia. El Mission log tiene dos huecos alrededor de su
+  pantalla (tramos `interlude-arrival` e `interlude-exit`, con `m` quieta): en el primero la nebulosa se convierte en el
+  satélite, que se acerca y llena la vista; en el segundo se aleja, y en la cola se deshace en la galaxia. Con
+  movimiento reducido (huecos de 0) y mientras la página no ha medido los tramos, las formas salen de `m` sin naves
+  (`CHAPTER_SHAPES`). La nave se dibuja en el shader en sus unidades y la coloca `scene/math/shipPose` (su pantalla,
+  centrada bajo la barra con la proporción de la prueba); mientras está, la cámara funde su paralaje y la gravedad del
+  cursor se apaga por partícula, y sus puntos pasan a opacos con profundidad (`uSolid`, con 0 el material de siempre).
+  **El epílogo quieto llega al retrato** (`uT` 0: una sola forma; el haz pesa con el retrato entero). **Peso:** el
+  satélite pesó 5 094 B (262 992 B); Víctor acepta lo medido y el límite de la escena sube una vez a **268 000 B**, con
+  ~3 KB para la nave nodriza y ~2 KB de margen (ADR-032).
 - Detalle: `docs/04-escena/particulas-y-shaders.md` → «Mapa de formas»; `docs/02-experiencia/transiciones-naves.md`.
 
 ## ADR-042 · La cara del Crew file sigue a su marco: la página lo mide y la escena descentra su proyección

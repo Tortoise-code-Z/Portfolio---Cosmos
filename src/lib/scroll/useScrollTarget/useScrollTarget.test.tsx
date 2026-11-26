@@ -49,10 +49,10 @@ describe('useScrollTarget', () => {
         { selector: '[data-chapter]', steps: STEPS, onTarget },
       );
     });
-    expect(onTarget).toHaveBeenLastCalledWith(1, 1);
+    expect(onTarget).toHaveBeenLastCalledWith(1, 1, 1);
   });
 
-  it('maps every scroll to m, and stops listening on unmount', () => {
+  it('maps every scroll to m and to the position in the segments, and stops listening on unmount', () => {
     const onTarget = vi.fn();
     const { unmount } = renderHook(() => {
       useScrollTarget(
@@ -61,9 +61,10 @@ describe('useScrollTarget', () => {
       );
     });
     scrollTo(500);
-    expect(onTarget).toHaveBeenLastCalledWith(0.5, 0);
+    expect(onTarget).toHaveBeenLastCalledWith(0.5, 0, 0.5);
     scrollTo(3500);
-    expect(onTarget).toHaveBeenLastCalledWith(2, 2);
+    // En el último capítulo `m` se queda en su forma; la posición en los tramos sigue (2 + 500/1000).
+    expect(onTarget).toHaveBeenLastCalledWith(2, 2, 2.5);
 
     unmount();
     onTarget.mockClear();
@@ -80,13 +81,13 @@ describe('useScrollTarget', () => {
         { selector: '[data-chapter]', steps: STEPS, onTarget },
       );
     });
-    expect(onTarget).toHaveBeenLastCalledWith(0, 0);
+    expect(onTarget).toHaveBeenLastCalledWith(0, 0, 0);
     // Un ancla deja el capítulo 64 px por debajo del borde de la ventana: justo bajo la barra.
     scrollTo(1000 - 64);
-    expect(onTarget).toHaveBeenLastCalledWith(1, 1);
+    expect(onTarget).toHaveBeenLastCalledWith(1, 1, 1);
     // Arriba del todo sigue siendo la singularidad: la barra no adelanta la explosión.
     scrollTo(0);
-    expect(onTarget).toHaveBeenLastCalledWith(0, 0);
+    expect(onTarget).toHaveBeenLastCalledWith(0, 0, 0);
   });
 
   it('without a scroll padding (`auto`) the reading line is the top of the window', () => {
@@ -99,6 +100,6 @@ describe('useScrollTarget', () => {
       );
     });
     scrollTo(1000);
-    expect(onTarget).toHaveBeenLastCalledWith(1, 1);
+    expect(onTarget).toHaveBeenLastCalledWith(1, 1, 1);
   });
 });

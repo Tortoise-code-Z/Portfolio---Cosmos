@@ -25,6 +25,13 @@ export interface SceneState {
    */
   readonly m: number;
   /**
+   * La posición en los tramos que pide el scroll (`lib/scroll/journeyPosition`: el tramo y lo recorrido de él), o
+   * `null` mientras la página no ha medido los tramos (y en las maquetas y los tests que solo dan `m`). De ella salen
+   * las formas y la nave (C.7 · naves); sin ella, la escena saca las formas de `m`, sin naves. Como `mTarget`, la
+   * escena la suaviza en su frame.
+   */
+  readonly jTarget: number | null;
+  /**
    * Carga de la detonación (0–1), la del botón del hero: la escribe su bucle en cada frame mientras carga o se
    * descarga (como `mTarget` con el scroll) y la leen la escena (`uCharge`) y los efectos del Big Bang en el DOM.
    */
@@ -52,6 +59,7 @@ export interface SceneState {
 export const sceneStore = createStore<SceneState>()(() => ({
   mTarget: 0,
   m: 0,
+  jTarget: null,
   charge: 0,
   interlude: null,
   arriving: null,
@@ -59,12 +67,16 @@ export const sceneStore = createStore<SceneState>()(() => ({
 }));
 
 /**
- * Lo que pide el scroll. `m` lo sigue sin suavizado (la escena suaviza el suyo, ADR-028). Un valor que no es un
- * número finito no entra: lo leen la escena, el raíl, el HUD y el bucle del Big Bang, que no sabrían qué hacer con él.
+ * Lo que pide el scroll: `m` y, si la página ya ha medido los tramos, la posición en ellos (`jTarget`; sin ella, se
+ * queda como estaba). `m` lo sigue sin suavizado (la escena suaviza el suyo, ADR-028). Un valor que no es un número
+ * finito no entra: lo leen la escena, el raíl, el HUD y el bucle del Big Bang, que no sabrían qué hacer con él.
  */
-export function setScrollTarget(mTarget: number): void {
-  if (!Number.isFinite(mTarget) || sceneStore.getState().mTarget === mTarget) return;
-  sceneStore.setState({ mTarget, m: mTarget });
+export function setScrollTarget(mTarget: number, jTarget?: number): void {
+  const state = sceneStore.getState();
+  const m = Number.isFinite(mTarget) ? mTarget : state.mTarget;
+  const j = jTarget !== undefined && Number.isFinite(jTarget) ? jTarget : state.jTarget;
+  if (state.mTarget === m && state.jTarget === j) return;
+  sceneStore.setState({ mTarget: m, m, jTarget: j });
 }
 
 /** El interludio que se está leyendo (o `null`), con el scroll. */

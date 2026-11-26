@@ -16,6 +16,7 @@ import {
   CHAPTER_STOPS,
   chapterHash,
   EPILOGUE,
+  INTERLUDE,
   INTERLUDES,
   isInterludeStop,
   isTransmissionStop,
@@ -153,7 +154,7 @@ describe('contenido', () => {
     expect(new Set(anchors).size).toBe(anchors.length);
   });
 
-  it('los tramos del viaje: los capítulos en orden, cada interludio con su pantalla y su cola tras su capítulo', () => {
+  it('los tramos del viaje: los capítulos en orden, cada interludio con su pantalla y su cola tras su capítulo (con los huecos de su nave alrededor de la pantalla, si la trae)', () => {
     const chapters = JOURNEY_SEGMENTS.flatMap((segment) =>
       segment.kind === 'chapter' ? [segment.chapter] : [],
     );
@@ -166,14 +167,42 @@ describe('contenido', () => {
     expect([...screens.keys()]).toEqual(INTERLUDES.map((item) => item.id));
     for (const interlude of INTERLUDES) {
       const screen = screens.get(interlude.id) ?? -1;
-      expect(JOURNEY_SEGMENTS[screen - 1]).toMatchObject({
+      const gap = interlude.ship ? 1 : 0;
+      if (interlude.ship) {
+        expect(JOURNEY_SEGMENTS[screen - 1]).toMatchObject({
+          kind: 'interlude-arrival',
+          interlude: interlude.id,
+        });
+        expect(JOURNEY_SEGMENTS[screen + 1]).toMatchObject({
+          kind: 'interlude-exit',
+          interlude: interlude.id,
+        });
+      }
+      expect(JOURNEY_SEGMENTS[screen - 1 - gap]).toMatchObject({
         kind: 'chapter',
         chapter: interlude.after,
       });
-      expect(JOURNEY_SEGMENTS[screen + 1]).toMatchObject({
+      expect(JOURNEY_SEGMENTS[screen + 1 + gap]).toMatchObject({
         kind: 'interlude-tail',
         interlude: interlude.id,
       });
+    }
+    // Un interludio sin nave no tiene huecos.
+    const gaps = JOURNEY_SEGMENTS.flatMap((segment) =>
+      segment.kind === 'interlude-arrival' || segment.kind === 'interlude-exit'
+        ? [segment.interlude]
+        : [],
+    );
+    expect(gaps).toEqual(
+      INTERLUDES.filter((item) => item.ship).flatMap((item) => [item.id, item.id]),
+    );
+  });
+
+  it('los huecos de una nave dejan quieta la m del capítulo de antes (la cámara no se mueve: la forma va aparte)', () => {
+    for (const segment of JOURNEY_SEGMENTS) {
+      if (segment.kind !== 'interlude-arrival' && segment.kind !== 'interlude-exit') continue;
+      expect(segment.base).toBe(INTERLUDE[segment.interlude].after);
+      expect(segment.morphStart).toBeNull();
     }
   });
 

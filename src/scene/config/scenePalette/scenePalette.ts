@@ -49,6 +49,28 @@ export const SCENE_PALETTE = {
   portraitDeep: '#21804d',
   portraitGlow: '#6dff9f',
   portraitHot: '#d5ffe4',
+  // Satélite (C.7 · naves, la prueba v8): el ámbar del canal del Mission log (`--color-channel-amber`) en el bisel, el
+  // aislante dorado del cuerpo, la plata de los marcos, los radiadores blancos, las células solares, las toberas, la
+  // lente de los sensores y el LED verde
+  satelliteChannel: '#ffb547',
+  satelliteGold: '#f2b347',
+  satelliteGoldLight: '#ffdb80',
+  satelliteSilver: '#c7ccd9',
+  satelliteWhite: '#e6e8ed',
+  satelliteCellDeep: '#081452',
+  satelliteCellSheen: '#294ce0',
+  satelliteNozzle: '#8c807a',
+  satelliteLens: '#0d1433',
+  satelliteLed: '#33ff66',
+  // Las banderas del satélite (un guiño): Irlanda (verde, blanco, naranja) y España (rojo, gualda y el escudo)
+  flagIrelandGreen: '#009e4d',
+  flagIrelandWhite: '#f2f2f2',
+  flagIrelandOrange: '#ff851a',
+  flagSpainRed: '#c70d1a',
+  flagSpainYellow: '#ffc200',
+  flagSpainCrown: '#f2b326',
+  flagSpainShield: '#b31a1f',
+  flagSpainShieldGold: '#f2cc4d',
   // Estrellas de fondo
   starCold: '#bfd1ff',
   starWarm: '#ffd9a6',

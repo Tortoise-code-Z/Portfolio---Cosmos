@@ -1,7 +1,6 @@
 // Partículas de la escena (docs/04-escena/particulas-y-shaders.md). Un vértice por partícula: se evalúan solo
-// las dos formas que se mezclan (`uFrom` y `uTo`, con `uT`: el mapa de formas, ADR-041), y una sola con `uT` 0. Salvo
-// en el epílogo: ahí la escena se para con `uT` 0,999 (el tope del mapa de formas) y se evalúan la Tierra y el
-// retrato, y con `uPor` < 1 el retrato vuelve a evaluar la Tierra. Los ids de las formas (SHAPE_*), las etiquetas
+// las dos formas que se mezclan (`uFrom` y `uTo`, con `uT`: el mapa de formas, ADR-041), y una sola con `uT` 0 (en el
+// epílogo, quieta, el retrato; con `uPor` < 1 el retrato vuelve a evaluar la Tierra). Los ids de las formas (SHAPE_*), las etiquetas
 // (TURTLE_*, EARTH_*, PLATE_*), el balanceo de la tortuga (también TURTLE_*), las medidas del retrato (PORTRAIT_*) y
 // los colores (COLOR_*) llegan en la cabecera que genera `scene/shaders/glslHeader` desde TypeScript.
 // Tres.js añade `position`, las matrices, `cameraPosition` y la precisión (ShaderMaterial).
@@ -26,6 +25,16 @@ uniform vec2 uMouse;
 uniform float uMotion;
 uniform float uExtras;
 uniform float uPor;
+// La nave (C.7 · naves; scene/math/shipPose): centro de su pantalla, ejes (los de la cámara), tamaño, giro (Y, X), su
+// pantalla en sus unidades, en vertical o no, hasta dónde cruza la bandera de Irlanda y lo opaca que es (uSolid).
+uniform vec3 uShipPos;
+uniform mat3 uShipAxes;
+uniform float uShipScale;
+uniform vec2 uShipTurn;
+uniform vec2 uScreen;
+uniform float uVert;
+uniform float uFlagSpan;
+uniform float uSolid;
 
 varying vec3 vCol;
 varying float vA;
@@ -73,6 +82,103 @@ float hash(float n) {
 
 bool isTag(float tag, float value) {
   return abs(tag - value) < 0.5;
+}
+
+// ── Piezas de las naves (C.7 · naves: la prueba v8, docs/04-escena/formas.md → «Naves») ──────────────────────────
+// Paramétricas: cada partícula elige un punto de una pieza con sus números (aR.x y aR.w, y los que salen de ellos con
+// rx), sin datos nuevos. La nave se dibuja en sus unidades (la pantalla en z = 0, mirando a +z) y shape() la coloca.
+
+vec3 rotX(vec3 p, float a) {
+  float c = cos(a);
+  float s = sin(a);
+  return vec3(p.x, c * p.y - s * p.z, s * p.y + c * p.z);
+}
+
+// Un número de 0 a 1 por punto, sin sin() (estable en la GPU del móvil con argumentos grandes).
+float hash2(vec2 p) {
+  vec3 q = fract(p.xyx * 0.1031);
+  q += dot(q, q.yzx + 33.33);
+  return fract((q.x + q.y) * q.z);
+}
+
+// Más números por partícula: aR solo trae dos al azar (x y w; y y z son etiquetas de la tortuga y la Tierra).
+float rx(float k) {
+  return hash2(aR.xw * 4093.0 + k);
+}
+
+// Luz de las naves: una principal y un contraluz, con la normal de cada pieza.
+const vec3 SHIP_KEY = vec3(-0.45, 0.62, 0.64);
+const vec3 SHIP_RIM = vec3(0.7, -0.2, -0.6);
+float lit(vec3 n) {
+  n = normalize(n);
+  return 0.18 + 0.95 * max(dot(n, normalize(SHIP_KEY)), 0.0) + 0.35 * max(dot(n, normalize(SHIP_RIM)), 0.0);
+}
+
+// Un punto del borde de un rectángulo de semiejes h (t de 0 a 1, por su perímetro).
+vec2 rectEdge(float t, vec2 h) {
+  float d = t * 4.0 * (h.x + h.y);
+  if (d < 2.0 * h.x) return vec2(-h.x + d, h.y);
+  d -= 2.0 * h.x;
+  if (d < 2.0 * h.y) return vec2(h.x, h.y - d);
+  d -= 2.0 * h.y;
+  if (d < 2.0 * h.x) return vec2(h.x - d, -h.y);
+  d -= 2.0 * h.x;
+  return vec2(-h.x, -h.y + d);
+}
+
+// Caja de semiejes e: un punto de su superficie (por área) y su normal.
+void boxSurf(vec3 e, float a, float b, float c, out vec3 p, out vec3 n) {
+  vec3 ar = vec3(e.y * e.z, e.x * e.z, e.x * e.y);
+  float pick = c * (ar.x + ar.y + ar.z);
+  float sg = rx(3.0) < 0.5 ? -1.0 : 1.0;
+  if (pick < ar.x) {
+    p = vec3(sg * e.x, (a * 2.0 - 1.0) * e.y, (b * 2.0 - 1.0) * e.z);
+    n = vec3(sg, 0.0, 0.0);
+  } else if (pick < ar.x + ar.y) {
+    p = vec3((a * 2.0 - 1.0) * e.x, sg * e.y, (b * 2.0 - 1.0) * e.z);
+    n = vec3(0.0, sg, 0.0);
+  } else {
+    p = vec3((a * 2.0 - 1.0) * e.x, (b * 2.0 - 1.0) * e.y, sg * e.z);
+    n = vec3(0.0, 0.0, sg);
+  }
+}
+
+// Una arista de la caja: los contornos hacen que la forma se lea.
+vec3 boxEdge(vec3 e, float a, float c) {
+  float k = floor(c * 12.0);
+  float s1 = mod(k, 2.0) < 1.0 ? -1.0 : 1.0;
+  float s2 = mod(floor(k / 2.0), 2.0) < 1.0 ? -1.0 : 1.0;
+  float ax = floor(k / 4.0);
+  float t = a * 2.0 - 1.0;
+  if (ax < 0.5) return vec3(t * e.x, s1 * e.y, s2 * e.z);
+  if (ax < 1.5) return vec3(s1 * e.x, t * e.y, s2 * e.z);
+  return vec3(s1 * e.x, s2 * e.y, t * e.z);
+}
+
+// Tronco de cono a lo largo de z (radio r0 en z0 y r1 en z1): toberas, bocinas, sensores.
+void frustum(float r0, float r1, float z0, float z1, float a, float b, out vec3 p, out vec3 n) {
+  float an = a * 2.0 * PI;
+  vec2 d = vec2(cos(an), sin(an));
+  p = vec3(d * mix(r0, r1, b), mix(z0, z1, b));
+  n = normalize(vec3(d, (r0 - r1) / max(abs(z1 - z0), 1e-3)));
+}
+
+// Plato parabólico de radio rr y profundidad f, con nervios (rib 1); mira a +z.
+void dish(float rr, float f, float a, float b, out vec3 p, out vec3 n, out float rib) {
+  float an = a * 2.0 * PI;
+  rib = 0.0;
+  if (rx(5.0) < 0.28) {
+    an = floor(a * 12.0) / 12.0 * 2.0 * PI;
+    rib = 1.0;
+  }
+  float r = sqrt(b) * rr;
+  p = vec3(cos(an) * r, sin(an) * r, f * r * r / (rr * rr));
+  n = normalize(vec3(-2.0 * f * p.xy / (rr * rr), 1.0));
+}
+
+// En vertical, la nave se dibuja con x e y cambiadas (los paneles del satélite, arriba y abajo).
+vec3 sw(vec3 q) {
+  return uVert < 0.5 ? q : vec3(q.y, q.x, q.z);
 }
 
 // Singularidad (SHAPE_SINGULARITY): la dirección de `position` escalada casi a cero; la carga la hincha y la hace vibrar.
@@ -250,8 +356,233 @@ void portrait(out vec3 P, out vec3 C, out float S, out float A) {
   }
 }
 
-// La forma de id `id` (SHAPE_*): una rama por forma del viaje. Las naves (SHAPE_SATELLITE, SHAPE_MOTHERSHIP) aún no
-// están en él. Un id sin rama no pinta nada (tamaño y alfa 0): no se disfraza de otra forma.
+// Satélite (SHAPE_SATELLITE, el Mission log): bisel con tornillos y LEDs · cuerpo (aislante dorado, radiadores blancos
+// con aletas, frontal gris) con aristas · dos alas de tres paneles articulados (células con sus pistas, marcos, cara
+// trasera) sobre un yugo de celosía · dos reflectores laterales con brazo y bocina · antena superior · toberas ·
+// sensores estelares · antenas de varilla · y dos guiños: la bandera de España en su mástil y la de Irlanda, que cruza
+// por detrás. En sus unidades: la pantalla en z = 0, con la proporción de uScreen. En Bajo (uExtras 0), sin las piezas
+// pequeñas (tornillos, LEDs y sensores): sus partículas van al cuerpo.
+void satelliteParts(out vec3 P, out vec3 C) {
+  vec2 h0 = uScreen * 0.5;
+  vec2 h = uVert < 0.5 ? h0 : h0.yx;
+  float u = aR.x;
+  float a = rx(31.0);
+  float b = rx(32.0);
+  float c = aR.w;
+  if (uExtras < 0.5 && ((u < 0.08 && c > 0.92) || (u > 0.92 && u < 0.955))) u = 0.12 + 0.18 * rx(33.0);
+  vec3 n = vec3(0.0, 0.0, 1.0);
+  vec3 B = vec3(h.x * 1.12, h.y * 1.14, h.y * 0.62);
+  float bz = -B.z - 0.1;
+  vec3 silver = COLOR_SATELLITE_SILVER;
+  vec3 white = COLOR_SATELLITE_WHITE;
+  P = vec3(0.0);
+  C = P;
+  if (u < 0.08) {
+    // El bisel de la pantalla, en el color del canal, su canto y, en las esquinas, tornillos y LEDs de estado.
+    if (c < 0.82) {
+      P = vec3(rectEdge(a, h0 + vec2(0.03 + 0.1 * b)), 0.08);
+      C = mix(COLOR_SATELLITE_CHANNEL, vec3(1.0), 0.5) * 1.1;
+    } else if (c < 0.92) {
+      P = vec3(rectEdge(a, h0 + vec2(0.02)) * (1.0 - 0.02 * b), 0.05 - 0.07 * b);
+      C = silver * 0.6;
+    } else {
+      vec2 cr = vec2(rx(1.0) < 0.5 ? -1.0 : 1.0, rx(2.0) < 0.5 ? -1.0 : 1.0);
+      float an = a * 2.0 * PI;
+      P = vec3(cr * (h0 + vec2(0.09)) + vec2(cos(an), sin(an)) * 0.025, 0.1);
+      C = rx(4.0) < 0.5
+        ? silver
+        : (cr.x > 0.0 ? COLOR_SATELLITE_LED : COLOR_SATELLITE_CHANNEL) * (0.4 + 0.8 * step(0.5, fract(uTime * 0.9 + cr.y * 0.3)));
+    }
+    return;
+  }
+  if (u < 0.12) {
+    // La pantalla, apagada: el fondo del canal.
+    P = vec3((a * 2.0 - 1.0) * h0.x, (b * 2.0 - 1.0) * h0.y, 0.0);
+    C = COLOR_SATELLITE_CHANNEL * 0.06 + COLOR_SATELLITE_LENS * 0.2;
+    return;
+  }
+  if (u < 0.3) {
+    // El cuerpo: radiadores con aletas arriba y abajo, frontal gris y aislante dorado arrugado, con costuras.
+    boxSurf(B, a, b, c, P, n);
+    P.z += bz;
+    if (abs(n.y) > 0.5) {
+      C = white * (fract(P.x * 6.0) < 0.12 ? 0.55 : 1.0);
+    } else if (n.z > 0.5) {
+      C = silver * 0.55 * (0.85 + 0.3 * hash2(floor(P.xy * 6.0)));
+    } else {
+      C = mix(COLOR_SATELLITE_GOLD * 0.6, COLOR_SATELLITE_GOLD_LIGHT, hash2(floor(P.yz * 4.0)))
+        * (0.55 + 0.8 * hash2(floor((P.yz + P.xx) * 14.0)));
+      if (fract(P.y * 2.4) < 0.05 || fract(P.z * 2.4) < 0.05) C *= 0.4;
+    }
+    C *= lit(n);
+  } else if (u < 0.33) {
+    P = boxEdge(B * 1.004, a, c);
+    P.z += bz;
+    C = silver * 1.15;
+  } else if (u < 0.62) {
+    // Las alas: tres paneles por lado, con su marco, las pistas entre células, las células y la cara trasera.
+    float side = c < 0.5 ? -1.0 : 1.0;
+    float PW = h.x * 0.95;
+    float panel = floor(a * 3.0);
+    float s = fract(a * 3.0);
+    float t = b;
+    float m = rx(6.0);
+    vec3 col;
+    if (m < 0.12) {
+      if (rx(7.0) < 0.5) t = step(0.5, rx(8.0));
+      else s = step(0.5, rx(8.0));
+      col = silver;
+    } else if (m < 0.2) {
+      if (rx(7.0) < 0.5) s = floor(s * 4.0 + 0.5) / 4.0;
+      else t = floor(t * 6.0 + 0.5) / 6.0;
+      col = silver * 0.75;
+    } else {
+      s = (floor(s * 4.0) + 0.07 + fract(s * 4.0) * 0.86) / 4.0;
+      t = (floor(t * 6.0) + 0.07 + fract(t * 6.0) * 0.86) / 6.0;
+      col = mix(
+        COLOR_SATELLITE_CELL_DEEP,
+        COLOR_SATELLITE_CELL_SHEEN,
+        0.55 + 0.5 * hash2(vec2(floor(s * 4.0) + panel * 10.0, floor(t * 6.0)) + side * 31.0)
+      );
+    }
+    P = vec3(side * (B.x + h.x * 0.45 + panel * (PW + h.x * 0.06) + s * PW), (t * 2.0 - 1.0) * h.y * 0.9, 0.0);
+    bool back = rx(9.0) < 0.22;
+    if (back) {
+      P.z -= 0.03;
+      col = white * 0.55;
+    }
+    P = rotX(P, 0.3);
+    P.z += bz;
+    C = col * lit(vec3(0.0, sin(0.3), cos(0.3)) * (back ? -1.0 : 1.0)) * (back ? 1.0 : 1.3);
+  } else if (u < 0.66) {
+    // El yugo de celosía que sujeta las alas.
+    float side = c < 0.5 ? -1.0 : 1.0;
+    float k = floor(rx(1.0) * 4.0);
+    float y0 = (k < 2.0 ? 0.35 : -0.35) * h.y;
+    P = mix(vec3(side * B.x, y0, 0.0), vec3(side * (B.x + h.x * 0.45), mod(k, 2.0) > 0.5 ? y0 : 0.0, 0.0), a);
+    P = rotX(P, 0.3);
+    P.z += bz;
+    C = silver * 0.9;
+  } else if (u < 0.8) {
+    // Los reflectores laterales, con su brazo y su bocina.
+    float side = c < 0.5 ? -1.0 : 1.0;
+    float rr = h.y * 0.7;
+    vec3 base = vec3(side * (B.x + rr * 0.15), -h.y * 0.25, bz + B.z * 0.2);
+    float part = rx(1.0);
+    float rib;
+    if (part < 0.78) {
+      vec3 d;
+      dish(rr, rr * 0.35, a, b, d, n, rib);
+      n = rotY(n, side * 1.1);
+      P = base + vec3(side * rr * 0.95, 0.0, 0.0) + rotY(d, side * 1.1);
+      C = white * lit(n) * (rib > 0.5 ? 0.7 : 1.05);
+    } else if (part < 0.9) {
+      P = mix(vec3(side * B.x, -h.y * 0.25, bz + B.z), base + vec3(side * rr * 0.5, 0.0, rr * 0.6), a);
+      C = silver;
+    } else {
+      frustum(0.02 * h.y, 0.09 * h.y, 0.0, 0.18 * h.y, a, b, P, n);
+      P = rotY(P, side * 1.1) + vec3(side * (B.x + 0.05), -h.y * 0.25, bz + B.z + 0.12);
+      C = COLOR_SATELLITE_GOLD * lit(n);
+    }
+  } else if (u < 0.86) {
+    // La antena de arriba, con su mástil.
+    float rr = h.y * 0.4;
+    vec3 base = vec3(-h.x * 0.4, B.y + h.y * 0.35, bz);
+    float rib;
+    if (c < 0.15) {
+      P = mix(vec3(base.x, B.y, bz), base, a);
+      C = silver;
+    } else {
+      vec3 d;
+      dish(rr, rr * 0.4, a, b, d, n, rib);
+      P = base + rotX(d, -1.05);
+      C = white * lit(rotX(n, -1.05)) * (rib > 0.5 ? 0.7 : 1.05);
+    }
+  } else if (u < 0.92) {
+    // La tobera principal, detrás, y cuatro de control en las esquinas.
+    if (c < 0.45) {
+      frustum(0.06 * h.y, 0.22 * h.y, 0.0, -0.35 * h.y, a, b, P, n);
+      P.z += bz - B.z;
+      C = COLOR_SATELLITE_NOZZLE * lit(n);
+    } else {
+      float k = floor(c * 8.0);
+      vec2 cr = vec2(mod(k, 2.0) < 1.0 ? -1.0 : 1.0, mod(floor(k / 2.0), 2.0) < 1.0 ? -1.0 : 1.0);
+      frustum(0.02 * h.y, 0.06 * h.y, 0.0, -0.12 * h.y, a, b, P, n);
+      P += vec3(cr * B.xy * 0.85, bz - B.z);
+      C = silver * 0.75 * lit(n);
+    }
+  } else if (u < 0.955) {
+    // Sensores estelares y solares: cilindros con su lente.
+    vec3 q;
+    frustum(0.07 * h.y, 0.07 * h.y, 0.0, 0.2 * h.y, a, b, q, n);
+    P = vec3((floor(c * 3.0) - 1.0) * B.x * 0.5, B.y, bz - B.z * 0.4) + q.xzy;
+    C = (b > 0.9 ? COLOR_SATELLITE_LENS : silver * 0.8) * lit(n.xzy);
+  } else if (u > 0.98) {
+    // Bandera de Irlanda, suelta: entra por el borde izquierdo de lo que se ve, pasa flotando por detrás del satélite
+    // dando vueltas y sale por el derecho (uFlagSpan: fuera de la vista también mientras la nave se acerca).
+    float k = fract(uTime / 13.0 + 0.15);
+    vec3 at = vec3(
+      mix(-uFlagSpan, uFlagSpan, k),
+      h0.y * (uVert < 0.5 ? 1.3 : 1.35) + sin(uTime * 0.7) * h0.y * 0.12,
+      bz - B.z - h.y * 0.7
+    );
+    float ph = a * 6.0 - uTime * 2.4;
+    vec3 q = rotX(rotY(vec3((a - 0.5) * h.y * 1.15, (b - 0.5) * h.y * 0.66, sin(ph) * 0.08 * h.y), uTime * 0.9), uTime * 0.55);
+    n = rotX(rotY(normalize(vec3(-cos(ph) * 0.3, 0.0, 1.0)), uTime * 0.9), uTime * 0.55);
+    vec3 col = a < 1.0 / 3.0 ? COLOR_FLAG_IRELAND_GREEN : (a < 2.0 / 3.0 ? COLOR_FLAG_IRELAND_WHITE : COLOR_FLAG_IRELAND_ORANGE);
+    P = at + q;
+    C = col * (0.35 + 0.85 * abs(dot(n, normalize(SHIP_KEY))));
+    return;
+  } else if (u > 0.962) {
+    // Bandera de España en su mástil, detrás del cuerpo, ondeando en horizontal en las dos orientaciones (en el
+    // espacio no hay viento: es una broma), con el escudo simplificado cerca del mástil.
+    vec3 base = sw(vec3(B.x * 0.55, B.y, bz - B.z * 0.7));
+    float up = uVert < 0.5 ? h.y : h.x;
+    float ub = uVert < 0.5 ? 0.0 : B.x - B.y;
+    if (c < 0.12) {
+      P = base + vec3(0.0, ub + a * (up * 1.25 + h.y * 0.62), 0.0);
+      C = silver * lit(vec3(-1.0, 0.0, 0.4));
+    } else {
+      float ph = a * 7.0 - uTime * 3.2;
+      vec3 q = vec3(a * h.y, ub + up * 1.25 + b * h.y * 0.62 - a * a * 0.06 * h.y, sin(ph) * 0.09 * h.y * a);
+      q.y += cos(ph * 0.7) * 0.03 * h.y * a;
+      vec3 stripe = (b < 0.25 || b > 0.75) ? COLOR_FLAG_SPAIN_RED : COLOR_FLAG_SPAIN_YELLOW;
+      vec2 e = vec2((a - 0.3) / 0.11, (b - 0.5) / 0.17);
+      if (dot(e, e) < 1.0) {
+        stripe = e.y > 0.55
+          ? COLOR_FLAG_SPAIN_CROWN
+          : mix(COLOR_FLAG_SPAIN_SHIELD, COLOR_FLAG_SPAIN_SHIELD_GOLD, step(0.0, e.x * e.y));
+      }
+      P = base + q;
+      C = stripe * (0.62 + 0.45 * cos(ph));
+    }
+    return;
+  } else {
+    // Antenas de varilla, abajo, y una omnidireccional.
+    float k = floor(c * 4.0);
+    float an = a * 2.0 * PI;
+    P = k < 3.0
+      ? vec3(B.x * 0.6 * (k - 1.0), -B.y - a * h.y * 0.7, bz + B.z * 0.6)
+      : vec3(B.x * 0.7 + cos(an) * 0.04 * h.y, -B.y - 0.2 * h.y + b * 0.15 * h.y, bz + sin(an) * 0.04 * h.y);
+    C = k < 3.0 ? silver : white;
+  }
+  P = sw(P);
+}
+
+// Una nave, de sus unidades a la escena (scene/math/shipPose): girada, meciéndose un poco, a su tamaño y en su sitio.
+vec3 placeShip(vec3 p) {
+  return uShipPos + uShipAxes * (rotX(rotY(p, uShipTurn.x + sin(uTime * SHIP_SWAY_RATE) * SHIP_SWAY), uShipTurn.y) * uShipScale);
+}
+
+void satellite(out vec3 P, out vec3 C, out float S, out float A) {
+  satelliteParts(P, C);
+  P = placeShip(P);
+  S = 0.5;
+  A = 0.6;
+}
+
+// La forma de id `id` (SHAPE_*): una rama por forma del viaje. La nave nodriza (SHAPE_MOTHERSHIP) aún no está en él.
+// Un id sin rama no pinta nada (tamaño y alfa 0): no se disfraza de otra forma.
 void shape(float id, out vec3 P, out vec3 C, out float S, out float A) {
   if (isTag(id, SHAPE_SINGULARITY)) singularity(P, C, S, A);
   else if (isTag(id, SHAPE_NEBULA)) nebula(P, C, S, A);
@@ -259,6 +590,7 @@ void shape(float id, out vec3 P, out vec3 C, out float S, out float A) {
   else if (isTag(id, SHAPE_TURTLE)) turtle(P, C, S, A);
   else if (isTag(id, SHAPE_EARTH)) earth(P, C, S, A);
   else if (isTag(id, SHAPE_PORTRAIT)) portrait(P, C, S, A);
+  else if (isTag(id, SHAPE_SATELLITE)) satellite(P, C, S, A);
   else {
     P = vec3(0.0);
     C = P;
@@ -272,9 +604,9 @@ void main() {
   // acabar el tramo: ADR-039) ya viene en uT (lib/scroll/shapeTrack, la misma cuenta que la cámara).
   float tt = smoothstep(0.0, 1.0, clamp((uT - aR.x * MORPH_DELAY) / MORPH_SPAN, 0.0, 1.0));
   bool toPortrait = isTag(uTo, SHAPE_PORTRAIT);
-  // Lo que esta partícula ya es retrato (0 → 1, con su retraso y con uPor): pesa el haz de la llegada y apaga la
-  // gravedad del cursor sobre la cara (ADR-042).
-  float portraitWeight = toPortrait ? tt * uPor : 0.0;
+  // Lo que esta partícula ya es retrato (0 → 1, con su retraso y con uPor; quieta en el retrato, uPor): pesa el haz de
+  // la llegada y apaga la gravedad del cursor sobre la cara (ADR-042).
+  float portraitWeight = toPortrait ? (isTag(uFrom, SHAPE_PORTRAIT) ? 1.0 : tt) * uPor : 0.0;
 
   vec3 PA; vec3 PB; vec3 CA; vec3 CB; float SA; float SB; float AA; float AB;
   shape(uFrom, PA, CA, SA, AA);
@@ -306,13 +638,17 @@ void main() {
 
   vec4 mv = modelViewMatrix * vec4(P, 1.0);
   gl_Position = projectionMatrix * mv;
-  gl_PointSize = min(S * uPR * (SIZE_DISTANCE / -mv.z), SIZE_MAX_PX);
+  // Opacos (una nave, uSolid 1), puntos finos y con un mínimo, para que sus piezas se lean nítidas.
+  float size = S * uPR * (SIZE_DISTANCE / -mv.z);
+  gl_PointSize = mix(min(size, SIZE_MAX_PX), clamp(size * 1.15, 1.2 * uPR, 3.4 * uPR), uSolid);
 
   // Gravedad del cursor, en pantalla y sin tocar la geometría (uGrav 0: táctil, sin ratón dentro, movimiento reducido).
   // Sobre la cara, nada: la deformaría (portraitWeight).
   vec2 d = gl_Position.xy / gl_Position.w - uMouse;
   d.x *= uAspect;
-  float f = exp(-dot(d, d) * GRAV_FALLOFF) * uGrav * (1.0 - portraitWeight);
+  // Sobre la nave, tampoco: su pantalla encaja con lo que se ve (C.7 · naves). Lo que la partícula ya es nave.
+  float shipWeight = (isTag(uFrom, SHAPE_SATELLITE) ? 1.0 - tt : 0.0) + (isTag(uTo, SHAPE_SATELLITE) ? tt : 0.0);
+  float f = exp(-dot(d, d) * GRAV_FALLOFF) * uGrav * max(1.0 - portraitWeight - shipWeight, 0.0);
   vec2 off = (vec2(-d.y, d.x) * GRAV_SWIRL + d * GRAV_RADIAL) * f * GRAV_REACH;
   off.x /= uAspect;
   gl_Position.xy += off * gl_Position.w;

@@ -93,4 +93,8 @@ describe('the CSS pairs of the scene colours (styles/tokens.css)', () => {
     expect(token('--color-channel-green')).toBe(SCENE_PALETTE.portraitGlow);
     expect(token('--color-channel-green-bright')).toBe(SCENE_PALETTE.portraitHot);
   });
+
+  it('the satellite frames its screen in the amber of the Mission log channel', () => {
+    expect(token('--color-channel-amber')).toBe(SCENE_PALETTE.satelliteChannel);
+  });
 });

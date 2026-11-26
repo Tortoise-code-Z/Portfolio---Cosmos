@@ -4,7 +4,7 @@ import { EPILOGUE_ARRIVAL } from '~/lib/scroll/arrival/arrival';
 import { SHAPE, SHAPE_TRACK, type ShapeId } from '~/lib/scroll/shapeTrack/shapeTrack';
 
 import { FIRST_PLATE_LABEL, LAST_PLATE_LABEL } from '../../config/plateSlots/plateSlots';
-import { PORTRAIT_TURN, SUN, TURTLE_SWAY } from '../../config/sceneConfig';
+import { PORTRAIT_TURN, SHIP_FRAME, SUN, TURTLE_SWAY } from '../../config/sceneConfig';
 import { SCENE_PALETTE } from '../../config/scenePalette/scenePalette';
 import { EARTH_TAG, PORTRAIT_FRAME, TURTLE_TAG } from '../../shapes/shapeContract/shapeContract';
 import { stripGlslComments } from '../stripGlslComments/stripGlslComments';
@@ -130,10 +130,20 @@ describe('glslHeader', () => {
     );
   });
 
-  it('the cursor gravity leaves the face alone: its pull and glow go by what is still not portrait', () => {
+  it('the cursor gravity leaves the face and the ships alone: its pull and glow go by what is still neither', () => {
     expect(particlesCode).toContain(
-      'float f = exp(-dot(d, d) * GRAV_FALLOFF) * uGrav * (1.0 - portraitWeight);',
+      'float f = exp(-dot(d, d) * GRAV_FALLOFF) * uGrav * max(1.0 - portraitWeight - shipWeight, 0.0);',
     );
+    expect(particlesCode).toContain(
+      'float shipWeight = (isTag(uFrom, SHAPE_SATELLITE) ? 1.0 - tt : 0.0) + (isTag(uTo, SHAPE_SATELLITE) ? tt : 0.0);',
+    );
+  });
+
+  it('defines how a ship sways from the same numbers as its pose (SHIP_FRAME)', () => {
+    const define = (name: string): number =>
+      Number(new RegExp(`#define ${name} (\\S+)\\n`).exec(header)?.[1]);
+    expect(define('SHIP_SWAY')).toBe(SHIP_FRAME.sway);
+    expect(define('SHIP_SWAY_RATE')).toBe(SHIP_FRAME.swayRate);
   });
 
   it('defines the arrival of the epilogue from the same numbers as the camera and the page (ADR-039)', () => {

@@ -20,6 +20,7 @@ describe('sceneStore', () => {
     expect(sceneStore.getState()).toEqual({
       mTarget: 0,
       m: 0,
+      jTarget: null,
       charge: 0,
       interlude: null,
       arriving: null,
@@ -32,11 +33,34 @@ describe('sceneStore', () => {
     expect(sceneStore.getState()).toEqual({
       mTarget: 2.4,
       m: 2.4,
+      jTarget: null,
       charge: 0,
       interlude: null,
       arriving: null,
       portraitShift: { x: 0, y: 0 },
     });
+  });
+
+  it('keeps the position in the segments with m, once the page has measured them', () => {
+    setScrollTarget(1, 2.25);
+    expect(sceneStore.getState()).toMatchObject({ mTarget: 1, m: 1, jTarget: 2.25 });
+    // Sin posición (las maquetas y los tests que solo dan `m`), la que había.
+    setScrollTarget(1.5);
+    expect(sceneStore.getState()).toMatchObject({ mTarget: 1.5, jTarget: 2.25 });
+    // Una posición que no es un número finito no entra; `m` sí.
+    setScrollTarget(2, Number.NaN);
+    expect(sceneStore.getState()).toMatchObject({ mTarget: 2, jTarget: 2.25 });
+  });
+
+  it('notifies when only the position in the segments changes (m still: a ship arriving)', () => {
+    setScrollTarget(1, 2.1);
+    const listener = vi.fn();
+    const unsubscribe = sceneStore.subscribe(listener);
+    setScrollTarget(1, 2.2);
+    setScrollTarget(1, 2.2);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(sceneStore.getState().jTarget).toBe(2.2);
+    unsubscribe();
   });
 
   it('does not notify when the target has not changed', () => {
@@ -59,6 +83,7 @@ describe('sceneStore', () => {
     expect(sceneStore.getState()).toEqual({
       mTarget: 1.5,
       m: 1.5,
+      jTarget: null,
       charge: 0,
       interlude: null,
       arriving: null,
@@ -75,6 +100,7 @@ describe('setCharge', () => {
     expect(sceneStore.getState()).toEqual({
       mTarget: 0.1,
       m: 0.1,
+      jTarget: null,
       charge: 0.4,
       interlude: null,
       arriving: null,
@@ -122,6 +148,7 @@ describe('selectActiveStop', () => {
   const state = (m: number, interlude: 'mission-log' | null, arriving: 5 | null = null) => ({
     mTarget: m,
     m,
+    jTarget: null,
     charge: 0,
     interlude,
     arriving,

@@ -397,7 +397,7 @@ describe('SceneRoot', () => {
     const { canvas, onPainted } = renderScene('low');
     expect(onPainted).toHaveBeenCalledTimes(1);
     expect(canvas.closest('[aria-hidden="true"]')).toHaveAttribute('data-particles', 'painted');
-    setScrollTarget(2.25);
+    setScrollTarget(2.25, 6.5);
     setCharge(0.3);
     setPortraitShift(30, -200);
     // Un hueco de 1 s (más que el tope): el frame lleva el reloj de la escena, no los segundos del bucle.
@@ -405,12 +405,16 @@ describe('SceneRoot', () => {
     frames.tick(2000);
     expect(seen.frame).toEqual({
       m: 2.25,
+      // La posición en los tramos (las formas y las naves): la que pide el scroll, como `m`.
+      j: 6.5,
       charge: 0.3,
       time: MAX_STEP_S,
       delta: MAX_STEP_S,
       reducedMotion: false,
       pixelRatio: 2,
       aspect: 1.6,
+      // Sin barra que tape (jsdom no tiene la del sitio).
+      barTop: 0,
       extras: false,
       wide: false,
       pointer: { x: 0, y: 0, inside: false },
@@ -434,6 +438,12 @@ describe('SceneRoot', () => {
     expect(advance).toHaveBeenCalledTimes(2);
     // R3F avanza con los segundos del bucle (sus `useFrame` leen el reloj del frame compartido).
     expect(advance).toHaveBeenLastCalledWith(1);
+    // La posición en los tramos se suaviza como `m`: un salto no llega de golpe.
+    setScrollTarget(2.25, 8.5);
+    frames.tick(2016);
+    const { j } = seen.frame as { j: number };
+    expect(j).toBeGreaterThan(6.5);
+    expect(j).toBeLessThan(8.5);
     // Leyendo Mission control, el frame lo dice (los pins lo leen de ahí, no del store).
     setReadingInterlude('mission-control');
     frames.tick(3000);

@@ -100,6 +100,15 @@ describe('cameraPose', () => {
     expect(moved.target).toEqual(still.target);
   });
 
+  it('fades the parallax with its weight (to none while a ship is seen: its screen fits what is seen)', () => {
+    const still = pose(1, true);
+    const half = cameraPose(1, true, { x: 1, y: -1 }, createCameraPose(), 0.5);
+    expect(half.position.x - still.position.x).toBeCloseTo(PARALLAX.x / 2, 10);
+    expect(half.position.y - still.position.y).toBeCloseTo(-PARALLAX.y / 2, 10);
+    const none = cameraPose(1, true, { x: 1, y: -1 }, createCameraPose(), 0);
+    expect(none.position).toEqual(still.position);
+  });
+
   it('writes into the pose it gets and returns it: no new objects each frame', () => {
     const out = createCameraPose();
     const { position, target } = out;

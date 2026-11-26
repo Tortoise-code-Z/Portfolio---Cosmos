@@ -6,6 +6,7 @@ import { createParticleGeometry, PORTRAIT_ATTRIBUTE } from '../particleGeometry/
 import {
   createParticleMaterial,
   createParticleUniforms,
+  updateParticleMaterial,
   updateParticleUniforms,
   type SceneFrame,
 } from '../sceneMaterials/sceneMaterials';
@@ -81,6 +82,8 @@ export function useParticles({
   useFrame(() => {
     // `uPor` sigue a la geometría que se pinta, no a un aviso aparte: nunca un frame con `uPor` y sin `pPor`.
     updateParticleUniforms(uniforms, frame, geometry.hasAttribute(PORTRAIT_ATTRIBUTE));
+    // Con una nave a la vista, sus puntos pasan a ser opacos (`uSolid`): el estado del material lo sigue.
+    updateParticleMaterial(material, uniforms);
     if (!portraitWanted.current && frame.m >= PORTRAIT_LOAD_FROM_M) {
       portraitWanted.current = true;
       onPortraitWantedRef.current?.();

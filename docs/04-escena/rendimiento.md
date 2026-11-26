@@ -17,7 +17,8 @@
   estela en Bajo, `MAX_STEP_S` y la compilación del primer frame no entran en ella. Se vuelven a mirar si un móvil
   real o F4 (constelaciones, Sol) bajan de los presupuestos.
 - El código 3D va en un **chunk aparte** que se carga después de la primera pintura: el JS inicial de la interfaz no
-  incluye Three.js. Sin WebGL2 ni siquiera se descarga. Pesa ≤ 260 KB gzip desde F4.3 (ADR-032; antes, 250 KB;
+  incluye Three.js. Sin WebGL2 ni siquiera se descarga. Pesa ≤ 268 KB gzip desde el satélite de C.7 (ADR-041; desde F4.3,
+  260 KB, ADR-032; antes, 250 KB;
   `calidad.md` → «Presupuestos»); en F3.2, con el lienzo vacío y las formas pedidas, 241,6 KB; en F3.3, con las partículas, sus shaders y las estrellas,
   248,2 KB. Desde justo antes de F3.4 los shaders llegan sin comentarios (el plugin `cosmos:glsl-without-comments`
   de `vite.config.ts`, que conserva los saltos de línea para que la línea de un error siga siendo la del archivo):
@@ -59,8 +60,11 @@
   ADR-041) pesó 255 B, medido en Linux sobre su base en la rama (257 330 → 257 585 B; 10 B menos que la cifra anterior
   por los nombres con hash de los chunks); medido sobre `main` con él, 257 596 B, y la corrección de su auditoría (una
   rama por forma en `shape()`) pesó 25 B: **257 621 B**. La cara que sigue a su marco (ADR-042: la proyección que se
-  descentra, la gravedad que no toca la cara y el giro más corto) pesó 277 B: **257 898 B**. Quedan 2 102 B de margen;
-  el PR del satélite sube el límite (ADR-041). Los generadores no
+  descentra, la gravedad que no toca la cara y el giro más corto) pesó 277 B: **257 898 B**. **El satélite** (C.7 ·
+  naves, ADR-041: la posición en los tramos, la nave en el shader con sus piezas y sus banderas, su colocación, sus
+  puntos opacos y la paleta) pesó 5 094 B, medido en Linux: **262 992 B** (unos 3,0 KB de GLSL y 2,1 KB de JS; su tope
+  orientativo era de 3,5 KB, y Víctor acepta lo medido). El límite sube una sola vez a **268 000 B**: lo medido, ~3 KB
+  para la nave nodriza (las piezas comunes ya están pagadas: si pasa, se mira antes de seguir) y ~2 KB de margen. Los generadores no
   cuentan ahí: van en el worker (≤ 10 KB; con el retrato, 6 042 B) y, para el reintento, en su propio chunk (≤ 10 KB;
   el retrato no va en él). Las imágenes del retrato (~150 KB: 152 529 B sin metadatos) las pide el worker, no la página.
 
