@@ -16,13 +16,13 @@ import { JOURNEY_SEGMENTS } from '~/content/chapters';
 import type { SkillGroupId } from '~/content/types';
 import { lerp } from '~/lib/math/lerp/lerp';
 import { smoothstep } from '~/lib/math/smoothstep/smoothstep';
-import { arrivalShapeM } from '~/lib/scroll/arrival/arrival';
 import { journeyValue } from '~/lib/scroll/journeyPosition/journeyPosition';
 import {
   CHAPTER_SHAPES,
   createShapeMix,
   isShip,
   journeySteps,
+  SHAPE,
   SHAPE_TRACK,
   shapeMixAt,
   shapePosition,
@@ -33,7 +33,7 @@ import {
 import { NO_PLATE } from '../config/plateSlots/plateSlots';
 import { EARTH_GRAVITY, PORTRAIT_FADE_IN_S, SHIP_SOLID, SUN } from '../config/sceneConfig';
 import { createCameraPose, type CameraPose } from '../math/camera/camera';
-import { chapterPresence } from '../math/chapterPresence/chapterPresence';
+import { shapePresence } from '../math/chapterPresence/chapterPresence';
 import { createGravity, type Gravity } from '../math/gravity/gravity';
 import { createShipPose, shipPose } from '../math/shipPose/shipPose';
 import { createScenePointer, type ScenePointer } from '../pointer/pointer';
@@ -203,6 +203,12 @@ export interface SceneFrame {
    * `m`, sin naves.
    */
   j: number | null;
+  /**
+   * Las formas de este frame (`shapeMixOf`): las calcula el bucle una vez, después de `m` y `j`, y las leen las
+   * partículas, la cámara y lo atado a una forma (pins, placas, constelaciones, el Sol: `shapePresence`). El mismo
+   * objeto toda la visita.
+   */
+  readonly shapes: ShapeMix;
   /** Carga de la detonación (0–1), tal cual la deja el botón del hero en `sceneStore`. */
   charge: number;
   time: number;
@@ -264,6 +270,7 @@ export function createSceneFrame(): SceneFrame {
   return {
     m: 0,
     j: null,
+    shapes: createShapeMix(),
     charge: 0,
     time: 0,
     delta: 0,
@@ -297,6 +304,15 @@ export function motionOf(frame: Readonly<SceneFrame>): number {
 const JOURNEY_STEPS = journeySteps(JOURNEY_SEGMENTS);
 
 /**
+ * ¿Hay naves en este frame? Sin movimiento reducido (sus huecos miden 0) y con los tramos medidos (`frame.j`): las
+ * formas salen de la posición en los tramos. Si no, de `m`, sin naves, y el velo de los interludios tapa lo que va con
+ * la tortuga (los pins, el ciclo de placas).
+ */
+export function shipsInPlay(frame: Readonly<SceneFrame>): boolean {
+  return !frame.reducedMotion && frame.j !== null;
+}
+
+/**
  * Las formas de un frame por el mapa de formas (ADR-041): de la posición en los tramos (`frame.j`), con las naves
  * (`SHAPE_TRACK`). Con movimiento reducido no hay naves (los huecos de sus llegadas y salidas miden 0), y mientras la
  * página no ha medido los tramos no hay posición: entonces, de la `m` de la forma, una por capítulo
@@ -327,17 +343,12 @@ export function shipSolid(mix: Readonly<ShapeMix>): number {
   return isShip(mix.to) ? smoothstep(SHIP_SOLID.rise, 1, mix.t) : 0;
 }
 
-/** Las formas de este frame (un solo objeto para toda la visita: ADR-004). */
-const shapeMix = createShapeMix();
-/** Las de la cámara, que las mira antes que las partículas en el mismo frame (`shipPresence`). */
-const presenceMix = createShapeMix();
-
 /**
  * Cuánto está la nave en este frame (`shipWeight` de sus formas): la cámara funde con ello su paralaje, para que la
  * pantalla de la nave encaje con lo que se ve (`CameraRig`).
  */
 export function shipPresence(frame: Readonly<SceneFrame>): number {
-  return shipWeight(shapeMixOf(frame, presenceMix));
+  return shipWeight(frame.shapes);
 }
 
 /** Dónde va la nave en este frame y lo que se ve (un solo objeto cada uno: ADR-004). */
@@ -370,13 +381,13 @@ export function updateParticleUniforms(
   portrait = false,
 ): void {
   uniforms.uM.value = frame.m;
-  shapeMixOf(frame, shapeMix);
-  uniforms.uFrom.value = shapeMix.from;
-  uniforms.uTo.value = shapeMix.to;
-  uniforms.uT.value = shapeMix.t;
-  uniforms.uSolid.value = shipSolid(shapeMix);
+  const { shapes } = frame;
+  uniforms.uFrom.value = shapes.from;
+  uniforms.uTo.value = shapes.to;
+  uniforms.uT.value = shapes.t;
+  uniforms.uSolid.value = shipSolid(shapes);
   // La nave solo se coloca mientras está en la mezcla.
-  if (shipWeight(shapeMix) > 0 || isShip(shapeMix.to)) updateShipUniforms(uniforms, frame);
+  if (shipWeight(shapes) > 0 || isShip(shapes.to)) updateShipUniforms(uniforms, frame);
   uniforms.uPor.value = !portrait
     ? 0
     : frame.reducedMotion
@@ -390,8 +401,7 @@ export function updateParticleUniforms(
   uniforms.uMotion.value = motionOf(frame);
   uniforms.uExtras.value = frame.extras ? 1 : 0;
   uniforms.uGrav.value =
-    frame.gravity.strength *
-    lerp(1, EARTH_GRAVITY.scale, chapterPresence(arrivalShapeM(frame.m), EARTH_GRAVITY.chapter));
+    frame.gravity.strength * lerp(1, EARTH_GRAVITY.scale, shapePresence(frame.shapes, SHAPE.earth));
   uniforms.uMouse.value.set(frame.gravity.x, frame.gravity.y);
 }
 
@@ -409,7 +419,7 @@ export function updateStarUniforms(uniforms: StarUniforms, frame: Readonly<Scene
  */
 export function updateSunUniforms(uniforms: SunUniforms, frame: Readonly<SceneFrame>): void {
   uniforms.uOpacity.value = frame.painted
-    ? chapterPresence(arrivalShapeM(frame.m), SUN.chapter) * SUN.opacity
+    ? shapePresence(frame.shapes, SHAPE.earth) * SUN.opacity
     : 0;
   uniforms.uSize.value = frame.reducedMotion
     ? SUN.size

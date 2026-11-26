@@ -12,9 +12,9 @@
   de la prueba y lecciones del shader en `docs/02-experiencia/transiciones-naves.md` (manda la versión 8: se lee a
   pantalla completa). La prueba es el artefacto privado «Naves · prueba»; copia del código en el buzón (`naves/`, fuera de git). Su ADR es
   el ADR-041 (el mapa de formas, `uFrom`/`uTo`/`uT`, en su primer PR, sin cambio visible; el satélite, con la posición
-  en los tramos, en el segundo, que sube el límite de la escena a 268 KB). Queda la nave nodriza (~3 KB de tope) y la
-  coreografía de la página; mientras, la página es provisional: la transmisión tapa al satélite mientras llena la
-  vista. Víctor mira el satélite en Bajo en su móvil (y, si puede, en Safari).
+  en los tramos, en el segundo, que sube el límite de la escena a 268 KB; la nave nodriza en el tercero). Queda la
+  coreografía de la página; mientras, la página es provisional: la transmisión tapa a la nave mientras llena la vista.
+  Víctor mira las dos naves en Bajo en su móvil (y, si puede, en Safari).
   **Primer paso en marcha (desde S47):** la entrada
   del Crew file (ADR-039; prueba aprobada: artefacto privado «Crew file · entrada», copia en el buzón (`crew-entrada/`, fuera de git)).
   PR 1 hecho (#124: tramo de llegada, sección fija, saltos, escena) y su auditoría corregida (#126); PR 2 (la
@@ -175,9 +175,9 @@
   `npm run stills` en el mismo PR. Desde el cierre de F4, la parte de `scene/` de `STILLS_SOURCES` sale de la tabla
   única de la escena (`scripts/sceneModules.ts`: una carpeta nueva se clasifica allí y su test lo exige); fuera de
   `scene/`, la lista de `tests/stills/fingerprint.ts` sigue a mano (mirar los imports relativos de lo que se añada).
-- **Peso de la escena:** 262 992 B de 268 000 (ADR-032 y ADR-041 y sus notas; el satélite +5 094; medido commit a commit: tras S38 253 071,
+- **Peso de la escena:** ~266 400 B de 268 000 (ADR-032 y ADR-041 y sus notas; el satélite +5 094, la nave nodriza +3 405; medido commit a commit: tras S38 253 071,
   C.5 −2, C.6a +52, C.6b +967, su corrección +252, F4.4a +391, F4.4b +1 729, corrección de F4.4a +21, de F4.4b +149, F4.5 +444,
-  corrección de F4.5 +1, del cierre de F4 +52, C.7 PR 1 +185; 257 367 medidos en `main` sin cambios en la escena, los nombres con hash de los chunks; su corrección −27; el mapa de formas +255 en su rama y 257 596 medidos en `main` con él; su corrección +25; la cara que sigue a su marco +277), el satélite +5 094 (el límite sube a 268 000, ADR-041): **262 992 B**. Quedan 5 008 B: ~3 KB para la nave nodriza y ~2 KB de margen. Cada paso
+  corrección de F4.5 +1, del cierre de F4 +52, C.7 PR 1 +185; 257 367 medidos en `main` sin cambios en la escena, los nombres con hash de los chunks; su corrección −27; el mapa de formas +255 en su rama y 257 596 medidos en `main` con él; su corrección +25; la cara que sigue a su marco +277), el satélite +5 094 (el límite sube a 268 000, ADR-041): **262 992 B**; la nave nodriza +3 405: **~266 400 B**. Quedan ~1,6 KB de margen (la coreografía de la página no pesa en la escena). Cada paso
   apunta lo que pesó en `rendimiento.md`. Por paquete se mide con
   `npx source-map-explorer <chunk>.js --gzip --no-border-checks` sobre un build con `sourcemap: true` (sin commitear).
 - **Capturas con movimiento reducido (F3.6):** no vigilan lo que solo se ve en movimiento (oscilaciones, estela).

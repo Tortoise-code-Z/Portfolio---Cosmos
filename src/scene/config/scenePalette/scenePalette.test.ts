@@ -97,4 +97,8 @@ describe('the CSS pairs of the scene colours (styles/tokens.css)', () => {
   it('the satellite frames its screen in the amber of the Mission log channel', () => {
     expect(token('--color-channel-amber')).toBe(SCENE_PALETTE.satelliteChannel);
   });
+
+  it('the mothership frames its hangar in the blue of the Mission control channel', () => {
+    expect(token('--color-channel-blue')).toBe(SCENE_PALETTE.mothershipChannel);
+  });
 });

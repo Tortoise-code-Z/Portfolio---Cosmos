@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SHAPE } from '~/lib/scroll/shapeTrack/shapeTrack';
 
 import { PORTRAIT_FADE_IN_S } from '../config/sceneConfig';
-import { createSceneFrame } from '../sceneMaterials/sceneMaterials';
+import { createSceneFrame, shapeMixOf } from '../sceneMaterials/sceneMaterials';
 import { generateShapes } from '../shapes/generateShapes/generateShapes';
 import { PORTRAIT_LOAD_FROM_M } from '../shapes/shapeContract/shapeContract';
 import { useParticles, type ParticlesProps } from './Particles';
@@ -51,12 +51,14 @@ describe('useParticles', () => {
   it('fills the uniforms from the shared frame in every frame, not only the first', () => {
     const { result, frame } = renderParticles();
     frame.m = 2.5;
+    shapeMixOf(frame, frame.shapes);
     frame.time = 1.25;
     paintFrame();
     expect(result.current.material.uniforms.uM?.value).toBe(2.5);
     expect(result.current.material.uniforms.uT?.value).toBe(0.5);
     expect(result.current.material.uniforms.uTime?.value).toBe(1.25);
     frame.m = 3.5;
+    shapeMixOf(frame, frame.shapes);
     frame.time = 2;
     paintFrame();
     expect(result.current.material.uniforms.uM?.value).toBe(3.5);
@@ -94,11 +96,14 @@ describe('useParticles · the portrait', () => {
       initialProps: { shapes, frame, onFirstFrame: vi.fn(), onPortraitWanted },
     });
     frame.m = PORTRAIT_LOAD_FROM_M - 0.1;
+    shapeMixOf(frame, frame.shapes);
     paintFrame();
     expect(onPortraitWanted).not.toHaveBeenCalled();
     frame.m = PORTRAIT_LOAD_FROM_M;
+    shapeMixOf(frame, frame.shapes);
     paintFrame();
     frame.m = 4.5;
+    shapeMixOf(frame, frame.shapes);
     paintFrame();
     expect(onPortraitWanted).toHaveBeenCalledTimes(1);
   });

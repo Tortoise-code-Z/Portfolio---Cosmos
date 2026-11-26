@@ -85,6 +85,13 @@ el panel y las etiquetas, F4.3c); el bucle de la escena lo copia en cada frame a
 re-render, y las constelaciones lo leen de ahí, no del store (ADR-027). Las cifras viven en
 `CONSTELLATION_LOOK` (`scene/config/constellationLayout`) y las cuentas en `scene/math/constellations`.
 
+**Con las naves (C.7):** la presencia ya no se mide con `m` sino con el peso de su forma en la mezcla del frame
+(`shapePresence(SceneFrame.shapes, forma)`, en `math/chapterPresence`): la misma rampa sobre lo que pesa la forma (1
+quieta en ella, `1 − t` dejándola, `t` llegando a ella). Sin nave da exactamente lo mismo que con `m` (lo comprueba un
+test en toda la `m`); con nave, las constelaciones se encienden cuando el satélite se deshace en la galaxia, y los pins,
+las placas y su ciclo se apagan mientras la tortuga se convierte en la nave nodriza. Las formas las calcula el bucle
+una vez por frame (`SceneFrame.shapes`).
+
 Antes de que las partículas se pinten (`SceneFrame.painted`), nada: entrando por `/#skills` mientras llegan las
 formas, las estrellas, las líneas y sus etiquetas (vivas) flotarían sobre el vacío, como los pins y el Sol. No leen
 `SceneFrame.transmission`: van detrás del Mission log y entran en su cola; al saltar con el raíl al interludio, se
@@ -179,7 +186,9 @@ la parte superior del caparazón.
   desde el de abajo, sin histéresis: si el balanceo o el paralaje llevan dos etiquetas justo al umbral de choque, el
   tallo salta 30 px y vuelve (se acepta: es raro y lento; se mira en un móvil real, F6). Mientras se lee una
   transmisión (`SceneFrame.transmission`, que el bucle copia de `sceneStore.interlude`: un interludio, su pantalla o
-  su cola, no el epílogo; aquí cuenta Mission control, con la tortuga aún detrás de su velo), ninguno: sus etiquetas quedarían tras el texto. Tampoco antes de que las partículas
+  su cola, no el epílogo; aquí cuenta Mission control, con la tortuga aún detrás de su velo), ninguno: sus etiquetas quedarían tras el texto. Con naves
+  (`shipsInPlay`) esa regla no hace falta y no se aplica: los pins van con la tortuga, que se convierte en la nave
+  nodriza al llegar Mission control; sin naves (movimiento reducido), el velo los apaga como siempre. Tampoco antes de que las partículas
   se pinten (`SceneFrame.painted`): entrando por `/#projects`, mientras llegan las formas, flotarían sobre el vacío. Se escribe solo lo que cambia (`scene/labelWriter`, el
   mismo que usan las etiquetas): `transform`, opacidad (la presencia del capítulo 3), `visibility`, `data-hot` (su
   placa encendida: el proyecto señalado o el ciclo), `data-live` y el piso (`--_pin-floor`).
@@ -206,7 +215,8 @@ la parte superior del caparazón.
   proyectos), el ciclo se para y, al soltarlo, vuelve a contar desde cero en la placa en la que estaba; uno sin placa
   no enciende ninguna. Sin ciclo con movimiento reducido. Con la presencia del capítulo 3
   (`math/chapterPresence`, la misma rampa que la del 2) a 0,2 o menos, ninguna. Leyendo Mission control (con la
-  tortuga quieta y atenuada tras su velo, como los pins: `SceneFrame.transmission`), ninguna y el ciclo se queda quieto;
+  tortuga quieta y atenuada tras su velo, como los pins: `SceneFrame.transmission`; con naves, la tortuga ya no está),
+  ninguna y el ciclo se queda quieto;
   al volver a Projects, sigue desde cero en la placa en la que estaba. Las cifras viven en
   `PLATE_LOOK` (`config/plateSlots`) y la cuenta en `scene/math/plateCycle`; el bucle de `SceneRoot` la deja en
   `SceneFrame.plate` (leyendo `uiStore.activeProject` una vez por frame) y marca su envoltorio con el slug del proyecto (`data-plate`, para los e2e).

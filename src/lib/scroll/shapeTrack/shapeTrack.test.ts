@@ -33,10 +33,13 @@ describe('SHAPE_TRACK y CHAPTER_SHAPES', () => {
     }
   });
 
-  it('el viaje pasa por el satélite entre la nebulosa y la galaxia', () => {
-    const at = SHAPE_TRACK.indexOf(SHAPE.satellite);
-    expect(SHAPE_TRACK[at - 1]).toBe(SHAPE.nebula);
-    expect(SHAPE_TRACK[at + 1]).toBe(SHAPE.galaxy);
+  it('el viaje pasa por el satélite entre la nebulosa y la galaxia, y por la nave nodriza entre la tortuga y la Tierra', () => {
+    const satellite = SHAPE_TRACK.indexOf(SHAPE.satellite);
+    expect(SHAPE_TRACK[satellite - 1]).toBe(SHAPE.nebula);
+    expect(SHAPE_TRACK[satellite + 1]).toBe(SHAPE.galaxy);
+    const mothership = SHAPE_TRACK.indexOf(SHAPE.mothership);
+    expect(SHAPE_TRACK[mothership - 1]).toBe(SHAPE.turtle);
+    expect(SHAPE_TRACK[mothership + 1]).toBe(SHAPE.earth);
   });
 
   it('las formas de los capítulos son las del viaje sin naves', () => {
@@ -136,7 +139,7 @@ describe('las formas de los capítulos frente a la cuenta vieja del shader', () 
   );
 });
 
-/** Un viaje como el de `JOURNEY_SEGMENTS`: el Mission log con nave y el Mission control sin ella. */
+/** Un viaje como el de `JOURNEY_SEGMENTS`: el Mission log y Mission control, cada uno con su nave. */
 const SEGMENTS: readonly ShapeSegment[] = [
   { kind: 'chapter', base: 0, morphStart: 0 },
   { kind: 'chapter', base: 1, morphStart: null },
@@ -146,7 +149,9 @@ const SEGMENTS: readonly ShapeSegment[] = [
   { kind: 'interlude-tail', base: 1, morphStart: 0 },
   { kind: 'chapter', base: 2, morphStart: 0.52 },
   { kind: 'chapter', base: 3, morphStart: null },
+  { kind: 'interlude-arrival', base: 3, morphStart: null },
   { kind: 'interlude', base: 3, morphStart: null },
+  { kind: 'interlude-exit', base: 3, morphStart: null },
   { kind: 'interlude-tail', base: 3, morphStart: 0 },
   { kind: 'chapter', base: 4, morphStart: null },
   { kind: 'arrival', base: 4, morphStart: 0, linear: true },
@@ -164,7 +169,7 @@ describe('journeySteps', () => {
     expect(ship).toHaveLength(SEGMENTS.length);
   });
 
-  it('las formas: las de `m`, con el satélite entre medias y el retrato entero al final', () => {
+  it('las formas: las de `m`, con las dos naves entre medias y el retrato entero al final', () => {
     expect(shape).toEqual([
       { base: 0, morphStart: 0 },
       { base: 1, morphStart: null },
@@ -174,11 +179,13 @@ describe('journeySteps', () => {
       { base: 2, morphStart: 0 },
       { base: 3, morphStart: 0.52 },
       { base: 4, morphStart: null },
-      { base: 4, morphStart: null },
-      { base: 4, morphStart: 0 },
+      { base: 4, morphStart: 0, morphEnd: SHIP_ARRIVAL.formed, linear: true },
       { base: 5, morphStart: null },
-      { base: 5, morphStart: 0, morphEnd: EPILOGUE_ARRIVAL.morphEnd, linear: true },
+      { base: 5, morphStart: null },
+      { base: 5, morphStart: 0 },
       { base: 6, morphStart: null },
+      { base: 6, morphStart: 0, morphEnd: EPILOGUE_ARRIVAL.morphEnd, linear: true },
+      { base: 7, morphStart: null },
     ]);
   });
 
@@ -207,20 +214,29 @@ describe('journeySteps', () => {
     expect(trackMix(shapeAt(6, 0))).toEqual({ from: SHAPE.galaxy, to: SHAPE.turtle, t: 0 });
   });
 
-  it('el Mission control, sin nave: de la tortuga a la Tierra en su cola', () => {
-    expect(trackMix(shapeAt(8, 0.5))).toEqual({ from: SHAPE.turtle, to: SHAPE.earth, t: 0 });
-    expect(trackMix(shapeAt(9, 0.5))).toEqual({ from: SHAPE.turtle, to: SHAPE.earth, t: 0.5 });
+  it('Mission control: de la tortuga a la nave nodriza en la llegada, y de ella a la Tierra en la cola', () => {
+    expect(trackMix(shapeAt(8, 0))).toEqual({ from: SHAPE.turtle, to: SHAPE.mothership, t: 0 });
+    expect(trackMix(shapeAt(8, SHIP_ARRIVAL.formed / 2)).t).toBeCloseTo(0.5);
+    expect(trackMix(shapeAt(9, 0.5))).toEqual({ from: SHAPE.mothership, to: SHAPE.earth, t: 0 });
+    expect(trackMix(shapeAt(10, 0.5))).toEqual({ from: SHAPE.mothership, to: SHAPE.earth, t: 0 });
+    expect(trackMix(shapeAt(11, 0.5))).toEqual({
+      from: SHAPE.mothership,
+      to: SHAPE.earth,
+      t: 0.5,
+    });
+    expect(trackMix(shapeAt(12, 0))).toEqual({ from: SHAPE.earth, to: SHAPE.portrait, t: 0 });
   });
 
   it('en el epílogo, el retrato se forma en `morphEnd` y se queda entero', () => {
     const { morphEnd } = EPILOGUE_ARRIVAL;
     const portrait = { from: SHAPE.portrait, to: SHAPE.portrait, t: 0 };
-    expect(shapeAt(11, morphEnd / 2)).toBeCloseTo(5.5);
-    expect(trackMix(shapeAt(11, morphEnd))).toEqual(portrait);
-    expect(trackMix(shapeAt(12, 0.5))).toEqual(portrait);
+    expect(shapeAt(13, morphEnd / 2)).toBeCloseTo(6.5);
+    expect(trackMix(shapeAt(13, morphEnd))).toEqual(portrait);
+    expect(trackMix(shapeAt(14, 0.5))).toEqual(portrait);
   });
 
-  it('la nave: 0 → 1 en la llegada, 1 en la pantalla, 1 → 2 en la salida, 2 en la cola', () => {
+  it('la nave: 0 → 1 en la llegada, 1 en la pantalla, 1 → 2 en la salida, 2 en la cola (en los dos interludios)', () => {
+    expect(ship.slice(8, 12)).toEqual(ship.slice(2, 6));
     expect(ship.slice(2, 6)).toEqual([
       { base: 0, morphStart: 0, linear: true },
       { base: 1, morphStart: null },
@@ -239,7 +255,7 @@ describe('journeySteps', () => {
   });
 
   it('fuera de los interludios, la nave en 0', () => {
-    for (const index of [0, 1, 6, 7, 10, 11, 12]) {
+    for (const index of [0, 1, 6, 7, 12, 13, 14]) {
       expect(ship[index]).toEqual({ base: 0, morphStart: null });
     }
   });

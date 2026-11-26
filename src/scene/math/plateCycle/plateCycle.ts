@@ -1,5 +1,4 @@
 import { NO_PLATE, PLATE_LOOK } from '../../config/plateSlots/plateSlots';
-import { chapterPresence } from '../chapterPresence/chapterPresence';
 
 /**
  * Qué placa del caparazón se ilumina en cada frame (docs/04-escena/constelaciones-y-placas.md → «Resaltado»): la del
@@ -22,12 +21,12 @@ export function createPlateCycle(): PlateCycle {
 
 /** Lo que mira el paso de las placas en cada frame (un objeto que se reutiliza: cero objetos nuevos por frame). */
 export interface PlateStep {
-  /** La `m` de la escena (`SceneFrame.m`). */
-  m: number;
+  /** Cuánto está la tortuga (`shapePresence` de las formas del frame). */
+  presence: number;
   /** Segundos desde el frame anterior. */
   delta: number;
   reducedMotion: boolean;
-  /** Se lee un interludio (`SceneFrame.transmission`): ninguna placa y el ciclo, quieto. */
+  /** Tras el velo de un interludio (sin naves, `SceneFrame.transmission`): ninguna placa y el ciclo, quieto. */
   transmission: boolean;
   /** Hay un proyecto señalado (con placa o sin ella: más de 7 proyectos): el ciclo se para. */
   pointing: boolean;
@@ -37,7 +36,7 @@ export interface PlateStep {
 
 export function createPlateStep(): PlateStep {
   return {
-    m: 0,
+    presence: 0,
     delta: 0,
     reducedMotion: false,
     transmission: false,
@@ -51,8 +50,7 @@ export function createPlateStep(): PlateStep {
  * proyecto, en el orden de su asignación (`assignPlates`: el destacado primero).
  */
 export function stepPlates(cycle: PlateCycle, labels: readonly number[], step: PlateStep): number {
-  const near =
-    !step.transmission && chapterPresence(step.m, PLATE_LOOK.chapter) > PLATE_LOOK.litFrom;
+  const near = !step.transmission && step.presence > PLATE_LOOK.litFrom;
   const running = near && !step.reducedMotion && !step.pointing && labels.length > 0;
   if (!running) {
     cycle.elapsed = 0;

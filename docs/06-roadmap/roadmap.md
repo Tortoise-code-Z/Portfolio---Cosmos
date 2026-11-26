@@ -197,8 +197,9 @@ por paso, en este orden:
    (versión 8): `docs/02-experiencia/transiciones-naves.md`. Se construye en cuatro PR (ADR-041): el **mapa de formas**,
    sin ningún cambio visible (la escena recibe qué dos formas mezcla, `uFrom`/`uTo`/`uT`, en vez de sacarlas de `m`;
    ✔ #128; su auditoría corregida, ✔ #130); el **satélite** en el Mission log (con el tope de peso de la escena que mida;
-   rama `feat/scene-satellite`: la posición en los tramos, la nave en el shader, sus huecos y el límite a 268 KB); la **nave nodriza** en el
-   Mission control, y la **coreografía de la página** de las transmisiones (el marco encajado, la vista llena y la
+   ✔ #132: la posición en los tramos, la nave en el shader, sus huecos y el límite a 268 KB); la **nave nodriza** en el
+   Mission control (rama `feat/scene-mothership`: la nave y sus alienígenas, y lo atado a una forma que sigue su peso en
+   la mezcla), y la **coreografía de la página** de las transmisiones (el marco encajado, la vista llena y la
    salida con la pantalla).
    **Primer paso (sesión 47, antes de las naves): la entrada del Crew file** (prueba aprobada): la
    sección se queda fija mientras la Tierra se deshace en el retrato, el haz baja revelándola y el visor se cierra

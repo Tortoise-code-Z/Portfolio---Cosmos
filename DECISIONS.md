@@ -744,6 +744,9 @@
   que le quedaba y del orientativo de su paso (3,5 KB); Víctor acepta lo medido y **el límite sube a 268 000 B**: lo
   medido, ~3 KB para la nave nodriza (si pasa, se mira antes de seguir) y ~2 KB de margen. Esta cuenta sustituye a la
   anterior.
+- Nota (2026-11-26, C.7 · naves, la nave nodriza, ADR-041): pesó 3 405 B, medido en Linux: **~266 400 B**. Algo más de
+  su tope (~3 KB); Víctor acepta lo medido y el límite sigue en 268 000 B (quedan ~1,6 KB). Esta cuenta sustituye a la
+  anterior.
 - Detalle: `docs/05-tecnico/calidad.md` («Presupuestos»), `docs/04-escena/rendimiento.md` («Presupuesto»).
 
 ## ADR-033 · Los commits de solo documentación van directos a `main`
@@ -1129,6 +1132,13 @@
   **El epílogo quieto llega al retrato** (`uT` 0: una sola forma; el haz pesa con el retrato entero). **Peso:** el
   satélite pesó 5 094 B (262 992 B); Víctor acepta lo medido y el límite de la escena sube una vez a **268 000 B**, con
   ~3 KB para la nave nodriza y ~2 KB de margen (ADR-032).
+- Nota (2026-11-26, C.7 · naves, la nave nodriza): Mission control tiene sus huecos y `SHAPE_TRACK` pone la nave
+  nodriza entre la tortuga y la Tierra. Las formas de cada frame las calcula el bucle una vez (`SceneFrame.shapes`) y
+  **lo atado a una forma sigue su peso en la mezcla** (`shapePresence`: la rampa de siempre sobre lo que pesa la forma):
+  los pins, las placas y su ciclo, las constelaciones, el Sol y la gravedad de la Tierra. Sin naves da lo mismo que
+  con `m`; con ellas, nada queda suelto (los pins no flotan sobre la nave nodriza). El velo del interludio apaga los
+  pins y el ciclo solo sin naves (movimiento reducido). **Peso:** 3 405 B (~266 400 B), algo más de su tope de ~3 KB;
+  Víctor acepta lo medido y el límite no cambia.
 - Detalle: `docs/04-escena/particulas-y-shaders.md` → «Mapa de formas»; `docs/02-experiencia/transiciones-naves.md`.
 
 ## ADR-042 · La cara del Crew file sigue a su marco: la página lo mide y la escena descentra su proyección

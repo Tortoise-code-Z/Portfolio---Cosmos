@@ -26,7 +26,7 @@ import {
   type WritableLabel,
 } from '../labelWriter/labelWriter';
 import { createZoneCache, zonesFor, type ZoneCache } from '../math/labelFit/labelFit';
-import { chapterPresence } from '../math/chapterPresence/chapterPresence';
+import { shapePresence } from '../math/chapterPresence/chapterPresence';
 import {
   createPinBox,
   fitPins,
@@ -41,7 +41,8 @@ import {
   projectToScreen,
   type ScreenPoint,
 } from '../math/projection/projection';
-import { motionOf, type SceneFrame } from '../sceneMaterials/sceneMaterials';
+import { motionOf, shipsInPlay, type SceneFrame } from '../sceneMaterials/sceneMaterials';
+import { SHAPE } from '~/lib/scroll/shapeTrack/shapeTrack';
 import { SCENE_PLATES } from '../useSceneShapes/useSceneShapes';
 import styles from './PlatePins.module.css';
 
@@ -129,8 +130,9 @@ export function createPinWork(): PinWork {
  * en ella; el que choca sube un piso y, si no cabe en ninguno, se oculta (`fitPins`, de derecha a izquierda, contra
  * lo que tapa la interfaz y entre ellos). Se ven con la presencia del capítulo 3, reciben el puntero por encima de
  * `interactiveFrom` y se marcan (`data-hot`) con su placa encendida (`frame.plate`: el proyecto señalado o el
- * ciclo). Ninguno mientras se lee una transmisión (`frame.transmission`: Mission control, con la tortuga aún detrás de
- * su velo; sus etiquetas quedarían tras el texto) ni antes de que las partículas se pinten (`frame.painted`: entrando
+ * ciclo). Van con la tortuga (`shapePresence`: con naves, se apagan mientras se convierte en la nave nodriza). Sin naves
+ * (movimiento reducido), ninguno mientras se lee Mission control (`frame.transmission`: la tortuga sigue detrás de su
+ * velo; sus etiquetas quedarían tras el texto) ni antes de que las partículas se pinten (`frame.painted`: entrando
  * por `/#projects`, mientras llegan las formas, flotarían sobre el vacío). Solo se escribe lo que cambia.
  */
 export function stepPlatePins(
@@ -141,7 +143,9 @@ export function stepPlatePins(
   widths: PinWidths,
 ): void {
   const presence =
-    frame.transmission || !frame.painted ? 0 : chapterPresence(frame.m, PLATE_LOOK.chapter);
+    (frame.transmission && !shipsInPlay(frame)) || !frame.painted
+      ? 0
+      : shapePresence(frame.shapes, SHAPE.turtle);
   // Sin capítulo, y con los pins ya ocultos, nada que colocar.
   if (presence === 0 && !work.shown) return;
   work.shown = presence > 0;

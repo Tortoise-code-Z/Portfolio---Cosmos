@@ -6,7 +6,7 @@ import type { JourneyStep } from '../mapM/mapM';
  * El mapa de formas (ADR-041; docs/04-escena/particulas-y-shaders.md → «Mapa de formas»): la escena no deduce la forma
  * de `m`, sino que recibe qué dos formas mezcla y cuánto (`uFrom`, `uTo`, `uT`). Así puede pasar de una forma a
  * cualquier otra, no solo a la del capítulo siguiente: las naves de las transmisiones (C.7) entran entre la nebulosa y
- * la galaxia (el satélite) sin tocar `m`, que sigue para la cámara, el HUD, el raíl y las fotos fijas.
+ * la galaxia (el satélite) y entre la tortuga y la Tierra (la nave nodriza) sin tocar `m`, que sigue para la cámara, el HUD, el raíl y las fotos fijas.
  *
  * Esta carpeta la lee la escena (el shader, por su cabecera, y sus uniforms): entra en la huella de las fotos fijas.
  */
@@ -32,8 +32,9 @@ export type ShapeId = (typeof SHAPE)[keyof typeof SHAPE];
 export type ShapeTrack = readonly [ShapeId, ...ShapeId[]];
 
 /**
- * Las formas por las que pasa el viaje, en orden, con las naves de las transmisiones: la posición `s` en esta lista
- * sale de la posición en los tramos (`journeyValue` con `journeySteps(...).shape`). La nave nodriza aún no está.
+ * Las formas por las que pasa el viaje, en orden, con las naves de las transmisiones (el satélite entre la nebulosa y la
+ * galaxia, la nave nodriza entre la tortuga y la Tierra): la posición `s` en esta lista sale de la posición en los
+ * tramos (`journeyValue` con `journeySteps(...).shape`).
  */
 export const SHAPE_TRACK: ShapeTrack = [
   SHAPE.singularity,
@@ -41,6 +42,7 @@ export const SHAPE_TRACK: ShapeTrack = [
   SHAPE.satellite,
   SHAPE.galaxy,
   SHAPE.turtle,
+  SHAPE.mothership,
   SHAPE.earth,
   SHAPE.portrait,
 ];

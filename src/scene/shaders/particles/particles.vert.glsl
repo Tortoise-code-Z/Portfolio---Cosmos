@@ -84,6 +84,11 @@ bool isTag(float tag, float value) {
   return abs(tag - value) < 0.5;
 }
 
+// ¿Es una nave (de las que traen una transmisión)?
+bool isShip(float id) {
+  return isTag(id, SHAPE_SATELLITE) || isTag(id, SHAPE_MOTHERSHIP);
+}
+
 // ── Piezas de las naves (C.7 · naves: la prueba v8, docs/04-escena/formas.md → «Naves») ──────────────────────────
 // Paramétricas: cada partícula elige un punto de una pieza con sus números (aR.x y aR.w, y los que salen de ellos con
 // rx), sin datos nuevos. La nave se dibuja en sus unidades (la pantalla en z = 0, mirando a +z) y shape() la coloca.
@@ -356,6 +361,116 @@ void portrait(out vec3 P, out vec3 C, out float S, out float A) {
   }
 }
 
+// Una cápsula de A a B y radio r (miembros con volumen) y un punto de un elipsoide: los alienígenas.
+vec3 capsule(vec3 A, vec3 B, float r, float t, float an, out vec3 n) {
+  vec3 d = normalize(B - A);
+  vec3 u1 = normalize(abs(d.z) < 0.9 ? cross(d, vec3(0.0, 0.0, 1.0)) : cross(d, vec3(1.0, 0.0, 0.0)));
+  n = u1 * cos(an) + cross(d, u1) * sin(an);
+  return mix(A, B, t) + n * r;
+}
+
+vec3 ellipsoid(vec3 cen, vec3 rad, float a, float b, out vec3 d) {
+  float th = a * 2.0 * PI;
+  float ph = acos(b * 2.0 - 1.0);
+  d = vec3(sin(ph) * cos(th), cos(ph), sin(ph) * sin(th));
+  return cen + d * rad;
+}
+
+// Un alienígena de altura Ha, de pie en el origen y mirando a +z. «wave» mueve el brazo derecho (0: quieto). Con
+// «suit», en traje de astronauta: traje blanco con panel en el pecho, mochila, botas, el aro del casco y su reflejo, y
+// las antenas, que asoman por el casco. Cabeza y cuerpo ponen casi todos sus puntos en la mitad que mira a cámara.
+void alien(float Ha, float wave, bool suit, out vec3 q, out vec3 C) {
+  vec3 n = vec3(0.0, 0.0, 1.0);
+  float part = rx(21.0);
+  float a = rx(22.0);
+  float b = rx(23.0);
+  float c = rx(24.0);
+  float bodyW = suit ? 1.35 : 1.0;
+  float front = rx(25.0) < 0.82 ? 0.5 : 1.0;
+  vec3 suitC = COLOR_ALIEN_SUIT;
+  vec3 skin = COLOR_ALIEN_SKIN;
+  float sd = c < 0.5 ? -1.0 : 1.0;
+  if (part < 0.38) {
+    // Cabeza: ojos grandes rasgados con su borde claro y su brillo, y boca.
+    vec3 d;
+    q = ellipsoid(vec3(0.0, Ha * 0.8, 0.0), Ha * vec3(0.2, 0.25, 0.18), a * front, b, d);
+    float sx = abs(d.x);
+    vec2 ey = vec2((sx - 0.4) / 0.29, (d.y + 0.02 - (sx - 0.4) * 0.6) / 0.19);
+    float e2 = dot(ey, ey);
+    bool eye = d.z > 0.2 && e2 < 1.0;
+    vec2 g = ey - vec2(-0.3, 0.4);
+    C = eye && dot(g, g) < 0.09
+      ? COLOR_ALIEN_GLINT * 1.8
+      : eye
+        ? mix(COLOR_ALIEN_EYE, COLOR_ALIEN_EYE_DEEP, smoothstep(0.2, 1.0, e2))
+        : d.z > 0.2 && e2 < 1.45
+          ? COLOR_ALIEN_RIM
+          : d.z > 0.7 && abs(d.y + 0.48) < 0.05 && sx < 0.22 ? COLOR_ALIEN_MOUTH : skin * lit(d);
+  } else if (part < 0.56) {
+    // Cuerpo, o traje con su panel en el pecho.
+    vec3 d;
+    q = ellipsoid(vec3(0.0, Ha * 0.43, 0.0), Ha * vec3(0.13, 0.2, 0.11) * bodyW, a * front, b, d);
+    C = (suit
+      ? (d.z > 0.75 && abs(d.y) < 0.35
+        ? (fract(d.x * 6.0) < 0.5 ? COLOR_ALIEN_PANEL_RED : COLOR_ALIEN_PANEL_BLUE)
+        : suitC)
+      : skin * 0.9) * lit(d);
+  } else if (part < 0.68) {
+    // Piernas y pies (o botas).
+    float r = Ha * (suit ? 0.055 : 0.04);
+    if (a < 0.82) {
+      q = capsule(vec3(sd * Ha * 0.06, Ha * 0.3, 0.0), vec3(sd * Ha * 0.08, Ha * 0.04, 0.01), r, a / 0.82, b * 2.0 * PI, n);
+      C = (suit ? suitC : skin * 0.85) * lit(n);
+    } else {
+      q = ellipsoid(vec3(sd * Ha * 0.08, Ha * 0.03, Ha * 0.04), Ha * vec3(0.06, 0.035, 0.09), (a - 0.82) / 0.18, b, n);
+      C = (suit ? COLOR_MOTHERSHIP_DARK * 1.4 : skin * 0.7) * lit(n);
+    }
+  } else if (part < 0.84) {
+    // Brazos y manos de tres dedos; el derecho saluda.
+    vec3 sh = vec3(sd * Ha * 0.12 * bodyW, Ha * 0.56, 0.0);
+    vec3 dir = sd > 0.0 && wave != 0.0
+      ? normalize(vec3(sin(wave) * 0.9, cos(wave), 0.2))
+      : normalize(vec3(sd * 0.3, -0.95, 0.08));
+    vec3 hand = sh + dir * Ha * 0.3;
+    if (a < 0.8) {
+      q = capsule(sh, hand, Ha * (suit ? 0.045 : 0.03), a / 0.8, b * 2.0 * PI, n);
+      C = (suit ? suitC : skin * 0.85) * lit(n);
+    } else {
+      q = hand + normalize(dir + vec3((floor(b * 3.0) - 1.0) * 0.35, 0.0, 0.0)) * Ha * 0.07 * ((a - 0.8) / 0.2);
+      C = suit ? COLOR_MOTHERSHIP_DARK * 1.5 : skin;
+    }
+  } else if (part < 0.91) {
+    // Antenas con su bola encendida.
+    vec3 top = vec3(sd * Ha * 0.15, Ha * (suit ? 1.32 : 1.15), 0.0);
+    if (a < 0.75) {
+      q = capsule(vec3(sd * Ha * 0.06, Ha * 1.02, 0.0), top, Ha * 0.012, a / 0.75, b * 2.0 * PI, n);
+      C = skin * 0.8;
+    } else {
+      q = ellipsoid(top, vec3(Ha * 0.04), (a - 0.75) / 0.25, b, n);
+      C = COLOR_ALIEN_BULB * (0.7 + 0.8 * step(0.5, fract(uTime * 1.5 + sd * 0.25)));
+    }
+  } else if (suit) {
+    // Casco: el aro del cuello, el reflejo y la mochila.
+    if (part < 0.945) {
+      float an = a * 2.0 * PI;
+      q = vec3(cos(an) * Ha * 0.24, Ha * 0.6 + b * Ha * 0.04, sin(an) * Ha * 0.2);
+      C = COLOR_SATELLITE_SILVER * 0.9;
+    } else if (part < 0.975) {
+      float an = mix(0.5, 1.4, a);
+      q = vec3(0.0, Ha * 0.82, 0.0) + vec3(cos(an) * 0.6, sin(an) * 0.65, 0.48) * Ha * 0.34 + (b - 0.5) * vec3(0.0, 0.0, Ha * 0.02);
+      C = COLOR_ALIEN_GLINT * 1.5;
+    } else {
+      boxSurf(vec3(Ha * 0.12, Ha * 0.16, Ha * 0.06), a, b, c, q, n);
+      q += vec3(0.0, Ha * 0.48, -Ha * 0.2);
+      C = COLOR_SATELLITE_SILVER * 0.95 * lit(n);
+    }
+  } else {
+    // Sin traje: un ombligo luminoso, por si acaso.
+    q = ellipsoid(vec3(0.0, Ha * 0.4, Ha * 0.1), vec3(Ha * 0.015), a, b, n);
+    C = COLOR_ALIEN_RIM;
+  }
+}
+
 // Satélite (SHAPE_SATELLITE, el Mission log): bisel con tornillos y LEDs · cuerpo (aislante dorado, radiadores blancos
 // con aletas, frontal gris) con aristas · dos alas de tres paneles articulados (células con sus pistas, marcos, cara
 // trasera) sobre un yugo de celosía · dos reflectores laterales con brazo y bocina · antena superior · toberas ·
@@ -569,6 +684,193 @@ void satelliteParts(out vec3 P, out vec3 C) {
   P = sw(P);
 }
 
+// Nave nodriza (SHAPE_MOTHERSHIP, Mission control): la boca del hangar (la pantalla) con compuertas y franjas de luz ·
+// el hangar, con suelo de calles iluminadas, costillas, fondo y una lanzadera atracada · tres alienígenas (dos en el
+// hangar, el de delante saluda, y un astronauta sobre el casco, delante del puente) · el casco escalonado de planchas,
+// con aristas · dos brazos a los lados de la boca · la superestructura en tres niveles con ventanas, el puente y el
+// mástil · la quilla · góndolas con pilones y aletas · toberas acampanadas con brillo y estela · módulos en el lomo y
+// los costados · ventanas, balizas y focos. En Bajo (uExtras 0), sin módulos, ventanas ni balizas: al casco. Devuelve
+// en S lo fino de sus puntos (los alienígenas, más finos: de cerca se les lee la cara).
+void mothershipParts(out vec3 P, out vec3 C, out float S) {
+  vec2 h0 = uScreen * 0.5;
+  vec2 h = uVert < 0.5 ? h0 : h0.yx;
+  float u = aR.x;
+  float a = rx(31.0);
+  float b = rx(32.0);
+  float c = aR.w;
+  if (uExtras < 0.5 && ((u >= 0.84 && u < 0.858) || u >= 0.955)) u = 0.15 + 0.28 * rx(33.0);
+  vec3 n = vec3(0.0, 0.0, 1.0);
+  vec2 R = h * vec2(1.5, 1.32);
+  float Lz = h.x * 5.6;
+  vec3 steel = COLOR_MOTHERSHIP_STEEL;
+  vec3 dark = COLOR_MOTHERSHIP_DARK;
+  vec3 channel = COLOR_MOTHERSHIP_CHANNEL;
+  S = 0.5;
+  if (u < 0.07) {
+    // La boca: su borde, las compuertas a rayas y una franja de luz que corre.
+    if (c < 0.7) {
+      P = vec3(rectEdge(a, h0 + vec2(0.03 + 0.1 * b)), 0.06);
+      C = mix(channel, vec3(1.0), 0.45);
+    } else if (c < 0.85) {
+      vec2 e = rectEdge(a, h0 + vec2(0.16 + 0.12 * b));
+      P = vec3(e, 0.03);
+      C = (fract((e.x + e.y) * 3.0) < 0.5 ? COLOR_MOTHERSHIP_HAZARD : dark) * 0.9;
+    } else {
+      P = vec3(rectEdge(a, h0 + vec2(0.3)), 0.04);
+      C = channel * 1.3 * step(0.4, fract(a * 40.0 - uTime * 0.6));
+    }
+    return;
+  }
+  if (u < 0.15) {
+    // El hangar, detrás de la boca: suelo con calles de luz, costillas, fondo (tapa las toberas) y la lanzadera.
+    if (c < 0.38) {
+      P = vec3((a * 2.0 - 1.0) * h0.x * 0.96, -h0.y * 0.96, -b * h.x * 1.5);
+      C = fract(a * 8.0) < 0.06 || fract(b * 10.0 - uTime * 0.4) < 0.05 ? channel * 1.5 : dark * 0.5;
+    } else if (c < 0.56) {
+      P = vec3((a * 2.0 - 1.0) * h0.x * 0.96, h0.y * 0.96, -floor(b * 9.0) / 9.0 * h.x * 1.5);
+      C = steel * 0.5;
+    } else if (c < 0.86) {
+      P = vec3((a * 2.0 - 1.0) * h0.x * 0.97, (b * 2.0 - 1.0) * h0.y * 0.97, -h.x * 1.5);
+      C = fract(a * 6.0) < 0.04 ? channel * 0.5 : dark * 0.45;
+    } else {
+      vec3 e = vec3(h0.x * 0.18, h0.y * 0.1, h.x * 0.25);
+      boxSurf(e, a, b, rx(2.0), P, n);
+      if (rx(3.0) < 0.3) P = vec3((a * 2.0 - 1.0) * e.x * 2.6, 0.0, (b * 2.0 - 1.0) * e.z * 0.6);
+      P += vec3(-h0.x * 0.25, -h0.y * 0.96 + e.y + 0.02, -h.x * 0.6);
+      C = COLOR_SATELLITE_WHITE * 0.93 * lit(n);
+    }
+    return;
+  }
+  // El perfil del casco a lo largo de z (0 en la boca, 1 en popa): sube tras la boca y se estrecha hacia popa.
+  float z = b;
+  if ((u > 0.43 && u < 0.49) || (u > 0.858 && u < 0.955)) {
+    // Los alienígenas, con una sola llamada (menos código en cada rama, la lección de la v7).
+    bool astro = u > 0.925;
+    bool second = !astro && rx(20.0) < 0.4;
+    float wave = astro ? 0.9 + 0.5 * sin(uTime * 4.5) : (second ? 0.0 : 0.7 + 0.55 * sin(uTime * 6.0));
+    vec3 at = astro
+      ? (uVert < 0.5 ? vec3(-R.x * 0.35, R.y, -0.13 * Lz) : vec3(-R.y * 0.2, R.x, -0.13 * Lz))
+      : (second ? vec3(h0.x * 0.12, -h0.y * 0.96, -h.x * 0.55) : vec3(h0.x * 0.5, -h0.y * 0.96, -h.x * 0.22));
+    alien(astro ? h.y * 0.62 : h0.y * (second ? 0.5 : 0.66), wave, astro, P, C);
+    P = at + rotY(P, astro ? 0.5 : (second ? 0.35 : -0.25));
+    S = 0.25;
+    return;
+  }
+  if (u >= 0.84) {
+    // Módulos sobre el lomo y los costados, y cubiertas de ventanas, balizas y focos: a lo largo del casco.
+    vec2 cell = floor(vec2(a * 10.0, b * 16.0));
+    z = u < 0.96 ? 0.12 + cell.y / 16.0 * 0.8 : 0.08 + floor(a * 40.0) / 40.0 * 0.85;
+  }
+  float prof = mix(0.92, 1.12, smoothstep(0.0, 0.3, z)) * mix(1.0, 0.68, smoothstep(0.55, 1.0, z));
+  if (u < 0.49) {
+    // El casco, de planchas con sus costuras y escalones, con aristas.
+    float an = a * 2.0 * PI;
+    float ca = cos(an);
+    float sa = sin(an);
+    prof *= 1.0 + 0.06 * step(0.45, fract(z * 3.0));
+    P = vec3(vec2(sign(ca) * pow(abs(ca), 0.4), sign(sa) * pow(abs(sa), 0.4)) * R * prof, -z * Lz);
+    n = vec3(P.x / prof / R.x * R.y, P.y / prof / R.y * R.x * 1.3, 0.12);
+    C = steel * (0.68 + 0.5 * hash2(vec2(floor(z * 22.0), floor(a * 36.0)))) * lit(n);
+    if (fract(z * 22.0) < 0.06 || fract(a * 36.0) < 0.06) C *= 0.32;
+    if (rx(1.0) < 0.12) {
+      P.xy = vec2(sign(ca), sign(sa)) * R * prof * 0.97;
+      C = steel * 1.25;
+    }
+  } else if (u < 0.54) {
+    // Brazos que avanzan a los lados de la boca, afilándose.
+    vec3 e = vec3(R.x * 0.16, R.y * 0.32, Lz * 0.16);
+    boxSurf(e, a, b, rx(2.0), P, n);
+    if (rx(4.0) < 0.15) P = boxEdge(e, a, rx(5.0));
+    P.y *= 1.0 - 0.45 * smoothstep(-e.z, e.z, P.z);
+    P += vec3((c < 0.5 ? -1.0 : 1.0) * R.x * 0.95, 0.0, Lz * 0.02);
+    C = steel * lit(n) * (0.8 + 0.3 * hash2(floor(P.yz * 7.0)));
+  } else if (u < 0.62) {
+    // Superestructura en tres niveles, con ventanas (el puente), y el mástil.
+    float tier = floor(c * 3.0);
+    vec3 e = vec3(R.x * (0.42 - tier * 0.11), R.y * 0.1, Lz * (0.2 - tier * 0.05));
+    boxSurf(e, a, b, rx(2.0), P, n);
+    if (rx(4.0) < 0.12) P = boxEdge(e, a, rx(5.0));
+    P += vec3(0.0, R.y * 1.08 + e.y * (1.0 + tier * 2.0), -Lz * (0.55 + tier * 0.05));
+    C = abs(n.y) < 0.5 && fract(P.y * 14.0) < 0.35 && fract(P.x * 9.0 + P.z * 9.0) < 0.55
+      ? mix(channel, vec3(1.0), 0.6) * 1.4
+      : steel * lit(n);
+    if (tier > 1.5 && rx(6.0) < 0.25) {
+      P = vec3(0.0, R.y * 1.08 + e.y * 5.0 + a * R.y * 0.6, -Lz * 0.68);
+      C = COLOR_SATELLITE_SILVER;
+    }
+  } else if (u < 0.66) {
+    // La quilla.
+    vec3 e = vec3(R.x * 0.18, R.y * 0.12, Lz * 0.32);
+    boxSurf(e, a, b, c, P, n);
+    P += vec3(0.0, -R.y * 1.02 - e.y, -Lz * 0.5);
+    C = dark * 1.4 * lit(n);
+  } else if (u < 0.74) {
+    // Góndolas, pilones y aletas.
+    float side = c < 0.5 ? -1.0 : 1.0;
+    float r = R.y * 0.3;
+    float part = rx(1.0);
+    if (part < 0.62) {
+      frustum(r * 0.85, r, -0.4 * Lz, -Lz, a, b, P, n);
+      if (fract(b * 9.0) < 0.1) P.xy *= 1.1;
+      P += vec3(side * R.x * 1.62, -R.y * 0.3, 0.0);
+      C = steel * lit(n);
+    } else if (part < 0.82) {
+      P = vec3(side * mix(R.x * 0.85, R.x * 1.5, a), -R.y * 0.3, -mix(0.5, 0.85, b) * Lz);
+      C = steel * 0.85 * lit(vec3(0.0, 1.0, 0.0));
+    } else {
+      P = vec3(side * R.x * 1.62, -R.y * 0.3 + r + a * r * 1.4 * (1.0 - b), -mix(0.75, 1.0, b) * Lz);
+      C = steel * lit(vec3(side, 0.0, 0.0));
+    }
+  } else if (u < 0.84) {
+    // Toberas acampanadas, con brillo y estela (más tenues de frente: no brillan a través del casco).
+    float k = floor(c * 5.0);
+    vec3 at = k < 3.0
+      ? vec3((k - 1.0) * R.x * 0.42, -R.y * 0.02, -Lz)
+      : vec3((k < 4.0 ? -1.0 : 1.0) * R.x * 1.62, -R.y * 0.3, -Lz);
+    float r = R.y * (k < 3.0 ? 0.26 : 0.22);
+    float part = rx(1.0);
+    float glow = 0.25 + 0.75 * smoothstep(0.05, 0.6, uShipTurn.x);
+    float an = a * 2.0 * PI;
+    float t = rx(2.0);
+    if (part < 0.5) {
+      frustum(r * 0.7, r, 0.0, -r * 0.9, a, b, P, n);
+      C = dark * 1.3 * lit(n);
+    } else if (part < 0.75) {
+      P = vec3(cos(an), sin(an), 0.0) * r * 0.9 * sqrt(b) + vec3(0.0, 0.0, -r * 0.5);
+      C = mix(COLOR_MOTHERSHIP_FLAME, COLOR_MOTHERSHIP_FLAME_COLD, b) * 1.5 * glow;
+    } else {
+      P = vec3(cos(an), sin(an), 0.0) * r * 0.8 * (1.0 - t) * sqrt(b) + vec3(0.0, 0.0, -r - t * Lz * 0.6);
+      C = COLOR_MOTHERSHIP_TRAIL * (1.0 - t) * glow;
+    }
+    P += at;
+  } else if (u < 0.96) {
+    // Módulos sobre el lomo (o un costado), en su celda.
+    vec2 cell = floor(vec2(a * 10.0, b * 16.0));
+    float hh = hash2(cell);
+    vec3 e = vec3(R.x * 0.035 * (1.0 + hh), R.y * 0.03 * (1.0 + 3.0 * hash2(cell + 7.0)), Lz * 0.012 * (1.0 + 2.0 * hash2(cell + 3.0)));
+    boxSurf(e, rx(8.0), rx(9.0), c, P, n);
+    if (rx(10.0) < 0.6) {
+      P += vec3((cell.x / 10.0 * 2.0 - 0.9) * R.x * prof * 0.75, R.y * prof + e.y, -z * Lz);
+    } else {
+      float side = rx(11.0) < 0.5 ? -1.0 : 1.0;
+      P = P.yxz + vec3(side * (R.x * prof + e.y), (cell.x / 10.0 * 2.0 - 1.0) * R.y * prof * 0.6, -z * Lz);
+      n = vec3(side, 0.0, 0.0);
+    }
+    C = mix(steel, dark * 1.6, step(0.6, hh)) * lit(n);
+  } else {
+    // Cubiertas de ventanas a los lados y, en popa, balizas que parpadean (roja y verde).
+    float side = c < 0.5 ? -1.0 : 1.0;
+    float deck = floor(b * 4.0);
+    P = vec3(side * R.x * prof * 1.01, (deck - 1.5) * R.y * 0.22, -z * Lz);
+    C = COLOR_MOTHERSHIP_WINDOW * (hash2(vec2(floor(a * 40.0), deck + side)) < 0.7 ? 1.3 : 0.15);
+    if (rx(3.0) < 0.08) {
+      P = vec3(side * R.x * 1.62, R.y * 0.45, -Lz);
+      C = (side < 0.0 ? COLOR_MOTHERSHIP_BEACON : COLOR_SATELLITE_LED) * 2.0 * step(0.5, fract(uTime * 0.8));
+    }
+  }
+  P = sw(P);
+}
+
 // Una nave, de sus unidades a la escena (scene/math/shipPose): girada, meciéndose un poco, a su tamaño y en su sitio.
 vec3 placeShip(vec3 p) {
   return uShipPos + uShipAxes * (rotX(rotY(p, uShipTurn.x + sin(uTime * SHIP_SWAY_RATE) * SHIP_SWAY), uShipTurn.y) * uShipScale);
@@ -581,8 +883,13 @@ void satellite(out vec3 P, out vec3 C, out float S, out float A) {
   A = 0.6;
 }
 
-// La forma de id `id` (SHAPE_*): una rama por forma del viaje. La nave nodriza (SHAPE_MOTHERSHIP) aún no está en él.
-// Un id sin rama no pinta nada (tamaño y alfa 0): no se disfraza de otra forma.
+void mothership(out vec3 P, out vec3 C, out float S, out float A) {
+  mothershipParts(P, C, S);
+  P = placeShip(P);
+  A = 0.6;
+}
+
+// La forma de id `id` (SHAPE_*): una rama por forma del viaje. Un id sin rama no pinta nada (tamaño y alfa 0): no se disfraza de otra forma.
 void shape(float id, out vec3 P, out vec3 C, out float S, out float A) {
   if (isTag(id, SHAPE_SINGULARITY)) singularity(P, C, S, A);
   else if (isTag(id, SHAPE_NEBULA)) nebula(P, C, S, A);
@@ -591,6 +898,7 @@ void shape(float id, out vec3 P, out vec3 C, out float S, out float A) {
   else if (isTag(id, SHAPE_EARTH)) earth(P, C, S, A);
   else if (isTag(id, SHAPE_PORTRAIT)) portrait(P, C, S, A);
   else if (isTag(id, SHAPE_SATELLITE)) satellite(P, C, S, A);
+  else if (isTag(id, SHAPE_MOTHERSHIP)) mothership(P, C, S, A);
   else {
     P = vec3(0.0);
     C = P;
@@ -647,7 +955,7 @@ void main() {
   vec2 d = gl_Position.xy / gl_Position.w - uMouse;
   d.x *= uAspect;
   // Sobre la nave, tampoco: su pantalla encaja con lo que se ve (C.7 · naves). Lo que la partícula ya es nave.
-  float shipWeight = (isTag(uFrom, SHAPE_SATELLITE) ? 1.0 - tt : 0.0) + (isTag(uTo, SHAPE_SATELLITE) ? tt : 0.0);
+  float shipWeight = (isShip(uFrom) ? 1.0 - tt : 0.0) + (isShip(uTo) ? tt : 0.0);
   float f = exp(-dot(d, d) * GRAV_FALLOFF) * uGrav * max(1.0 - portraitWeight - shipWeight, 0.0);
   vec2 off = (vec2(-d.y, d.x) * GRAV_SWIRL + d * GRAV_RADIAL) * f * GRAV_REACH;
   off.x /= uAspect;

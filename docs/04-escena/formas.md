@@ -139,10 +139,20 @@ nodriza. Se dibujan en sus unidades, con la pantalla en `z = 0` mirando a +z y l
   de celosía; dos reflectores laterales con brazo y bocina; la antena de arriba; la tobera principal y cuatro de
   control; sensores estelares; antenas de varilla; y dos guiños: la bandera de España en su mástil, ondeando, y la de
   Irlanda, que cruza por detrás de borde a borde de lo que se ve (cada 13 s; `uFlagSpan`).
-- **En Bajo** (`uExtras` 0) no hay piezas pequeñas (tornillos, LEDs, sensores): sus partículas van al cuerpo. Las
-  banderas se quedan en todos los niveles. Las naves usan las partículas del nivel (60 000 / 36 000 / 20 000).
-- Los colores, en la paleta (`satellite*`, `flag*`); el ámbar del bisel es `--color-channel-amber` (lo comprueba el
-  test de la paleta).
+- **Nave nodriza** (`SHAPE_MOTHERSHIP`, Mission control): la boca del hangar (la pantalla) con compuertas a rayas y
+  una franja de luz que corre; el hangar, con suelo de calles iluminadas, costillas, fondo (tapa las toberas) y una
+  lanzadera atracada; el casco escalonado de planchas (una superelipse a lo largo de z) con aristas; dos brazos a los
+  lados de la boca; la superestructura en tres niveles con ventanas, el puente y el mástil; la quilla; góndolas con
+  pilones y aletas; toberas acampanadas con brillo y estela (más tenues de frente); módulos en el lomo y los costados;
+  cubiertas de ventanas y balizas. Y tres alienígenas con una sola llamada a `alien()` (la lección de la v7): dos en
+  el hangar (el de delante saluda) y uno en traje de astronauta sobre el casco, saludando, con puntos más finos
+  (`S` 0,25) para que de cerca se les lea la cara.
+- **En Bajo** (`uExtras` 0) no hay piezas pequeñas (en el satélite, tornillos, LEDs y sensores; en la nave nodriza,
+  módulos, ventanas y balizas): sus partículas van al cuerpo o al casco. Las banderas y los alienígenas se quedan en
+  todos los niveles. Las naves usan las partículas del nivel (60 000 / 36 000 / 20 000).
+- Los colores, en la paleta (`satellite*`, `flag*`, `mothership*`, `alien*`); el ámbar del bisel del satélite es
+  `--color-channel-amber` y el azul de la boca de la nave nodriza, `--color-channel-blue` (lo comprueba el test de la
+  paleta).
 
 ## Contrato y tests
 

@@ -135,7 +135,11 @@ describe('glslHeader', () => {
       'float f = exp(-dot(d, d) * GRAV_FALLOFF) * uGrav * max(1.0 - portraitWeight - shipWeight, 0.0);',
     );
     expect(particlesCode).toContain(
-      'float shipWeight = (isTag(uFrom, SHAPE_SATELLITE) ? 1.0 - tt : 0.0) + (isTag(uTo, SHAPE_SATELLITE) ? tt : 0.0);',
+      'float shipWeight = (isShip(uFrom) ? 1.0 - tt : 0.0) + (isShip(uTo) ? tt : 0.0);',
+    );
+    // Las dos naves, por su nombre.
+    expect(particlesCode).toContain(
+      'return isTag(id, SHAPE_SATELLITE) || isTag(id, SHAPE_MOTHERSHIP);',
     );
   });
 
@@ -196,7 +200,8 @@ describe('glslHeader', () => {
 
   it('no pow() whose base can be negative (undefined in GLSL ES): only the bases known to be ≥ 0', () => {
     // Una base que puede ser negativa se escribe como producto (`exp(-q * q)`): particulas-y-shaders.md.
-    const allowed = ['pow(rim,', 'pow(2.0,', 'pow(1.0 - d * 2.0,'];
+    // El valor absoluto, también: el casco de la nave nodriza (una superelipse).
+    const allowed = ['pow(rim,', 'pow(2.0,', 'pow(1.0 - d * 2.0,', 'pow(abs(ca),', 'pow(abs(sa),'];
     for (const [name, source] of Object.entries(SHADERS)) {
       const calls = [...source.matchAll(/\bpow\([^,]*,/g)].map(([call]) => call);
       expect(

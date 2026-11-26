@@ -71,6 +71,31 @@ export const SCENE_PALETTE = {
   flagSpainCrown: '#f2b326',
   flagSpainShield: '#b31a1f',
   flagSpainShieldGold: '#f2cc4d',
+  // Nave nodriza (C.7 · naves, la prueba v8): el azul del canal de Mission control (`--color-channel-blue`) en la boca
+  // del hangar, el acero del casco y su gris oscuro, las bandas de las compuertas, el brillo de las toberas (cálido y
+  // frío) y su estela, la luz de las ventanas y la baliza roja (la verde es la del LED del satélite)
+  mothershipChannel: '#7cc4ff',
+  mothershipSteel: '#99a6ba',
+  mothershipDark: '#525966',
+  mothershipHazard: '#f2bf33',
+  mothershipFlame: '#ffb359',
+  mothershipFlameCold: '#b3d9ff',
+  mothershipTrail: '#8cb8ff',
+  mothershipWindow: '#ffe6b3',
+  mothershipBeacon: '#ff2626',
+  // Los alienígenas (un guiño): la piel, el traje del astronauta, los ojos (fondo y brillo), su borde, la boca, el panel
+  // del pecho y la bola de las antenas
+  alienSkin: '#52f266',
+  alienSuit: '#ebedf5',
+  alienEye: '#05080f',
+  alienEyeDeep: '#14293a',
+  alienRim: '#a6ff99',
+  alienMouth: '#082e0f',
+  alienPanelRed: '#e63333',
+  alienPanelBlue: '#3399ff',
+  alienBulb: '#ffe64d',
+  // El brillo de los ojos y el reflejo del casco del astronauta (blanco, pasado de 1: brilla)
+  alienGlint: '#ffffff',
   // Estrellas de fondo
   starCold: '#bfd1ff',
   starWarm: '#ffd9a6',

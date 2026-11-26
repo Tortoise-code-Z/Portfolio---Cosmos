@@ -117,9 +117,10 @@ void main() {
 La escena no deduce la forma de `m`: recibe qué dos formas mezcla y cuánto (`uFrom`, `uTo`, `uT`). Las calcula
 `lib/scroll/shapeTrack`, en `updateParticleUniforms`, sin objetos nuevos por frame:
 - **`SHAPE`:** un id fijo por forma: 0 singularidad · 1 nebulosa · 2 galaxia · 3 tortuga · 4 Tierra · 5 satélite ·
-  6 nave nodriza · 7 retrato. La nave nodriza aún no se pinta.
+  6 nave nodriza · 7 retrato.
 - **`SHAPE_TRACK`:** las formas por las que pasa el viaje, en orden, con las naves: singularidad, nebulosa, satélite,
-  galaxia, tortuga, Tierra, retrato. La posición `s` en esta lista sale de la **posición en los tramos**
+  galaxia, tortuga, nave nodriza, Tierra, retrato. Las formas las calcula el bucle una vez por frame
+  (`SceneFrame.shapes`, `shapeMixOf`) y las leen las partículas, la cámara y lo atado a una forma (`shapePresence`). La posición `s` en esta lista sale de la **posición en los tramos**
   (`journeyValue` con los pasos de forma de `journeySteps`: scroll-y-escena.md → «Posición en los tramos»).
 - **`CHAPTER_SHAPES`:** una forma por capítulo (y por pose de la cámara), sin naves. Con movimiento reducido (sin
   naves) y mientras la página no ha medido los tramos, `s` sale de `m` en esta lista (`shapePosition`: la de la forma
@@ -186,7 +187,8 @@ peso que el haz). Por partícula: en la llegada se apaga a la vez que la cara se
 El giro de la cara con el ratón no es gravedad (lo da `uGrav` como intensidad del ratón dentro) y se queda.
 
 **Sobre las naves, tampoco (C.7):** con la misma cuenta, `f · max(1 − portraitWeight − shipWeight, 0)`, con
-`shipWeight` lo que la partícula ya es nave (`tt` llegando a ella, `1 − tt` dejándola): su pantalla encaja con lo que
+`shipWeight` lo que la partícula ya es nave (`isShip`: el satélite o la nave nodriza; `tt` llegando a ella, `1 − tt`
+dejándola): su pantalla encaja con lo que
 se ve (`Naves`, arriba).
 
 ### Colores
